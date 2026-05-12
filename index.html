@@ -10,597 +10,496 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0c0c0e;
-  --p1:#17171a;
-  --p2:#202025;
-  --p3:#2a2a30;
-  --border:#333340;
-  --text:#f2f2f5;
-  --dim:#8888a0;
-  --dim2:#555568;
-  --amber:#f5a623;
-  --amber-lt:#ffd280;
-  --amber-bg:#1e1600;
-  --amber-bd:#4a3800;
-  --blue:#4db8ff;
-  --blue-lt:#99d6ff;
-  --blue-bg:#001a2e;
-  --blue-bd:#003a60;
-  --green:#3dd68c;
-  --red:#ff6b6b;
-  --purple:#b088f9;
-  --purple-bg:#160f2a;
-  --purple-bd:#3d2880;
+  --bg:#0c0c0e;--p1:#17171a;--p2:#202025;--p3:#2a2a30;--border:#333340;
+  --text:#f2f2f5;--dim:#8888a0;
+  --amber:#f5a623;--amber-lt:#ffd280;--amber-bg:#1e1600;--amber-bd:#4a3800;
+  --blue:#4db8ff;--blue-bg:#001a2e;--blue-bd:#003a60;
+  --green:#3dd68c;--green-bg:#001a0e;--green-bd:#005530;
+  --red:#ff6b6b;--red-bg:#1a0000;--red-bd:#550000;
+  --purple:#b088f9;--purple-bg:#160f2a;--purple-bd:#3d2880;
 }
 html,body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;font-size:13px;-webkit-font-smoothing:antialiased;min-height:100vh}
 button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;border:none;outline:none}
 input{outline:none;-webkit-appearance:none;appearance:none;-moz-appearance:textfield;font-family:inherit}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-
-.app{max-width:480px;margin:0 auto;padding:10px 10px 56px}
-
-/* ── TABS ── */
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:10px}
-.tab{background:transparent;color:var(--dim);padding:13px 8px;border-radius:9px;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;transition:all .15s}
+.app{max-width:480px;margin:0 auto;padding:10px 10px 60px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:10px}
+.tab{background:transparent;color:var(--dim);padding:11px 4px;border-radius:9px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-align:center}
 .tab.on{background:var(--amber);color:#000}
 .pane{display:none}.pane.on{display:block}
-
-/* ── SECTION ── */
+.price-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.price-card{background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;cursor:pointer}
+.price-card.spy{border-color:var(--purple-bd)}.price-card.qqq{border-color:var(--amber-bd)}.price-card.tqqq{border-color:var(--blue-bd)}
+.pc-ticker{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.pc-ticker.spy{color:var(--purple)}.pc-ticker.qqq{color:var(--amber)}.pc-ticker.tqqq{color:var(--blue)}
+.pc-price{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pc-chg{font-size:9px}
+.loading{animation:pulse 1.2s infinite;color:var(--dim)}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 .sec{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
 .sec-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.2em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sec-lbl::before{content:'';width:4px;height:4px;background:var(--amber);border-radius:50%;flex-shrink:0}
-
-/* ── TICKER PILLS ── */
 .ticker-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
-.tk{background:var(--p2);border:2px solid var(--border);color:var(--dim);padding:11px 4px;border-radius:9px;font-size:13px;font-weight:700;letter-spacing:.05em;text-align:center}
+.tk{background:var(--p2);border:2px solid var(--border);color:var(--dim);padding:11px 4px;border-radius:9px;font-size:13px;font-weight:700;text-align:center}
 .tk.spy.on{background:var(--purple-bg);color:var(--purple);border-color:var(--purple)}
 .tk.qqq.on{background:var(--amber-bg);color:var(--amber);border-color:var(--amber)}
 .tk.tqqq.on{background:var(--blue-bg);color:var(--blue);border-color:var(--blue)}
-
-/* ── INPUT GRID ── */
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field-full{grid-column:1/-1}
-.flbl{font-size:10px;color:var(--dim);padding-left:2px;letter-spacing:.04em}
+.flbl{font-size:10px;color:var(--dim);padding-left:2px}
 .field input{background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:17px;font-weight:700;padding:10px 12px;border-radius:9px;width:100%}
 .field input:focus{border-color:var(--amber);background:var(--p3)}
-.field.hi input{color:var(--amber)}
-.field.blue input{color:var(--blue)}
-.field.green input{color:var(--green)}
-
-/* ── INFO STRIP ── */
-.info-strip{background:var(--p2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:10px;color:var(--dim);margin-top:8px;line-height:1.5}
+.field.hi input{color:var(--amber)}.field.blue input{color:var(--blue)}.field.green input{color:var(--green)}
+.info-strip{background:var(--p2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:10px;color:var(--dim);margin-top:8px;line-height:1.6}
 .info-strip b{color:var(--text)}
-
-/* ── DAY SELECTOR ── */
 .day-wrap{margin-bottom:10px}
 .day-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .day-top-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.18em;display:flex;align-items:center;gap:6px}
 .day-top-lbl::before{content:'';width:4px;height:4px;background:var(--amber);border-radius:50%}
-.day-current{font-size:13px;font-weight:700;color:var(--amber)}
-.day-current small{font-size:9px;color:var(--dim);font-weight:400;margin-left:4px}
+.day-cur{font-size:13px;font-weight:700;color:var(--amber)}
+.day-cur small{font-size:9px;color:var(--dim);font-weight:400;margin-left:4px}
 .day-btns{display:flex;gap:5px;flex-wrap:wrap}
 .day-btn{background:var(--p2);border:1.5px solid var(--border);color:var(--dim);padding:8px 10px;border-radius:7px;font-size:11px;font-weight:700;min-width:38px;text-align:center}
 .day-btn.on{background:var(--amber-bg);color:var(--amber);border-color:var(--amber)}
-.day-btn.exp-btn{border-style:dashed}
-.day-btn.exp-btn.on{background:#160a00;color:var(--amber-lt);border-color:var(--amber)}
-
-/* ── RESULTS CARD ── */
-.result-card{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
-.result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
-.result-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.2em;margin-bottom:6px}
-.result-pnl{font-size:46px;font-weight:700;line-height:1;letter-spacing:-.02em;margin-bottom:4px}
-.result-pnl.pos{color:var(--green)}.result-pnl.neg{color:var(--red)}.result-pnl.zero{color:var(--dim)}
-.result-ret{font-size:13px;color:var(--dim);margin-bottom:14px}
-.result-ret b{font-weight:700}
-.result-ret b.pos{color:var(--green)}.result-ret b.neg{color:var(--red)}
+.day-btn.xbtn{border-style:dashed}
+.day-btn.xbtn.on{background:#160a00;color:var(--amber-lt);border-color:var(--amber)}
+.rc{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.rc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.rc-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.2em;margin-bottom:6px}
+.rc-pnl{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em;margin-bottom:4px}
+.rc-pnl.pos{color:var(--green)}.rc-pnl.neg{color:var(--red)}.rc-pnl.zero{color:var(--dim)}
+.rc-ret{font-size:13px;color:var(--dim);margin-bottom:14px}
+.rc-ret b.pos{color:var(--green)}.rc-ret b.neg{color:var(--red)}.rc-ret b.neu{color:var(--dim)}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:12px;border-top:1px solid var(--border)}
 .dbox{background:var(--p2);padding:9px 10px;border-radius:8px}
 .dbox-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px}
 .dbox-val{font-size:13px;font-weight:700;color:var(--text)}
-
-/* ── CONTRACTS BANNER ── */
-.contracts-banner{background:var(--p2);border:1.5px solid var(--amber-bd);border-radius:9px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.cb-left{font-size:10px;color:var(--dim)}
-.cb-left b{display:block;font-size:16px;color:var(--amber);font-weight:700;margin-top:2px}
-.cb-right{text-align:right;font-size:10px;color:var(--dim)}
-.cb-right b{display:block;font-size:16px;font-weight:700;margin-top:2px}
-.cb-right b.pos{color:var(--green)}.cb-right b.neg{color:var(--red)}
-
-/* ── HOLD TABLE ── */
+.cb{background:var(--p2);border:1.5px solid var(--amber-bd);border-radius:9px;padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cb-item{display:flex;flex-direction:column;gap:2px}
+.cb-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+.cb-val{font-size:15px;font-weight:700}
+.cb-val.amber{color:var(--amber)}.cb-val.pos{color:var(--green)}.cb-val.neg{color:var(--red)}
 .htbl{background:var(--p1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
-.htbl-hd{display:grid;grid-template-columns:.6fr 1fr 1fr 1fr;padding:8px 10px;background:var(--p2);font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+.htbl-hd{display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;padding:8px 10px;background:var(--p2);font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
 .htbl-hd span:nth-child(n+2){text-align:right}
-.hrow{display:grid;grid-template-columns:.6fr 1fr 1fr 1fr;padding:9px 10px;border-top:1px solid var(--border);font-size:12px;align-items:center}
+.hrow{display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;padding:9px 10px;border-top:1px solid var(--border);font-size:12px;align-items:center}
 .hrow span:nth-child(n+2){text-align:right;font-weight:600}
 .hrow .dc{color:var(--dim)}
-.hrow.hl{background:rgba(245,166,35,.07)}
-.hrow.hl .dc{color:var(--amber);font-weight:700}
+.hrow.hl{background:rgba(245,166,35,.07)}.hrow.hl .dc{color:var(--amber);font-weight:700}
+.hrow.cur{background:rgba(61,214,140,.05)}.hrow.cur .dc{color:var(--green);font-weight:700}
 .pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--dim)}
-
-/* ── COMPARISON TABLE ── */
+.reccard{background:var(--p1);border:2px solid var(--amber);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.reccard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.rec-badge{font-size:9px;color:var(--amber);text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.rec-badge::before{content:'';width:4px;height:4px;background:var(--green);border-radius:50%}
+.rec-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px}
+.rec-sub{font-size:11px;color:var(--dim);margin-bottom:12px}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rstat{background:var(--p2);padding:10px;border-radius:8px}
+.rstat-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.rstat-val{font-size:15px;font-weight:700}
+.rstat-val.amber{color:var(--amber)}.rstat-val.green{color:var(--green)}.rstat-val.red{color:var(--red)}
+.pill{display:inline-block;padding:3px 9px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.pill.easy{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.pill.mod{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.pill.hard{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.stbl{background:var(--p1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.stbl-hd{display:grid;grid-template-columns:.6fr 1fr 1fr 1fr 1fr;padding:8px 10px;background:var(--p2);font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+.stbl-hd span:nth-child(n+2){text-align:right}
+.srow{display:grid;grid-template-columns:.6fr 1fr 1fr 1fr 1fr;padding:9px 10px;border-top:1px solid var(--border);font-size:11px;align-items:center}
+.srow span:nth-child(n+2){text-align:right;font-weight:600}
+.srow .dc{color:var(--dim)}
+.srow.best{background:rgba(245,166,35,.07)}.srow.best .dc{color:var(--amber);font-weight:700}
 .ctbl-wrap{background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px}
 .ctbl-top{display:grid;grid-template-columns:.8fr 1fr 1fr;background:#0f0f12;border-bottom:1px solid var(--border)}
-.ctbl-top .ch{padding:9px 4px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-.ctbl-top .ch.mv{color:var(--dim)}
-.ctbl-top .ch.q{color:var(--amber);border-left:1px solid var(--amber-bd)}
-.ctbl-top .ch.t{color:var(--blue);border-left:1px solid var(--blue-bd)}
+.ch{padding:9px 4px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.ch.mv{color:var(--dim)}.ch.q{color:var(--amber);border-left:1px solid var(--amber-bd)}.ch.t{color:var(--blue);border-left:1px solid var(--blue-bd)}
 .ctbl-sub{display:grid;grid-template-columns:.8fr 1fr 1fr;background:var(--p2);border-bottom:2px solid var(--border)}
 .ctbl-sub span{padding:5px 4px;text-align:center;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
 .ctbl-sub span.bl{border-left:1px solid var(--border)}
 .band-sep{padding:6px 12px;background:#0f0f12;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.15em;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px}
 .band-sep::before{content:'';width:3px;height:3px;background:var(--amber);border-radius:50%;display:inline-block;flex-shrink:0}
 .crow{display:grid;grid-template-columns:.8fr 1fr 1fr;border-top:1px solid var(--border)}
-.crow:hover{background:rgba(255,255,255,.015)}
 .mv-cell{padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.15)}
-.mv-main{font-size:13px;font-weight:700;color:var(--text)}
-.mv-sub{font-size:8px;color:var(--dim);margin-top:2px}
+.mv-main{font-size:13px;font-weight:700;color:var(--text)}.mv-sub{font-size:8px;color:var(--dim);margin-top:2px}
 .val-cell{padding:9px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-left:1px solid var(--border)}
-.val-cell.ql{border-left-color:var(--amber-bd)}
-.val-cell.tl{border-left-color:var(--blue-bd)}
-.vdol{font-size:14px;font-weight:700}
-.vpct{font-size:10px}
-
-/* ── STATS CARDS ── */
+.val-cell.ql{border-left-color:var(--amber-bd)}.val-cell.tl{border-left-color:var(--blue-bd)}
+.vdol{font-size:14px;font-weight:700}.vpct{font-size:10px}
 .stats2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .scard{background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:10px}
 .scard-ttl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
 .scard-ttl.q{color:var(--amber)}.scard-ttl.t{color:var(--blue)}
-.srow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.srow:last-child{border-bottom:none}
-.sk{font-size:9px;color:var(--dim)}
-.sv{font-size:11px;font-weight:700;color:var(--text)}
-
-/* ── COMP DAY SELECTOR ── */
-.comp-day-wrap{background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
-
+.srow2{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.srow2:last-child{border-bottom:none}
+.sk{font-size:9px;color:var(--dim)}.sv{font-size:11px;font-weight:700;color:var(--text)}
 .note{color:var(--dim);text-align:center;font-style:italic;font-size:9px;line-height:1.5;margin-bottom:8px}
-.footnote{color:var(--dim);text-align:center;font-style:italic;font-size:9px;line-height:1.5;margin-top:8px}
-
-@supports(padding-bottom:env(safe-area-inset-bottom)){
-  .app{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
-}
+.footnote{color:var(--dim);text-align:center;font-style:italic;font-size:9px;line-height:1.5;margin-top:6px}
+@supports(padding-bottom:env(safe-area-inset-bottom)){.app{padding-bottom:calc(60px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab on" id="tab1" onclick="showTab(1)">Straddle Calc</button>
-    <button class="tab" id="tab2" onclick="showTab(2)">QQQ vs TQQQ</button>
+<div class="tabs">
+  <button class="tab on" id="tab1" onclick="showTab(1)">Calc</button>
+  <button class="tab" id="tab2" onclick="showTab(2)">Recommend</button>
+  <button class="tab" id="tab3" onclick="showTab(3)">QQQ vs TQQQ</button>
+</div>
+<div class="price-bar">
+  <div class="price-card spy" onclick="setTicker('spy');showTab(1)">
+    <div class="pc-ticker spy">SPY</div>
+    <div class="pc-price" id="px-spy"><span class="loading">...</span></div>
+    <div class="pc-chg" id="pc-spy"></div>
   </div>
-
-  <!-- ════════════════════════════════
-       TAB 1 — STRADDLE CALC
-  ════════════════════════════════ -->
-  <div class="pane on" id="pane1">
-
-    <!-- Ticker -->
-    <div class="sec">
-      <div class="sec-lbl">Select Ticker</div>
-      <div class="ticker-row">
-        <button class="tk spy" id="tk-spy" onclick="setTicker('spy')">SPY</button>
-        <button class="tk qqq on" id="tk-qqq" onclick="setTicker('qqq')">QQQ</button>
-        <button class="tk tqqq" id="tk-tqqq" onclick="setTicker('tqqq')">TQQQ</button>
-      </div>
-
-      <div class="fgrid">
-        <div class="field hi">
-          <label class="flbl">Price $</label>
-          <input type="number" id="c-spot" value="706" step="1" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-        <div class="field hi">
-          <label class="flbl">Straddle Cost $</label>
-          <input type="number" id="c-cost" value="17" step="0.25" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-        <div class="field">
-          <label class="flbl">IV %</label>
-          <input type="number" id="c-iv" value="21" step="1" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-        <div class="field">
-          <label class="flbl">DTE</label>
-          <input type="number" id="c-dte" value="10" step="1" min="1" inputmode="decimal" oninput="buildCalcDays();calcGo()"/>
-        </div>
-        <div class="field green">
-          <label class="flbl">Capital $</label>
-          <input type="number" id="c-capital" value="2000" step="100" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-        <div class="field green">
-          <label class="flbl">Profit Target $</label>
-          <input type="number" id="c-target" value="500" step="50" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-        <div class="field hi field-full">
-          <label class="flbl">Expected Move %</label>
-          <input type="number" id="c-move" value="1.0" step="0.1" inputmode="decimal" oninput="calcGo()"/>
-        </div>
-      </div>
-      <div class="info-strip" id="c-info"></div>
-    </div>
-
-    <!-- Contracts banner -->
-    <div class="contracts-banner" id="c-banner">
-      <div class="cb-left">Contracts<b id="c-numcontracts">—</b></div>
-      <div class="cb-right">Cost<b id="c-totalcost">—</b></div>
-      <div class="cb-right">Target P&L<b id="c-targetpnl" class="pos">—</b></div>
-    </div>
-
-    <!-- Day selector -->
-    <div class="sec day-wrap">
-      <div class="day-top">
-        <div class="day-top-lbl">Exit Day</div>
-        <div class="day-current" id="c-daycurrent">Day 1 <small>25% IV crush</small></div>
-      </div>
-      <div class="day-btns" id="c-daybtnswrap"></div>
-    </div>
-
-    <!-- Result -->
-    <div class="result-card">
-      <div class="result-lbl">Estimated P&L</div>
-      <div class="result-pnl zero" id="c-pnl">+$0</div>
-      <div class="result-ret">Return <b id="c-ret">0%</b></div>
-      <div class="dgrid">
-        <div class="dbox"><div class="dbox-lbl">Position Value</div><div class="dbox-val" id="c-posval">—</div></div>
-        <div class="dbox"><div class="dbox-lbl">Cost Basis</div><div class="dbox-val" id="c-basis">—</div></div>
-        <div class="dbox"><div class="dbox-lbl">Break-even Up</div><div class="dbox-val" id="c-beup">—</div></div>
-        <div class="dbox"><div class="dbox-lbl">Break-even Down</div><div class="dbox-val" id="c-bedn">—</div></div>
-      </div>
-    </div>
-
-    <!-- Hold table -->
-    <div class="htbl">
-      <div class="htbl-hd"><span>Day</span><span>Value</span><span>P&L</span><span>Return</span></div>
-      <div id="c-htbl"></div>
-    </div>
-
-    <div class="footnote" id="c-footnote"></div>
+  <div class="price-card qqq" onclick="setTicker('qqq');showTab(1)">
+    <div class="pc-ticker qqq">QQQ</div>
+    <div class="pc-price" id="px-qqq"><span class="loading">...</span></div>
+    <div class="pc-chg" id="pc-qqq"></div>
   </div>
+  <div class="price-card tqqq" onclick="setTicker('tqqq');showTab(1)">
+    <div class="pc-ticker tqqq">TQQQ</div>
+    <div class="pc-price" id="px-tqqq"><span class="loading">...</span></div>
+    <div class="pc-chg" id="pc-tqqq"></div>
+  </div>
+</div>
 
-  <!-- ════════════════════════════════
-       TAB 2 — QQQ vs TQQQ
-  ════════════════════════════════ -->
-  <div class="pane" id="pane2">
-
-    <!-- Inputs -->
-    <div class="sec">
-      <div class="sec-lbl">Market Inputs</div>
-      <div class="fgrid">
-        <div class="field hi">
-          <label class="flbl">QQQ Price $</label>
-          <input type="number" id="v-qspot" value="706" step="1" inputmode="decimal" oninput="compGo()"/>
-        </div>
-        <div class="field">
-          <label class="flbl">QQQ IV %</label>
-          <input type="number" id="v-qiv" value="21" step="1" inputmode="decimal" oninput="compGo()"/>
-        </div>
-        <div class="field blue">
-          <label class="flbl">TQQQ Price $</label>
-          <input type="number" id="v-tspot" value="75" step="0.5" inputmode="decimal" oninput="compGo()"/>
-        </div>
-        <div class="field">
-          <label class="flbl">TQQQ IV %</label>
-          <input type="number" id="v-tiv" value="63" step="1" inputmode="decimal" oninput="compGo()"/>
-        </div>
-        <div class="field field-full">
-          <label class="flbl">DTE</label>
-          <input type="number" id="v-dte" value="10" step="1" min="2" inputmode="decimal" oninput="buildCompDays();compGo()"/>
-        </div>
-      </div>
+<!-- TAB 1 CALC -->
+<div class="pane on" id="pane1">
+  <div class="sec">
+    <div class="sec-lbl">Select Ticker</div>
+    <div class="ticker-row">
+      <button class="tk spy" id="tk-spy" onclick="setTicker('spy')">SPY</button>
+      <button class="tk qqq on" id="tk-qqq" onclick="setTicker('qqq')">QQQ</button>
+      <button class="tk tqqq" id="tk-tqqq" onclick="setTicker('tqqq')">TQQQ</button>
     </div>
-
-    <!-- Day selector for comparison -->
-    <div class="comp-day-wrap">
-      <div class="day-top">
-        <div class="day-top-lbl">Exit Day</div>
-        <div class="day-current" id="v-daycurrent">Day 1 <small>25% IV crush</small></div>
-      </div>
-      <div class="day-btns" id="v-daybtnswrap"></div>
+    <div class="fgrid">
+      <div class="field hi"><label class="flbl">Price $</label><input type="number" id="c-spot" value="706" step="1" inputmode="decimal" oninput="calcGo()"/></div>
+      <div class="field hi"><label class="flbl">Straddle Cost $</label><input type="number" id="c-cost" value="17" step="0.25" inputmode="decimal" oninput="calcGo()"/></div>
+      <div class="field"><label class="flbl">IV %</label><input type="number" id="c-iv" value="21" step="1" inputmode="decimal" oninput="calcGo()"/></div>
+      <div class="field"><label class="flbl">DTE</label><input type="number" id="c-dte" value="10" step="1" min="1" inputmode="decimal" oninput="buildCalcDays();calcGo()"/></div>
+      <div class="field green"><label class="flbl">Capital $</label><input type="number" id="c-capital" value="2000" step="100" inputmode="decimal" oninput="calcGo()"/></div>
+      <div class="field green"><label class="flbl">Profit Target $</label><input type="number" id="c-target" value="500" step="50" inputmode="decimal" oninput="calcGo()"/></div>
+      <div class="field hi field-full"><label class="flbl">Expected Move %</label><input type="number" id="c-move" value="1.0" step="0.1" inputmode="decimal" oninput="calcGo()"/></div>
     </div>
-
-    <!-- Comparison table -->
-    <div class="ctbl-wrap">
-      <div class="ctbl-top">
-        <div class="ch mv">QQQ Move</div>
-        <div class="ch q">QQQ</div>
-        <div class="ch t">TQQQ</div>
-      </div>
-      <div class="ctbl-sub">
-        <span></span>
-        <span class="bl">P&amp;L / Ret%</span>
-        <span class="bl">P&amp;L / Ret%</span>
-      </div>
-      <div id="v-tblbody"></div>
+    <div class="info-strip" id="c-info"></div>
+  </div>
+  <div class="cb">
+    <div class="cb-item"><span class="cb-lbl">Contracts</span><span class="cb-val amber" id="c-nc">-</span></div>
+    <div class="cb-item"><span class="cb-lbl">Total Cost</span><span class="cb-val" id="c-tc">-</span></div>
+    <div class="cb-item"><span class="cb-lbl">At Target?</span><span class="cb-val" id="c-tp">-</span></div>
+  </div>
+  <div class="sec day-wrap">
+    <div class="day-top">
+      <div class="day-top-lbl">Exit Day</div>
+      <div class="day-cur" id="c-daycur">Day 1 <small>25% IV crush</small></div>
     </div>
+    <div class="day-btns" id="c-days"></div>
+  </div>
+  <div class="rc">
+    <div class="rc-lbl">Estimated P&L</div>
+    <div class="rc-pnl zero" id="c-pnl">+$0</div>
+    <div class="rc-ret">Return <b id="c-ret" class="neu">0%</b></div>
+    <div class="dgrid">
+      <div class="dbox"><div class="dbox-lbl">Position Value</div><div class="dbox-val" id="c-posval">-</div></div>
+      <div class="dbox"><div class="dbox-lbl">Cost Basis</div><div class="dbox-val" id="c-basis">-</div></div>
+      <div class="dbox"><div class="dbox-lbl">Break-even Up</div><div class="dbox-val" id="c-beup">-</div></div>
+      <div class="dbox"><div class="dbox-lbl">Break-even Down</div><div class="dbox-val" id="c-bedn">-</div></div>
+    </div>
+  </div>
+  <div class="htbl">
+    <div class="htbl-hd"><span>Day</span><span>Value</span><span>P&L</span><span>Return</span></div>
+    <div id="c-htbl"></div>
+  </div>
+  <div class="footnote" id="c-foot"></div>
+</div>
 
-    <div class="note" id="v-note"></div>
+<!-- TAB 2 RECOMMEND -->
+<div class="pane" id="pane2">
+  <div class="sec">
+    <div class="sec-lbl">Your Goals</div>
+    <div class="ticker-row">
+      <button class="tk spy" id="rtk-spy" onclick="setRecTicker('spy')">SPY</button>
+      <button class="tk qqq on" id="rtk-qqq" onclick="setRecTicker('qqq')">QQQ</button>
+      <button class="tk tqqq" id="rtk-tqqq" onclick="setRecTicker('tqqq')">TQQQ</button>
+    </div>
+    <div class="fgrid">
+      <div class="field hi"><label class="flbl">Price $</label><input type="number" id="r-spot" value="706" step="1" inputmode="decimal" oninput="recGo()"/></div>
+      <div class="field"><label class="flbl">IV %</label><input type="number" id="r-iv" value="21" step="1" inputmode="decimal" oninput="recGo()"/></div>
+      <div class="field green"><label class="flbl">Capital $</label><input type="number" id="r-capital" value="2000" step="100" inputmode="decimal" oninput="recGo()"/></div>
+      <div class="field green"><label class="flbl">Profit Target $</label><input type="number" id="r-target" value="500" step="50" inputmode="decimal" oninput="recGo()"/></div>
+      <div class="field hi field-full"><label class="flbl">Expected Move %</label><input type="number" id="r-move" value="1.5" step="0.1" inputmode="decimal" oninput="recGo()"/></div>
+    </div>
+  </div>
+  <div class="reccard">
+    <div class="rec-badge">Best Trade Found</div>
+    <div class="rec-title" id="rec-title">-</div>
+    <div class="rec-sub" id="rec-sub">-</div>
+    <div class="rec-grid">
+      <div class="rstat"><div class="rstat-lbl">Contracts</div><div class="rstat-val amber" id="rec-c">-</div></div>
+      <div class="rstat"><div class="rstat-lbl">Total Cost</div><div class="rstat-val" id="rec-cost">-</div></div>
+      <div class="rstat"><div class="rstat-lbl">Best Exit</div><div class="rstat-val amber" id="rec-exit">-</div></div>
+      <div class="rstat"><div class="rstat-lbl">Est. P&L</div><div class="rstat-val green" id="rec-pnl">-</div></div>
+      <div class="rstat"><div class="rstat-lbl">Return %</div><div class="rstat-val green" id="rec-ret">-</div></div>
+      <div class="rstat"><div class="rstat-lbl">Difficulty</div><div class="rstat-val" id="rec-diff">-</div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-lbl">All DTE Options Scanned</div>
+    <div class="stbl">
+      <div class="stbl-hd"><span>DTE</span><span>$/Contract</span><span>Contracts</span><span>Best P&L</span><span>Exit Day</span></div>
+      <div id="rec-scan"></div>
+    </div>
+  </div>
+  <div class="footnote">Day 1 exit assumed after move. ~25% IV crush. Real fills vary.</div>
+</div>
 
-    <!-- Stats -->
-    <div class="stats2" id="v-stats"></div>
-
-  </div><!-- end pane2 -->
-
-</div><!-- end app -->
+<!-- TAB 3 COMPARE -->
+<div class="pane" id="pane3">
+  <div class="sec">
+    <div class="sec-lbl">Market Inputs</div>
+    <div class="fgrid">
+      <div class="field hi"><label class="flbl">QQQ Price $</label><input type="number" id="v-qs" value="706" step="1" inputmode="decimal" oninput="compGo()"/></div>
+      <div class="field"><label class="flbl">QQQ IV %</label><input type="number" id="v-qi" value="21" step="1" inputmode="decimal" oninput="compGo()"/></div>
+      <div class="field blue"><label class="flbl">TQQQ Price $</label><input type="number" id="v-ts" value="75" step="0.5" inputmode="decimal" oninput="compGo()"/></div>
+      <div class="field"><label class="flbl">TQQQ IV %</label><input type="number" id="v-ti" value="63" step="1" inputmode="decimal" oninput="compGo()"/></div>
+      <div class="field field-full"><label class="flbl">DTE</label><input type="number" id="v-dte" value="10" step="1" min="2" inputmode="decimal" oninput="buildCompDays();compGo()"/></div>
+    </div>
+  </div>
+  <div class="sec day-wrap">
+    <div class="day-top">
+      <div class="day-top-lbl">Exit Day</div>
+      <div class="day-cur" id="v-daycur">Day 1 <small>25% IV crush</small></div>
+    </div>
+    <div class="day-btns" id="v-days"></div>
+  </div>
+  <div class="ctbl-wrap">
+    <div class="ctbl-top">
+      <div class="ch mv">QQQ Move</div>
+      <div class="ch q">QQQ</div>
+      <div class="ch t">TQQQ</div>
+    </div>
+    <div class="ctbl-sub"><span></span><span class="bl">P&L / Ret%</span><span class="bl">P&L / Ret%</span></div>
+    <div id="v-body"></div>
+  </div>
+  <div class="note" id="v-note"></div>
+  <div class="stats2" id="v-stats"></div>
+</div>
+</div>
 
 <script>
-// ── SHARED MATH ──────────────────────────────
-function callPut(spot,strike,rem,iv,isCall){
-  if(rem<=0) return isCall?Math.max(spot-strike,0):Math.max(strike-spot,0);
-  var T=Math.max(rem,0.01)/365, sigT=iv*Math.sqrt(T)||0.01;
-  var m=(spot-strike)/(spot*sigT), atm=spot*sigT*0.4;
-  var intr=isCall?Math.max(spot-strike,0):Math.max(strike-spot,0);
-  return intr+atm*Math.exp(-0.5*m*m);
-}
-function prem(spot,dte,iv){ return spot*iv*Math.sqrt(dte/365)*0.8; }
-function ivCrush(hold,dte){
-  if(hold<=0||hold>=dte) return 0;
-  return 0.25*(1-(hold-1)/(dte-1));
-}
-function calcExit(spot,iv,dte,mv,hold){
-  var cost=prem(spot,dte,iv);
-  var np=spot*(1+mv/100);
-  var rem=Math.max(dte-hold,0);
-  var effIV=hold>=dte?0:iv*(1-ivCrush(hold,dte));
-  var val=hold>=dte
-    ? Math.max(np-spot,0)+Math.max(spot-np,0)
-    : callPut(np,spot,rem,effIV,true)+callPut(np,spot,rem,effIV,false);
-  var dol=(val-cost)*100;
-  return {cost:cost, val:val, dol:dol, pct:cost>0?(dol/(cost*100))*100:0};
-}
-function fmt(n){ return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
-function cc(v){ return v>15?'pos':v<-15?'neg':'neu'; }
-function sgn(v){ return v>=0?'+':'-'; }
-
-// ── TAB SWITCH ──────────────────────────────
-function showTab(n){
-  document.getElementById('tab1').className='tab'+(n===1?' on':'');
-  document.getElementById('tab2').className='tab'+(n===2?' on':'');
-  document.getElementById('pane1').className='pane'+(n===1?' on':'');
-  document.getElementById('pane2').className='pane'+(n===2?' on':'');
-}
-
-// ══════════════════════════════════════════════
-// TAB 1 — STRADDLE CALC
-// ══════════════════════════════════════════════
-var TICKER = 'qqq';
-var CALC_HOLD = 1;
-
-var TICKER_DEFAULTS = {
-  spy:  {spot:555, cost:7,  iv:18, dte:10},
-  qqq:  {spot:706, cost:17, iv:21, dte:10},
-  tqqq: {spot:75,  cost:5,  iv:63, dte:10}
-};
-
-function setTicker(t){
-  TICKER=t;
-  ['spy','qqq','tqqq'].forEach(function(x){
-    var el=document.getElementById('tk-'+x);
-    el.className='tk '+x+(t===x?' on':'');
-  });
-  var d=TICKER_DEFAULTS[t];
-  document.getElementById('c-spot').value=d.spot;
-  document.getElementById('c-cost').value=d.cost;
-  document.getElementById('c-iv').value=d.iv;
-  document.getElementById('c-dte').value=d.dte;
-  // Update input colors
-  document.getElementById('c-spot').parentElement.className='field hi';
-  buildCalcDays();
-  calcGo();
-}
-
-function buildCalcDays(){
-  var dte=parseInt(document.getElementById('c-dte').value)||10;
-  var html='';
-  for(var d=1;d<dte;d++){
-    html+='<button class="day-btn'+(CALC_HOLD===d?' on':'')+'" onclick="setCalcDay(this,'+d+')">D'+d+'</button>';
-  }
-  html+='<button class="day-btn exp-btn'+(CALC_HOLD>=dte?' on':'')+'" onclick="setCalcDay(this,'+dte+')">Exp</button>';
-  document.getElementById('c-daybtnswrap').innerHTML=html;
-}
-
-function setCalcDay(btn,d){
-  CALC_HOLD=d;
-  var dte=parseInt(document.getElementById('c-dte').value)||10;
-  document.querySelectorAll('#c-daybtnswrap .day-btn').forEach(function(b){
-    b.className=b.textContent==='Exp'?'day-btn exp-btn':'day-btn';
-  });
-  btn.className=(d>=dte?'day-btn exp-btn on':'day-btn on');
-  var crush=Math.round(ivCrush(d,dte)*100);
-  var isExp=d>=dte;
-  document.getElementById('c-daycurrent').innerHTML=
-    (isExp?'Expiry':'Day '+d)+
-    ' <small>'+(isExp?'intrinsic only':crush+'% IV crush')+'</small>';
-  calcGo();
-}
-
-function calcGo(){
-  var spot=parseFloat(document.getElementById('c-spot').value)||0;
-  var costIn=parseFloat(document.getElementById('c-cost').value)||0;
-  var iv=(parseFloat(document.getElementById('c-iv').value)||21)/100;
-  var dte=parseInt(document.getElementById('c-dte').value)||10;
-  var capital=parseFloat(document.getElementById('c-capital').value)||0;
-  var target=parseFloat(document.getElementById('c-target').value)||0;
-  var move=parseFloat(document.getElementById('c-move').value)||0;
-  var hold=Math.min(CALC_HOLD,dte);
-
-  if(spot<=0) return;
-
-  // Contracts from capital
-  var costPer=costIn*100; // cost per contract in dollars
-  var contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
-
-  // Info strip
-  var tLabel=TICKER.toUpperCase();
-  document.getElementById('c-info').innerHTML=
-    '<b>'+tLabel+'</b> · Straddle cost: <b>$'+costIn.toFixed(2)+'/share</b> · <b>$'+costPer.toFixed(0)+'/contract</b>' +
-    (TICKER==='tqqq'?' · TQQQ IV is ~3x QQQ':'');
-
-  // Contracts banner
-  document.getElementById('c-numcontracts').textContent=contracts+(contracts===1?' contract':' contracts');
-  document.getElementById('c-totalcost').textContent='$'+fmt(costPer*contracts);
-
-  // P&L at selected hold day
-  var r=calcExit(spot,iv,dte,move,hold);
-  var totalPnl=r.dol*contracts;
-  var pnlCl=totalPnl>50?'pos':totalPnl<-50?'neg':'zero';
-  document.getElementById('c-pnl').textContent=sgn(totalPnl)+'$'+fmt(Math.abs(totalPnl));
-  document.getElementById('c-pnl').className='result-pnl '+pnlCl;
-  var retPct=r.pct;
-  document.getElementById('c-ret').textContent=(retPct>=0?'+':'')+retPct.toFixed(1)+'%';
-  document.getElementById('c-ret').className=cc(retPct);
-
-  // Target P&L in banner
-  var tpEl=document.getElementById('c-targetpnl');
-  tpEl.textContent='$'+fmt(Math.abs(totalPnl));
-  tpEl.className=totalPnl>=target?'pos':'neg';
-
-  // Detail boxes
-  document.getElementById('c-posval').textContent='$'+(r.val*100).toFixed(2);
-  document.getElementById('c-basis').textContent='$'+fmt(costPer*contracts);
-  document.getElementById('c-beup').textContent='$'+(spot+costIn).toFixed(2);
-  document.getElementById('c-bedn').textContent='$'+(spot-costIn).toFixed(2);
-
-  // Hold table — all days
-  var maxD=Math.min(dte,10);
-  var htHtml='';
-  var bestPnl=-Infinity, bestDay=1;
-  // find best day first
-  for(var d=1;d<=dte;d++){
-    var rr=calcExit(spot,iv,dte,move,d);
-    if(rr.dol*contracts>bestPnl){bestPnl=rr.dol*contracts;bestDay=d;}
-  }
-  for(var dd=1;dd<=maxD;dd++){
-    var rv=calcExit(spot,iv,dte,move,dd);
-    var pp=rv.dol*contracts;
-    var cl=cc(rv.pct);
-    var isHL=dd===bestDay||dd===hold;
-    var rowCl=isHL?'hrow hl':'hrow';
-    htHtml+='<div class="'+rowCl+'">';
-    htHtml+='<span class="dc">'+(dd>=dte?'Exp':'D'+dd)+'</span>';
-    htHtml+='<span>$'+(rv.val*100).toFixed(2)+'</span>';
-    htHtml+='<span class="'+cl+'">'+sgn(pp)+'$'+fmt(Math.abs(pp))+'</span>';
-    htHtml+='<span class="'+cl+'">'+(rv.pct>=0?'+':'')+rv.pct.toFixed(0)+'%</span>';
-    htHtml+='</div>';
-  }
-  if(dte>maxD){
-    var rExp=calcExit(spot,iv,dte,move,dte);
-    var ppExp=rExp.dol*contracts;
-    var clExp=cc(rExp.pct);
-    var isHLExp=dte===bestDay||dte===hold;
-    htHtml+='<div class="'+(isHLExp?'hrow hl':'hrow')+'">';
-    htHtml+='<span class="dc">Exp</span>';
-    htHtml+='<span>$'+(rExp.val*100).toFixed(2)+'</span>';
-    htHtml+='<span class="'+clExp+'">'+sgn(ppExp)+'$'+fmt(Math.abs(ppExp))+'</span>';
-    htHtml+='<span class="'+clExp+'">'+(rExp.pct>=0?'+':'')+rExp.pct.toFixed(0)+'%</span>';
-    htHtml+='</div>';
-  }
-  document.getElementById('c-htbl').innerHTML=htHtml;
-
-  document.getElementById('c-footnote').textContent=
-    TICKER==='tqqq'
-    ? 'TQQQ has ~3x QQQ IV. Higher cost, higher leverage on moves.'
-    : '~25% IV crush Day 1, decaying to 0 at expiry. Real fills vary.';
-
-  // highlight current day in table
-  document.getElementById('c-daycurrent').innerHTML=
-    (hold>=dte?'Expiry':'Day '+hold)+
-    ' <small>'+(hold>=dte?'intrinsic only':Math.round(ivCrush(hold,dte)*100)+'% IV crush')+'</small>';
-}
-
-// ══════════════════════════════════════════════
-// TAB 2 — QQQ vs TQQQ COMPARISON
-// ══════════════════════════════════════════════
-var COMP_HOLD=1;
-
-var COMP_ROWS=[
-  {isBand:true, lbl:'Small Move  ·  0.2% to 0.5%'},
-  {mv:0.2},{mv:0.35},{mv:0.5},
-  {isBand:true, lbl:'Medium Move  ·  0.5% to 1.0%'},
-  {mv:0.5},{mv:0.75},{mv:1.0},
-  {isBand:true, lbl:'Large Move  ·  1.0% and above'},
-  {mv:1.0},{mv:1.5},{mv:2.0},
+var FK='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';
+var LIVE={spy:0,qqq:0,tqqq:0};
+var CTICKER='qqq',RTICKER='qqq',CHOLD=1,VHOLD=1;
+var TDEF={spy:{spot:555,cost:7,iv:18},qqq:{spot:706,cost:17,iv:21},tqqq:{spot:75,cost:5,iv:63}};
+var DTES=[2,5,8,10,14,21,30];
+var VROWS=[
+  {b:1,l:'Small  0.2% - 0.5%'},{mv:.2},{mv:.35},{mv:.5},
+  {b:1,l:'Medium  0.5% - 1.0%'},{mv:.5},{mv:.75},{mv:1},
+  {b:1,l:'Large  1.0% and above'},{mv:1},{mv:1.5},{mv:2}
 ];
 
-function buildCompDays(){
-  var dte=parseInt(document.getElementById('v-dte').value)||10;
-  var html='';
-  for(var d=1;d<dte;d++){
-    html+='<button class="day-btn'+(COMP_HOLD===d?' on':'')+'" onclick="setCompDay(this,'+d+')">D'+d+'</button>';
+function $(i){return document.getElementById(i);}
+function fv(i){return parseFloat($(i).value)||0;}
+function iv(i){return parseInt($(i).value)||0;}
+function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function cc(v){return v>15?'pos':v<-15?'neg':'neu';}
+function sgn(v){return v>=0?'+':'-';}
+function fp(v){return sgn(v)+'$'+fmt(Math.abs(v));}
+
+function showTab(n){
+  for(var i=1;i<=3;i++){
+    $('tab'+i).className='tab'+(i===n?' on':'');
+    $('pane'+i).className='pane'+(i===n?' on':'');
   }
-  html+='<button class="day-btn exp-btn'+(COMP_HOLD>=dte?' on':'')+'" onclick="setCompDay(this,'+dte+')">Exp</button>';
-  document.getElementById('v-daybtnswrap').innerHTML=html;
 }
 
-function setCompDay(btn,d){
-  COMP_HOLD=d;
-  var dte=parseInt(document.getElementById('v-dte').value)||10;
-  document.querySelectorAll('#v-daybtnswrap .day-btn').forEach(function(b){
-    b.className=b.textContent==='Exp'?'day-btn exp-btn':'day-btn';
-  });
-  btn.className=(d>=dte?'day-btn exp-btn on':'day-btn on');
-  var crush=Math.round(ivCrush(d,dte)*100);
-  var isExp=d>=dte;
-  document.getElementById('v-daycurrent').innerHTML=
-    (isExp?'Expiry':'Day '+d)+
-    ' <small>'+(isExp?'intrinsic only':crush+'% IV crush')+'</small>';
-  compGo();
+function callPut(spot,strike,rem,iv2,isCall){
+  if(rem<=0)return isCall?Math.max(spot-strike,0):Math.max(strike-spot,0);
+  var T=Math.max(rem,.01)/365,st=iv2*Math.sqrt(T)||.01;
+  var m=(spot-strike)/(spot*st),atm=spot*st*.4;
+  var intr=isCall?Math.max(spot-strike,0):Math.max(strike-spot,0);
+  return intr+atm*Math.exp(-.5*m*m);
+}
+function prem(spot,dte,iv2){return spot*iv2*Math.sqrt(dte/365)*.8;}
+function crush(hold,dte){
+  if(hold<=0||hold>=dte)return 0;
+  return .25*(1-(hold-1)/(dte-1));
+}
+function exit(spot,iv2,dte,mv,hold){
+  var cost=prem(spot,dte,iv2);
+  var np=spot*(1+mv/100),rem=Math.max(dte-hold,0);
+  var eiv=iv2*(1-crush(hold,dte));
+  var val=hold>=dte?Math.max(np-spot,0)+Math.max(spot-np,0):callPut(np,spot,rem,eiv,true)+callPut(np,spot,rem,eiv,false);
+  var dol=(val-cost)*100;
+  return{cost:cost,val:val,dol:dol,pct:cost>0?(dol/(cost*100))*100:0};
+}
+function dayLabel(id,hold,dte){
+  var c=Math.round(crush(hold,dte)*100),isExp=hold>=dte;
+  $(id).innerHTML=(isExp?'Expiry':'Day '+hold)+' <small>'+(isExp?'intrinsic only':c+'% IV crush')+'</small>';
 }
 
-function compGo(){
-  var qS=parseFloat(document.getElementById('v-qspot').value)||706;
-  var tS=parseFloat(document.getElementById('v-tspot').value)||75;
-  var qV=(parseFloat(document.getElementById('v-qiv').value)||21)/100;
-  var tV=(parseFloat(document.getElementById('v-tiv').value)||63)/100;
-  var dte=parseInt(document.getElementById('v-dte').value)||10;
-  var hold=Math.min(COMP_HOLD,dte);
+// PRICES
+function fetchPrice(sym){
+  fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var p=d.c,prev=d.pc,chg=p-prev,pct=chg/prev*100,key=sym.toLowerCase();
+      LIVE[key]=p;
+      $(('px-'+key)).textContent='$'+p.toFixed(2);
+      var el=$('pc-'+key),s=chg>=0?'+':'';
+      el.textContent=s+chg.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
+      el.style.color=chg>=0?'var(--green)':'var(--red)';
+      if(key==='qqq'||key==='spy'){
+        if(CTICKER===key){$('c-spot').value=p.toFixed(2);}
+        if(RTICKER===key){$('r-spot').value=p.toFixed(2);}
+      }
+      if(key==='qqq'){$('v-qs').value=p.toFixed(2);}
+      if(key==='tqqq'){$('v-ts').value=p.toFixed(2);}
+      calcGo();recGo();compGo();
+    }).catch(function(){});
+}
+function fetchAll(){fetchPrice('SPY');fetchPrice('QQQ');fetchPrice('TQQQ');}
 
-  var html='';
-  COMP_ROWS.forEach(function(row){
-    if(row.isBand){
-      html+='<div class="band-sep">'+row.lbl+'</div>';
-      return;
-    }
-    var mv=row.mv, tmv=mv*3;
-    var q=calcExit(qS,qV,dte,mv,hold);
-    var t=calcExit(tS,tV,dte,tmv,hold);
-    var qc=cc(q.pct), tc=cc(t.pct);
-    html+='<div class="crow">';
-    html+='<div class="mv-cell"><span class="mv-main">'+mv+'%</span><span class="mv-sub">TQQQ ~'+tmv.toFixed(1)+'%</span></div>';
-    html+='<div class="val-cell ql"><span class="vdol '+qc+'">'+sgn(q.dol)+'$'+fmt(Math.abs(q.dol))+'</span><span class="vpct '+qc+'">'+(q.pct>=0?'+':'')+q.pct.toFixed(0)+'%</span></div>';
-    html+='<div class="val-cell tl"><span class="vdol '+tc+'">'+sgn(t.dol)+'$'+fmt(Math.abs(t.dol))+'</span><span class="vpct '+tc+'">'+(t.pct>=0?'+':'')+t.pct.toFixed(0)+'%</span></div>';
-    html+='</div>';
+// TAB 1
+function setTicker(t){
+  CTICKER=t;
+  ['spy','qqq','tqqq'].forEach(function(x){$('tk-'+x).className='tk '+x+(t===x?' on':'');});
+  var d=TDEF[t],lp=LIVE[t]>0?LIVE[t]:d.spot;
+  $('c-spot').value=lp.toFixed(2);$('c-cost').value=d.cost;$('c-iv').value=d.iv;
+  calcGo();
+}
+function buildCalcDays(){
+  var dte=iv('c-dte')||10;if(CHOLD>dte)CHOLD=dte;
+  var h='';
+  for(var d=1;d<dte;d++)h+='<button class="day-btn'+(CHOLD===d?' on':'')+'" onclick="setCD(this,'+d+')">D'+d+'</button>';
+  h+='<button class="day-btn xbtn'+(CHOLD>=dte?' on':'')+'" onclick="setCD(this,'+dte+')">Exp</button>';
+  $('c-days').innerHTML=h;
+}
+function setCD(btn,d){
+  CHOLD=d;var dte=iv('c-dte')||10;
+  document.querySelectorAll('#c-days .day-btn').forEach(function(b){b.className=b.textContent==='Exp'?'day-btn xbtn':'day-btn';});
+  btn.className=(d>=dte?'day-btn xbtn on':'day-btn on');
+  dayLabel('c-daycur',d,dte);calcGo();
+}
+function calcGo(){
+  var spot=fv('c-spot'),costIn=fv('c-cost'),iv2=fv('c-iv')/100,dte=iv('c-dte')||10;
+  var capital=fv('c-capital'),target=fv('c-target'),move=fv('c-move'),hold=Math.min(CHOLD,dte);
+  if(spot<=0)return;
+  var costPer=costIn*100,contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
+  $('c-info').innerHTML='<b>'+CTICKER.toUpperCase()+'</b> · $'+costIn.toFixed(2)+'/share · <b>$'+costPer.toFixed(0)+'/contract</b>'+(CTICKER==='tqqq'?' · ~3x QQQ IV':'');
+  $('c-nc').textContent=contracts+(contracts===1?' contract':' contracts');
+  $('c-tc').textContent='$'+fmt(costPer*contracts);
+  var r=exit(spot,iv2,dte,move,hold),totalPnl=r.dol*contracts;
+  var pcl=totalPnl>50?'pos':totalPnl<-50?'neg':'zero';
+  $('c-pnl').textContent=fp(totalPnl);$('c-pnl').className='rc-pnl '+pcl;
+  $('c-ret').textContent=(r.pct>=0?'+':'')+r.pct.toFixed(1)+'%';$('c-ret').className=cc(r.pct);
+  var hit=totalPnl>=target;
+  $('c-tp').textContent=hit?'Yes +$'+fmt(totalPnl-target):'No -$'+fmt(target-totalPnl);
+  $('c-tp').className='cb-val '+(hit?'pos':'neg');
+  $('c-posval').textContent='$'+(r.val*100).toFixed(2);
+  $('c-basis').textContent='$'+fmt(costPer*contracts);
+  $('c-beup').textContent='$'+(spot+costIn).toFixed(2);
+  $('c-bedn').textContent='$'+(spot-costIn).toFixed(2);
+  var bestPnl=-Infinity,bestDay=1;
+  for(var d=1;d<=dte;d++){var rr=exit(spot,iv2,dte,move,d);if(rr.dol*contracts>bestPnl){bestPnl=rr.dol*contracts;bestDay=d;}}
+  var maxShow=Math.min(dte,12),hh='';
+  for(var dd=1;dd<=maxShow;dd++){
+    var rv=exit(spot,iv2,dte,move,dd),pp=rv.dol*contracts,cl=cc(rv.pct);
+    var isBest=dd===bestDay,isCur=dd===hold;
+    var rcl=isBest?'hrow hl':isCur?'hrow cur':'hrow';
+    hh+='<div class="'+rcl+'"><span class="dc">'+(dd>=dte?'Exp':'D'+dd)+'</span><span>$'+(rv.val*100).toFixed(2)+'</span><span class="'+cl+'">'+fp(pp)+'</span><span class="'+cl+'">'+(rv.pct>=0?'+':'')+rv.pct.toFixed(0)+'%</span></div>';
+  }
+  if(dte>maxShow){var re=exit(spot,iv2,dte,move,dte),pe=re.dol*contracts,ce=cc(re.pct),hlE=dte===bestDay||dte===hold;hh+='<div class="'+(hlE?'hrow hl':'hrow')+'"><span class="dc">Exp</span><span>$'+(re.val*100).toFixed(2)+'</span><span class="'+ce+'">'+fp(pe)+'</span><span class="'+ce+'">'+(re.pct>=0?'+':'')+re.pct.toFixed(0)+'%</span></div>';}
+  $('c-htbl').innerHTML=hh;
+  $('c-foot').textContent=CTICKER==='tqqq'?'TQQQ has ~3x QQQ IV. Higher cost, higher leverage.':'~25% IV crush Day 1, fading to 0 at expiry.';
+  dayLabel('c-daycur',hold,dte);
+}
+
+// TAB 2
+function setRecTicker(t){
+  RTICKER=t;
+  ['spy','qqq','tqqq'].forEach(function(x){$('rtk-'+x).className='tk '+x+(t===x?' on':'');});
+  var d=TDEF[t],lp=LIVE[t]>0?LIVE[t]:d.spot;
+  $('r-spot').value=lp.toFixed(2);$('r-iv').value=d.iv;recGo();
+}
+function recGo(){
+  var spot=fv('r-spot'),iv2=fv('r-iv')/100,capital=fv('r-capital'),target=fv('r-target'),move=fv('r-move');
+  if(spot<=0||iv2<=0)return;
+  var results=[];
+  DTES.forEach(function(dte){
+    var costPer=prem(spot,dte,iv2)*100;if(costPer<=0)return;
+    var contracts=capital>0?Math.max(1,Math.floor(capital/costPer)):1;
+    var bestPnl=-Infinity,bestDay=1;
+    for(var d=1;d<=dte;d++){var r=exit(spot,iv2,dte,move,d);if(r.dol>bestPnl){bestPnl=r.dol;bestDay=d;}}
+    var totalPnl=bestPnl*contracts,retPct=costPer>0?(bestPnl/costPer)*100:0;
+    results.push({dte:dte,costPer:costPer,contracts:contracts,totalPnl:totalPnl,bestDay:bestDay,retPct:retPct});
   });
-  document.getElementById('v-tblbody').innerHTML=html;
-
-  var crush=ivCrush(hold,dte);
-  var isExp=hold>=dte;
-  document.getElementById('v-note').textContent=
-    isExp
-    ?'Expiry: intrinsic value only. No time premium.'
-    :'Day '+hold+' exit · '+Math.round(crush*100)+'% IV crush · '+(dte-hold)+' days remain';
-
-  // Stats
-  var qCost=prem(qS,dte,qV)*100;
-  var tCost=prem(tS,dte,tV)*100;
-  var qBE=(qCost/(qS*100))*100;
-  var tBE=(tCost/(tS*100))*100;
+  if(!results.length)return;
+  var hits=results.filter(function(r){return r.totalPnl>=target;});
+  var best=hits.length?hits.reduce(function(a,b){return a.costPer<b.costPer?a:b;}):results.reduce(function(a,b){return a.retPct>b.retPct?a:b;});
+  $('rec-title').textContent=best.dte+' DTE ATM Straddle';
+  $('rec-sub').textContent=RTICKER.toUpperCase()+' @ $'+spot.toFixed(0)+' · '+move+'% expected move';
+  $('rec-c').textContent=best.contracts+(best.contracts===1?' contract':' contracts');
+  $('rec-cost').textContent='$'+fmt(best.costPer*best.contracts);
+  $('rec-exit').textContent='Day '+best.bestDay;
+  $('rec-pnl').textContent=fp(best.totalPnl);$('rec-pnl').className='rstat-val '+(best.totalPnl>=0?'green':'red');
+  $('rec-ret').textContent=(best.retPct>=0?'+':'')+best.retPct.toFixed(0)+'%';$('rec-ret').className='rstat-val '+(best.retPct>=0?'green':'red');
+  var diff=move>=3?'easy':move>=1.5?'mod':'hard';
+  $('rec-diff').innerHTML='<span class="pill '+diff+'">'+(diff==='easy'?'Easy':diff==='mod'?'Moderate':'Hard')+'</span>';
   var sh='';
-  sh+='<div class="scard"><div class="scard-ttl q">QQQ — '+dte+'d</div>';
-  sh+='<div class="srow"><span class="sk">Premium</span><span class="sv" style="color:var(--amber)">$'+qCost.toFixed(0)+'</span></div>';
-  sh+='<div class="srow"><span class="sk">Break-even</span><span class="sv">+/- '+qBE.toFixed(2)+'%</span></div>';
-  sh+='<div class="srow"><span class="sk">IV</span><span class="sv">'+Math.round(qV*100)+'%</span></div></div>';
-  sh+='<div class="scard"><div class="scard-ttl t">TQQQ — '+dte+'d</div>';
-  sh+='<div class="srow"><span class="sk">Premium</span><span class="sv" style="color:var(--blue)">$'+tCost.toFixed(0)+'</span></div>';
-  sh+='<div class="srow"><span class="sk">Break-even</span><span class="sv">+/- '+(tBE/3).toFixed(2)+'% QQQ</span></div>';
-  sh+='<div class="srow"><span class="sk">IV</span><span class="sv">'+Math.round(tV*100)+'%</span></div></div>';
-  document.getElementById('v-stats').innerHTML=sh;
+  results.forEach(function(r){
+    var isBest=r.dte===best.dte,cl=cc(r.retPct);
+    sh+='<div class="srow'+(isBest?' best':'')+'"><span class="dc">'+r.dte+'d</span><span>$'+fmt(r.costPer)+'</span><span class="amber">'+r.contracts+'</span><span class="'+cl+'">'+fp(r.totalPnl)+'</span><span class="'+cl+'">D'+r.bestDay+' '+(r.retPct>=0?'+':'')+r.retPct.toFixed(0)+'%</span></div>';
+  });
+  $('rec-scan').innerHTML=sh;
 }
 
-// ── INIT ──────────────────────────────
-buildCalcDays();
-buildCompDays();
-calcGo();
-compGo();
+// TAB 3
+function buildCompDays(){
+  var dte=iv('v-dte')||10;if(VHOLD>dte)VHOLD=dte;
+  var h='';
+  for(var d=1;d<dte;d++)h+='<button class="day-btn'+(VHOLD===d?' on':'')+'" onclick="setVD(this,'+d+')">D'+d+'</button>';
+  h+='<button class="day-btn xbtn'+(VHOLD>=dte?' on':'')+'" onclick="setVD(this,'+dte+')">Exp</button>';
+  $('v-days').innerHTML=h;
+}
+function setVD(btn,d){
+  VHOLD=d;var dte=iv('v-dte')||10;
+  document.querySelectorAll('#v-days .day-btn').forEach(function(b){b.className=b.textContent==='Exp'?'day-btn xbtn':'day-btn';});
+  btn.className=(d>=dte?'day-btn xbtn on':'day-btn on');
+  dayLabel('v-daycur',d,dte);compGo();
+}
+function compGo(){
+  var qS=fv('v-qs'),tS=fv('v-ts'),qV=fv('v-qi')/100,tV=fv('v-ti')/100,dte=iv('v-dte')||10,hold=Math.min(VHOLD,dte);
+  var hh='';
+  VROWS.forEach(function(row){
+    if(row.b){hh+='<div class="band-sep">'+row.l+'</div>';return;}
+    var mv=row.mv,tmv=mv*3,q=exit(qS,qV,dte,mv,hold),t=exit(tS,tV,dte,tmv,hold);
+    var qc=cc(q.pct),tc=cc(t.pct);
+    hh+='<div class="crow"><div class="mv-cell"><span class="mv-main">'+mv+'%</span><span class="mv-sub">TQQQ ~'+tmv.toFixed(1)+'%</span></div>';
+    hh+='<div class="val-cell ql"><span class="vdol '+qc+'">'+fp(q.dol)+'</span><span class="vpct '+qc+'">'+(q.pct>=0?'+':'')+q.pct.toFixed(0)+'%</span></div>';
+    hh+='<div class="val-cell tl"><span class="vdol '+tc+'">'+fp(t.dol)+'</span><span class="vpct '+tc+'">'+(t.pct>=0?'+':'')+t.pct.toFixed(0)+'%</span></div></div>';
+  });
+  $('v-body').innerHTML=hh;
+  var isExp=hold>=dte;
+  $('v-note').textContent=isExp?'Expiry: intrinsic only.':'Day '+hold+' · '+Math.round(crush(hold,dte)*100)+'% IV crush · '+(dte-hold)+' days remain';
+  var qC=prem(qS,dte,qV)*100,tC=prem(tS,dte,tV)*100,qBE=(qC/(qS*100))*100,tBE=(tC/(tS*100))*100;
+  var s='<div class="scard"><div class="scard-ttl q">QQQ '+dte+'d</div>';
+  s+='<div class="srow2"><span class="sk">Premium</span><span class="sv" style="color:var(--amber)">$'+qC.toFixed(0)+'</span></div>';
+  s+='<div class="srow2"><span class="sk">Break-even</span><span class="sv">+/- '+qBE.toFixed(2)+'%</span></div>';
+  s+='<div class="srow2"><span class="sk">IV</span><span class="sv">'+Math.round(qV*100)+'%</span></div></div>';
+  s+='<div class="scard"><div class="scard-ttl t">TQQQ '+dte+'d</div>';
+  s+='<div class="srow2"><span class="sk">Premium</span><span class="sv" style="color:var(--blue)">$'+tC.toFixed(0)+'</span></div>';
+  s+='<div class="srow2"><span class="sk">Break-even</span><span class="sv">+/- '+(tBE/3).toFixed(2)+'% QQQ</span></div>';
+  s+='<div class="srow2"><span class="sk">IV</span><span class="sv">'+Math.round(tV*100)+'%</span></div></div>';
+  $('v-stats').innerHTML=s;
+}
+
+buildCalcDays();buildCompDays();calcGo();recGo();compGo();
+fetchAll();setInterval(fetchAll,60000);
+</script>
+</body>
+</html>
+
 </script>
 </body>
 </html>
