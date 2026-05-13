@@ -105,14 +105,14 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .srow.stop{border-left:4px solid var(--red);background:var(--rbg)!important}
 .srow.exp{background:#f8fafc!important}
 /* Day cell */
-.dcell{padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.03);min-height:56px;gap:2px}
+.dcell{padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.03);min-height:56px;gap:2px;overflow:hidden;min-width:0}
 .dname{font-size:13px;font-weight:700;color:var(--text)}
-.dnote{font-size:9px;color:var(--dim);font-weight:600}
+.dnote{font-size:9px;color:var(--dim);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .srow.best .dname{color:var(--amber)}.srow.best .dnote{color:var(--amber)}
 .srow.cur .dname{color:var(--blue)}.srow.cur .dnote{color:var(--blue)}
 .srow.stop .dname{color:var(--red)}.srow.stop .dnote{color:var(--red)}
 /* Value cells */
-.vcell{padding:9px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-left:2px solid;min-height:56px}
+.vcell{padding:9px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-left:2px solid;min-height:56px;min-width:0;overflow:hidden}
 .vcell.dr{background:#f3f0ff;border-left-color:#7c3aed}
 .vcell.mo{background:#e0f2fe;border-left-color:#0369a1}
 .vcell.ex{background:#fff3e0;border-left-color:#c2410c}
@@ -199,9 +199,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 
 <div class="tabs">
   <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-  <button class="tab" id="tab2" onclick="showTab(2)">Size Up</button>
-  <button class="tab" id="tab3" onclick="showTab(3)">Spike/Crash</button>
-  <button class="tab" id="tab4" onclick="showTab(4)">P&amp;L Calc</button>
+  <button class="tab" id="tab2" onclick="showTab(2)">Size</button>
+  <button class="tab" id="tab3" onclick="showTab(3)">Spike</button>
+  <button class="tab" id="tab4" onclick="showTab(4)">Calc</button>
 </div>
 
 <!-- LIVE PRICES -->
