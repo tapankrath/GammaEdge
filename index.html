@@ -413,6 +413,1026 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     </div>
 
     <!-- P&L table for the recommended trade -->
+    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:700" id="g-pnl-label">P&L by Day</div>
+    <div class="stbl">
+      <div class="stbl-hd" id="g-stbl-hd">
+        <div class="shd">Move</div>
+        <div class="shd dr">D1</div>
+        <div class="shd mo">D2</div>
+        <div class="shd ex">D3</div>
+      </div>
+      <div id="g-rows"></div>
+    </div>
+    <div class="note">Based on 30-day price history · RSI-14 · 20-day MA · Signals are indicative only</div>
+  </div>
+
+  <div id="g-error" style="display:none;background:var(--rbg);border:1px solid var(--rbd);border-radius:10px;padding:14px;color:var(--red);font-size:12px;line-height:1.6"></div>
+</div>
+
+</div><!-- end app -->
+<script>
+var FK='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';
+var LIVE={spy:0,qqq:0};
+var T1='qqq',T2='qqq',T3='qqq',T4='qqq',SDIR='up',OTM=2,SEL=0;
+var DEFS={spy:{spot:555,cost:7,iv:18},qqq:{spot:706,cost:17,iv:21}};
+var DTES=[2,5,8,10,14,21,30];
+var SCENS=[{k:'drift',lo:.2,mid:.35,hi:.5},{k:'momentum',lo:.5,mid:.75,hi:1},{k:'explosive',lo:1,mid:1.5,hi:2}];
+
+function $(i){return document.getElementById(i);}
+function fv(i){return parseFloat($(i).value)||0;}
+function iv(i){return parseInt($(i).value)||0;}
+function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
+function showTab(n){
+  // New order: 1=Signal(pane4), 2=Size Up(pane2), 3=Spike/Crash(pane3), 4=P&L(pane1)
+  var paneMap={1:4,2:2,3:3,4:1};
+  var p=paneMap[n];
+  for(var i=1;i<=4;i++){
+    $('tab'+i).className='tab'+(i===n?' on':'');
+    $('pane'+paneMap[i]).className='pane'+(i===n?' on':'');
+  }
+  if(n===1)go4();
+}
+
+/* ── MATH ── */
+function erf(x){var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911,s=x<0?-1:1;x=Math.abs(x);var t=1/(1+p*x);return s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));}
+function Ncdf(x){return 0.5*(1+erf(x/Math.sqrt(2)));}
+function bsC(S,K,T,v){if(T<=0)return Math.max(S-K,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return S*Ncdf(d1)-K*Ncdf(d1-v*Math.sqrt(T));}
+function bsP(S,K,T,v){if(T<=0)return Math.max(K-S,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return K*Ncdf(-(d1-v*Math.sqrt(T)))-S*Ncdf(-d1);}
+function prem(s,d,v){return s*v*Math.sqrt(d/365)*.8;}
+function crush(h,d){if(h<=0||h>=d)return 0;return .25*(1-(h-1)/Math.max(d-1,1));}
+function callput(s,k,r,v,c){
+  if(r<=0)return c?Math.max(s-k,0):Math.max(k-s,0);
+  var T=Math.max(r,.01)/365,st=v*Math.sqrt(T)||.01,m=(s-k)/(s*st),atm=s*st*.4;
+  return (c?Math.max(s-k,0):Math.max(k-s,0))+atm*Math.exp(-.5*m*m);
+}
+function atmExit(s,v,d,mv,h){
+  var cost=prem(s,d,v),np=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
+  var val=h>=d?Math.max(np-s,0)+Math.max(s-np,0):callput(np,s,rem,eiv,true)+callput(np,s,rem,eiv,false);
+  var dol=(val-cost)*100;
+  return{dol:dol,pct:cost>0?dol/(cost*100)*100:0,cost:cost};
+}
+function otmExit(s,otmPct,d,v,mv,h,isCall){
+  var K=isCall?s*(1+otmPct/100):s*(1-otmPct/100),T=d/365;
+  var costPer=(isCall?bsC(s,K,T,v):bsP(s,K,T,v))*100;
+  var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
+  var val=rem>0?(isCall?bsC(ns,K,rem/365,eiv):bsP(ns,K,rem/365,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
+  return{dol:val-costPer,ret:costPer>0?(val-costPer)/costPer*100:0,costPer:costPer};
+}
+function otmBoth(s,otmPct,d,v,mv,h){
+  var Kc=s*(1+otmPct/100),Kp=s*(1-otmPct/100),T=d/365;
+  var cp=(bsC(s,Kc,T,v)+bsP(s,Kp,T,v))*100;
+  var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
+  var val=rem>0?(bsC(ns,Kc,rem/365,eiv)+bsP(ns,Kp,rem/365,eiv))*100:(Math.max(ns-Kc,0)+Math.max(Kp-ns,0))*100;
+  return{dol:val-cp,ret:cp>0?(val-cp)/cp*100:0,costPer:cp};
+}
+
+/* Category: p=profit, n=loss, y=near B/E, o=stop */
+function cat(dol,costPos,stopPct){
+  var thresh=costPos*0.12;
+  if(stopPct>0&&dol<=-(costPos*stopPct/100))return 'o';
+  if(dol>thresh)return 'p';
+  if(dol<-thresh)return 'n';
+  return 'y';
+}
+function clr(c){return c==='p'?'gp':c==='n'?'rn':c==='o'?'on':'yn';}
+
+/* Build scenario table rows */
+function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays,targetId){
+  var stopInfo={},sh='',maxShow=Math.min(dte,maxDays||10);
+  function row(day,isExp){
+    var isBest=day===bestDay,isSel=selDay>0&&day===selDay;
+    var anyStop=false,cols=[];
+    SCENS.forEach(function(sc){
+      var r=atmExit(spot,iv3,dte,sc.mid,day);
+      var dol=r.dol*contracts;
+      var c=cat(dol,costPer*contracts,stopPct);
+      if(c==='o'){anyStop=true;if(!stopInfo[sc.k])stopInfo[sc.k]=day;}
+      cols.push({dol:dol,pct:r.pct,c:c,col:sc.k==='drift'?'dr':sc.k==='momentum'?'mo':'ex'});
+    });
+    var rc='srow'+(anyStop?' stop':isBest?' best':isSel?' cur':'')+(isExp?' exp':'');
+    var dn=isExp?'Exp':'D'+day;
+    var note=anyStop?'⚠ Stop':isBest?'★ Best':isSel?'◀':isExp?'intrinsic':Math.round(crush(day,dte)*100)+'% crush';
+    sh+='<div class="'+rc+'" onclick="tapRow('+day+')"><div class="dcell"><span class="dname">'+dn+'</span><span class="dnote">'+note+'</span></div>';
+    cols.forEach(function(col){
+      sh+='<div class="vcell '+col.col+'"><span class="vamt '+clr(col.c)+'">'+fp(col.dol)+'</span><span class="vpct '+clr(col.c)+'">'+(col.pct>=0?'+':'')+col.pct.toFixed(0)+'%</span></div>';
+    });
+    sh+='</div>';
+  }
+  for(var d=1;d<=maxShow;d++)row(d,d>=dte);
+  if(dte>maxShow)row(dte,true);
+  $(targetId).innerHTML=sh;
+  return stopInfo;
+}
+
+/* ── LIVE PRICES ── */
+function fetchP(sym){
+  fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var p=d.c,ch=p-d.pc,pct=ch/d.pc*100,k=sym.toLowerCase();
+      LIVE[k]=p;
+      $('px-'+k).textContent='$'+p.toFixed(2);
+      var el=$('pc-'+k),s=ch>=0?'+':'';
+      el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
+      el.style.color=ch>=0?'var(--green)':'var(--red)';
+      if(T1===k)$('c1').value=p.toFixed(2);
+      if(T2===k)$('r1').value=p.toFixed(2);
+      if(T3===k)$('s1').value=p.toFixed(2);
+      go1();go2();go3();
+    }).catch(function(){});
+}
+function fetchAll(){fetchP('SPY');fetchP('QQQ');}
+
+/* ── TAB 1 ── */
+function setT1(t){
+  T1=t;SEL=0;
+  ['spy','qqq'].forEach(function(x){$('t1-'+x).className='tk '+x+(t===x?' on':'');});
+  var d=DEFS[t];$('c1').value=(LIVE[t]>0?LIVE[t]:d.spot).toFixed(2);$('c2').value=d.cost;$('c3').value=d.iv;
+  go1();
+}
+function tapRow(day){SEL=day;$('c-selday').textContent='Day '+day+' selected · tap another to change';go1();}
+function go1(){
+  var spot=fv('c1'),costIn=fv('c2'),iv3=fv('c3')/100,dte=iv('c4')||10;
+  var capital=fv('c5'),target=fv('c6'),stopPct=fv('c7');
+  if(spot<=0)return;
+  var costPer=costIn*100,contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
+  $('c-info').innerHTML='<b>'+T1.toUpperCase()+'</b> · $'+costIn.toFixed(2)+'/share · <b>$'+costPer.toFixed(0)+'/contract</b>';
+  $('c-nc').textContent=contracts+(contracts===1?' contract':' contracts');
+  $('c-dep').textContent='$'+fmt(costPer*contracts);
+  // At target using explosive mid D1
+  var rRef=atmExit(spot,iv3,dte,SCENS[2].mid,1),tp=rRef.dol*contracts;
+  var hit=tp>=target;
+  $('c-tgt').textContent=(hit?'Yes +$':' No -$')+fmt(Math.abs(tp-target));
+  $('c-tgt').className='si-val '+(hit?'pos':'neg');
+  // B/E
+  var bePct=costIn/spot*100;
+  $('c-be').textContent='+/- '+bePct.toFixed(2)+'%';
+  $('c-stop').textContent='-'+stopPct+'% (-$'+fmt(costPer*contracts*stopPct/100)+')';
+  // Verdict
+  var rExp=atmExit(spot,iv3,dte,SCENS[2].mid,1),rMom=atmExit(spot,iv3,dte,SCENS[1].mid,1);
+  var cv=$('c-cv'),cvv=$('c-cvv');
+  if(rExp.dol*contracts>0){cv.className='ctx-box cv ok';cvv.textContent='Explosive clears B/E';}
+  else if(rMom.dol*contracts>0){cv.className='ctx-box cv tight';cvv.textContent='Needs Momentum+';}
+  else{cv.className='ctx-box cv no';cvv.textContent='Needs big move';}
+  // Best day (using explosive mid)
+  var bp=-Infinity,bd=1;
+  for(var d=1;d<=dte;d++){var r=atmExit(spot,iv3,dte,SCENS[2].mid,d);if(r.dol*contracts>bp){bp=r.dol*contracts;bd=d;}}
+  var selDay=SEL>0&&SEL<=dte?SEL:0;
+  var si=buildRows(spot,iv3,dte,contracts,costPer,stopPct,bd,selDay,10,'c-rows');
+  var sk=Object.keys(si),al=$('c-alert');
+  if(sk.length>0){al.style.display='block';$('c-alert-t').textContent='Stop Zone (-'+stopPct+'% of premium)';$('c-alert-b').textContent=' '+sk.map(function(k){return k[0].toUpperCase()+k.slice(1)+' D'+si[k];}).join(' · ');}
+  else al.style.display='none';
+}
+
+/* ── TAB 2 ── */
+function setT2(t){
+  T2=t;
+  ['spy','qqq'].forEach(function(x){$('t2-'+x).className='tk '+x+(t===x?' on':'');});
+  var d=DEFS[t];$('r1').value=(LIVE[t]>0?LIVE[t]:d.spot).toFixed(2);$('r2').value=d.iv;
+  go2();
+}
+function go2(){
+  var spot=fv('r1'),iv3=fv('r2')/100,capital=fv('r3'),target=fv('r4'),move=fv('r5'),stopPct=fv('r6');
+  if(spot<=0||iv3<=0)return;
+  var results=[];
+  DTES.forEach(function(dte){
+    var cp=prem(spot,dte,iv3)*100;if(cp<=0)return;
+    var maxC=capital>0?Math.max(1,Math.floor(capital/cp)):1;
+    // Best P&L per contract at expected move across all days
+    var bestPnl=-Infinity,bestDay=1;
+    for(var d=1;d<=dte;d++){var r=atmExit(spot,iv3,dte,move,d);if(r.dol>bestPnl){bestPnl=r.dol;bestDay=d;}}
+    // Contracts to hit target
+    var contracts=bestPnl>0?Math.max(1,Math.min(Math.ceil(target/bestPnl),maxC)):maxC;
+    var capUsed=cp*contracts;
+    // Average P&L across D1/D2/D3 timing scenarios (key: doesn't always happen D1)
+    var d1=atmExit(spot,iv3,dte,move,1).dol*contracts;
+    var d2=atmExit(spot,iv3,dte,move,Math.min(2,dte)).dol*contracts;
+    var d3=atmExit(spot,iv3,dte,move,Math.min(3,dte)).dol*contracts;
+    var avgPnl=(d1+d2+d3)/3;
+    // No-move D1 loss (theta decay with no move)
+    var noMove=atmExit(spot,iv3,dte,0,1).dol*contracts;
+    var stopThresh=stopPct>0?-(cp*contracts*stopPct/100):-Infinity;
+    var stopHit=noMove<=stopThresh;
+    // Score: reward hitting target, penalize over-leverage and stop risk
+    // hitBonus: does this DTE reliably hit target?
+    var hitBonus=avgPnl>=target?40:Math.max(0,avgPnl/target)*25;
+    // capEff: capital efficiency, but cap contracts to avoid short-DTE over-leverage
+    var adjContracts=Math.min(contracts,Math.floor(capital/(cp*2)||1)); // don't count over-leverage as a bonus
+    var adjPnl=atmExit(spot,iv3,dte,move,bestDay).dol*adjContracts;
+    var capEff=capital>0?Math.min(adjPnl/capital*50,30):0; // cap contribution at 30
+    // DTE quality: prefer 5-14 DTE sweet spot, penalize extremes
+    var dtePenalty=dte<=2?-20:dte===5?0:dte<=14?5:0;
+    var stopPenalty=stopHit?-25:0;
+    var score=hitBonus+capEff+dtePenalty+stopPenalty;
+    results.push({dte:dte,cp:cp,contracts:contracts,capUsed:capUsed,
+      pnl:avgPnl,d1:d1,bestDay:bestDay,ret:cp>0?bestPnl/cp*100:0,
+      score:score,stopHit:stopHit,bestPnl:bestPnl});
+  });
+  if(!results.length)return;
+  var best=results.reduce(function(a,b){return a.score>b.score?a:b;});
+  var ivp=iv3*100,ivCls=ivp<18?'cheap':ivp<28?'fair':'rich';
+  var ivLbl=ivp<18?'Cheap — Good to buy':ivp<28?'Fair — OK':ivp>=35?'Rich — Careful':'Elevated';
+  var be=best.cp/(spot*100)*100;
+  // Risk level based on DTE
+  var riskLbl=best.dte<=2?'High Risk · Move must happen quickly':best.dte<=5?'Medium Risk · 5 days to be right':'Lower Risk · More time for move';
+  $('r-title').textContent=best.dte+' DTE ATM Straddle';
+  $('r-sub').textContent=T2.toUpperCase()+' @ $'+spot.toFixed(0)+' · IV '+ivp.toFixed(0)+'% · '+move+'% move · '+riskLbl;
+  $('r-c').textContent=best.contracts+(best.contracts===1?' contract':' contracts');
+  $('r-dep').textContent='$'+fmt(best.capUsed)+' of $'+fmt(capital);
+  $('r-max').textContent='$'+(prem(spot,best.dte,iv3)*100*1.05).toFixed(2);
+  $('r-exit').textContent='Day '+best.bestDay+' after move';
+  $('r-iv').innerHTML='<span class="ivbadge '+ivCls+'">'+ivLbl+'</span>';
+  $('r-be').textContent='+/- '+be.toFixed(2)+'%';
+  $('r-be').className='rv '+(be<1?'g':be<2.5?'a':'r');
+  $('r-be2').textContent='Move this % either way by expiry to break even';
+  // Stop analysis
+  var stopInfo={};
+  SCENS.forEach(function(sc){
+    var st=stopPct>0?-(best.cp*best.contracts*stopPct/100):-Infinity;
+    for(var d=1;d<=best.dte;d++){
+      var r=atmExit(spot,iv3,best.dte,sc.mid,d);
+      if(r.dol*best.contracts<=st){if(!stopInfo[sc.k])stopInfo[sc.k]=d;break;}
+    }
+  });
+  var sk2=Object.keys(stopInfo);
+  if(stopPct>0&&sk2.length>0){
+    var early=Math.min.apply(null,sk2.map(function(k){return stopInfo[k];}));
+    $('r-stop').textContent='-'+stopPct+'% · Earliest hit: Day '+early;
+    $('r-stop2').textContent=sk2.map(function(k){return k[0].toUpperCase()+k.slice(1)+': D'+stopInfo[k];}).join(' · ');
+  } else if(stopPct>0){
+    $('r-stop').textContent='-'+stopPct+'% · Not triggered in any scenario';
+    $('r-stop2').textContent='Stop is wider than projected losses — good';
+  } else {
+    $('r-stop').textContent='No stop set';$('r-stop2').textContent='';
+  }
+  buildRows(spot,iv3,best.dte,best.contracts,best.cp,stopPct,best.bestDay,0,8,'r-rows');
+}
+
+/* ── TAB 3 ── */
+function setT3(t){
+  T3=t;
+  ['spy','qqq'].forEach(function(x){$('t3-'+x).className='tk '+x+(t===x?' on':'');});
+  var d=DEFS[t];$('s1').value=(LIVE[t]>0?LIVE[t]:d.spot).toFixed(2);$('s2').value=d.iv;
+  go3();
+}
+function setSdir(d){
+  SDIR=d;
+  ['up','dn','both'].forEach(function(x){$('sd-'+x).className='dbtn '+(x==='up'?'up':x==='dn'?'dn':'both')+(d===x?' on':'');});
+  go3();
+}
+function setOtm(btn,v){
+  OTM=v;
+  document.querySelectorAll('.otmbtn').forEach(function(b){b.className='otmbtn';});
+  btn.className='otmbtn on';
+  go3();
+}
+function retCls(r){return r<0?'c0':r<50?'c1':r<150?'c2':r<400?'c3':r<800?'c4':'c5';}
+function go3(){
+  var spot=fv('s1'),iv3=fv('s2')/100,dte=iv('s3')||7,capital=fv('s4');
+  if(spot<=0||iv3<=0)return;
+  var isCall=SDIR==='up',isBoth=SDIR==='both';
+  // Cost per contract
+  var cp;
+  if(isBoth){cp=otmBoth(spot,OTM,dte,iv3,0,0).costPer;}
+  else{cp=otmExit(spot,OTM,dte,iv3,0,0,isCall).costPer;}
+  if(cp<=0)return;
+  var contracts=Math.max(1,Math.floor(capital/cp));
+  var totalRisk=cp*contracts;
+  // Strike prices
+  var Kc=(spot*(1+OTM/100)).toFixed(2),Kp=(spot*(1-OTM/100)).toFixed(2);
+  var cPrem=(bsC(spot,parseFloat(Kc),dte/365,iv3)).toFixed(2);
+  var pPrem=(bsP(spot,parseFloat(Kp),dte/365,iv3)).toFixed(2);
+  // Find what move gives 500%
+  var need500=null;
+  for(var mv=1;mv<=50;mv++){
+    var r=isBoth?otmBoth(spot,OTM,dte,iv3,mv,1):otmExit(spot,OTM,dte,iv3,isCall?mv:-mv,1,isCall);
+    if(r.ret>=500){need500=mv;break;}
+  }
+  // Build ticket
+  var th='<div class="tkt-lbl">Order Ticket · '+T3.toUpperCase()+' · '+dte+' DTE · '+OTM+'% OTM</div><div class="tkt-legs">';
+  if(SDIR==='up'||SDIR==='both'){
+    th+='<div class="tkt-leg"><div><span class="tkt-action call">BUY CALL</span><div class="tkt-strike">$'+Kc+' Strike</div><div class="tkt-detail">'+OTM+'% above $'+spot.toFixed(0)+'</div></div><div style="text-align:right"><div style="font-size:8px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ask ~</div><div class="tkt-prem">$'+cPrem+'/share</div><div class="tkt-prem-sub">$'+(parseFloat(cPrem)*100).toFixed(0)+'/contract</div></div></div>';
+  }
+  if(SDIR==='dn'||SDIR==='both'){
+    th+='<div class="tkt-leg"><div><span class="tkt-action put">BUY PUT</span><div class="tkt-strike">$'+Kp+' Strike</div><div class="tkt-detail">'+OTM+'% below $'+spot.toFixed(0)+'</div></div><div style="text-align:right"><div style="font-size:8px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ask ~</div><div class="tkt-prem">$'+pPrem+'/share</div><div class="tkt-prem-sub">$'+(parseFloat(pPrem)*100).toFixed(0)+'/contract</div></div></div>';
+  }
+  th+='</div><div class="tkt-footer"><div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">500%+ needs</div><div class="tkt-fi-val" style="color:var(--green)">'+(need500?'+'+need500+'%':'—')+'</div></div></div>';
+  $('s-ticket').innerHTML=th;
+  // Day slabs based on DTE
+  var holdDays;
+  if(dte<=7)       holdDays=[1,2,3,dte];
+  else if(dte<=14) holdDays=[1,3,5,7,dte];
+  else if(dte<=21) holdDays=[1,3,7,14,dte];
+  else             holdDays=[1,5,10,15,dte];
+  // Remove duplicates and sort
+  holdDays=holdDays.filter(function(d,i,a){return d<=dte&&a.indexOf(d)===i;}).sort(function(a,b){return a-b;});
+
+  // Grid column width
+  var colW='1.1fr '+holdDays.map(function(){return '1fr';}).join(' ');
+
+  // Update header
+  var hdHtml='<span style="text-align:left">Move</span>';
+  holdDays.forEach(function(d){hdHtml+='<span>'+(d===dte?'Exp':'D'+d)+'</span>';});
+  $('s-hd-row').innerHTML=hdHtml;
+  $('s-hd-row').style.gridTemplateColumns=colW;
+
+  // Find min move to break even at each hold day (for min gain row)
+  var minMoves=holdDays.map(function(d){
+    for(var mv=1;mv<=50;mv++){
+      var r=isBoth?otmBoth(spot,OTM,dte,iv3,mv,d):otmExit(spot,OTM,dte,iv3,isCall?mv:-mv,d,isCall);
+      if(r.ret>=0)return mv;
+    }
+    return null;
+  });
+
+  // Build rows
+  var MOVES=[2,3,5,7,10,15,20,25,30];
+  var sh='';
+
+  // Min gain row at top
+  sh+='<div class="rrow" style="grid-template-columns:'+colW+';background:#f8fafc;border-bottom:2px solid #e2e8f0">';
+  sh+='<span class="mlbl" style="font-size:10px;color:#64748b">B/E move</span>';
+  minMoves.forEach(function(mv){
+    sh+='<span style="font-size:11px;font-weight:700;color:#1d4ed8;text-align:center">'+(mv?'+'+mv+'%':'—')+'</span>';
+  });
+  sh+='</div>';
+
+  MOVES.forEach(function(mv){
+    var amv=SDIR==='dn'?-mv:mv;
+    function get(h){return isBoth?otmBoth(spot,OTM,dte,iv3,mv,h):otmExit(spot,OTM,dte,iv3,amv,h,isCall);}
+    var cells=holdDays.map(function(d){return get(d);});
+    var isMega=cells.some(function(c){return c.ret>=500;});
+    var rc='rrow'+(isMega?' mega':'');
+    function cell(r){return '<span class="'+retCls(r.ret)+'">'+(r.ret>=0?'+':'')+Math.round(r.ret)+'%</span>';}
+    sh+='<div class="'+rc+'" style="grid-template-columns:'+colW+'"><span class="mlbl">'+(SDIR==='dn'?'-':'+')+mv+'%</span>';
+    cells.forEach(function(c){sh+=cell(c);});
+    sh+='</div>';
+  });
+  $('s-rows').innerHTML=sh;
+}
+
+/* ── TAB 4: SIGNAL ── */
+var T4='qqq',G_LOADED={};
+
+function setT4(t){
+  T4=t;
+  ['spy','qqq'].forEach(function(x){$('t4-'+x).className='tk '+x+(t===x?' on':'');});
+  go4();
+}
+
+function go4(){
+  var capital=fv('g1'),target=fv('g2'),stopPct=fv('g3');
+  var sym=T4.toUpperCase();
+  $('g-loading').style.display='block';
+  $('g-signal').style.display='none';
+  $('g-error').style.display='none';
+
+  // Yahoo Finance v8 via CORS proxies
+  var yahooPath='/v8/finance/chart/'+sym+'?interval=1d&range=60d';
+  var endpoints=[
+    'https://corsproxy.io/?url=https://query1.finance.yahoo.com'+yahooPath,
+    'https://api.allorigins.win/raw?url='+encodeURIComponent('https://query1.finance.yahoo.com'+yahooPath),
+    'https://corsproxy.io/?url=https://query2.finance.yahoo.com'+yahooPath
+  ];
+  var url=endpoints[0];
+
+  function parseYahoo(data){
+    var res=data.chart&&data.chart.result&&data.chart.result[0];
+    if(!res)throw new Error('No data returned from Yahoo Finance');
+    var closes=res.indicators.quote[0].close;
+    var highs=res.indicators.quote[0].high;
+    var lows=res.indicators.quote[0].low;
+    var vols=res.indicators.quote[0].volume;
+    var valid=[];
+    for(var i=0;i<closes.length;i++){
+      if(closes[i]&&highs[i]&&lows[i])valid.push({c:closes[i],h:highs[i],l:lows[i],v:vols[i]||0});
+    }
+    if(valid.length<20)throw new Error('Not enough data (got '+valid.length+' days, need 20+)');
+    return valid;
+  }
+
+  function tryFetch(idx){
+    if(idx>=endpoints.length){
+      $('g-loading').style.display='none';
+      $('g-error').style.display='block';
+      $('g-error').innerHTML='<b>Could not load market data.</b><br><br>This feature requires an internet connection. If you see this repeatedly, try refreshing or opening in a different browser.<br><br>Tried '+endpoints.length+' sources — all blocked or unavailable.';
+      return;
+    }
+    fetch(endpoints[idx])
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(function(data){
+        var valid=parseYahoo(data);
+        processSignal(valid,capital,target,stopPct,sym);
+      })
+      .catch(function(){tryFetch(idx+1);});
+  }
+  tryFetch(0);
+}
+
+/* ── DIRECTIONAL P&L TABLE (single leg call or put) ── */
+function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bestDay,isCall,targetId){
+  // Move scenarios for directional: small, medium, large in the right direction
+  var DMOVES=[0.5,1,1.5,2,3,5,7,10];
+  var DAYS=[];
+  for(var d=1;d<=Math.min(dte,8);d++) DAYS.push(d);
+  if(dte>8&&DAYS[DAYS.length-1]!==dte) DAYS.push(dte);
+
+  var colW='.55fr '+DAYS.map(function(){return '1fr';}).join(' ');
+
+  // Header
+  var hd=$('g-stbl-hd');
+  if(hd){
+    hd.style.gridTemplateColumns=colW;
+    var hdh='<div class="shd">Move</div>';
+    DAYS.forEach(function(d){hdh+='<div class="shd '+(d===dte?'ex':d===bestDay?'mo':'dr')+'">'+(d===dte?'Exp':'D'+d)+(d===bestDay?'<span class="rng">★best</span>':'')+'</div>';});
+    hd.innerHTML=hdh;
+  }
+
+  var sh='';
+  DMOVES.forEach(function(mv){
+    var amv=isCall?mv:-mv; // direction-adjusted move
+    var isBest=false,isStop=false;
+    var cells=DAYS.map(function(d){
+      var rem=Math.max(dte-d,0)/365;
+      var eiv=iv3*(1-crush(d,dte));
+      var ns=spot*(1+amv/100);
+      var exitVal=rem>0?(isCall?bsC(ns,K,rem,eiv):bsP(ns,K,rem,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
+      var dol=(exitVal-costPer)*contracts;
+      var pct=costPer>0?(exitVal-costPer)/costPer*100:0;
+      var c=cat(dol,costPer*contracts,stopPct);
+      if(c==='o')isStop=true;
+      return{dol:dol,pct:pct,c:c};
+    });
+    var rowCls='srow'+(isStop?' stop':cells.some(function(c,i){return DAYS[i]===bestDay&&c.c==='p'})?' best':'');
+    sh+='<div class="'+rowCls+'">';
+    sh+='<div class="dcell"><span class="dname">'+(isCall?'+':'-')+mv+'%</span></div>';
+    cells.forEach(function(cell){
+      sh+='<div class="vcell dr"><span class="vamt '+clr(cell.c)+'">'+fp(cell.dol)+'</span><span class="vpct '+clr(cell.c)+'">'+(cell.pct>=0?'+':'')+cell.pct.toFixed(0)+'%</span></div>';
+    });
+    sh+='</div>';
+  });
+  $(targetId).innerHTML=sh;
+  // Fix row grid columns too
+  var rows=$(targetId).querySelectorAll('.srow');
+  rows.forEach(function(r){r.style.gridTemplateColumns=colW;});
+}
+
+function processSignal(valid,capital,target,stopPct,sym){
+  var closes=valid.map(function(v){return v.c;});
+  var highs=valid.map(function(v){return v.h;});
+  var lows=valid.map(function(v){return v.l;});
+  var vols=valid.map(function(v){return v.v;});
+  var n=closes.length;
+  var spot=closes[n-1];
+
+  // 20-day MA
+  var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
+  var aboveMA20=spot>ma20;
+  var ma20Pct=((spot-ma20)/ma20*100);
+
+  // RSI-14
+  var gains=0,losses=0;
+  for(var i=n-14;i<n;i++){
+    var diff=closes[i]-closes[i-1];
+    if(diff>0)gains+=diff;else losses+=Math.abs(diff);
+  }
+  var rs=(gains/14)/(losses/14||0.001);
+  var rsi=100-100/(1+rs);
+
+  // 3-day momentum
+  var mom3=(closes[n-1]-closes[n-4])/closes[n-4]*100;
+
+  // ATR-14
+  var atrs=[];
+  for(var j=n-14;j<n;j++){
+    atrs.push(Math.max(highs[j]-lows[j],Math.abs(highs[j]-closes[j-1]),Math.abs(lows[j]-closes[j-1])));
+  }
+  var atr=atrs.reduce(function(a,b){return a+b;})/14;
+  var atrPct=atr/spot*100;
+
+  // Volume trend
+  var vol5=vols.slice(-5).reduce(function(a,b){return a+b;})/5;
+  var vol20=vols.slice(-20).reduce(function(a,b){return a+b;})/20;
+  var volRatio=vol5/vol20;
+
+  // Realized volatility (20-day) as IV proxy — annualized
+  var logRets=[];
+  for(var lr=n-21;lr<n;lr++) logRets.push(Math.log(closes[lr]/closes[lr-1]));
+  var meanLR=logRets.reduce(function(a,b){return a+b;})/logRets.length;
+  var varLR=logRets.reduce(function(a,b){return a+Math.pow(b-meanLR,2);},0)/logRets.length;
+  var realizedVol=Math.sqrt(varLR*252); // annualized
+  // Blend realized vol with default IV (market tends to price in a premium)
+  var defaultIV=(T4==='spy'?0.18:0.21);
+  var iv3=realizedVol*1.15; // apply ~15% vol risk premium
+  iv3=Math.max(0.10,Math.min(iv3,0.80)); // clamp 10–80%
+
+  // ── SIGNAL LOGIC ──
+  var bullPoints=0,bearPoints=0,reasons=[],signals=[];
+
+  // 1. Price vs MA20
+  if(aboveMA20){
+    bullPoints+=2;
+    signals.push({lbl:'Price vs 20MA',val:'+'+ma20Pct.toFixed(1)+'%',note:'Above MA — bullish trend',bull:true});
+  } else {
+    bearPoints+=2;
+    signals.push({lbl:'Price vs 20MA',val:ma20Pct.toFixed(1)+'%',note:'Below MA — bearish trend',bull:false});
+  }
+
+  // 2. RSI
+  if(rsi>65){bearPoints+=2;signals.push({lbl:'RSI-14',val:rsi.toFixed(0),note:'Overbought — pullback risk',bull:false});}
+  else if(rsi>55){bullPoints+=1;signals.push({lbl:'RSI-14',val:rsi.toFixed(0),note:'Bullish momentum',bull:true});}
+  else if(rsi<35){bullPoints+=2;signals.push({lbl:'RSI-14',val:rsi.toFixed(0),note:'Oversold — bounce potential',bull:true});}
+  else if(rsi<45){bearPoints+=1;signals.push({lbl:'RSI-14',val:rsi.toFixed(0),note:'Bearish momentum',bull:false});}
+  else{signals.push({lbl:'RSI-14',val:rsi.toFixed(0),note:'Neutral zone',bull:null});}
+
+  // 3. 3-day momentum
+  if(mom3>1.5){bullPoints+=2;signals.push({lbl:'3-day Move',val:'+'+mom3.toFixed(2)+'%',note:'Strong upward momentum',bull:true});}
+  else if(mom3>0.5){bullPoints+=1;signals.push({lbl:'3-day Move',val:'+'+mom3.toFixed(2)+'%',note:'Mild upward momentum',bull:true});}
+  else if(mom3<-1.5){bearPoints+=2;signals.push({lbl:'3-day Move',val:mom3.toFixed(2)+'%',note:'Strong downward momentum',bull:false});}
+  else if(mom3<-0.5){bearPoints+=1;signals.push({lbl:'3-day Move',val:mom3.toFixed(2)+'%',note:'Mild downward momentum',bull:false});}
+  else{signals.push({lbl:'3-day Move',val:(mom3>=0?'+':'')+mom3.toFixed(2)+'%',note:'Flat — no clear direction',bull:null});}
+
+  // 4. Volume
+  if(volRatio>1.3){
+    var volNote=aboveMA20?'High vol on uptrend — bullish':'High vol on downtrend — bearish';
+    if(aboveMA20){bullPoints+=1;}else{bearPoints+=1;}
+    signals.push({lbl:'Volume (5d vs 20d)',val:(volRatio*100).toFixed(0)+'%',note:volNote,bull:aboveMA20});
+  } else if(volRatio<0.7){
+    signals.push({lbl:'Volume (5d vs 20d)',val:(volRatio*100).toFixed(0)+'%',note:'Low volume — weak conviction',bull:null});
+  } else {
+    signals.push({lbl:'Volume (5d vs 20d)',val:(volRatio*100).toFixed(0)+'%',note:'Normal volume',bull:null});
+  }
+
+  // 5. ATR + IV
+  var expMove=atrPct.toFixed(2);
+  signals.push({lbl:'ATR-14 (daily)',val:'+/-'+expMove+'%',note:'Expected daily range',bull:null});
+  signals.push({lbl:'Est. IV (realized vol)',val:(iv3*100).toFixed(0)+'%',note:iv3<0.20?'Low IV — cheap to buy':iv3<0.35?'Moderate IV':'High IV — premium is elevated',bull:iv3<0.25?true:iv3>0.40?false:null});
+
+  // ── DETERMINE ACTION ──
+  var action,color,bgColor,borderColor,confidence,dte,isCall;
+
+  if(bullPoints>=5&&bullPoints>bearPoints*1.5){
+    action='BUY CALL';isCall=true;color='#14532d';bgColor='#f0fdf4';borderColor='#16a34a';
+    confidence=bullPoints>=7?'High':'Medium';
+    reasons.push('Strong bullish signals — price above 20MA with positive momentum');
+  } else if(bearPoints>=5&&bearPoints>bullPoints*1.5){
+    action='BUY PUT';isCall=false;color='#7f1d1d';bgColor='#fef2f2';borderColor='#dc2626';
+    confidence=bearPoints>=7?'High':'Medium';
+    reasons.push('Strong bearish signals — price below 20MA with negative momentum');
+  } else if(bullPoints>bearPoints){
+    action='LEAN CALL';isCall=true;color='#166534';bgColor='#f0fdf4';borderColor='#86efac';
+    confidence='Low';
+    reasons.push('Mildly bullish — mixed signals, reduce size or wait');
+  } else if(bearPoints>bullPoints){
+    action='LEAN PUT';isCall=false;color='#991b1b';bgColor='#fef2f2';borderColor='#fca5a5';
+    confidence='Low';
+    reasons.push('Mildly bearish — mixed signals, reduce size or wait');
+  } else {
+    action='NO TRADE';isCall=null;color='#334155';bgColor='#f8fafc';borderColor='#e2e8f0';
+    confidence='—';
+    reasons.push('Mixed signals — wait for clearer direction');
+  }
+
+  // DTE based on confidence and volatility
+  if(isCall!==null){
+    if(confidence==='High'){dte=atrPct>1?5:8;}
+    else{dte=atrPct>1?8:14;}
+  }
+
+  // Style the main card
+  var mc=$('g-main-card');
+  mc.style.background=bgColor;mc.style.borderColor=borderColor;
+  $('g-sig-lbl').style.color=color;$('g-sig-lbl').textContent=sym+' Signal · '+confidence+' Confidence';
+  $('g-sig-action').style.color=color;$('g-sig-action').textContent=action;
+  $('g-sig-sub').style.color=color;
+  $('g-sig-sub').textContent=isCall===true?'↑ Bullish — directional upside play':isCall===false?'↓ Bearish — directional downside play':'Wait for clearer trend';
+
+  // Setup grid + P&L table
+  var sg=$('g-setup-grid');
+  if(isCall!==null&&dte){
+    var capital=fv('g1'),target=fv('g2'),stopPct=fv('g3');
+    var T=dte/365;
+    // ATM strike
+    var K=Math.round(spot/5)*5; // round to nearest $5
+    var premPerShare=isCall?bsC(spot,K,T,iv3):bsP(spot,K,T,iv3);
+    var costPer=premPerShare*100;
+    if(costPer<=0)costPer=spot*iv3*Math.sqrt(T)*0.4*100;
+    var maxC=capital>0?Math.max(1,Math.floor(capital/costPer)):1;
+
+    // Find best exit day using single-leg BS
+    var bp=-Infinity,bd=1;
+    for(var dd=1;dd<=dte;dd++){
+      var rem=Math.max(dte-dd,0)/365;
+      var eiv=iv3*(1-crush(dd,dte));
+      var ns=spot*(1+(isCall?1:-1)*SCENS[2].mid/100);
+      var exitVal=(isCall?bsC(ns,K,rem,eiv):bsP(ns,K,rem,eiv))*100;
+      var pnlDD=(exitVal-costPer);
+      if(pnlDD>bp){bp=pnlDD;bd=dd;}
+    }
+    var contracts=bp>0?Math.max(1,Math.min(Math.ceil(target/bp),maxC)):1;
+    var beMove=((premPerShare/spot)*100).toFixed(2);
+
+    sg.innerHTML=
+      '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Setup</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' ATM '+(isCall?'CALL':'PUT')+'</div></div>'
+      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Premium</div><div style="font-size:15px;font-weight:800;color:'+color+'">$'+premPerShare.toFixed(2)+'/sh · $'+fmt(costPer)+'/ct</div></div>'
+      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+contracts+' · risk $'+fmt(costPer*contracts)+'</div></div>'
+      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">B/E at Expiry</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+(isCall?'+':'-')+beMove+'% · $'+(isCall?(K+premPerShare).toFixed(2):(K-premPerShare).toFixed(2))+'</div></div>';
+
+    // Build directional P&L table
+    buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bd,isCall,'g-rows');
+
+    // Update table header label
+    $('g-pnl-label').textContent=(isCall?'Call':'Put')+' P&L by Day — '+dte+' DTE $'+K+' Strike';
+
+  } else {
+    sg.innerHTML='<div style="grid-column:1/-1;padding:10px;font-size:12px;color:#475569;font-weight:600">No trade recommended — wait for stronger signal</div>';
+    $('g-rows').innerHTML='';
+    $('g-pnl-label').textContent='P&L by Day';
+  }
+
+  // Reasoning
+  $('g-reason').innerHTML='<div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Why</div>'
+    +'<div style="font-size:12px;color:#0f172a;line-height:1.7;font-weight:500">'+reasons.join(' · ')+'<br>ATR suggests +/-'+expMove+'% daily move. RSI '+rsi.toFixed(0)+'. Est IV '+(iv3*100).toFixed(0)+'%.</div>';
+
+  // Indicators
+  var ih='';
+  signals.forEach(function(s){
+    var sc=s.bull===true?'#14532d':s.bull===false?'#991b1b':'#334155';
+    var dot=s.bull===true?'▲':s.bull===false?'▼':'—';
+    ih+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0">';
+    ih+='<span style="font-size:12px;color:#0f172a;font-weight:700">'+s.lbl+'</span>';
+    ih+='<div style="text-align:right"><span style="font-size:13px;font-weight:800;color:'+sc+'">'+dot+' '+s.val+'</span>';
+    ih+='<div style="font-size:10px;color:#475569;margin-top:2px;font-weight:600">'+s.note+'</div></div>';
+    ih+='</div>';
+  });
+  $('g-indicators').innerHTML=ih;
+  $('g-loading').style.display='none';
+  $('g-signal').style.display='block';
+  G_LOADED[T4]=true;
+}
+
+/* ── INIT ── */
+go1();go2();go3();
+// Default to Signal tab (tab1 = pane4)
+$('pane1').className='pane';
+$('pane4').className='pane on';
+go4();
+fetchAll();setInterval(fetchAll,60000);
+</script>
+</body>
+</html>
+.fb input{color:var(--blue)}
+.fg input{color:var(--green)}
+.fo input{color:var(--orange)}
+
+/* INFO STRIP */
+.info{background:var(--p2);border:1px solid var(--border);border-radius:7px;padding:7px 11px;font-size:11px;color:var(--dim);margin-top:8px;line-height:1.6}
+.info b{color:var(--text)}
+
+/* SUMMARY BAR */
+.sumbar{background:var(--abg);border:1px solid var(--abd);border-radius:9px;padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.si{display:flex;flex-direction:column;gap:2px}
+.si-lbl{font-size:8px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.si-val{font-size:14px;font-weight:700;color:var(--text)}
+.si-val.pos{color:var(--green)}.si-val.neg{color:var(--red)}
+
+/* CONTEXT ROW */
+.ctx{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.ctx-box{background:var(--p1);border:1px solid var(--border);border-radius:9px;padding:9px;text-align:center}
+.ctx-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;font-weight:700}
+.ctx-val{font-size:14px;font-weight:700}
+.ctx-box.cv{border-width:2px}
+.ctx-box.cv.ok{background:var(--gbg);border-color:var(--green)}.ctx-box.cv.ok .ctx-val{color:var(--green);font-size:11px}
+.ctx-box.cv.tight{background:var(--abg);border-color:var(--amber)}.ctx-box.cv.tight .ctx-val{color:var(--amber);font-size:11px}
+.ctx-box.cv.no{background:var(--rbg);border-color:var(--red)}.ctx-box.cv.no .ctx-val{color:var(--red);font-size:11px}
+
+/* SCENARIO TABLE */
+.stbl{background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+/* Header */
+.stbl-hd{display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;background:#1e293b;border-left:4px solid transparent}
+.shd{padding:10px 4px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#fff;line-height:1.4}
+.shd:first-child{color:#94a3b8;font-size:9px;display:flex;align-items:center;justify-content:center}
+.shd.dr{color:#e9d5ff;border-left:2px solid rgba(233,213,255,.3)}
+.shd.mo{color:#bae6fd;border-left:2px solid rgba(186,230,253,.3)}
+.shd.ex{color:#fed7aa;border-left:2px solid rgba(254,215,170,.3)}
+.shd .rng{font-size:9px;font-weight:600;opacity:.85;display:block;margin-top:3px;color:#fff}
+/* Rows */
+.srow{display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid var(--border);border-left:4px solid transparent}
+.srow:nth-child(even){background:#fafafa}
+.srow.best{border-left-color:var(--amber);background:var(--abg)!important}
+.srow.cur{border-left-color:var(--blue);background:var(--bbg)!important}
+.srow.stop{border-left-color:var(--red);background:var(--rbg)!important}
+.srow.exp{background:#f8fafc!important}
+/* Day cell */
+.dcell{padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.03);min-height:56px;gap:2px;overflow:hidden;min-width:0}
+.dname{font-size:13px;font-weight:700;color:var(--text)}
+.dnote{font-size:9px;color:var(--dim);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.srow.best .dname{color:var(--amber)}.srow.best .dnote{color:var(--amber)}
+.srow.cur .dname{color:var(--blue)}.srow.cur .dnote{color:var(--blue)}
+.srow.stop .dname{color:var(--red)}.srow.stop .dnote{color:var(--red)}
+/* Value cells */
+.vcell{padding:9px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-left:2px solid;min-height:56px;min-width:0;overflow:hidden}
+.vcell.dr{background:#f3f0ff;border-left-color:#7c3aed}
+.vcell.mo{background:#e0f2fe;border-left-color:#0369a1}
+.vcell.ex{background:#fff3e0;border-left-color:#c2410c}
+.vamt{font-size:14px;font-weight:800}
+.vpct{font-size:11px;font-weight:700}
+/* P/L colors - dark on light bg = high contrast */
+.gp{color:#14532d}.rn{color:#7f1d1d}.yn{color:#713f12}.on{color:#7c2d12}
+.srow.stop .vamt,.srow.stop .vpct{color:#7f1d1d!important}
+
+/* LEGEND */
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.lg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim)}
+.lgsq{width:9px;height:9px;border-radius:2px}
+.lgbar{width:4px;height:12px;border-radius:2px}
+
+/* REC CARD */
+.rec{background:var(--p1);border:2px solid var(--abd);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.rec-badge{font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;font-weight:700;display:flex;align-items:center;gap:5px}
+.rec-badge::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
+.rec-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px}
+.rec-sub{font-size:11px;color:#334155;margin-bottom:12px;line-height:1.6;font-weight:500}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rstat{background:var(--p2);padding:10px;border-radius:8px;border:1px solid var(--border)}
+.rl{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;font-weight:700}
+.rv{font-size:15px;font-weight:700;color:var(--text)}
+.rv.a{color:var(--amber)}.rv.g{color:var(--green)}.rv.r{color:var(--red)}.rv.b{color:var(--blue)}
+.rv.sm{font-size:12px}
+.ivbadge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700}
+.ivbadge.cheap{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.ivbadge.fair{background:var(--abg);color:var(--amber);border:1px solid var(--abd)}
+.ivbadge.rich{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+
+/* STOP ALERT */
+.stopalert{background:var(--rbg);border:1px solid var(--rbd);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:11px;color:var(--red);line-height:1.5;display:none}
+.stopalert b{font-size:13px;display:block;margin-bottom:2px}
+
+/* SPIKE TAB */
+.dir-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.dbtn{border:2px solid var(--border);border-radius:9px;padding:12px 4px;text-align:center;background:var(--p2);cursor:pointer}
+.dbtn .dico{font-size:20px;margin-bottom:3px}
+.dbtn .dname{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+.dbtn .dsub{font-size:9px;color:var(--dim);margin-top:2px}
+.dbtn.up.on{background:var(--gbg);border-color:var(--green)}.dbtn.up.on .dname{color:var(--green)}
+.dbtn.dn.on{background:var(--rbg);border-color:var(--red)}.dbtn.dn.on .dname{color:var(--red)}
+.dbtn.both.on{background:var(--abg);border-color:var(--amber)}.dbtn.both.on .dname{color:var(--amber)}
+.otm-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.otmbtn{background:var(--p2);border:1.5px solid var(--border);color:var(--dim);padding:8px 4px;border-radius:7px;font-size:11px;font-weight:700;text-align:center}
+.otmbtn.on{background:var(--pikbg);color:var(--pink);border-color:var(--pink)}
+/* Ticket */
+.ticket{background:var(--pikbg);border:2px solid var(--pikbd);border-radius:12px;padding:14px;margin-bottom:10px}
+.tkt-lbl{font-size:9px;color:var(--pink);font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.tkt-lbl::before{content:'';width:5px;height:5px;background:var(--pink);border-radius:50%}
+.tkt-legs{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.tkt-leg{background:#fff;border:1px solid var(--pikbd);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+.tkt-action{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.tkt-action.call{color:var(--green)}.tkt-action.put{color:var(--red)}
+.tkt-strike{font-size:18px;font-weight:700;color:var(--text);margin:2px 0}
+.tkt-detail{font-size:10px;color:var(--dim)}
+.tkt-prem{font-size:16px;font-weight:700;color:var(--pink)}
+.tkt-prem-sub{font-size:9px;color:var(--dim);text-align:right}
+.tkt-footer{display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--pikbd)}
+.tkt-fi{text-align:center}
+.tkt-fi-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:2px}
+.tkt-fi-val{font-size:13px;font-weight:700;color:var(--text)}
+/* Return table */
+.rtbl{background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.rtbl-hd{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;background:var(--text);padding:9px 10px}
+.rtbl-hd span{text-align:center;font-size:9px;color:#fff;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.rtbl-hd span:first-child{text-align:left}
+.rrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:10px 10px;border-top:1px solid var(--border);align-items:center}
+.rrow:nth-child(even){background:#fafafa}
+.rrow.mega{background:var(--pikbg)}
+.rrow .mlbl{font-size:12px;font-weight:700;color:var(--text)}
+.rrow.mega .mlbl{color:var(--pink)}
+.rrow span{text-align:center;font-size:12px;font-weight:700}
+.c0{color:#b91c1c}.c1{color:#c2410c}.c2{color:#92400e}.c3{color:#166534}.c4{color:#15803d}.c5{color:#14532d}
+
+.note{color:var(--dim);font-size:9px;text-align:center;font-style:italic;margin-top:6px;line-height:1.5}
+@supports(padding-bottom:env(safe-area-inset-bottom)){.app{padding-bottom:calc(60px + env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="tabs">
+  <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
+  <button class="tab" id="tab2" onclick="showTab(2)">Size</button>
+  <button class="tab" id="tab3" onclick="showTab(3)">Spike</button>
+  <button class="tab" id="tab4" onclick="showTab(4)">Calc</button>
+</div>
+
+<!-- LIVE PRICES -->
+<div class="price-bar">
+  <div class="price-card spy" onclick="setT1('spy')">
+    <div class="pc-name">SPY</div>
+    <div class="pc-price" id="px-spy"><span class="ld">...</span></div>
+    <div class="pc-chg" id="pc-spy"></div>
+  </div>
+  <div class="price-card qqq" onclick="setT1('qqq')">
+    <div class="pc-name">QQQ</div>
+    <div class="pc-price" id="px-qqq"><span class="ld">...</span></div>
+    <div class="pc-chg" id="pc-qqq"></div>
+  </div>
+</div>
+
+<!-- TAB 1: P&L CALC -->
+<div class="pane" id="pane1">
+  <div class="card">
+    <div class="card-title">Position</div>
+    <div class="tickers">
+      <button class="tk spy" id="t1-spy" onclick="setT1('spy')">SPY</button>
+      <button class="tk qqq on" id="t1-qqq" onclick="setT1('qqq')">QQQ</button>
+    </div>
+    <div class="grid2">
+      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="c1" value="706" step="1" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fa"><label class="flbl">Straddle Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field"><label class="flbl">IV %</label><input type="number" id="c3" value="21" step="1" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field"><label class="flbl">DTE</label><input type="number" id="c4" value="10" step="1" min="1" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
+    </div>
+    <div class="info" id="c-info"></div>
+  </div>
+
+  <div class="sumbar">
+    <div class="si"><span class="si-lbl">Contracts</span><span class="si-val" id="c-nc">-</span></div>
+    <div class="si"><span class="si-lbl">Deployed</span><span class="si-val" id="c-dep">-</span></div>
+    <div class="si"><span class="si-lbl">At Target?</span><span class="si-val" id="c-tgt">-</span></div>
+  </div>
+
+  <div class="ctx">
+    <div class="ctx-box"><div class="ctx-lbl">Expiry B/E</div><div class="ctx-val" style="color:var(--amber)" id="c-be">-</div></div>
+    <div class="ctx-box"><div class="ctx-lbl">Stop at</div><div class="ctx-val" style="color:var(--red)" id="c-stop">-</div></div>
+    <div class="ctx-box cv no" id="c-cv"><div class="ctx-lbl">B/E Status</div><div class="ctx-val" id="c-cvv">-</div></div>
+  </div>
+
+  <div class="stopalert" id="c-alert"><b id="c-alert-t">Stop Zone</b><span id="c-alert-b"></span></div>
+
+  <div class="legend">
+    <div class="lg"><div class="lgsq" style="background:#15803d"></div>Profit</div>
+    <div class="lg"><div class="lgsq" style="background:#b91c1c"></div>Loss</div>
+    <div class="lg"><div class="lgsq" style="background:#92400e"></div>Near B/E</div>
+    <div class="lg"><div class="lgsq" style="background:#b91c1c;opacity:.4"></div>Stop zone</div>
+    <div class="lg"><div class="lgbar" style="background:var(--amber)"></div>Best ★</div>
+    <div class="lg"><div class="lgbar" style="background:var(--blue)"></div>Selected ◀</div>
+  </div>
+  <div style="font-size:10px;color:var(--dim);text-align:right;margin-bottom:6px" id="c-selday">Tap a row to select</div>
+
+  <div class="stbl">
+    <div class="stbl-hd">
+      <div class="shd">Hold</div>
+      <div class="shd dr">DRIFT<span class="rng">0.2–0.5%</span></div>
+      <div class="shd mo">MOMENTUM<span class="rng">0.5–1.0%</span></div>
+      <div class="shd ex">EXPLOSIVE<span class="rng">1.0%+</span></div>
+    </div>
+    <div id="c-rows"></div>
+  </div>
+  <div class="note" id="c-note">Mid of each range · tap row to select · 25% IV crush D1 fading to 0 at expiry</div>
+</div>
+
+<!-- TAB 2: RECOMMEND -->
+<div class="pane" id="pane2">
+  <div class="card">
+    <div class="card-title">Your Goals</div>
+    <div class="tickers">
+      <button class="tk spy" id="t2-spy" onclick="setT2('spy')">SPY</button>
+      <button class="tk qqq on" id="t2-qqq" onclick="setT2('qqq')">QQQ</button>
+    </div>
+    <div class="grid2">
+      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="r1" value="706" step="1" inputmode="decimal" oninput="go2()"/></div>
+      <div class="field"><label class="flbl">IV %</label><input type="number" id="r2" value="21" step="1" inputmode="decimal" oninput="go2()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="r3" value="2000" step="100" inputmode="decimal" oninput="go2()"/></div>
+      <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="r4" value="500" step="50" inputmode="decimal" oninput="go2()"/></div>
+      <div class="field fa"><label class="flbl">Expected Move %</label><input type="number" id="r5" value="1.5" step="0.25" inputmode="decimal" oninput="go2()"/></div>
+      <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="r6" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go2()"/></div>
+    </div>
+  </div>
+
+  <div class="rec" id="rec-card">
+    <div class="rec-badge">Recommended Setup</div>
+    <div class="rec-title" id="r-title">-</div>
+    <div class="rec-sub" id="r-sub">-</div>
+    <div class="rec-grid">
+      <div class="rstat"><div class="rl">Contracts</div><div class="rv a" id="r-c">-</div></div>
+      <div class="rstat"><div class="rl">Capital to Deploy</div><div class="rv" id="r-dep">-</div></div>
+      <div class="rstat"><div class="rl">Pay At Most / Contract</div><div class="rv b" id="r-max">-</div></div>
+      <div class="rstat"><div class="rl">Best Exit</div><div class="rv a" id="r-exit">-</div></div>
+      <div class="rstat"><div class="rl">IV Assessment</div><div id="r-iv">-</div></div>
+      <div class="rstat"><div class="rl">Expiry B/E move</div><div class="rv" id="r-be">-</div><div style="font-size:9px;color:var(--dim);margin-top:2px" id="r-be2"></div></div>
+      <div class="rstat" style="grid-column:1/-1;background:var(--rbg);border-color:var(--rbd)">
+        <div class="rl" style="color:var(--red)">Stop Loss Analysis</div>
+        <div class="rv sm" id="r-stop">-</div>
+        <div style="font-size:9px;color:var(--dim);margin-top:2px" id="r-stop2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="lg"><div class="lgsq" style="background:#15803d"></div>Profit</div>
+    <div class="lg"><div class="lgsq" style="background:#b91c1c"></div>Loss</div>
+    <div class="lg"><div class="lgsq" style="background:#92400e"></div>Near B/E</div>
+    <div class="lg"><div class="lgsq" style="background:#b91c1c;opacity:.4"></div>Stop</div>
+    <div class="lg"><div class="lgbar" style="background:var(--amber)"></div>Best ★</div>
+  </div>
+
+  <div class="stbl">
+    <div class="stbl-hd">
+      <div class="shd">Hold</div>
+      <div class="shd dr">DRIFT<span class="rng">0.2–0.5%</span></div>
+      <div class="shd mo">MOMENTUM<span class="rng">0.5–1.0%</span></div>
+      <div class="shd ex">EXPLOSIVE<span class="rng">1.0%+</span></div>
+    </div>
+    <div id="r-rows"></div>
+  </div>
+  <div class="note">Mid of each range · IV crush fades daily to 0 at expiry</div>
+</div>
+
+<!-- TAB 3: SPIKE/CRASH -->
+<div class="pane" id="pane3">
+  <div class="card">
+    <div class="card-title">Ticker</div>
+    <div class="tickers">
+      <button class="tk spy" id="t3-spy" onclick="setT3('spy')">SPY</button>
+      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')">QQQ</button>
+    </div>
+    <div class="dir-btns">
+      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')"><div class="dico">🚀</div><div class="dname">Spike Up</div><div class="dsub">OTM Call</div></div>
+      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')"><div class="dico">💥</div><div class="dname">Crash</div><div class="dsub">OTM Put</div></div>
+      <div class="dbtn both" id="sd-both" onclick="setSdir('both')"><div class="dico">⚡</div><div class="dname">Either</div><div class="dsub">Strangle</div></div>
+    </div>
+    <div style="font-size:9px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Strike Distance (OTM %)</div>
+    <div class="otm-row">
+      <button class="otmbtn" onclick="setOtm(this,1)">+1%</button>
+      <button class="otmbtn on" onclick="setOtm(this,2)">+2%</button>
+      <button class="otmbtn" onclick="setOtm(this,3)">+3%</button>
+      <button class="otmbtn" onclick="setOtm(this,5)">+5%</button>
+    </div>
+    <div class="grid2">
+      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="706" step="1" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field"><label class="flbl">IV %</label><input type="number" id="s2" value="21" step="1" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field"><label class="flbl">DTE</label><input type="number" id="s3" value="7" step="1" min="1" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="1000" step="100" inputmode="decimal" oninput="go3()"/></div>
+    </div>
+  </div>
+
+  <!-- Order ticket -->
+  <div class="ticket" id="s-ticket"></div>
+
+  <!-- Return table -->
+  <div class="rtbl">
+    <div class="rtbl-hd" id="s-hd-row">
+      <span>Move</span><span>D1</span><span>D2</span><span>D3</span><span>Exp</span>
+    </div>
+    <div id="s-rows"></div>
+  </div>
+  <div class="note">OTM options · Black-Scholes · ~25% IV crush Day 1 · Total loss possible if move doesn't happen</div>
+</div>
+
+<!-- TAB 4: SIGNAL -->
+<div class="pane on" id="pane4">
+  <div class="card">
+    <div class="card-title">Market Signal</div>
+    <div class="tickers" style="grid-template-columns:1fr 1fr">
+      <button class="tk spy" id="t4-spy" onclick="setT4('spy')">SPY</button>
+      <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')">QQQ</button>
+    </div>
+    <div class="grid2">
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()"/></div>
+      <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="g2" value="500" step="50" inputmode="decimal" oninput="go4()"/></div>
+      <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()"/></div>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div id="g-loading" style="text-align:center;padding:30px;color:var(--dim);font-size:13px">
+    <div class="ld" style="font-size:16px;display:block;margin-bottom:8px">Fetching market data...</div>
+    <div style="font-size:11px">Calculating trend signals</div>
+  </div>
+
+  <!-- Signal card -->
+  <div id="g-signal" style="display:none">
+    <!-- Main signal -->
+    <div id="g-main-card" style="border-radius:14px;padding:16px;margin-bottom:10px;border:3px solid">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px" id="g-sig-lbl">Signal</div>
+      <div style="font-size:34px;font-weight:800;margin-bottom:4px;line-height:1" id="g-sig-action">-</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:14px" id="g-sig-sub">-</div>
+      <!-- Setup recommendation -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px" id="g-setup-grid"></div>
+      <!-- Reasoning -->
+      <div style="background:rgba(0,0,0,.04);border-radius:8px;padding:10px 12px" id="g-reason"></div>
+    </div>
+
+    <!-- Technical indicators -->
+    <div class="card">
+      <div class="card-title">Technical Indicators</div>
+      <div id="g-indicators"></div>
+    </div>
+
+    <!-- P&L table for the recommended trade -->
     <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:700">Recommended Trade P&L by Day</div>
     <div class="stbl">
       <div class="stbl-hd">
