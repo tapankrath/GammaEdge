@@ -565,7 +565,6 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
   <div id="pm-summary" style="display:none"></div>
-
   <!-- Risk Slider -->
   <div id="pm-risk-guide" style="display:none;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -582,8 +581,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="margin-top:8px;font-size:10px;color:#374151;font-weight:600" id="pm-risk-note"></div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Add Position</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="background:#0f172a;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:16px;font-weight:900;color:#ffffff;letter-spacing:-.01em">Portfolio</div>
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em">Add · Export · Import</div>
+    </div>
+    <div style="padding:14px 16px">
     <!-- Dual signal cards - auto computed for both tickers -->
     <div id="pm-dual-signals" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
     <div class="grid2">
@@ -595,7 +598,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div class="field"><label class="flbl">Entry Price $</label><input type="number" id="pm-entry" value="" placeholder="per share/contract" inputmode="decimal" oninput="pmSliderChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
       <div class="field"><label class="flbl">Qty (contracts / shares)</label><input type="number" id="pm-qty" value="" placeholder="suggested above ↑" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
     </div>
-    <button onclick="pmAddPosition()" style="width:100%;margin-top:10px;background:var(--text);color:#fff;border-radius:10px;padding:13px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">+ Add to Portfolio</button>
+    <!-- 3 Portfolio actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+      <button onclick="pmAddPosition()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">+ Add</button>
+      <button onclick="pmExport()" style="background:#166534;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">⬇ Export</button>
+      <label style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;display:block;border-radius:8px">⬆ Import<input type="file" accept=".json" onchange="pmImport(event)" style="display:none"/></label>
+    </div>
+    </div><!-- end padding -->
   </div>
   <div id="pm-open-wrap" style="display:none">
     <div style="font-size:10px;color:#374151;text-transform:uppercase;letter-spacing:.15em;font-weight:800;margin-bottom:8px">Open Positions</div>
@@ -2145,6 +2154,39 @@ function renderMoveCone(spot,bestCP,moveLo,moveHi,bestContracts,target){
     +'<div style="text-align:center;padding:8px;background:var(--abg);border-radius:8px"><div style="font-size:9px;color:#92400e;font-weight:800;text-transform:uppercase;margin-bottom:2px">Expected</div><div style="font-size:16px;font-weight:900;color:#92400e">'+moveLo+'–'+moveHi+'%</div></div>'
     +'<div style="text-align:center;padding:8px;background:var(--gbg);border-radius:8px"><div style="font-size:9px;color:'+probClr+';font-weight:800;text-transform:uppercase;margin-bottom:2px">Favorable</div><div style="font-size:16px;font-weight:900;color:'+probClr+'">'+prob+'%</div></div>'
     +'</div>';
+}
+
+/* ── EXPORT / IMPORT ── */
+function pmExport(){
+  var data={
+    portfolio:JSON.parse(localStorage.getItem(PM_KEY)||'{}'),
+    history:JSON.parse(localStorage.getItem(PM_HIST_KEY)||'[]'),
+    exported:new Date().toISOString()
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='gammaedge-portfolio-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function pmImport(evt){
+  var file=evt.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(data.portfolio)localStorage.setItem(PM_KEY,JSON.stringify(data.portfolio));
+      if(data.history)localStorage.setItem(PM_HIST_KEY,JSON.stringify(data.history));
+      renderPortfolio();
+      alert('Portfolio imported successfully!');
+    }catch(err){
+      alert('Import failed — invalid file.');
+    }
+    evt.target.value='';
+  };
+  reader.readAsText(file);
 }
 
 /* ── PRO TIER ── */
