@@ -4,13 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="GammaEdge"/>
+<meta name="application-name" content="GammaEdge"/>
+<meta name="theme-color" content="#0a0f1e"/>
+<meta name="description" content="Options trade planner for SPY &amp; QQQ — signal, size, plan, backtest."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <title>GammaEdge</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 :root{
   --bg:#f1f5f9;--p1:#ffffff;--p2:#f8fafc;--border:#e2e8f0;
   --text:#0a0f1e;--dim:#374151;
@@ -2175,14 +2181,116 @@ function pmQuickLog(){
   renderPortfolio();
 }
 
+/* ── PRO TIER ── */
+var STRIPE_KEY=''; // paste Stripe publishable key here when ready
+var STRIPE_PRICE=''; // paste Stripe price ID here when ready
+var PRO_KEY='gammaedge_pro';
+
+function isPro(){
+  try{
+    var p=JSON.parse(localStorage.getItem(PRO_KEY)||'{}');
+    // Check expiry — monthly subscription
+    if(p.active&&p.expiry&&new Date(p.expiry)>new Date())return true;
+    return false;
+  }catch(e){return false;}
+}
+
+function proInit(){
+  // Add upgrade button to header
+  var header=document.querySelector('.app>div:first-child');
+  var btn=document.createElement('div');
+  btn.id='pro-badge';
+  btn.onclick=showPricing;
+  btn.style.cssText='position:fixed;top:10px;right:10px;z-index:999;background:'+(isPro()?'#166534':'#0f172a')+';color:#fff;font-size:10px;font-weight:800;padding:5px 12px;border-radius:20px;cursor:pointer;letter-spacing:.08em;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+  btn.textContent=isPro()?'✓ PRO':'⚡ PRO';
+  document.body.appendChild(btn);
+}
+
+function showPricing(){
+  var overlay=document.createElement('div');
+  overlay.id='pro-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:0';
+  overlay.innerHTML=
+    '<div style="background:#fff;border-radius:20px 20px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .3s ease">'
+    +'<div style="width:40px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 20px"></div>'
+    // Header
+    +'<div style="text-align:center;margin-bottom:20px">'
+    +'<div style="font-size:28px;font-weight:900;color:#0a0f1e;letter-spacing:-.02em">GammaEdge</div>'
+    +'<div style="font-size:13px;font-weight:600;color:#64748b;margin-top:4px">Options Trade Planner for SPY &amp; QQQ</div>'
+    +'</div>'
+    // Pricing cards
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">'
+    // Free
+    +'<div style="border:2px solid #e2e8f0;border-radius:14px;padding:16px">'
+    +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Free</div>'
+    +'<div style="font-size:26px;font-weight:900;color:#0a0f1e;margin-bottom:10px">$0</div>'
+    +'<div style="font-size:11px;font-weight:600;color:#374151;line-height:1.8">'
+    +'✓ Signal tab<br>✓ Size calculator<br>✓ Basic P&L calc<br>✗ Plan &amp; Journal<br>✗ Backtest<br>✗ Lottery'
+    +'</div>'
+    +'</div>'
+    // Pro
+    +'<div style="border:2px solid #0f172a;border-radius:14px;padding:16px;background:#0f172a;position:relative">'
+    +'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#000;font-size:9px;font-weight:900;padding:3px 10px;border-radius:10px;letter-spacing:.08em">POPULAR</div>'
+    +'<div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Pro</div>'
+    +'<div style="font-size:26px;font-weight:900;color:#fff;margin-bottom:2px">$9<span style="font-size:13px;font-weight:600;color:#94a3b8">/mo</span></div>'
+    +'<div style="font-size:10px;color:#94a3b8;margin-bottom:10px">Cancel anytime</div>'
+    +'<div style="font-size:11px;font-weight:600;color:#e2e8f0;line-height:1.8">'
+    +'✓ Everything in Free<br>✓ Plan &amp; Trade Journal<br>✓ Backtest (5 days)<br>✓ Lottery tab<br>✓ IV Assessment<br>✓ Move cone visual'
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    // CTA
+    +(isPro()
+      ?'<div style="background:#f0fdf4;border:2px solid #86efac;border-radius:14px;padding:16px;text-align:center"><div style="font-size:16px;font-weight:800;color:#166534">✓ You\'re on Pro</div><div style="font-size:12px;color:#166534;margin-top:4px">All features unlocked</div></div>'
+      :'<button onclick="startStripe()" style="width:100%;background:#0f172a;color:#fff;border-radius:14px;padding:16px;font-size:16px;font-weight:800;letter-spacing:.04em;margin-bottom:10px">⚡ Start Pro — $9/month</button>'
+      +'<div style="text-align:center;font-size:11px;color:#94a3b8;font-weight:600">Secure payment via Stripe · Cancel anytime</div>'
+    )
+    +'<button onclick="closePricing()" style="width:100%;margin-top:14px;background:transparent;color:#64748b;font-size:13px;font-weight:700;padding:10px">Maybe later</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)closePricing();});
+}
+
+function closePricing(){
+  var o=document.getElementById('pro-overlay');
+  if(o)o.remove();
+}
+
+function startStripe(){
+  if(!STRIPE_KEY||!STRIPE_PRICE){
+    // Not yet configured — show coming soon
+    alert('Payment coming soon! GammaEdge Pro will be $9/month.\n\nWe\'ll notify you when it launches.');
+    closePricing();
+    return;
+  }
+  // When Stripe is ready — uncomment:
+  // var stripe=Stripe(STRIPE_KEY);
+  // stripe.redirectToCheckout({lineItems:[{price:STRIPE_PRICE,quantity:1}],mode:'subscription',
+  //   successUrl:window.location.href+'?pro=success',
+  //   cancelUrl:window.location.href});
+}
+
+// Handle Stripe success return
+(function(){
+  if(window.location.search.indexOf('pro=success')>-1){
+    try{
+      var expiry=new Date();expiry.setMonth(expiry.getMonth()+1);
+      localStorage.setItem(PRO_KEY,JSON.stringify({active:true,expiry:expiry.toISOString()}));
+    }catch(e){}
+    history.replaceState({},'',window.location.pathname);
+    setTimeout(showPricing,500);
+  }
+})();
+
+/* ── INIT ── */
 go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
 $('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
 setTimeout(function(){go4();},800);
-// fetchOHLC runs on Backtest tab open only (saves API calls)
 if($('b-dte-note'))$('b-dte-note').textContent=BT_DTE_NOTES[0];
+proInit();
 </script>
 </body>
 </html>
