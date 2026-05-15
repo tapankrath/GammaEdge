@@ -598,11 +598,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div class="field"><label class="flbl">Entry Price $</label><input type="number" id="pm-entry" value="" placeholder="per share/contract" inputmode="decimal" oninput="pmSliderChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
       <div class="field"><label class="flbl">Qty (contracts / shares)</label><input type="number" id="pm-qty" value="" placeholder="suggested above ↑" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
     </div>
-    <!-- 3 Portfolio actions -->
+    <!-- Portfolio actions -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
       <button onclick="pmAddPosition()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">+ Add</button>
       <button onclick="pmExport()" style="background:#166534;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">⬇ Export</button>
-      <label style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;display:block;border-radius:8px">⬆ Import<input type="file" accept=".json" onchange="pmImport(event)" style="display:none"/></label>
+      <button onclick="pmImportPaste()" style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">📋 Import</button>
     </div>
     </div><!-- end padding -->
   </div>
@@ -2170,6 +2170,27 @@ function pmExport(){
   a.click();
   URL.revokeObjectURL(a.href);
 }
+function pmImportPaste(){
+  var txt=prompt('Paste your exported portfolio here:\n\nOpen the exported JSON file, select all text (Cmd+A / Ctrl+A), copy it, then paste here.');
+  if(!txt)return;
+  try{
+    var data=JSON.parse(txt);
+    if(!data.portfolio)throw new Error('Invalid format');
+    localStorage.setItem(PM_KEY,JSON.stringify(data.portfolio));
+    if(data.history)localStorage.setItem(PM_HIST_KEY,JSON.stringify(data.history));
+    showTab(4);
+    setTimeout(function(){
+      renderPortfolio();
+      var banner=document.createElement('div');
+      banner.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:800;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+      banner.textContent='✓ Imported: '+(data.portfolio.positions?data.portfolio.positions.length:0)+' positions';
+      document.body.appendChild(banner);
+      setTimeout(function(){banner.remove();},3000);
+    },100);
+  }catch(err){
+    alert('Import failed: '+err.message);
+  }
+}
 function pmImport(evt){
   var file=evt.target.files[0];
   if(!file)return;
@@ -2177,12 +2198,21 @@ function pmImport(evt){
   reader.onload=function(e){
     try{
       var data=JSON.parse(e.target.result);
-      if(data.portfolio)localStorage.setItem(PM_KEY,JSON.stringify(data.portfolio));
+      if(!data.portfolio)throw new Error('Invalid format');
+      localStorage.setItem(PM_KEY,JSON.stringify(data.portfolio));
       if(data.history)localStorage.setItem(PM_HIST_KEY,JSON.stringify(data.history));
-      renderPortfolio();
-      alert('Portfolio imported successfully!');
+      showTab(4);
+      setTimeout(function(){
+        renderPortfolio();
+        // Show inline success banner
+        var banner=document.createElement('div');
+        banner.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:800;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+        banner.textContent='✓ Imported: '+(data.portfolio.positions?data.portfolio.positions.length:0)+' positions';
+        document.body.appendChild(banner);
+        setTimeout(function(){banner.remove();},3000);
+      },100);
     }catch(err){
-      alert('Import failed — invalid file.');
+      alert('Import failed: '+err.message);
     }
     evt.target.value='';
   };
