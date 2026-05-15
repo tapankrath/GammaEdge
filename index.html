@@ -228,6 +228,10 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .pm-period-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
 .pm-kelly-box{background:var(--abg);border:1px solid var(--abd);border-radius:10px;padding:12px;margin-bottom:10px}
 
+input[type=range]::-webkit-slider-runnable-track{background:#e2e8f0;height:8px;border-radius:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:#0f172a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);margin-top:-9px}
+input[type=range]::-moz-range-track{background:#e2e8f0;height:8px;border-radius:4px}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#0f172a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 </style>
 </head>
 <body>
@@ -569,7 +573,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
       <div style="font-size:18px;font-weight:900;color:var(--text)" id="pm-risk-pct-lbl">20%</div>
     </div>
     <input type="range" id="pm-risk-slider" min="5" max="40" value="20" step="5"
-      style="width:100%;accent-color:var(--blue);height:6px;margin-bottom:10px"
+      style="width:100%;height:8px;margin-bottom:10px"
       oninput="pmSliderChange()"/>
     <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#374151;margin-bottom:12px">
       <span>5% Cautious</span><span>20% Balanced</span><span>40% Aggressive</span>
@@ -593,20 +597,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     </div>
     <button onclick="pmAddPosition()" style="width:100%;margin-top:10px;background:var(--text);color:#fff;border-radius:10px;padding:13px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">+ Add to Portfolio</button>
   </div>
-  <!-- Quick Trade Journal -->
-  <div class="card" id="pm-journal-card">
-    <div class="card-title">⚡ Quick Trade Log</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label class="flbl">Ticker</label><input id="pm-jticker" value="QQQ" style="text-transform:uppercase;background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box" oninput="this.value=this.value.toUpperCase()"/></div>
-      <div><label class="flbl">Type</label><select id="pm-jtype" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:14px;font-weight:700;color:var(--text);width:100%"><option value="call">Call</option><option value="put">Put</option><option value="straddle">Straddle</option><option value="stock">Stock</option></select></div>
-      <div><label class="flbl">Entry Price $</label><input id="pm-jentry" type="number" placeholder="per share" step="0.01" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
-      <div><label class="flbl">Qty</label><input id="pm-jqty" type="number" value="1" min="1" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
-    </div>
-    <input id="pm-jnote" placeholder="Note (optional — e.g. market opened strong)" style="width:100%;background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;font-weight:600;color:var(--text);box-sizing:border-box;margin-bottom:8px"/>
-    <button onclick="pmQuickLog()" style="width:100%;background:#0f172a;color:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">📝 Log Trade Now</button>
-    <div class="note" style="margin-top:6px">Logs instantly with timestamp · Stop/target auto-calculated from plan settings</div>
-  </div>
-
   <div id="pm-open-wrap" style="display:none">
     <div style="font-size:10px;color:#374151;text-transform:uppercase;letter-spacing:.15em;font-weight:800;margin-bottom:8px">Open Positions</div>
     <div id="pm-open-list"></div>
@@ -2155,30 +2145,6 @@ function renderMoveCone(spot,bestCP,moveLo,moveHi,bestContracts,target){
     +'<div style="text-align:center;padding:8px;background:var(--abg);border-radius:8px"><div style="font-size:9px;color:#92400e;font-weight:800;text-transform:uppercase;margin-bottom:2px">Expected</div><div style="font-size:16px;font-weight:900;color:#92400e">'+moveLo+'–'+moveHi+'%</div></div>'
     +'<div style="text-align:center;padding:8px;background:var(--gbg);border-radius:8px"><div style="font-size:9px;color:'+probClr+';font-weight:800;text-transform:uppercase;margin-bottom:2px">Favorable</div><div style="font-size:16px;font-weight:900;color:'+probClr+'">'+prob+'%</div></div>'
     +'</div>';
-}
-
-/* ── FEATURE 3: QUICK TRADE JOURNAL ── */
-function pmQuickLog(){
-  var ticker=($('pm-jticker')||{}).value||'QQQ';
-  var type=($('pm-jtype')||{}).value||'call';
-  var entry=parseFloat(($('pm-jentry')||{}).value)||0;
-  var qty=parseInt(($('pm-jqty')||{}).value)||1;
-  var note=($('pm-jnote')||{}).value||'';
-  if(entry<=0){alert('Enter entry price');return;}
-  var s=pmLoad();
-  var mult=type==='stock'?1:type==='straddle'?200:100;
-  var cost=entry*mult*qty,sl=s.stoploss/100;
-  s.positions.push({id:Date.now(),ticker:ticker.toUpperCase(),type:type,conf:'medium',
-    strike:0,dte:0,entry:entry,qty:qty,multiplier:mult,totalCost:cost,
-    stopPrice:parseFloat((entry*(1-sl)).toFixed(2)),
-    targetPrice:parseFloat((entry*(1+sl*2)).toFixed(2)),
-    date:new Date().toISOString().slice(0,10),currentPrice:entry,note:note,
-    time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})});
-  pmSave(s);
-  if($('pm-jentry'))$('pm-jentry').value='';
-  if($('pm-jqty'))$('pm-jqty').value='1';
-  if($('pm-jnote'))$('pm-jnote').value='';
-  renderPortfolio();
 }
 
 /* ── PRO TIER ── */
