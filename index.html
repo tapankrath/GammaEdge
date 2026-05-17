@@ -232,32 +232,181 @@ input[type=range]::-webkit-slider-runnable-track{background:#e2e8f0;height:8px;b
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:#0f172a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);margin-top:-9px}
 input[type=range]::-moz-range-track{background:#e2e8f0;height:8px;border-radius:4px}
 input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#0f172a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* ── PORTFOLIO ANALYZER STYLES ── */
+/* ── NAV ── */
+.nav{background:#0a0f1e;border-bottom:2px solid #1e293b;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.nav-back{color:#94a3b8;text-decoration:none;font-size:.8rem;font-family:var(--sans);font-weight:700;display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #334155;border-radius:6px;transition:all .15s}
+.nav-back:hover{color:#fff;border-color:#475569;background:#1e293b}
+.nav-title{font-size:.75rem;font-family:var(--sans);font-weight:800;color:#94a3b8;letter-spacing:.12em;text-transform:uppercase}
+
+/* ── LAYOUT ── */
+.wrap{max-width:680px;margin:0 auto;padding:16px}
+.page-header{margin-bottom:28px}
+.page-header h1{font-size:1.8rem;font-weight:900;letter-spacing:-.04em;color:var(--txt);margin-bottom:6px;font-family:var(--sans)}
+.page-header p{color:#374151;font-size:.9rem;line-height:1.65;max-width:560px;font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,150,58,.08);border:1px solid rgba(0,150,58,.2);color:var(--acc);font-family:var(--sans);font-size:.68rem;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+
+/* ── UPLOAD ZONE ── */
+.upload-section{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:700px){.upload-section{grid-template-columns:1fr}.pos-row{grid-template-columns:1fr 1fr;gap:6px}.pos-row>*:last-child{grid-column:1/-1}}
+.drop-zone{border:2px dashed var(--border);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--s1)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--acc);background:rgba(0,150,58,.03)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:10}
+.drop-zone .drop-icon,.drop-zone .drop-label,.drop-zone .drop-sub{pointer-events:none;position:relative;z-index:1}
+.drop-icon{font-size:1.8rem;margin-bottom:8px;display:block}
+.drop-label{font-size:.88rem;color:var(--txt);font-weight:800;margin-bottom:3px}
+.drop-sub{font-size:.78rem;color:#374151;font-weight:600}
+.preview-wrap{position:relative}
+.preview-wrap img{width:100%;border-radius:10px;border:1px solid var(--b1);display:block;max-height:240px;object-fit:contain;background:var(--s2)}
+.preview-clear{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:1px solid var(--b2);border-radius:50%;width:26px;height:26px;color:var(--mut);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.preview-clear:hover{color:var(--red);border-color:var(--red)}
+
+/* ── MANUAL INPUT ── */
+.manual-section{background:var(--p1);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.manual-title{font-size:10px;font-family:var(--sans);font-weight:800;letter-spacing:.15em;color:#374151;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.positions-grid{display:flex;flex-direction:column;gap:8px}
+.pos-row{display:grid;grid-template-columns:100px 80px 90px 110px 1fr auto;gap:8px;align-items:center}
+.pos-row input,.pos-row select{background:var(--p2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:15px;font-weight:700;width:100%;transition:border-color .15s}
+.pos-row input:focus,.pos-row select:focus{outline:none;border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(22,101,52,.1)}
+.pos-row input::placeholder{color:var(--mut)}
+.field-label{font-size:.68rem;color:#374151;font-family:var(--sans);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px}
+.add-row-btn{background:transparent;border:1px dashed var(--b2);border-radius:6px;color:var(--mut);font-family:var(--sans);font-size:.78rem;padding:8px;cursor:pointer;width:100%;transition:all .15s;margin-top:6px}
+.add-row-btn:hover{border-color:var(--acc);color:var(--acc);background:rgba(0,150,58,.04)}
+.remove-btn{background:transparent;border:none;color:var(--b2);cursor:pointer;font-size:.9rem;padding:4px;border-radius:4px;transition:color .15s}
+.remove-btn:hover{color:var(--red)}
+
+/* ── ANALYZE BTN ── */
+.analyze-btn{width:100%;padding:14px;background:#0f172a;border:none;border-radius:10px;color:#fff;font-weight:800;letter-spacing:.06em;font-family:var(--sans);font-family:var(--sans);font-size:.95rem;font-weight:800;cursor:pointer;letter-spacing:.02em;transition:all .2s;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,150,58,.2)}
+.analyze-btn:hover{background:#1e293b;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,0,0,.2)}
+.analyze-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.analyze-btn.loading{background:var(--s2);color:var(--mut);border:1px solid var(--b1);box-shadow:none}
+
+/* ── STATUS ── */
+.status-bar{background:var(--p2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-weight:600;margin-bottom:18px;font-family:var(--sans);font-size:.74rem;color:var(--mut);display:none;align-items:center;gap:10px}
+.status-bar.show{display:flex}
+.spinner{width:13px;height:13px;border:2px solid var(--b2);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── RESULTS ── */
+.results{display:none}
+.results.show{display:block}
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.result-header h2{font-size:1.1rem;font-weight:800;letter-spacing:-.02em;color:var(--txt)}
+.result-tag{font-family:var(--sans);font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.06em}
+.tag-harvest{background:rgba(0,150,58,.1);color:var(--acc);border:1px solid rgba(0,150,58,.25)}
+.tag-recover{background:rgba(214,48,80,.08);color:var(--red);border:1px solid rgba(214,48,80,.2)}
+.tag-mixed{background:rgba(184,134,11,.08);color:var(--yel);border:1px solid rgba(184,134,11,.2)}
+
+.pos-card{background:var(--p1);border:1px solid var(--border);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:10px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.pos-card-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--b1);background:var(--s2)}
+.pos-sym{font-size:1.3rem;font-weight:900;letter-spacing:-.04em;color:var(--txt)}
+.pos-meta{font-family:var(--sans);font-size:.7rem;color:var(--mut);margin-top:2px}
+.pos-pnl{font-family:var(--sans);font-size:.95rem;font-weight:700}
+.pos-pnl.green{color:var(--acc)}
+.pos-pnl.red{color:var(--red)}
+.pos-card-
+
+.strategy-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:.72rem;font-weight:700;letter-spacing:.06em;padding:3px 12px;border-radius:20px;margin-bottom:12px}
+.sb-harvest{background:rgba(0,150,58,.1);color:var(--acc);border:1px solid rgba(0,150,58,.2)}
+.sb-recover{background:rgba(214,48,80,.08);color:var(--red);border:1px solid rgba(214,48,80,.15)}
+.sb-hold{background:var(--s2);color:var(--mut);border:1px solid var(--b1)}
+
+.plan-section{margin-bottom:14px}
+.plan-section-title{font-size:.6rem;font-family:var(--sans);font-weight:700;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:5px}
+
+.plan-table{width:100%;border-collapse:collapse;font-size:.76rem;font-family:var(--sans)}
+.plan-table th{background:var(--s2);color:var(--mut);padding:6px 10px;text-align:left;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--b1);font-weight:700}
+.plan-table td{padding:7px 10px;border-bottom:1px solid var(--b1);vertical-align:middle;color:var(--txt)}
+.plan-table tr:last-child td{border-bottom:none}
+.plan-table tr:hover td{background:var(--s2)}
+
+.action-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.63rem;font-weight:700;letter-spacing:.04em}
+.at-enter{background:rgba(0,150,58,.12);color:var(--acc)}
+.at-close{background:rgba(214,48,80,.1);color:var(--red)}
+.at-roll{background:rgba(0,112,204,.1);color:var(--blu)}
+.at-hold{background:var(--s2);color:var(--mut);border:1px solid var(--b1)}
+.at-warn{background:rgba(184,134,11,.1);color:var(--yel)}
+.at-trim{background:rgba(184,134,11,.1);color:var(--yel)}
+
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:600px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
+.sum-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sum-card-label{font-size:.56rem;color:var(--mut);font-family:var(--sans);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.sum-card-val{font-size:.95rem;font-weight:800;font-family:var(--sans);color:var(--txt)}
+
+.reasoning-box{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 14px;font-size:.8rem;line-height:1.65;color:#3a4560}
+
+.extracted-positions{background:rgba(0,150,58,.04);border:1px solid rgba(0,150,58,.18);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-family:var(--sans);font-size:.75rem}
+.extracted-title{color:var(--acc);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.extracted-row{display:flex;flex-wrap:wrap;gap:14px;color:var(--txt);padding:5px 0;border-bottom:1px solid rgba(0,150,58,.1)}
+.extracted-row:last-child{border-bottom:none}
+.er-sym{color:var(--acc);font-weight:700;min-width:60px}
+.er-val{color:var(--mut)}
+.er-val span{color:var(--txt)}
+
+.error-box{background:rgba(214,48,80,.05);border:1px solid rgba(214,48,80,.2);border-radius:8px;padding:14px 16px;color:var(--red);font-family:var(--sans);font-size:.84rem;margin-bottom:16px;line-height:1.7}
+.error-box code{background:rgba(0,0,0,.06);padding:2px 7px;border-radius:4px;font-size:.75rem}
+
+/* ── SCENARIO MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-box{background:#fff;border-radius:16px;padding:0;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.modal-head h3{font-size:1rem;font-weight:800;letter-spacing:-.02em;color:var(--txt);margin:0}
+.modal-head p{font-size:.78rem;color:var(--mut);font-family:var(--sans);margin-top:3px}
+.modal-close{background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:.85rem;color:var(--mut);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--b1);color:var(--txt)}
+.modal-
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.scenario-card{border-radius:10px;padding:14px 12px;text-align:center;border:1px solid transparent}
+.sc-below{background:rgba(214,48,80,.07);border-color:rgba(214,48,80,.2)}
+.sc-at{background:rgba(184,134,11,.07);border-color:rgba(184,134,11,.2)}
+.sc-above{background:rgba(0,150,58,.07);border-color:rgba(0,150,58,.2)}
+.sc-label{font-size:.72rem;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.sc-below .sc-label{color:var(--red)}
+.sc-at    .sc-label{color:var(--yel)}
+.sc-above .sc-label{color:var(--acc)}
+.sc-pnl{font-size:1.2rem;font-weight:900;font-family:var(--sans);letter-spacing:-.03em;margin-bottom:4px}
+.sc-below .sc-pnl{color:var(--red)}
+.sc-at    .sc-pnl{color:var(--yel)}
+.sc-above .sc-pnl{color:var(--acc)}
+.sc-strike{font-size:.68rem;color:var(--mut);font-family:var(--sans);margin-bottom:6px}
+.sc-note{font-size:.78rem;color:#5a6480;line-height:1.45}
+.sc-structure{background:var(--s2);border-radius:8px;padding:10px 14px;font-family:var(--sans);font-size:.74rem;color:var(--txt);margin-bottom:14px}
+.sc-structure span{color:var(--mut);font-size:.72rem;display:block;margin-bottom:2px;letter-spacing:.06em;text-transform:uppercase}
+.sc-premium{display:flex;gap:20px;font-family:var(--sans);font-size:.74rem;padding-top:12px;border-top:1px solid var(--b1)}
+.sc-premium div{flex:1;text-align:center}
+.sc-premium .label{font-size:.6rem;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.sc-premium .val{font-weight:700;color:var(--txt)}
 </style>
 </head>
 <body>
 <div class="app">
 
-<div style="padding:14px 4px 6px;display:flex;align-items:center;justify-content:space-between">
-  <div style="display:flex;align-items:baseline;gap:8px">
+<div style="padding:12px 4px 6px">
+  <!-- Row 1: Logo -->
+  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
     <span style="font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;font-family:'Inter',-apple-system,sans-serif">GammaEdge</span>
-    <span style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase">Options Intelligence</span>
+    <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase">Options Intelligence</span>
   </div>
+  <!-- Row 2: Portfolio link + Mkt status full width -->
   <div style="display:flex;align-items:center;gap:8px">
-    <a href="https://tapankrath.github.io/PortfolioEdge" target="_blank" style="background:#0f172a;border:none;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">📊 Portfolio →</a>
-    <div id="mkt-trend" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:#f1f5f9;border:1.5px solid #e2e8f0;transition:all .4s">
-      <span id="mkt-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block"></span>
-      <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em">Mkt</span>
-      <span id="mkt-label" style="font-size:11px;font-weight:800;color:#64748b;letter-spacing:.06em;text-transform:uppercase">...</span>
+<div id="mkt-trend" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 12px;border-radius:8px;background:#f1f5f9;border:1.5px solid #e2e8f0;transition:all .4s">
+      <span id="mkt-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0"></span>
+      <span style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.04em;flex-shrink:0">Mkt Today</span>
+      <span id="mkt-label" style="font-size:12px;font-weight:900;color:#64748b;letter-spacing:.06em;text-transform:uppercase">...</span>
     </div>
   </div>
 </div>
 
-<div class="tabs" style="grid-template-columns:repeat(5,1fr)">
+<div class="tabs" style="grid-template-columns:repeat(6,1fr)">
   <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
   <button class="tab" id="tab2" onclick="showTab(2)">Straddle</button>
   <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
   <button class="tab" id="tab4" onclick="showTab(4)">Bktest</button>
   <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
+  <button class="tab" id="tab6" onclick="showTab(6)">Analyzer</button>
 </div>
 
 <!-- LIVE PRICES -->
@@ -682,6 +831,865 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
   <div class="note" style="margin-top:8px">Kelly sizing · saved locally · signals from Signal tab</div>
 </div>
+
+<!-- PANE 7: PORTFOLIO ANALYZER -->
+<div class="pane" id="pane7">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-size:16px;font-weight:900;color:#0a0f1e;letter-spacing:-.02em">Portfolio Analyzer</div>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#0f172a;border:none;border-radius:6px;padding:6px 12px;font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;font-family:var(--sans)">⚙ API Key</button>
+  </div>
+<div class="wrap">
+  <div class="page-header">
+    <div class="badge">📊 Adjust Portfolio</div>
+    <h1>What's your move?</h1>
+    <p>Upload your positions · AI reads the data · you pick the goal · get a specific options plan.</p>
+  </div>
+
+  <!-- Collapsed bar after plan built -->
+  <div id="inputCollapsed" style="display:none;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-family:var(--sans);font-size:.76rem;align-items:center;gap:8px;color:var(--txt)"></div>
+
+  <!-- STEP 1: UPLOAD -->
+  <div id="uploadWrap">
+    <div style="font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px"><span style="background:var(--acc);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:900">1</span>Upload your positions screenshot</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
+      <div style="flex:1">
+        <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+          <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
+          <span class="drop-icon">📸</span>
+          <div class="drop-label">Drop your brokerage screenshot here</div>
+          <div class="drop-sub">or click to browse · PNG, JPG, WEBP</div>
+        </div>
+      </div>
+      <div id="previewCol" style="display:none;width:160px;flex-shrink:0">
+        <div class="preview-wrap"><img id="previewImg" src="" alt="preview"><button class="preview-clear" onclick="clearImage()">✕</button></div>
+        <div style="font-size:.68rem;color:var(--acc);font-family:var(--sans);margin-top:5px;text-align:center">✓ Ready to analyze</div>
+      </div>
+    </div>
+    <div class="manual-section" id="manualSection">
+      <div class="manual-title"><span>📋</span><span>Or enter manually</span><span style="color:var(--b2);font-weight:400"> — instead of screenshot</span></div>
+      <div style="display:grid;grid-template-columns:100px 80px 90px 110px 110px 1fr;gap:8px;margin-bottom:6px">
+        <div class="field-label">Ticker</div><div class="field-label">Type</div>
+        <div class="field-label">Size</div><div class="field-label">Last / Avg Cost</div>
+        <div class="field-label">P&amp;L ($)</div><div class="field-label">Notes</div>
+      </div>
+      <div class="positions-grid" id="posGrid"></div>
+      <button class="add-row-btn" onclick="addRow()">+ Add Position</button>
+    </div>
+    <!-- Step 1 CTA: always visible -->
+    <button class="analyze-btn" id="extractBtn" onclick="extractPositions()" style="margin-top:16px">
+      <span>🔍</span> <span>Analyze My Portfolio</span>
+    </button>
+  </div>
+
+  <!-- Extracted positions -->
+  <div id="extractedSummary" style="display:none;margin-bottom:16px"></div>
+
+  <!-- STEP 2: INTENT TILES — shown after extraction -->
+  <div id="intentWrap" style="display:none;margin-bottom:14px">
+    <div style="font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px"><span style="background:var(--blu);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:900">2</span><span>Choose your strategy <span id="intentAutoHint" style="color:var(--acc);font-weight:500;text-transform:none;letter-spacing:0;font-size:.68rem"></span></span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <button type="button" onclick="setIntent('harvest',this)" id="intent-harvest" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans);position:relative">
+        <div style="font-size:1.4rem;margin-bottom:5px">🌾</div>
+        <div style="font-size:.8rem;font-weight:800;color:#0d1424;margin-bottom:2px">Harvest</div>
+        <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Lock profits, roll up winners</div>
+      </button>
+      <button type="button" onclick="setIntent('grow',this)" id="intent-grow" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans);position:relative">
+        <div style="font-size:1.4rem;margin-bottom:5px">📈</div>
+        <div style="font-size:.8rem;font-weight:800;color:#0d1424;margin-bottom:2px">Grow</div>
+        <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Amplify winners, add leverage</div>
+      </button>
+      <button type="button" onclick="setIntent('protect',this)" id="intent-protect" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans);position:relative">
+        <div style="font-size:1.4rem;margin-bottom:5px">🛡️</div>
+        <div style="font-size:.8rem;font-weight:800;color:#0d1424;margin-bottom:2px">Protect</div>
+        <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Hedge downside, buy puts</div>
+      </button>
+      <button type="button" onclick="setIntent('repair',this)" id="intent-repair" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans);position:relative">
+        <div style="font-size:1.4rem;margin-bottom:5px">🔧</div>
+        <div style="font-size:.8rem;font-weight:800;color:#0d1424;margin-bottom:2px">Repair</div>
+        <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Recover losses, fix cost basis</div>
+      </button>
+    </div>
+    <div id="intentHint" style="margin-top:10px;padding:9px 14px;background:var(--s2);border-radius:8px;font-size:.73rem;color:var(--mut);font-family:var(--sans);min-height:34px"></div>
+  </div>
+
+  <!-- STEP 3: BUILD PLAN — shown after intent pick -->
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()" style="display:none">
+    <span>⚡</span> <span id="analyzeBtnTxt">Build Plan</span>
+  </button>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusTxt">Analyzing…</span>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-box" id="errorBox" style="display:none"></div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+
+  <!-- SCENARIO MODAL -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">Scenario Analysis</h3>
+          <p id="modalSub"></p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PE_API = ''; // no server needed
+var API_KEY_STORAGE = 'portfolioedge_api_key';
+function getApiKey(){ return localStorage.getItem(API_KEY_STORAGE)||''; }
+function setApiKey(k){ localStorage.setItem(API_KEY_STORAGE, k.trim()); }
+// Use getApiKey() everywhere instead of ANTHROPIC_KEY
+const FINNHUB_KEY = 'd81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';
+var CLAUDE_MODEL = 'claude-sonnet-4-6';
+var peMode = 'auto';
+var imageB64 = null;
+var imageType = 'image/png';
+var _extractedPositions = []; // stored after step 1
+
+// ── STEP 1: Extract positions from screenshot ──
+async function extractPositions(){
+  var btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px"></span> Analyzing…';
+  hideError();
+  try {
+    var positions = getRows();
+    if(imageB64){
+      setStatus('Reading screenshot with AI…');
+      var resp = await postAPI('/extract', { image_b64: imageB64, image_type: imageType });
+      var extracted = resp.positions || [];
+      if(extracted.length){
+        _extractedPositions = extracted;
+        setRows(extracted);
+        positions = extracted;
+        // show extracted summary
+        document.getElementById('manualSection').style.display = 'none';
+        var sumEl = document.getElementById('extractedSummary');
+        sumEl.innerHTML = buildExtractedHtml(extracted);
+        sumEl.style.display = 'block';
+      }
+    } else {
+      _extractedPositions = positions;
+    }
+    if(!positions.length || !positions[0].sym) throw new Error('No positions found. Add at least one position.');
+    hideStatus();
+    // Show intent tiles with ranked suggestions
+    document.getElementById('intentWrap').style.display = 'block';
+    autoSuggestIntent(positions);
+    // Scroll to intent
+    document.getElementById('intentWrap').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch(e){
+    showError(e.message||'Something went wrong');
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔍</span> <span>Analyze My Portfolio</span>';
+    hideStatus();
+    return;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<span>✓</span> <span>Portfolio Analyzed — pick a strategy above</span>';
+  btn.style.background = 'var(--acc)';
+}
+
+
+// ── INIT ──
+addRow();
+
+var currentIntent = 'auto';
+var intentColors = { harvest:'#00963a', grow:'#1a5fa8', protect:'#7c3aed', repair:'#d63050' };
+var intentLabels = { harvest:'🌾 Build Harvest Plan', grow:'📈 Build Growth Plan', protect:'🛡️ Build Protection Plan', repair:'🔧 Build Repair Plan' };
+var intentHints  = {
+  harvest: 'Lock in gains on profitable positions — covered calls, roll up, take money off the table.',
+  grow:    'Amplify upside on your strongest positions — calls, LEAPS, debit spreads.',
+  protect: 'Limit downside on vulnerable positions — puts, collars, or protective spreads.',
+  repair:  'Reduce cost basis on losing positions — repair trades, ratio spreads, roll-downs.',
+};
+
+function setIntent(intent, btn){
+  currentIntent = intent;
+  document.querySelectorAll('[id^="intent-"]').forEach(function(b){
+    b.style.border = '2px solid #dde2ee';
+    b.style.background = '#fff';
+  });
+  var col = intentColors[intent];
+  if(btn){ btn.style.border='2px solid '+col; btn.style.background=col+'15'; }
+  var hint = document.getElementById('intentHint');
+  if(hint){ hint.textContent=intentHints[intent]||''; hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25'; }
+  var btnEl = document.getElementById('analyzeBtn');
+  if(btnEl){ btnEl.style.background=col; btnEl.style.display='flex'; }
+  var prompt = document.getElementById('intentPrompt');
+  if(prompt) prompt.style.display='none';
+  var lblEl = document.getElementById('analyzeBtnTxt');
+  if(lblEl) lblEl.textContent = intentLabels[intent]||'Build Plan';
+}
+
+function autoSuggestIntent(positions){
+  if(!positions||!positions.length) return;
+
+  // Analyze the portfolio
+  var total=0, winners=0, losers=0, bigWin=0, bigLoss=0, totalPnl=0;
+  var winPnl=0, lossPnl=0;
+  positions.forEach(function(p){
+    var pnl=parseFloat(p.pnl)||0;
+    totalPnl+=pnl; total++;
+    if(pnl>0){ winners++; winPnl+=pnl; if(pnl>1000) bigWin++; }
+    else if(pnl<0){ losers++; lossPnl+=pnl; if(pnl<-500) bigLoss++; }
+  });
+
+  // Score each intent 0-100 based on portfolio state
+  var scores = {
+    harvest: 0, grow: 0, protect: 0, repair: 0
+  };
+
+  // Harvest: best when significant gains to lock in
+  if(winPnl > 500)  scores.harvest += 40;
+  if(winners > total*0.5) scores.harvest += 30;
+  if(bigWin > 0)    scores.harvest += 30;
+
+  // Grow: best when portfolio is winning and momentum exists
+  if(winners > losers) scores.grow += 35;
+  if(totalPnl > 0)     scores.grow += 30;
+  if(bigWin > 0 && bigLoss === 0) scores.grow += 35;
+
+  // Protect: best when mixed or uncertain — some gains to protect
+  if(winners > 0 && losers > 0) scores.protect += 40;
+  if(totalPnl > 0 && losers > 0) scores.protect += 35;
+  if(lossPnl < -200 && winPnl > 0) scores.protect += 25;
+
+  // Repair: best when significant losses
+  if(bigLoss > 0)   scores.repair += 50;
+  if(losers > winners) scores.repair += 30;
+  if(lossPnl < -1000) scores.repair += 20;
+
+  // Rank them
+  var ranked = ['harvest','grow','protect','repair'].sort(function(a,b){
+    return scores[b]-scores[a];
+  });
+  var best = ranked[0];
+
+  // Reason strings
+  var reasons = {
+    harvest: winPnl>0 ? 'You have $'+Math.round(winPnl).toLocaleString()+' in gains — lock them in' : 'Best for your profitable positions',
+    grow:    winners>0 ? winners+' position'+(winners>1?'s':'')+' winning — amplify momentum' : 'Add leverage to your winners',
+    protect: losers>0&&winners>0 ? 'Mixed portfolio — hedge what you have' : 'Shield gains from a pullback',
+    repair:  bigLoss>0 ? bigLoss+' position'+(bigLoss>1?'s':'')+' in significant loss — recover cost basis' : 'Reduce losses on underwater positions',
+  };
+
+  // Update each tile with score and rank indicator
+  ranked.forEach(function(intent, rank){
+    var btn = document.getElementById('intent-'+intent);
+    if(!btn) return;
+    var col = intentColors[intent];
+    var isTop = rank===0;
+
+    // Add rank badge and reason to each tile
+    var existingBadge = btn.querySelector('.rank-badge');
+    if(existingBadge) existingBadge.remove();
+    var existingReason = btn.querySelector('.intent-reason');
+    if(existingReason) existingReason.remove();
+
+    // Rank badge top-right
+    var badge = document.createElement('div');
+    badge.className = 'rank-badge';
+    badge.style.cssText = 'position:absolute;top:8px;right:8px;font-family:var(--sans);font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:10px;'
+      +(isTop ? 'background:'+col+';color:#fff' : 'background:var(--s2);color:var(--mut);border:1px solid var(--b1)');
+    badge.textContent = isTop ? '★ BEST FIT' : '#'+(rank+1);
+    btn.style.position = 'relative';
+    btn.appendChild(badge);
+
+    // Reason line
+    var reason = document.createElement('div');
+    reason.className = 'intent-reason';
+    reason.style.cssText = 'font-size:.6rem;margin-top:5px;font-weight:500;line-height:1.3;'
+      +(isTop ? 'color:'+col : 'color:var(--mut)');
+    reason.textContent = reasons[intent];
+    btn.appendChild(reason);
+
+    // Highlight best
+    if(isTop){
+      btn.style.border = '2px solid '+col;
+      btn.style.background = col+'12';
+    } else {
+      btn.style.border = '2px solid var(--b1)';
+      btn.style.background = '#fff';
+      btn.style.opacity = rank===3?'0.6':'1';
+    }
+  });
+
+  // Set the best as active
+  var bestBtn = document.getElementById('intent-'+best);
+  if(bestBtn) setIntent(best, bestBtn);
+
+  // Update the hint to show recommendation summary
+  var ah = document.getElementById('intentAutoHint');
+  if(ah) ah.textContent = '';
+
+  var hint = document.getElementById('intentHint');
+  if(hint){
+    var col = intentColors[best];
+    var winStr = winners>0 ? winners+' winner'+(winners>1?'s':'')+' (+$'+Math.round(winPnl).toLocaleString()+')' : '';
+    var lossStr = losers>0 ? losers+' loser'+(losers>1?'s':'')+' (-$'+Math.round(Math.abs(lossPnl)).toLocaleString()+')' : '';
+    var portfolioDesc = [winStr,lossStr].filter(Boolean).join(', ');
+    hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25';
+    hint.innerHTML = '<strong style="color:'+col+'">★ Recommended: '+intentLabels[best]+'</strong>'
+      +(portfolioDesc?' <span style="color:var(--mut);font-weight:400">— '+portfolioDesc+'</span>':'')
+      +'<br><span style="font-size:.68rem;opacity:.85">'+reasons[best]+'</span>'
+      +'<span style="font-size:.68rem;color:var(--mut);margin-left:8px">or pick a different goal above</span>';
+  }
+}
+
+
+function expandIntent(){
+  // Rebuild the full intent tiles
+  var iw = document.getElementById('intentWrap');
+  if(!iw) return;
+  iw.innerHTML = `
+    <div style="font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span>② What do you want to do?</span>
+      <span id="intentAutoHint" style="color:var(--acc);font-weight:500;text-transform:none;letter-spacing:0;font-size:.68rem;font-family:var(--sans)"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <button type="button" onclick="setIntent('harvest',this)" id="intent-harvest" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🌾</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Harvest</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Lock profits, roll up winning positions</div>
+      </button>
+      <button type="button" onclick="setIntent('grow',this)" id="intent-grow" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">📈</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Grow</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Add leverage to winners, scale up</div>
+      </button>
+      <button type="button" onclick="setIntent('protect',this)" id="intent-protect" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🛡️</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Protect</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Hedge downside, buy puts or collars</div>
+      </button>
+      <button type="button" onclick="setIntent('repair',this)" id="intent-repair" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🔧</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Repair</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Recover losses, reduce cost basis</div>
+      </button>
+    </div>
+    <div id="intentHint" style="margin-top:10px;padding:9px 14px;background:var(--s2);border-radius:8px;font-size:.74rem;color:var(--mut);font-family:var(--sans);min-height:36px;transition:all .2s"></div>`;
+  // Re-highlight the current intent
+  var btn = document.getElementById('intent-'+currentIntent);
+  if(btn) setIntent(currentIntent, btn);
+}
+function onDrag(e, over){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.toggle('drag', over);
+}
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  var f = e.dataTransfer.files[0];
+  if(f) loadFile(f);
+}
+function onFile(e){
+  var f = e.target.files[0];
+  if(f) loadFile(f);
+}
+function loadFile(f){
+  imageType = f.type || 'image/png';
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    imageB64 = ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('previewCol').style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+}
+function clearImage(){
+  imageB64 = null;
+  var pc = document.getElementById('previewCol');
+  var pi = document.getElementById('previewImg');
+  var fi = document.getElementById('fileInput');
+  if(pc) pc.style.display = 'none';
+  if(pi) pi.src = '';
+  if(fi) fi.value = '';
+}
+
+// ── MANUAL ROWS ──
+var rowId = 0;
+function addRow(data){
+  data = data || {};
+  var id = ++rowId;
+  var div = document.createElement('div');
+  div.className = 'pos-row';
+  div.id = 'row'+id;
+  div.innerHTML =
+    '<input type="text" placeholder="AAPL" value="'+(data.sym||'')+'" data-field="sym" style="text-transform:uppercase">'
+    +'<select data-field="type">'
+    +'<option value="stock"'+(data.type==='stock'?' selected':'')+'>Stock</option>'
+    +'<option value="call"'+(data.type==='call'?' selected':'')+'>Call</option>'
+    +'<option value="put"'+(data.type==='put'?' selected':'')+'>Put</option>'
+    +'<option value="spread"'+(data.type==='spread'?' selected':'')+'>Spread</option>'
+    +'</select>'
+    +'<input type="number" placeholder="Qty / Contracts" value="'+(data.size||'')+'" data-field="size">'
+    +'<input type="number" placeholder="$0.00" value="'+(data.last||'')+'" data-field="last" step="0.01">'
+    +'<input type="number" placeholder="±$0.00" value="'+(data.pnl||'')+'" data-field="pnl" step="0.01">'
+    +'<input type="text" placeholder="e.g. May 16 $710C" value="'+(data.notes||'')+'" data-field="notes">'
+    +'<button class="remove-btn" onclick="removeRow('+id+')">✕</button>';
+  document.getElementById('posGrid').appendChild(div);
+}
+function removeRow(id){
+  var el = document.getElementById('row'+id);
+  if(el) el.remove();
+}
+function getRows(){
+  var rows = [];
+  document.querySelectorAll('.pos-row').forEach(function(row){
+    var obj = {};
+    row.querySelectorAll('[data-field]').forEach(function(inp){
+      obj[inp.dataset.field] = inp.value.trim();
+    });
+    if(obj.sym) rows.push(obj);
+  });
+  return rows;
+}
+function setRows(positions){
+  document.getElementById('posGrid').innerHTML = '';
+  rowId = 0;
+  positions.forEach(function(p){ addRow(p); });
+  if(!positions.length) addRow();
+}
+
+function collapseInputSection(count, source){
+  // hide all input UI
+  document.getElementById('uploadWrap').style.display    = 'none';
+  document.getElementById('manualSection').style.display = 'none';
+  document.getElementById('extractedSummary').style.display = 'none';
+  document.getElementById('analyzeBtn').style.display    = 'none';
+  // show slim bar
+  var bar = document.getElementById('inputCollapsed');
+  var icon = source === 'screenshot' ? '📸' : '📋';
+  bar.innerHTML = icon+' <strong>'+count+' position'+(count!==1?'s':'')+' loaded</strong>'
+    +' <span style="color:var(--mut)">via '+source+'</span>'
+    +' &nbsp;·&nbsp; <a href="#" onclick="expandInputSection();return false" style="color:var(--blu);text-decoration:none;font-weight:700">Start over</a>';
+  bar.style.display = 'flex';
+}
+
+function expandInputSection(){
+  document.getElementById('uploadWrap').style.display    = 'block';
+  document.getElementById('manualSection').style.display = 'block';
+  document.getElementById('analyzeBtn').style.display    = 'flex';
+  document.getElementById('inputCollapsed').style.display= 'none';
+  document.getElementById('results').className = 'results';
+  document.getElementById('extractedSummary').style.display = 'none';
+  document.getElementById('extractedSummary').innerHTML = '';
+  clearImage();
+}
+
+// ── STATUS HELPERS ──
+function setStatus(msg){ var b=document.getElementById('statusBar'); b.className='status-bar show'; document.getElementById('statusTxt').textContent=msg; }
+function hideStatus(){ document.getElementById('statusBar').className='status-bar'; }
+function showError(msg){ var b=document.getElementById('errorBox'); b.style.display='block'; b.textContent=msg; }
+function hideError(){ document.getElementById('errorBox').style.display='none'; }
+
+// ── MAIN ANALYZE (step 3 — build plan with chosen intent) ──
+async function analyze(){
+  hideError();
+  document.getElementById('results').className='results';
+  var btn = document.getElementById('analyzeBtn');
+  var txtEl = document.getElementById('analyzeBtnTxt');
+  btn.disabled = true;
+  btn.className = 'analyze-btn loading';
+  txtEl.textContent = 'Building plan…';
+
+  try {
+    // Use already-extracted positions from step 1
+    var positions = _extractedPositions.length ? _extractedPositions : getRows();
+    if(!positions.length || !positions[0].sym){
+      throw new Error('No positions found. Please analyze your portfolio first.');
+    }
+
+    setStatus('Fetching live data & building plan…');
+    var plan = await postAPI('/analyze', { positions: positions, mode: currentIntent });
+
+    // Collapse inputs
+    collapseInputSection(positions.length, imageB64 ? 'screenshot' : 'manual');
+    // Collapse intent tiles to slim badge
+    var iw = document.getElementById('intentWrap');
+    if(iw){
+      var col = intentColors[currentIntent]||'var(--acc)';
+      var lbl = intentLabels[currentIntent]||'Plan';
+      iw.innerHTML = '<div style="display:flex;align-items:center;gap:10px;font-family:var(--sans);font-size:.76rem">'
+        +'<span style="background:'+col+'15;color:'+col+';border:1px solid '+col+'30;border-radius:20px;padding:4px 14px;font-weight:800">'+lbl+'</span>'
+        +'<a href="#" onclick="expandIntent();return false" style="color:var(--mut);font-size:.7rem">change</a>'
+        +'</div>';
+    }
+
+    renderResults(plan, '');
+
+  } catch(e){
+    var msg = e.message || 'Something went wrong.';
+    var extra = '';
+    if(msg.includes('Add your Anthropic') || msg.includes('ANTHROPIC_KEY') || msg.includes('api_key')){
+      extra = '<div style="margin-top:10px;line-height:1.8">'
+        +'<b>One-time setup:</b><br>'
+        +'Open <code style="background:#0a0a0f;padding:3px 8px;border-radius:4px;color:#00ff88">optionlens.html</code> in a text editor<br>'
+        +'Find the line: <code style="color:#00aaff">const ANTHROPIC_KEY = \'\';</code><br>'
+        +'Paste your key: <code style="color:#00aaff">const ANTHROPIC_KEY = \'sk-ant-YOUR-KEY\';</code>'
+        +'</div>';
+    }
+    var el = document.getElementById('errorBox');
+    el.style.display = 'block';
+    el.innerHTML = '⚠ ' + msg + extra;
+  } finally {
+    btn.disabled = false;
+    btn.className = 'analyze-btn';
+    var col = intentColors[currentIntent]||'var(--acc)';
+    btn.style.background = col;
+    txtEl.textContent = intentLabels[currentIntent] || 'Build Plan';
+    hideStatus();
+  }
+}
+
+
+// ── API HELPERS ──
+async function callClaude(messages, systemPrompt, useVision){
+  if(!getApiKey()){showApiKeyModal();throw new Error('Please add your Anthropic API key first.');}
+  var body = {
+    model: CLAUDE_MODEL,
+    max_tokens: 4096,
+    system: systemPrompt || '',
+    messages: messages
+  };
+  var r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(90000)
+  });
+  var d = await r.json();
+  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  var text = (d.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+  return text;
+}
+
+async function fetchLivePrice(sym){
+  try {
+    var r = await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FINNHUB_KEY, {signal:AbortSignal.timeout(5000)});
+    var d = await r.json();
+    return d.c || null;
+  } catch(e){ return null; }
+}
+
+async function postAPI(path, body){
+  if(path === '/extract'){
+    return await serverExtract(body);
+  } else if(path === '/analyze'){
+    return await serverAnalyze(body);
+  }
+  throw new Error('Unknown path: '+path);
+}
+
+async function serverExtract(body){
+  // Use Claude vision to extract positions from screenshot
+  var prompt = 'Extract all option and stock positions from this brokerage screenshot.\n\nReturn ONLY valid JSON in this exact format, no markdown, no explanation:\n{"positions":[{"sym":"TICKER","type":"call|put|stock","strike":"0","expiry":"YYYY-MM-DD","qty":"1","cost":"0.00","pnl":"0.00","pnlPct":"0"}]}\n\nFor stocks: type=\"stock\", strike=\"0\". Extract qty as positive for long, negative for short.';
+  var messages = [{
+    role: 'user',
+    content: [{
+      type: 'image',
+      source: { type: 'base64', media_type: body.image_type||'image/png', data: body.image_b64 }
+    }, {
+      type: 'text',
+      text: prompt
+    }]
+  }];
+  var text = await callClaude(messages, '');
+  var clean = text.replace(/```json|```/g,'').trim();
+  var parsed = JSON.parse(clean);
+  return parsed;
+}
+
+async function serverAnalyze(body){
+  var positions = body.positions || [];
+  var mode = body.mode || 'auto';
+
+  // Fetch live prices for each unique symbol
+  var uniqueSyms = [...new Set(positions.map(function(p){return p.sym.toUpperCase();}))];
+  var prices = {};
+  setStatus('Fetching live prices…');
+  await Promise.all(uniqueSyms.map(async function(sym){
+    var p = await fetchLivePrice(sym);
+    if(p) prices[sym] = p;
+  }));
+
+  // Build positions with live prices for Claude
+  var enriched = positions.map(function(p){
+    var sym = p.sym.toUpperCase();
+    var livePrice = prices[sym] || null;
+    return Object.assign({}, p, {livePrice: livePrice});
+  });
+
+  var modeDescriptions = {
+    harvest: 'The user wants to harvest profits and generate income. Focus on closing winners, rolling for premium, reducing risk.',
+    grow: 'The user wants to grow their positions aggressively. Focus on adding to winners, entering new positions, maximizing upside.',
+    protect: 'The user wants to protect their portfolio. Focus on hedges, reducing delta, closing risky positions.',
+    repair: 'The user wants to repair losing positions. Focus on rolling, adjusting strikes, reducing loss.',
+    auto: 'Choose the best strategy based on portfolio state.'
+  };
+
+  setStatus('Building adjustment plan with AI…');
+  var systemPrompt = 'You are an expert options portfolio advisor. Analyze the portfolio and provide specific actionable recommendations.\n\nReturn ONLY valid JSON, no markdown, no explanation.';
+  var userPrompt = 'Portfolio positions:\n'+JSON.stringify(enriched, null, 2)+'\n\nIntent: '+(modeDescriptions[mode]||modeDescriptions.auto)+'\n\nReturn a JSON plan in this exact format:\n{\n  "summary": {\n    "headline": "brief summary",\n    "urgency": "high|medium|low",\n    "totalPnl": 0,\n    "mode": "'+mode+'"\n  },\n  "positions": [\n    {\n      "sym": "TICKER",\n      "strategyLabel": "e.g. Covered Call",\n      "currentMetrics": {\n        "pnl": 0,\n        "pnlPct": 0,\n        "livePrice": 0\n      },\n      "steps": [\n        {\n          "action": "CLOSE|ROLL|HOLD|TRIM|ENTER",\n          "details": "specific instruction with strikes/dates/prices",\n          "urgency": "now|today|this-week|optional"\n        }\n      ],\n      "scenarios": {\n        "below": "what happens if stock drops 5%",\n        "at": "what happens at current price",\n        "above": "what happens if stock rises 5%"\n      }\n    }\n  ]\n}';
+
+  var messages = [{role:'user', content: userPrompt}];
+  var text = await callClaude(messages, systemPrompt);
+  var clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+async function apiFetch(path){
+  throw new Error('apiFetch not used in standalone mode');
+}
+
+// ── FORMAT HELPERS ──
+function f2(n){ return (+n).toFixed(2); }
+function f3(n){ return (+n).toFixed(3); }
+function peFp(n){ return (n*100).toFixed(1)+'%'; }
+function fm(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+// ── BUILD EXTRACTED HTML ──
+function buildExtractedHtml(positions){
+  var rows = positions.map(function(p){
+    var pnlColor = (+p.pnl)>=0 ? 'var(--acc)' : 'var(--red)';
+    return '<div class="extracted-row">'
+      +'<span class="er-sym">'+p.sym.toUpperCase()+'</span>'
+      +'<span class="er-val">'+p.type+'</span>'
+      +'<span class="er-val">qty <span>'+p.size+'</span></span>'
+      +'<span class="er-val">last <span>$'+f2(p.last||0)+'</span></span>'
+      +'<span class="er-val" style="color:'+pnlColor+';font-weight:700">P&L '+fm(p.pnl||0)+'</span>'
+      +(p.notes?'<span class="er-val" style="color:var(--mut)">'+p.notes+'</span>':'')
+      +'</div>';
+  }).join('');
+  return '<div class="extracted-positions"><div class="extracted-title">📸 AI Extracted Positions</div>'+rows+'</div>';
+}
+
+// ── SCENARIO MODAL ──
+var _scenarios = {};
+
+function openScenario(key){
+  var pos = _scenarios[key];
+  if(!pos) return;
+  var sc = pos.scenarios || {};
+  document.getElementById('modalTitle').textContent = pos.sym + ' — ' + esc(sc.title||pos.strategyLabel||'Scenario Analysis');
+  document.getElementById('modalSub').textContent = 'After recommended adjustment';
+
+  var pnlColor = function(n){ return n>=0?'var(--acc)':'var(--red)'; };
+  var fmModal = function(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}); };
+
+  var body = '';
+
+  // structure
+  if(sc.structure){
+    body += '<div class="sc-structure"><span>Adjusted Structure</span>'+esc(sc.structure)+'</div>';
+  }
+
+  // 3 scenario cards
+  var scenarios = [
+    { key:'below', cls:'sc-below', icon:'📉' },
+    { key:'at',    cls:'sc-at',    icon:'⚖️' },
+    { key:'above', cls:'sc-above', icon:'📈' }
+  ];
+  body += '<div class="scenario-grid">';
+  scenarios.forEach(function(s){
+    var d = sc[s.key] || {};
+    var pnl = d.pnl != null ? d.pnl : null;
+    body += '<div class="scenario-card '+s.cls+'">'
+      +'<div class="sc-label">'+s.icon+' '+(s.key==='below'?'Below':s.key==='at'?'At Strike':'Above')+'</div>'
+      +'<div class="sc-strike">'+esc(d.label||'—')+'</div>'
+      +(pnl!=null?'<div class="sc-pnl">'+fmModal(pnl)+'</div>':'<div class="sc-pnl" style="color:var(--mut)">—</div>')
+      +'<div class="sc-note">'+esc(d.note||'')+'</div>'
+      +'</div>';
+  });
+  body += '</div>';
+
+  // premium / max loss / max gain footer
+  var below = sc.below && sc.below.pnl != null ? sc.below.pnl : null;
+  var above = sc.above && sc.above.pnl != null ? sc.above.pnl : null;
+  body += '<div class="sc-premium">';
+  if(sc.premium != null) body += '<div><div class="label">Premium Paid</div><div class="val">'+fmModal(-Math.abs(sc.premium))+'</div></div>';
+  if(below != null)      body += '<div><div class="label">Max Loss</div><div class="val" style="color:var(--red)">'+fmModal(below)+'</div></div>';
+  if(above != null)      body += '<div><div class="label">Max Gain</div><div class="val" style="color:var(--acc)">'+fmModal(above)+'</div></div>';
+  body += '</div>';
+
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// close on Escape
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+// ── RENDER RESULTS ──
+function renderResults(plan, extractedHtml){
+  _scenarios = {};
+  var s = plan.summary || {};
+  var urgColor = s.urgency==='high'?'var(--red)':s.urgency==='medium'?'var(--yel)':'var(--acc)';
+  var totalPnl = s.totalPnl || 0;
+  var pnlColor = totalPnl>=0?'var(--acc)':'var(--red)';
+  var intentLabels = {harvest:'🌾 Harvesting',grow:'📈 Growing',protect:'🛡️ Protecting',repair:'🔧 Repairing',auto:'⚡ Plan',recover:'🔧 Recovery',mixed:'⚡ Mixed'};
+  var intentCols   = {harvest:'#00963a',grow:'#1a5fa8',protect:'#7c3aed',repair:'#d63050',auto:'#7a859e',recover:'#d63050',mixed:'#b8860b'};
+  var intentKey    = currentIntent!=='auto' ? currentIntent : (s.mode||'auto');
+  var intentLabel  = intentLabels[intentKey]||'⚡ Plan';
+  var intentCol    = intentCols[intentKey]||'#7a859e';
+  var html = extractedHtml;
+
+  // Summary bar
+  html += '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+    +'<div><div style="font-size:1rem;font-weight:800;letter-spacing:-.02em;color:var(--txt)">'+esc(s.headline||'Plan')+'</div>'
+    +'<div style="font-size:.7rem;color:var(--mut);font-family:var(--sans);margin-top:2px">'
+    +'Urgency: <span style="color:'+urgColor+';font-weight:700">'+(s.urgency||'').toUpperCase()+'</span>'
+    +' &nbsp;·&nbsp; Total P&L: <span style="color:'+pnlColor+';font-weight:700">'+fm(totalPnl)+'</span>'
+    +' &nbsp;·&nbsp; '+((plan.positions||[]).length)+' positions'
+    +'</div></div>'
+    +'<span style="font-family:var(--sans);font-size:.68rem;font-weight:800;padding:4px 14px;border-radius:20px;background:'+intentCol+'18;color:'+intentCol+';border:1px solid '+intentCol+'33">'+intentLabel+'</span>'
+    +'</div>';
+
+  (plan.positions||[]).forEach(function(pos, idx){
+    var key = pos.sym+'_'+idx;
+    _scenarios[key] = pos;
+    var pnl    = (pos.currentMetrics&&pos.currentMetrics.pnl)||0;
+    var pnlPct = (pos.currentMetrics&&pos.currentMetrics.pnlPct)||0;
+    var liveP  = (pos.currentMetrics&&pos.currentMetrics.livePrice)||0;
+    var isGreen= pnl >= 0;
+    var sc     = pos.scenarios||{};
+    var hasSc  = sc.below||sc.at||sc.above;
+    var urgMap = {now:'🔴',today:'🟡','this-week':'🟢',optional:'⚪'};
+    var actMap = {CLOSE:'at-close',ROLL:'at-roll',ENTER:'at-enter',HOLD:'at-hold',TRIM:'at-trim'};
+    var actBg  = {CLOSE:'rgba(214,48,80,.06)',ROLL:'rgba(0,112,204,.06)',ENTER:'rgba(0,150,58,.06)',TRIM:'rgba(184,134,11,.06)',HOLD:'rgba(0,0,0,.02)'};
+
+    html += '<div class="pos-card">';
+    html += '<div class="pos-card-head">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div class="pos-sym">'+esc(pos.sym)+'</div>'
+      +(pos.strategyLabel?'<span style="font-family:var(--sans);font-size:.66rem;font-weight:800;color:'+intentCol+';padding:3px 9px;background:'+intentCol+'10;border-radius:20px;border:1px solid '+intentCol+'25">'+esc(pos.strategyLabel)+'</span>':'')
+      +(liveP?'<span style="font-family:var(--sans);font-size:.7rem;color:var(--mut)">$'+f2(liveP)+'</span>':'')
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="pos-pnl '+(isGreen?'green':'red')+'">'+fm(pnl)+(pnlPct?' <span style="font-size:.7rem;font-weight:400">('+f2(Math.abs(pnlPct))+'%)</span>':'')+'</div>'
+      +(hasSc?'<button onclick="openScenario(\''+key+'\')" style="background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:.64rem;font-family:var(--sans);font-weight:700;color:var(--blu);cursor:pointer;white-space:nowrap" onmouseover="this.style.background=\'var(--b1)\'" onmouseout="this.style.background=\'var(--s2)\'">📊 Scenarios</button>':'')
+      +'</div></div>';
+
+    html += '<div class="pos-card-body" style="padding:12px 18px">';
+    if(pos.steps && pos.steps.length){
+      html += '<div style="display:flex;flex-direction:column;gap:5px">';
+      pos.steps.forEach(function(st){
+        html += '<div style="display:flex;align-items:center;gap:10px;background:'+(actBg[st.action]||'rgba(0,0,0,.02)')+';border-radius:7px;padding:7px 11px">'
+          +'<span class="action-tag '+(actMap[st.action]||'at-hold')+'" style="flex-shrink:0;font-size:.64rem">'+esc(st.action)+'</span>'
+          +'<span style="color:var(--txt);flex:1;font-size:.82rem;font-weight:700">'+esc(st.details||st.description)+'</span>'
+          +((urgMap[st.urgency]||'')?'<span style="flex-shrink:0;font-size:.76rem">'+(urgMap[st.urgency]||'')+'</span>':'')
+          +'</div>';
+      });
+      html += '</div>';
+    }
+
+    // Inline P&L model
+    if(hasSc){
+      var fmM=function(n){n=+n;return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">';
+      [['below','📉 Below','var(--red)'],['at','⚖️ At Strike','var(--yel)'],['above','📈 Above','var(--acc)']].forEach(function(s){
+        var d=sc[s[0]]||{}, hasPnl=d.pnl!=null, win=hasPnl&&d.pnl>=0;
+        html+='<div style="background:var(--s2);border-radius:8px;padding:8px 10px;text-align:center">'
+          +'<div style="font-size:.65rem;color:var(--mut);font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+(d.label||s[1])+'</div>'
+          +(hasPnl?'<div style="font-size:.88rem;font-weight:900;color:'+(win?'var(--acc)':'var(--red)')+';font-family:var(--sans)">'+fmM(d.pnl)+'</div>':'<div style="color:var(--mut);font-size:.8rem">—</div>')
+          +(d.note?'<div style="font-size:.6rem;color:var(--mut);margin-top:2px;line-height:1.3">'+esc(d.note)+'</div>':'')
+          +'</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+
+  html += '<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+  var el = document.getElementById('results');
+  el.innerHTML = html;
+  el.className = 'results show';
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Select all on focus — fixes iPhone input editing
+document.addEventListener('focusin', function(e){
+  if(e.target.tagName==='INPUT'&&(e.target.type==='number'||e.target.type==='text')){
+    setTimeout(function(){e.target.select();},50);
+  }
+});
+
+function updateApiStatus(){
+  var btn=document.getElementById('api-status-btn');
+  if(!btn)return;
+  var hasKey=getApiKey().length>0;
+  btn.textContent=hasKey?'✓ API Key':'⚙ API Key';
+  btn.style.color=hasKey?'#22c55e':'#94a3b8';
+  btn.style.borderColor=hasKey?'#166534':'#334155';
+}
+
+function showApiKeyModal(){
+  var modal=document.getElementById('api-modal');
+  if(modal){ modal.style.display='flex'; var inp=document.getElementById('api-key-input'); if(inp)inp.value=getApiKey(); }
+}
+function closeApiModal(){
+  var modal=document.getElementById('api-modal');
+  if(modal) modal.style.display='none';
+}
+function saveApiKey(){
+  var inp=document.getElementById('api-key-input');
+  if(!inp||!inp.value.trim()){alert('Please enter your API key');return;}
+  setApiKey(inp.value.trim());
+  closeApiModal();
+  updateApiStatus();
+}
+
+document.addEventListener('focusin',function(e){
+  if(e.target.tagName==='INPUT'&&(e.target.type==='number'||e.target.type==='text'||e.target.type==='password')){
+    setTimeout(function(){e.target.select();},50);
+  }
+});
+
+// Auto-show API key modal if no key set
+window.addEventListener('load',function(){
+  updateApiStatus();
+  if(!getApiKey()) showApiKeyModal();
+});
+</script>
+
+<!-- API Key Modal -->
+<div id="api-modal" onclick="if(event.target===this)closeApiModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px">
+    <div style="font-size:16px;font-weight:900;color:#0a0f1e;margin-bottom:6px">API Key Setup</div>
+    <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:16px;line-height:1.6">Get your key at <b>console.anthropic.com</b> → API Keys.<br>Stored locally in your browser only — never sent anywhere except Anthropic.</div>
+    <input id="api-key-input" type="password" placeholder="sk-ant-..." style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px;font-size:13px;font-weight:600;font-family:var(--sans);color:#0a0f1e;box-sizing:border-box;margin-bottom:10px"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="saveApiKey()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:800;cursor:pointer">Save Key</button>
+      <button onclick="closeApiModal()" style="background:#f1f5f9;color:#374151;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:800;cursor:pointer">Cancel</button>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#64748b;text-align:center;font-weight:600">Key is saved in your browser localStorage · Not in GitHub code</div>
+  </div>
+</div>
+</div>
+
 </div><!-- end app -->
 <script>
 var FK='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';
@@ -699,8 +1707,8 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  var paneMap={1:4,2:2,3:6,4:5,5:3};
-  for(var i=1;i<=5;i++){
+  var paneMap={1:4,2:2,3:6,4:5,5:3,6:7};
+  for(var i=1;i<=6;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
     $('pane'+paneMap[i])&&($('pane'+paneMap[i]).className='pane'+(i===n?' on':''));
   }
@@ -708,6 +1716,7 @@ function showTab(n){
   if(n===2){if(ST_MODE==='size')go2();else go1();}
   if(n===3)renderPortfolio();
   if(n===4){go5();if(!BT_DAYS[0].o)fetchOHLC(T5);}
+  if(n===6&&typeof updateApiStatus==="function"){updateApiStatus();if(!getApiKey())showApiKeyModal();}
 }
 
 /* ── MATH ── */
@@ -2427,6 +3436,723 @@ function updateMktTrend(){
   }
 }
 
+
+/* ── PORTFOLIO ANALYZER JS ── */
+var PE_API = ''; // no server needed
+var API_KEY_STORAGE = 'portfolioedge_api_key';
+function getApiKey(){ return localStorage.getItem(API_KEY_STORAGE)||''; }
+function setApiKey(k){ localStorage.setItem(API_KEY_STORAGE, k.trim()); }
+// Use getApiKey() everywhere instead of ANTHROPIC_KEY
+// FINNHUB_KEY reuses GE's FK variable
+var CLAUDE_MODEL = 'claude-sonnet-4-6';
+var peMode = 'auto';
+var imageB64 = null;
+var imageType = 'image/png';
+var _extractedPositions = []; // stored after step 1
+
+// ── STEP 1: Extract positions from screenshot ──
+async function extractPositions(){
+  var btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px"></span> Analyzing…';
+  hideError();
+  try {
+    var positions = getRows();
+    if(imageB64){
+      setStatus('Reading screenshot with AI…');
+      var resp = await postAPI('/extract', { image_b64: imageB64, image_type: imageType });
+      var extracted = resp.positions || [];
+      if(extracted.length){
+        _extractedPositions = extracted;
+        setRows(extracted);
+        positions = extracted;
+        // show extracted summary
+        document.getElementById('manualSection').style.display = 'none';
+        var sumEl = document.getElementById('extractedSummary');
+        sumEl.innerHTML = buildExtractedHtml(extracted);
+        sumEl.style.display = 'block';
+      }
+    } else {
+      _extractedPositions = positions;
+    }
+    if(!positions.length || !positions[0].sym) throw new Error('No positions found. Add at least one position.');
+    hideStatus();
+    // Show intent tiles with ranked suggestions
+    document.getElementById('intentWrap').style.display = 'block';
+    autoSuggestIntent(positions);
+    // Scroll to intent
+    document.getElementById('intentWrap').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch(e){
+    showError(e.message||'Something went wrong');
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔍</span> <span>Analyze My Portfolio</span>';
+    hideStatus();
+    return;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<span>✓</span> <span>Portfolio Analyzed — pick a strategy above</span>';
+  btn.style.background = 'var(--acc)';
+}
+
+
+// ── INIT ──
+addRow();
+
+var currentIntent = 'auto';
+var intentColors = { harvest:'#00963a', grow:'#1a5fa8', protect:'#7c3aed', repair:'#d63050' };
+var intentLabels = { harvest:'🌾 Build Harvest Plan', grow:'📈 Build Growth Plan', protect:'🛡️ Build Protection Plan', repair:'🔧 Build Repair Plan' };
+var intentHints  = {
+  harvest: 'Lock in gains on profitable positions — covered calls, roll up, take money off the table.',
+  grow:    'Amplify upside on your strongest positions — calls, LEAPS, debit spreads.',
+  protect: 'Limit downside on vulnerable positions — puts, collars, or protective spreads.',
+  repair:  'Reduce cost basis on losing positions — repair trades, ratio spreads, roll-downs.',
+};
+
+function setIntent(intent, btn){
+  currentIntent = intent;
+  document.querySelectorAll('[id^="intent-"]').forEach(function(b){
+    b.style.border = '2px solid #dde2ee';
+    b.style.background = '#fff';
+  });
+  var col = intentColors[intent];
+  if(btn){ btn.style.border='2px solid '+col; btn.style.background=col+'15'; }
+  var hint = document.getElementById('intentHint');
+  if(hint){ hint.textContent=intentHints[intent]||''; hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25'; }
+  var btnEl = document.getElementById('analyzeBtn');
+  if(btnEl){ btnEl.style.background=col; btnEl.style.display='flex'; }
+  var prompt = document.getElementById('intentPrompt');
+  if(prompt) prompt.style.display='none';
+  var lblEl = document.getElementById('analyzeBtnTxt');
+  if(lblEl) lblEl.textContent = intentLabels[intent]||'Build Plan';
+}
+
+function autoSuggestIntent(positions){
+  if(!positions||!positions.length) return;
+
+  // Analyze the portfolio
+  var total=0, winners=0, losers=0, bigWin=0, bigLoss=0, totalPnl=0;
+  var winPnl=0, lossPnl=0;
+  positions.forEach(function(p){
+    var pnl=parseFloat(p.pnl)||0;
+    totalPnl+=pnl; total++;
+    if(pnl>0){ winners++; winPnl+=pnl; if(pnl>1000) bigWin++; }
+    else if(pnl<0){ losers++; lossPnl+=pnl; if(pnl<-500) bigLoss++; }
+  });
+
+  // Score each intent 0-100 based on portfolio state
+  var scores = {
+    harvest: 0, grow: 0, protect: 0, repair: 0
+  };
+
+  // Harvest: best when significant gains to lock in
+  if(winPnl > 500)  scores.harvest += 40;
+  if(winners > total*0.5) scores.harvest += 30;
+  if(bigWin > 0)    scores.harvest += 30;
+
+  // Grow: best when portfolio is winning and momentum exists
+  if(winners > losers) scores.grow += 35;
+  if(totalPnl > 0)     scores.grow += 30;
+  if(bigWin > 0 && bigLoss === 0) scores.grow += 35;
+
+  // Protect: best when mixed or uncertain — some gains to protect
+  if(winners > 0 && losers > 0) scores.protect += 40;
+  if(totalPnl > 0 && losers > 0) scores.protect += 35;
+  if(lossPnl < -200 && winPnl > 0) scores.protect += 25;
+
+  // Repair: best when significant losses
+  if(bigLoss > 0)   scores.repair += 50;
+  if(losers > winners) scores.repair += 30;
+  if(lossPnl < -1000) scores.repair += 20;
+
+  // Rank them
+  var ranked = ['harvest','grow','protect','repair'].sort(function(a,b){
+    return scores[b]-scores[a];
+  });
+  var best = ranked[0];
+
+  // Reason strings
+  var reasons = {
+    harvest: winPnl>0 ? 'You have $'+Math.round(winPnl).toLocaleString()+' in gains — lock them in' : 'Best for your profitable positions',
+    grow:    winners>0 ? winners+' position'+(winners>1?'s':'')+' winning — amplify momentum' : 'Add leverage to your winners',
+    protect: losers>0&&winners>0 ? 'Mixed portfolio — hedge what you have' : 'Shield gains from a pullback',
+    repair:  bigLoss>0 ? bigLoss+' position'+(bigLoss>1?'s':'')+' in significant loss — recover cost basis' : 'Reduce losses on underwater positions',
+  };
+
+  // Update each tile with score and rank indicator
+  ranked.forEach(function(intent, rank){
+    var btn = document.getElementById('intent-'+intent);
+    if(!btn) return;
+    var col = intentColors[intent];
+    var isTop = rank===0;
+
+    // Add rank badge and reason to each tile
+    var existingBadge = btn.querySelector('.rank-badge');
+    if(existingBadge) existingBadge.remove();
+    var existingReason = btn.querySelector('.intent-reason');
+    if(existingReason) existingReason.remove();
+
+    // Rank badge top-right
+    var badge = document.createElement('div');
+    badge.className = 'rank-badge';
+    badge.style.cssText = 'position:absolute;top:8px;right:8px;font-family:var(--sans);font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:10px;'
+      +(isTop ? 'background:'+col+';color:#fff' : 'background:var(--s2);color:var(--mut);border:1px solid var(--b1)');
+    badge.textContent = isTop ? '★ BEST FIT' : '#'+(rank+1);
+    btn.style.position = 'relative';
+    btn.appendChild(badge);
+
+    // Reason line
+    var reason = document.createElement('div');
+    reason.className = 'intent-reason';
+    reason.style.cssText = 'font-size:.6rem;margin-top:5px;font-weight:500;line-height:1.3;'
+      +(isTop ? 'color:'+col : 'color:var(--mut)');
+    reason.textContent = reasons[intent];
+    btn.appendChild(reason);
+
+    // Highlight best
+    if(isTop){
+      btn.style.border = '2px solid '+col;
+      btn.style.background = col+'12';
+    } else {
+      btn.style.border = '2px solid var(--b1)';
+      btn.style.background = '#fff';
+      btn.style.opacity = rank===3?'0.6':'1';
+    }
+  });
+
+  // Set the best as active
+  var bestBtn = document.getElementById('intent-'+best);
+  if(bestBtn) setIntent(best, bestBtn);
+
+  // Update the hint to show recommendation summary
+  var ah = document.getElementById('intentAutoHint');
+  if(ah) ah.textContent = '';
+
+  var hint = document.getElementById('intentHint');
+  if(hint){
+    var col = intentColors[best];
+    var winStr = winners>0 ? winners+' winner'+(winners>1?'s':'')+' (+$'+Math.round(winPnl).toLocaleString()+')' : '';
+    var lossStr = losers>0 ? losers+' loser'+(losers>1?'s':'')+' (-$'+Math.round(Math.abs(lossPnl)).toLocaleString()+')' : '';
+    var portfolioDesc = [winStr,lossStr].filter(Boolean).join(', ');
+    hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25';
+    hint.innerHTML = '<strong style="color:'+col+'">★ Recommended: '+intentLabels[best]+'</strong>'
+      +(portfolioDesc?' <span style="color:var(--mut);font-weight:400">— '+portfolioDesc+'</span>':'')
+      +'<br><span style="font-size:.68rem;opacity:.85">'+reasons[best]+'</span>'
+      +'<span style="font-size:.68rem;color:var(--mut);margin-left:8px">or pick a different goal above</span>';
+  }
+}
+
+
+function expandIntent(){
+  // Rebuild the full intent tiles
+  var iw = document.getElementById('intentWrap');
+  if(!iw) return;
+  iw.innerHTML = `
+    <div style="font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span>② What do you want to do?</span>
+      <span id="intentAutoHint" style="color:var(--acc);font-weight:500;text-transform:none;letter-spacing:0;font-size:.68rem;font-family:var(--sans)"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <button type="button" onclick="setIntent('harvest',this)" id="intent-harvest" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🌾</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Harvest</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Lock profits, roll up winning positions</div>
+      </button>
+      <button type="button" onclick="setIntent('grow',this)" id="intent-grow" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">📈</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Grow</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Add leverage to winners, scale up</div>
+      </button>
+      <button type="button" onclick="setIntent('protect',this)" id="intent-protect" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🛡️</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Protect</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Hedge downside, buy puts or collars</div>
+      </button>
+      <button type="button" onclick="setIntent('repair',this)" id="intent-repair" style="background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)">
+        <div style="font-size:1.5rem;margin-bottom:6px">🔧</div>
+        <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:3px">Repair</div>
+        <div style="font-size:.72rem;color:var(--mut);line-height:1.4">Recover losses, reduce cost basis</div>
+      </button>
+    </div>
+    <div id="intentHint" style="margin-top:10px;padding:9px 14px;background:var(--s2);border-radius:8px;font-size:.74rem;color:var(--mut);font-family:var(--sans);min-height:36px;transition:all .2s"></div>`;
+  // Re-highlight the current intent
+  var btn = document.getElementById('intent-'+currentIntent);
+  if(btn) setIntent(currentIntent, btn);
+}
+function onDrag(e, over){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.toggle('drag', over);
+}
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  var f = e.dataTransfer.files[0];
+  if(f) loadFile(f);
+}
+function onFile(e){
+  var f = e.target.files[0];
+  if(f) loadFile(f);
+}
+function loadFile(f){
+  imageType = f.type || 'image/png';
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    imageB64 = ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('previewCol').style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+}
+function clearImage(){
+  imageB64 = null;
+  var pc = document.getElementById('previewCol');
+  var pi = document.getElementById('previewImg');
+  var fi = document.getElementById('fileInput');
+  if(pc) pc.style.display = 'none';
+  if(pi) pi.src = '';
+  if(fi) fi.value = '';
+}
+
+// ── MANUAL ROWS ──
+var rowId = 0;
+function addRow(data){
+  data = data || {};
+  var id = ++rowId;
+  var div = document.createElement('div');
+  div.className = 'pos-row';
+  div.id = 'row'+id;
+  div.innerHTML =
+    '<input type="text" placeholder="AAPL" value="'+(data.sym||'')+'" data-field="sym" style="text-transform:uppercase">'
+    +'<select data-field="type">'
+    +'<option value="stock"'+(data.type==='stock'?' selected':'')+'>Stock</option>'
+    +'<option value="call"'+(data.type==='call'?' selected':'')+'>Call</option>'
+    +'<option value="put"'+(data.type==='put'?' selected':'')+'>Put</option>'
+    +'<option value="spread"'+(data.type==='spread'?' selected':'')+'>Spread</option>'
+    +'</select>'
+    +'<input type="number" placeholder="Qty / Contracts" value="'+(data.size||'')+'" data-field="size">'
+    +'<input type="number" placeholder="$0.00" value="'+(data.last||'')+'" data-field="last" step="0.01">'
+    +'<input type="number" placeholder="±$0.00" value="'+(data.pnl||'')+'" data-field="pnl" step="0.01">'
+    +'<input type="text" placeholder="e.g. May 16 $710C" value="'+(data.notes||'')+'" data-field="notes">'
+    +'<button class="remove-btn" onclick="removeRow('+id+')">✕</button>';
+  document.getElementById('posGrid').appendChild(div);
+}
+function removeRow(id){
+  var el = document.getElementById('row'+id);
+  if(el) el.remove();
+}
+function getRows(){
+  var rows = [];
+  document.querySelectorAll('.pos-row').forEach(function(row){
+    var obj = {};
+    row.querySelectorAll('[data-field]').forEach(function(inp){
+      obj[inp.dataset.field] = inp.value.trim();
+    });
+    if(obj.sym) rows.push(obj);
+  });
+  return rows;
+}
+function setRows(positions){
+  document.getElementById('posGrid').innerHTML = '';
+  rowId = 0;
+  positions.forEach(function(p){ addRow(p); });
+  if(!positions.length) addRow();
+}
+
+function collapseInputSection(count, source){
+  // hide all input UI
+  document.getElementById('uploadWrap').style.display    = 'none';
+  document.getElementById('manualSection').style.display = 'none';
+  document.getElementById('extractedSummary').style.display = 'none';
+  document.getElementById('analyzeBtn').style.display    = 'none';
+  // show slim bar
+  var bar = document.getElementById('inputCollapsed');
+  var icon = source === 'screenshot' ? '📸' : '📋';
+  bar.innerHTML = icon+' <strong>'+count+' position'+(count!==1?'s':'')+' loaded</strong>'
+    +' <span style="color:var(--mut)">via '+source+'</span>'
+    +' &nbsp;·&nbsp; <a href="#" onclick="expandInputSection();return false" style="color:var(--blu);text-decoration:none;font-weight:700">Start over</a>';
+  bar.style.display = 'flex';
+}
+
+function expandInputSection(){
+  document.getElementById('uploadWrap').style.display    = 'block';
+  document.getElementById('manualSection').style.display = 'block';
+  document.getElementById('analyzeBtn').style.display    = 'flex';
+  document.getElementById('inputCollapsed').style.display= 'none';
+  document.getElementById('results').className = 'results';
+  document.getElementById('extractedSummary').style.display = 'none';
+  document.getElementById('extractedSummary').innerHTML = '';
+  clearImage();
+}
+
+// ── STATUS HELPERS ──
+
+
+
+
+
+// ── MAIN ANALYZE (step 3 — build plan with chosen intent) ──
+async function analyze(){
+  hideError();
+  document.getElementById('results').className='results';
+  var btn = document.getElementById('analyzeBtn');
+  var txtEl = document.getElementById('analyzeBtnTxt');
+  btn.disabled = true;
+  btn.className = 'analyze-btn loading';
+  txtEl.textContent = 'Building plan…';
+
+  try {
+    // Use already-extracted positions from step 1
+    var positions = _extractedPositions.length ? _extractedPositions : getRows();
+    if(!positions.length || !positions[0].sym){
+      throw new Error('No positions found. Please analyze your portfolio first.');
+    }
+
+    setStatus('Fetching live data & building plan…');
+    var plan = await postAPI('/analyze', { positions: positions, mode: currentIntent });
+
+    // Collapse inputs
+    collapseInputSection(positions.length, imageB64 ? 'screenshot' : 'manual');
+    // Collapse intent tiles to slim badge
+    var iw = document.getElementById('intentWrap');
+    if(iw){
+      var col = intentColors[currentIntent]||'var(--acc)';
+      var lbl = intentLabels[currentIntent]||'Plan';
+      iw.innerHTML = '<div style="display:flex;align-items:center;gap:10px;font-family:var(--sans);font-size:.76rem">'
+        +'<span style="background:'+col+'15;color:'+col+';border:1px solid '+col+'30;border-radius:20px;padding:4px 14px;font-weight:800">'+lbl+'</span>'
+        +'<a href="#" onclick="expandIntent();return false" style="color:var(--mut);font-size:.7rem">change</a>'
+        +'</div>';
+    }
+
+    renderResults(plan, '');
+
+  } catch(e){
+    var msg = e.message || 'Something went wrong.';
+    var extra = '';
+    if(msg.includes('Add your Anthropic') || msg.includes('ANTHROPIC_KEY') || msg.includes('api_key')){
+      extra = '<div style="margin-top:10px;line-height:1.8">'
+        +'<b>One-time setup:</b><br>'
+        +'Open <code style="background:#0a0a0f;padding:3px 8px;border-radius:4px;color:#00ff88">optionlens.html</code> in a text editor<br>'
+        +'Find the line: <code style="color:#00aaff">const ANTHROPIC_KEY = \'\';</code><br>'
+        +'Paste your key: <code style="color:#00aaff">const ANTHROPIC_KEY = \'sk-ant-YOUR-KEY\';</code>'
+        +'</div>';
+    }
+    var el = document.getElementById('errorBox');
+    el.style.display = 'block';
+    el.innerHTML = '⚠ ' + msg + extra;
+  } finally {
+    btn.disabled = false;
+    btn.className = 'analyze-btn';
+    var col = intentColors[currentIntent]||'var(--acc)';
+    btn.style.background = col;
+    txtEl.textContent = intentLabels[currentIntent] || 'Build Plan';
+    hideStatus();
+  }
+}
+
+
+// ── API HELPERS ──
+async function callClaude(messages, systemPrompt, useVision){
+  if(!getApiKey()){showApiKeyModal();throw new Error('Please add your Anthropic API key first.');}
+  var body = {
+    model: CLAUDE_MODEL,
+    max_tokens: 4096,
+    system: systemPrompt || '',
+    messages: messages
+  };
+  var r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(90000)
+  });
+  var d = await r.json();
+  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  var text = (d.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+  return text;
+}
+
+async function fetchLivePrice(sym){
+  try {
+    var r = await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK, {signal:AbortSignal.timeout(5000)});
+    var d = await r.json();
+    return d.c || null;
+  } catch(e){ return null; }
+}
+
+async function postAPI(path, body){
+  if(path === '/extract'){
+    return await serverExtract(body);
+  } else if(path === '/analyze'){
+    return await serverAnalyze(body);
+  }
+  throw new Error('Unknown path: '+path);
+}
+
+async function serverExtract(body){
+  // Use Claude vision to extract positions from screenshot
+  var prompt = 'Extract all option and stock positions from this brokerage screenshot.\n\nReturn ONLY valid JSON in this exact format, no markdown, no explanation:\n{"positions":[{"sym":"TICKER","type":"call|put|stock","strike":"0","expiry":"YYYY-MM-DD","qty":"1","cost":"0.00","pnl":"0.00","pnlPct":"0"}]}\n\nFor stocks: type=\"stock\", strike=\"0\". Extract qty as positive for long, negative for short.';
+  var messages = [{
+    role: 'user',
+    content: [{
+      type: 'image',
+      source: { type: 'base64', media_type: body.image_type||'image/png', data: body.image_b64 }
+    }, {
+      type: 'text',
+      text: prompt
+    }]
+  }];
+  var text = await callClaude(messages, '');
+  var clean = text.replace(/```json|```/g,'').trim();
+  var parsed = JSON.parse(clean);
+  return parsed;
+}
+
+async function serverAnalyze(body){
+  var positions = body.positions || [];
+  var mode = body.mode || 'auto';
+
+  // Fetch live prices for each unique symbol
+  var uniqueSyms = [...new Set(positions.map(function(p){return p.sym.toUpperCase();}))];
+  var prices = {};
+  setStatus('Fetching live prices…');
+  await Promise.all(uniqueSyms.map(async function(sym){
+    var p = await fetchLivePrice(sym);
+    if(p) prices[sym] = p;
+  }));
+
+  // Build positions with live prices for Claude
+  var enriched = positions.map(function(p){
+    var sym = p.sym.toUpperCase();
+    var livePrice = prices[sym] || null;
+    return Object.assign({}, p, {livePrice: livePrice});
+  });
+
+  var modeDescriptions = {
+    harvest: 'The user wants to harvest profits and generate income. Focus on closing winners, rolling for premium, reducing risk.',
+    grow: 'The user wants to grow their positions aggressively. Focus on adding to winners, entering new positions, maximizing upside.',
+    protect: 'The user wants to protect their portfolio. Focus on hedges, reducing delta, closing risky positions.',
+    repair: 'The user wants to repair losing positions. Focus on rolling, adjusting strikes, reducing loss.',
+    auto: 'Choose the best strategy based on portfolio state.'
+  };
+
+  setStatus('Building adjustment plan with AI…');
+  var systemPrompt = 'You are an expert options portfolio advisor. Analyze the portfolio and provide specific actionable recommendations.\n\nReturn ONLY valid JSON, no markdown, no explanation.';
+  var userPrompt = 'Portfolio positions:\n'+JSON.stringify(enriched, null, 2)+'\n\nIntent: '+(modeDescriptions[mode]||modeDescriptions.auto)+'\n\nReturn a JSON plan in this exact format:\n{\n  "summary": {\n    "headline": "brief summary",\n    "urgency": "high|medium|low",\n    "totalPnl": 0,\n    "mode": "'+mode+'"\n  },\n  "positions": [\n    {\n      "sym": "TICKER",\n      "strategyLabel": "e.g. Covered Call",\n      "currentMetrics": {\n        "pnl": 0,\n        "pnlPct": 0,\n        "livePrice": 0\n      },\n      "steps": [\n        {\n          "action": "CLOSE|ROLL|HOLD|TRIM|ENTER",\n          "details": "specific instruction with strikes/dates/prices",\n          "urgency": "now|today|this-week|optional"\n        }\n      ],\n      "scenarios": {\n        "below": "what happens if stock drops 5%",\n        "at": "what happens at current price",\n        "above": "what happens if stock rises 5%"\n      }\n    }\n  ]\n}';
+
+  var messages = [{role:'user', content: userPrompt}];
+  var text = await callClaude(messages, systemPrompt);
+  var clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+async function apiFetch(path){
+  throw new Error('apiFetch not used in standalone mode');
+}
+
+// ── FORMAT HELPERS ──
+function f2(n){ return (+n).toFixed(2); }
+function f3(n){ return (+n).toFixed(3); }
+function peFp(n){ return (n*100).toFixed(1)+'%'; }
+function fm(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+// ── BUILD EXTRACTED HTML ──
+function buildExtractedHtml(positions){
+  var rows = positions.map(function(p){
+    var pnlColor = (+p.pnl)>=0 ? 'var(--acc)' : 'var(--red)';
+    return '<div class="extracted-row">'
+      +'<span class="er-sym">'+p.sym.toUpperCase()+'</span>'
+      +'<span class="er-val">'+p.type+'</span>'
+      +'<span class="er-val">qty <span>'+p.size+'</span></span>'
+      +'<span class="er-val">last <span>$'+f2(p.last||0)+'</span></span>'
+      +'<span class="er-val" style="color:'+pnlColor+';font-weight:700">P&L '+fm(p.pnl||0)+'</span>'
+      +(p.notes?'<span class="er-val" style="color:var(--mut)">'+p.notes+'</span>':'')
+      +'</div>';
+  }).join('');
+  return '<div class="extracted-positions"><div class="extracted-title">📸 AI Extracted Positions</div>'+rows+'</div>';
+}
+
+// ── SCENARIO MODAL ──
+var _scenarios = {};
+
+function openScenario(key){
+  var pos = _scenarios[key];
+  if(!pos) return;
+  var sc = pos.scenarios || {};
+  document.getElementById('modalTitle').textContent = pos.sym + ' — ' + esc(sc.title||pos.strategyLabel||'Scenario Analysis');
+  document.getElementById('modalSub').textContent = 'After recommended adjustment';
+
+  var pnlColor = function(n){ return n>=0?'var(--acc)':'var(--red)'; };
+  var fmModal = function(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}); };
+
+  var body = '';
+
+  // structure
+  if(sc.structure){
+    body += '<div class="sc-structure"><span>Adjusted Structure</span>'+esc(sc.structure)+'</div>';
+  }
+
+  // 3 scenario cards
+  var scenarios = [
+    { key:'below', cls:'sc-below', icon:'📉' },
+    { key:'at',    cls:'sc-at',    icon:'⚖️' },
+    { key:'above', cls:'sc-above', icon:'📈' }
+  ];
+  body += '<div class="scenario-grid">';
+  scenarios.forEach(function(s){
+    var d = sc[s.key] || {};
+    var pnl = d.pnl != null ? d.pnl : null;
+    body += '<div class="scenario-card '+s.cls+'">'
+      +'<div class="sc-label">'+s.icon+' '+(s.key==='below'?'Below':s.key==='at'?'At Strike':'Above')+'</div>'
+      +'<div class="sc-strike">'+esc(d.label||'—')+'</div>'
+      +(pnl!=null?'<div class="sc-pnl">'+fmModal(pnl)+'</div>':'<div class="sc-pnl" style="color:var(--mut)">—</div>')
+      +'<div class="sc-note">'+esc(d.note||'')+'</div>'
+      +'</div>';
+  });
+  body += '</div>';
+
+  // premium / max loss / max gain footer
+  var below = sc.below && sc.below.pnl != null ? sc.below.pnl : null;
+  var above = sc.above && sc.above.pnl != null ? sc.above.pnl : null;
+  body += '<div class="sc-premium">';
+  if(sc.premium != null) body += '<div><div class="label">Premium Paid</div><div class="val">'+fmModal(-Math.abs(sc.premium))+'</div></div>';
+  if(below != null)      body += '<div><div class="label">Max Loss</div><div class="val" style="color:var(--red)">'+fmModal(below)+'</div></div>';
+  if(above != null)      body += '<div><div class="label">Max Gain</div><div class="val" style="color:var(--acc)">'+fmModal(above)+'</div></div>';
+  body += '</div>';
+
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// close on Escape
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+// ── RENDER RESULTS ──
+function renderResults(plan, extractedHtml){
+  _scenarios = {};
+  var s = plan.summary || {};
+  var urgColor = s.urgency==='high'?'var(--red)':s.urgency==='medium'?'var(--yel)':'var(--acc)';
+  var totalPnl = s.totalPnl || 0;
+  var pnlColor = totalPnl>=0?'var(--acc)':'var(--red)';
+  var intentLabels = {harvest:'🌾 Harvesting',grow:'📈 Growing',protect:'🛡️ Protecting',repair:'🔧 Repairing',auto:'⚡ Plan',recover:'🔧 Recovery',mixed:'⚡ Mixed'};
+  var intentCols   = {harvest:'#00963a',grow:'#1a5fa8',protect:'#7c3aed',repair:'#d63050',auto:'#7a859e',recover:'#d63050',mixed:'#b8860b'};
+  var intentKey    = currentIntent!=='auto' ? currentIntent : (s.mode||'auto');
+  var intentLabel  = intentLabels[intentKey]||'⚡ Plan';
+  var intentCol    = intentCols[intentKey]||'#7a859e';
+  var html = extractedHtml;
+
+  // Summary bar
+  html += '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+    +'<div><div style="font-size:1rem;font-weight:800;letter-spacing:-.02em;color:var(--txt)">'+esc(s.headline||'Plan')+'</div>'
+    +'<div style="font-size:.7rem;color:var(--mut);font-family:var(--sans);margin-top:2px">'
+    +'Urgency: <span style="color:'+urgColor+';font-weight:700">'+(s.urgency||'').toUpperCase()+'</span>'
+    +' &nbsp;·&nbsp; Total P&L: <span style="color:'+pnlColor+';font-weight:700">'+fm(totalPnl)+'</span>'
+    +' &nbsp;·&nbsp; '+((plan.positions||[]).length)+' positions'
+    +'</div></div>'
+    +'<span style="font-family:var(--sans);font-size:.68rem;font-weight:800;padding:4px 14px;border-radius:20px;background:'+intentCol+'18;color:'+intentCol+';border:1px solid '+intentCol+'33">'+intentLabel+'</span>'
+    +'</div>';
+
+  (plan.positions||[]).forEach(function(pos, idx){
+    var key = pos.sym+'_'+idx;
+    _scenarios[key] = pos;
+    var pnl    = (pos.currentMetrics&&pos.currentMetrics.pnl)||0;
+    var pnlPct = (pos.currentMetrics&&pos.currentMetrics.pnlPct)||0;
+    var liveP  = (pos.currentMetrics&&pos.currentMetrics.livePrice)||0;
+    var isGreen= pnl >= 0;
+    var sc     = pos.scenarios||{};
+    var hasSc  = sc.below||sc.at||sc.above;
+    var urgMap = {now:'🔴',today:'🟡','this-week':'🟢',optional:'⚪'};
+    var actMap = {CLOSE:'at-close',ROLL:'at-roll',ENTER:'at-enter',HOLD:'at-hold',TRIM:'at-trim'};
+    var actBg  = {CLOSE:'rgba(214,48,80,.06)',ROLL:'rgba(0,112,204,.06)',ENTER:'rgba(0,150,58,.06)',TRIM:'rgba(184,134,11,.06)',HOLD:'rgba(0,0,0,.02)'};
+
+    html += '<div class="pos-card">';
+    html += '<div class="pos-card-head">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div class="pos-sym">'+esc(pos.sym)+'</div>'
+      +(pos.strategyLabel?'<span style="font-family:var(--sans);font-size:.66rem;font-weight:800;color:'+intentCol+';padding:3px 9px;background:'+intentCol+'10;border-radius:20px;border:1px solid '+intentCol+'25">'+esc(pos.strategyLabel)+'</span>':'')
+      +(liveP?'<span style="font-family:var(--sans);font-size:.7rem;color:var(--mut)">$'+f2(liveP)+'</span>':'')
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="pos-pnl '+(isGreen?'green':'red')+'">'+fm(pnl)+(pnlPct?' <span style="font-size:.7rem;font-weight:400">('+f2(Math.abs(pnlPct))+'%)</span>':'')+'</div>'
+      +(hasSc?'<button onclick="openScenario(\''+key+'\')" style="background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:.64rem;font-family:var(--sans);font-weight:700;color:var(--blu);cursor:pointer;white-space:nowrap" onmouseover="this.style.background=\'var(--b1)\'" onmouseout="this.style.background=\'var(--s2)\'">📊 Scenarios</button>':'')
+      +'</div></div>';
+
+    html += '<div class="pos-card-body" style="padding:12px 18px">';
+    if(pos.steps && pos.steps.length){
+      html += '<div style="display:flex;flex-direction:column;gap:5px">';
+      pos.steps.forEach(function(st){
+        html += '<div style="display:flex;align-items:center;gap:10px;background:'+(actBg[st.action]||'rgba(0,0,0,.02)')+';border-radius:7px;padding:7px 11px">'
+          +'<span class="action-tag '+(actMap[st.action]||'at-hold')+'" style="flex-shrink:0;font-size:.64rem">'+esc(st.action)+'</span>'
+          +'<span style="color:var(--txt);flex:1;font-size:.82rem;font-weight:700">'+esc(st.details||st.description)+'</span>'
+          +((urgMap[st.urgency]||'')?'<span style="flex-shrink:0;font-size:.76rem">'+(urgMap[st.urgency]||'')+'</span>':'')
+          +'</div>';
+      });
+      html += '</div>';
+    }
+
+    // Inline P&L model
+    if(hasSc){
+      var fmM=function(n){n=+n;return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">';
+      [['below','📉 Below','var(--red)'],['at','⚖️ At Strike','var(--yel)'],['above','📈 Above','var(--acc)']].forEach(function(s){
+        var d=sc[s[0]]||{}, hasPnl=d.pnl!=null, win=hasPnl&&d.pnl>=0;
+        html+='<div style="background:var(--s2);border-radius:8px;padding:8px 10px;text-align:center">'
+          +'<div style="font-size:.65rem;color:var(--mut);font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+(d.label||s[1])+'</div>'
+          +(hasPnl?'<div style="font-size:.88rem;font-weight:900;color:'+(win?'var(--acc)':'var(--red)')+';font-family:var(--sans)">'+fmM(d.pnl)+'</div>':'<div style="color:var(--mut);font-size:.8rem">—</div>')
+          +(d.note?'<div style="font-size:.6rem;color:var(--mut);margin-top:2px;line-height:1.3">'+esc(d.note)+'</div>':'')
+          +'</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+
+  html += '<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+  var el = document.getElementById('results');
+  el.innerHTML = html;
+  el.className = 'results show';
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Select all on focus — fixes iPhone input editing
+
+function updateApiStatus(){
+  var btn=document.getElementById('api-status-btn');
+  if(!btn)return;
+  var hasKey=getApiKey().length>0;
+  btn.textContent=hasKey?'✓ API Key':'⚙ API Key';
+  btn.style.color=hasKey?'#22c55e':'#94a3b8';
+  btn.style.borderColor=hasKey?'#166534':'#334155';
+}
+
+function showApiKeyModal(){
+  var modal=document.getElementById('api-modal');
+  if(modal){ modal.style.display='flex'; var inp=document.getElementById('api-key-input'); if(inp)inp.value=getApiKey(); }
+}
+function closeApiModal(){
+  var modal=document.getElementById('api-modal');
+  if(modal) modal.style.display='none';
+}
+function saveApiKey(){
+  var inp=document.getElementById('api-key-input');
+  if(!inp||!inp.value.trim()){alert('Please enter your API key');return;}
+  setApiKey(inp.value.trim());
+  closeApiModal();
+  updateApiStatus();
+}
+
+
+// Auto-show API key modal if no key set
+
 /* ── INIT ── */
 go1();go2();go3();
 renderDayInputs();
@@ -2436,6 +4162,7 @@ fetchAll();setInterval(fetchAll,60000);
 setTimeout(function(){go4();},800);
 if($('b-dte-note'))$('b-dte-note').textContent=BT_DTE_NOTES[0];
 proInit();
+if(typeof updateApiStatus==="function")updateApiStatus();
 </script>
 </body>
 </html>
