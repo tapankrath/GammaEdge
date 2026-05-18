@@ -39,6 +39,12 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .tab{background:transparent;color:#6b7280;padding:10px 4px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:center}
 .tab.on{background:var(--text);color:#fff}
 .pane{display:none}.pane.on{display:block}
+/* MKT STATUS PILL */
+.mkt-pill{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:.05em;transition:all .5s;white-space:nowrap}
+.mkt-pill.bull{background:#f0fdf4;color:#15803d;border:1.5px solid #86efac}
+.mkt-pill.bear{background:#fef2f2;color:#b91c1c;border:1.5px solid #fca5a5}
+.mkt-pill.flat{background:#fffbeb;color:#b45309;border:1.5px solid #fcd34d}
+.mkt-pill.wait{background:#f8fafc;color:#94a3b8;border:1.5px solid #e2e8f0}
 
 /* PRICE BAR */
 .price-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
@@ -237,9 +243,15 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <body>
 <div class="app">
 
-<div style="padding:14px 4px 8px;display:flex;align-items:baseline;gap:8px">
-  <span style="font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;font-family:'Inter',-apple-system,sans-serif">GammaEdge</span>
-  <span style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase">Options Intelligence</span>
+<div style="padding:14px 4px 8px;display:flex;align-items:center;gap:8px;justify-content:space-between">
+  <div style="display:flex;align-items:baseline;gap:8px">
+    <span style="font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;font-family:'Inter',-apple-system,sans-serif">GammaEdge</span>
+    <span style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase">Options Intelligence</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+    <span style="font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase">MKT NOW</span>
+    <span class="mkt-pill wait" id="mktPill">—</span>
+  </div>
 </div>
 
 <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -465,15 +477,36 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 <!-- TAB 4: SIGNAL -->
 <div class="pane on" id="pane4">
-  <div class="card">
-    <div class="card-title">Market Signal</div>
-    <div class="tickers" style="grid-template-columns:1fr 1fr">
-      <button class="tk spy" id="t4-spy" onclick="setT4('spy')">SPY</button>
-      <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')">QQQ</button>
+
+  <!-- DUAL SIGNAL CARDS: SPY + QQQ side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div id="ds-spy" style="border-radius:12px;padding:12px;border:2px solid #e2e8f0;background:#f8fafc">
+      <div style="font-size:9px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">SPY</div>
+      <div style="font-size:9px;color:#94a3b8;margin-bottom:4px" id="ds-spy-ts">—</div>
+      <div style="font-size:20px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px" id="ds-spy-action">—</div>
+      <div style="font-size:10px;font-weight:700;margin-bottom:6px" id="ds-spy-sub">Loading…</div>
+      <div style="font-size:9px;font-weight:700" id="ds-spy-detail"></div>
     </div>
-    <div class="grid2">
-      <div class="field fg full"><label class="flbl">Capital $</label><input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()"/></div>
-      <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()"/></div>
+    <div id="ds-qqq" style="border-radius:12px;padding:12px;border:2px solid #e2e8f0;background:#f8fafc">
+      <div style="font-size:9px;font-weight:800;color:#b45309;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">QQQ</div>
+      <div style="font-size:9px;color:#94a3b8;margin-bottom:4px" id="ds-qqq-ts">—</div>
+      <div style="font-size:20px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px" id="ds-qqq-action">—</div>
+      <div style="font-size:10px;font-weight:700;margin-bottom:6px" id="ds-qqq-sub">Loading…</div>
+      <div style="font-size:9px;font-weight:700" id="ds-qqq-detail"></div>
+    </div>
+  </div>
+
+  <!-- Condensed controls row -->
+  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:6px 14px;font-size:12px;border-radius:7px">SPY</button>
+    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:6px 14px;font-size:12px;border-radius:7px">QQQ</button>
+    <div style="display:flex;align-items:center;gap:4px;margin-left:4px">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">Capital $</label>
+      <input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()" style="width:72px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--green)"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">Stop %</label>
+      <input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:52px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--orange)"/>
     </div>
   </div>
 
@@ -487,7 +520,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div id="g-signal" style="display:none">
     <!-- Main signal -->
     <div id="g-main-card" style="border-radius:14px;padding:16px;margin-bottom:10px;border:3px solid">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px" id="g-sig-lbl">Signal</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;margin-bottom:4px" id="g-sig-lbl">Signal</div>
+      <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:6px" id="g-sig-ts"></div>
       <div style="font-size:34px;font-weight:800;margin-bottom:4px;line-height:1" id="g-sig-action">-</div>
       <div style="font-size:13px;font-weight:600;margin-bottom:14px" id="g-sig-sub">-</div>
       <!-- Setup recommendation -->
@@ -791,11 +825,30 @@ function fetchP(sym){
       var el=$('pc-'+k),s=ch>=0?'+':'';
       el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
       el.style.color=ch>=0?'var(--green)':'var(--red)';
+      if(!G_LOADED[T4])updateMktNow();
       if(T1===k)$('c1').value=p.toFixed(2);
       if(T2===k)$('r1').value=p.toFixed(2);
       if(T3===k)$('s1').value=p.toFixed(2);
       go1();go2();go3();
     }).catch(function(){});
+}
+function fmtTs(){var n=new Date(),d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],h=n.getHours(),mi=n.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return d[n.getDay()]+' '+m[n.getMonth()]+' '+n.getDate()+' '+h+':'+(mi<10?'0':'')+mi+' '+ap;}
+function updateMktNow(bull,bear){
+  var el=$('mktPill');if(!el)return;
+  var cls,txt;
+  if(bull!==undefined&&bear!==undefined){
+    var diff=bull-bear;
+    if(diff>=3){cls='bull';txt='🟢 BULLISH';}
+    else if(diff<=-3){cls='bear';txt='🔴 BEARISH';}
+    else{cls='flat';txt='🟡 FLAT';}
+  } else {
+    var avg=((LIVE_CHG['spy']||0)+(LIVE_CHG['qqq']||0))/2;
+    if(avg>0.3){cls='bull';txt='🟢 BULLISH';}
+    else if(avg<-0.3){cls='bear';txt='🔴 BEARISH';}
+    else{cls='flat';txt='🟡 FLAT';}
+  }
+  el.className='mkt-pill '+cls;
+  el.textContent=txt;
 }
 function fetchAll(){fetchP('SPY');fetchP('QQQ');}
 
@@ -1149,6 +1202,65 @@ function go3(){
 /* ── TAB 4: SIGNAL ── */
 var T4='qqq',G_LOADED={};
 
+/* Runs same math as processSignal but returns a result object instead of writing DOM.
+   Keeps processSignal 100% untouched. */
+function quickSignal(sym){
+  var tk=sym.toLowerCase();
+  var spot=LIVE[tk]>0?LIVE[tk]:DEFS[tk].spot;
+  var iv3=DEFS[tk].iv/100;
+  var cache=G4_CACHE[sym];
+  var closes,n;
+  if(cache&&cache.length>=20){
+    closes=cache.map(function(v){return v.c;});n=closes.length;
+  } else {
+    // synthetic from live price
+    var arr=[],p=spot;
+    for(var i=29;i>=0;i--){var prev=p*(1+(Math.random()-.5)*iv3*Math.sqrt(1/252));arr.unshift({c:p});p=prev;}
+    arr[arr.length-1]={c:spot};closes=arr.map(function(v){return v.c;});n=closes.length;
+  }
+  var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
+  var aboveMA=spot>ma20;
+  var gains=0,losses=0;
+  for(var j=n-14;j<n;j++){var diff=closes[j]-closes[j-1];if(diff>0)gains+=diff;else losses+=Math.abs(diff);}
+  var rs=(gains/14)/((losses/14)||0.001),rsi=100-100/(1+rs);
+  var mom3=(closes[n-1]-closes[n-4])/closes[n-4]*100;
+  var bull=0,bear=0;
+  if(aboveMA)bull+=2;else bear+=2;
+  if(rsi>65)bear+=2;else if(rsi>55)bull+=1;else if(rsi<35)bull+=2;else if(rsi<45)bear+=1;
+  if(mom3>1.5)bull+=2;else if(mom3>0.5)bull+=1;else if(mom3<-1.5)bear+=2;else if(mom3<-.5)bear+=1;
+  var action,color,bgColor,borderColor;
+  if(bull>=5&&bull>bear*1.5){action='BUY CALL';color='#14532d';bgColor='#f0fdf4';borderColor='#16a34a';}
+  else if(bear>=5&&bear>bull*1.5){action='BUY PUT';color='#7f1d1d';bgColor='#fef2f2';borderColor='#dc2626';}
+  else if(bull>bear){action='LEAN CALL';color='#166534';bgColor='#f0fdf4';borderColor='#86efac';}
+  else if(bear>bull){action='LEAN PUT';color='#991b1b';bgColor='#fef2f2';borderColor='#fca5a5';}
+  else{action='NO TRADE';color='#1e293b';bgColor='#f8fafc';borderColor='#e2e8f0';}
+  var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
+  var sub=action.indexOf('CALL')>-1?'↑ Bullish':action.indexOf('PUT')>-1?'↓ Bearish':'─ Wait';
+  var detail='RSI '+rsi.toFixed(0)+' · '+(aboveMA?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
+  return{action:action,color:color,bgColor:bgColor,borderColor:borderColor,conf:conf,sub:sub,detail:detail,bull:bull,bear:bear};
+}
+
+function renderDualCards(){
+  ['spy','qqq'].forEach(function(tk){
+    var sym=tk.toUpperCase();
+    var r=quickSignal(sym);
+    var card=$('ds-'+tk);
+    if(!card)return;
+    card.style.background=r.bgColor;
+    card.style.borderColor=r.borderColor;
+    $('ds-'+tk+'-action').textContent=r.action;
+    $('ds-'+tk+'-action').style.color=r.color;
+    $('ds-'+tk+'-sub').textContent=r.sub+' · '+r.conf;
+    $('ds-'+tk+'-sub').style.color=r.color;
+    $('ds-'+tk+'-detail').textContent=r.detail;
+    $('ds-'+tk+'-detail').style.color=r.color;
+    $('ds-'+tk+'-ts').textContent='as of '+fmtTs();
+  });
+  // Also update mkt pill from QQQ (primary signal)
+  var q=quickSignal('QQQ');
+  updateMktNow(q.bull,q.bear);
+}
+
 function setT4(t){
   T4=t;
   ['spy','qqq'].forEach(function(x){$('t4-'+x).className='tk '+x+(t===x?' on':'');});
@@ -1160,6 +1272,7 @@ var G4_CACHE={};  // cache fetched data per ticker
 function go4(){
   var capital=fv('g1'),target=0,stopPct=fv('g3');
   var sym=T4.toUpperCase();
+  renderDualCards(); // always refresh both cards
 
   // Always show signal immediately using live price + estimated indicators
   // Background fetch refines RSI/MA/Volume when available
@@ -1235,6 +1348,7 @@ function go4(){
       .then(function(data){
         var valid=parseYahoo(data);
         G4_CACHE[sym]=valid;  // cache it
+        renderDualCards();    // refresh both summary cards with real data
         // Update signal with real data
         $('g-loading').style.display='none';
         $('g-signal').style.display='block';
@@ -1551,6 +1665,8 @@ function processSignal(valid,capital,target,stopPct,sym){
   $('g-loading').style.display='none';
   $('g-signal').style.display='block';
   G_LOADED[T4]=true;
+  updateMktNow(bullPoints,bearPoints);
+  var tsEl=$('g-sig-ts');if(tsEl)tsEl.textContent='as of '+fmtTs();
   // IV meter
   renderIVMeter(iv3,atrPct,spot);
 }
