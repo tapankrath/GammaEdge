@@ -60,21 +60,21 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
 
 /* CARD */
-.card{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.card-title{font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.18em;margin-bottom:10px;font-weight:800}
+.card{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:800}
 
 /* TICKER PILLS */
-.tickers{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.tickers{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
 .tk{background:var(--p2);border:2px solid var(--border);color:#334155;padding:10px 4px;border-radius:8px;font-size:13px;font-weight:700;text-align:center}
 .tk.spy.on{background:var(--pbg);color:var(--purple);border-color:var(--purple)}
 .tk.qqq.on{background:var(--abg);color:var(--amber);border-color:var(--amber)}
 
 /* INPUTS */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.field{display:flex;flex-direction:column;gap:3px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.field{display:flex;flex-direction:column;gap:2px}
 .field.full{grid-column:1/-1}
-.flbl{font-size:11px;color:#374151;font-weight:700;padding-left:2px}
-.field input{background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:18px;font-weight:700;padding:9px 12px;border-radius:8px;width:100%}
+.flbl{font-size:10px;color:#374151;font-weight:700;padding-left:2px}
+.field input{background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:17px;font-weight:700;padding:7px 10px;border-radius:8px;width:100%}
 .field input:focus{border-color:var(--text)}
 .fa input{color:var(--amber)}
 .fb input{color:var(--blue)}
@@ -86,7 +86,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .info b{color:var(--text)}
 
 /* SUMMARY BAR */
-.sumbar{background:var(--abg);border:1px solid var(--abd);border-radius:9px;padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.sumbar{background:var(--abg);border:1px solid var(--abd);border-radius:9px;padding:8px 12px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .si{display:flex;flex-direction:column;gap:2px}
 .si-lbl{font-size:9px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
 .si-val{font-size:14px;font-weight:700;color:var(--text)}
@@ -165,9 +165,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .stopalert b{font-size:13px;display:block;margin-bottom:2px}
 
 /* SPIKE TAB */
-.dir-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
-.dbtn{border:2px solid var(--border);border-radius:9px;padding:12px 4px;text-align:center;background:var(--p2);cursor:pointer}
-.dbtn .dico{font-size:20px;margin-bottom:3px}
+.dir-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px}
+.dbtn{border:2px solid var(--border);border-radius:9px;padding:8px 4px;text-align:center;background:var(--p2);cursor:pointer}
+.dbtn .dico{font-size:18px;margin-bottom:2px}
 .dbtn .dname{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#334155}
 .dbtn .dsub{font-size:9px;color:#334155;margin-top:2px}
 .dbtn.up.on{background:var(--gbg);border-color:var(--green)}.dbtn.up.on .dname{color:var(--green)}
@@ -284,14 +284,16 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="tk spy" id="t1-spy" onclick="setT1('spy')">SPY</button>
       <button class="tk qqq on" id="t1-qqq" onclick="setT1('qqq')">QQQ</button>
     </div>
-    <div class="grid2">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
       <div class="field fa"><label class="flbl">Price $</label><input type="number" id="c1" value="706" step="1" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fa"><label class="flbl">Straddle Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fa"><label class="flbl">Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
       <div class="field"><label class="flbl">IV %</label><input type="number" id="c3" value="21" step="1" inputmode="decimal" oninput="go1()"/></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
       <div class="field"><label class="flbl">DTE</label><input type="number" id="c4" value="10" step="1" min="1" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fg"><label class="flbl">Cap $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fg"><label class="flbl">Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fo"><label class="flbl">Stop %</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
     </div>
     <div class="info" id="c-info"></div>
   </div>
@@ -351,26 +353,30 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
     <!-- SIZE IT inputs -->
     <div id="st-size-inputs">
-      <div class="grid2">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
         <div class="field fa"><label class="flbl">Price $</label><input type="number" id="r1" value="706" step="1" inputmode="decimal" oninput="go2()"/></div>
         <div class="field"><label class="flbl">IV %</label><input type="number" id="r2" value="21" step="1" inputmode="decimal" oninput="go2()"/></div>
-        <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="r4" value="500" step="50" inputmode="decimal" oninput="go2()"/></div>
-        <div class="field fo"><label class="flbl">Max Loss % of premium</label><input type="number" id="r6" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go2()"/></div>
-        <div class="field fa"><label class="flbl">Move % (low)</label><input type="number" id="r7" value="0.5" step="0.25" inputmode="decimal" oninput="go2()"/></div>
-        <div class="field fa"><label class="flbl">Move % (high)</label><input type="number" id="r8" value="3.0" step="0.25" inputmode="decimal" oninput="go2()"/></div>
+        <div class="field fg"><label class="flbl">Target $</label><input type="number" id="r4" value="500" step="50" inputmode="decimal" oninput="go2()"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div class="field fo"><label class="flbl">Stop % prem</label><input type="number" id="r6" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go2()"/></div>
+        <div class="field fa"><label class="flbl">Move % lo</label><input type="number" id="r7" value="0.5" step="0.25" inputmode="decimal" oninput="go2()"/></div>
+        <div class="field fa"><label class="flbl">Move % hi</label><input type="number" id="r8" value="3.0" step="0.25" inputmode="decimal" oninput="go2()"/></div>
       </div>
     </div>
 
     <!-- TRACK IT inputs -->
     <div id="st-track-inputs" style="display:none">
-      <div class="grid2">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
         <div class="field fa"><label class="flbl">Price $</label><input type="number" id="c1" value="706" step="1" inputmode="decimal" oninput="go1()"/></div>
-        <div class="field fa"><label class="flbl">Straddle Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
+        <div class="field fa"><label class="flbl">Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
         <div class="field"><label class="flbl">IV %</label><input type="number" id="c3" value="21" step="1" inputmode="decimal" oninput="go1()"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
         <div class="field"><label class="flbl">DTE</label><input type="number" id="c4" value="10" step="1" min="1" inputmode="decimal" oninput="go1()"/></div>
-        <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
-        <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
-        <div class="field fo"><label class="flbl">Stop Loss % of premium</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
+        <div class="field fg"><label class="flbl">Cap $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
+        <div class="field fg"><label class="flbl">Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
+        <div class="field fo"><label class="flbl">Stop %</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
       </div>
     </div>
   </div>
@@ -437,22 +443,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <!-- TAB 3: SPIKE/CRASH -->
 <div class="pane" id="pane3">
   <div class="card">
-    <div class="card-title">Ticker</div>
-    <div class="tickers">
-      <button class="tk spy" id="t3-spy" onclick="setT3('spy')">SPY</button>
-      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')">QQQ</button>
+    <!-- Ticker + direction on one compact row -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:nowrap">
+      <button class="tk spy" id="t3-spy" onclick="setT3('spy')" style="padding:5px 12px;font-size:12px;flex-shrink:0">SPY</button>
+      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="padding:5px 12px;font-size:12px;flex-shrink:0">QQQ</button>
+      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">🚀</div><div class="dname" style="font-size:9px">Spike</div></div>
+      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">💥</div><div class="dname" style="font-size:9px">Crash</div></div>
+      <div class="dbtn both" id="sd-both" onclick="setSdir('both')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">⚡</div><div class="dname" style="font-size:9px">Either</div></div>
     </div>
-    <div class="dir-btns">
-      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')"><div class="dico">🚀</div><div class="dname">Spike Up</div><div class="dsub">OTM Call</div></div>
-      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')"><div class="dico">💥</div><div class="dname">Crash</div><div class="dsub">OTM Put</div></div>
-      <div class="dbtn both" id="sd-both" onclick="setSdir('both')"><div class="dico">⚡</div><div class="dname">Either</div><div class="dsub">Strangle</div></div>
-    </div>
-    <div style="font-size:9px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Strike Distance (OTM %)</div>
-    <div class="otm-row">
-      <button class="otmbtn" onclick="setOtm(this,1)">+1%</button>
-      <button class="otmbtn on" onclick="setOtm(this,2)">+2%</button>
-      <button class="otmbtn" onclick="setOtm(this,3)">+3%</button>
-      <button class="otmbtn" onclick="setOtm(this,5)">+5%</button>
+    <!-- OTM strip + inputs -->
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+      <span style="font-size:9px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;flex-shrink:0">OTM %</span>
+      <button class="otmbtn" onclick="setOtm(this,1)" style="flex:1;padding:5px 2px">+1%</button>
+      <button class="otmbtn on" onclick="setOtm(this,2)" style="flex:1;padding:5px 2px">+2%</button>
+      <button class="otmbtn" onclick="setOtm(this,3)" style="flex:1;padding:5px 2px">+3%</button>
+      <button class="otmbtn" onclick="setOtm(this,5)" style="flex:1;padding:5px 2px">+5%</button>
     </div>
     <div class="grid2">
       <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="706" step="1" inputmode="decimal" oninput="go3()"/></div>
@@ -496,17 +501,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <!-- Condensed controls row -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:6px 14px;font-size:12px;border-radius:7px">SPY</button>
-    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:6px 14px;font-size:12px;border-radius:7px">QQQ</button>
-    <div style="display:flex;align-items:center;gap:4px;margin-left:4px">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">Capital $</label>
-      <input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()" style="width:72px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--green)"/>
+  <!-- Condensed controls row — single line -->
+  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:4px 10px;font-size:11px;border-radius:6px;flex-shrink:0">SPY</button>
+    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:4px 10px;font-size:11px;border-radius:6px;flex-shrink:0">QQQ</button>
+    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Capital $</label>
+      <input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()" style="width:60px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
     </div>
-    <div style="display:flex;align-items:center;gap:4px">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">Stop %</label>
-      <input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:52px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--orange)"/>
+    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop Loss %</label>
+      <input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--orange)"/>
     </div>
   </div>
 
