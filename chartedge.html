@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ChartEdge — Options Strategy Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f1f5f9;--p1:#ffffff;--p2:#f8fafc;
+  --s1:#ffffff;--s2:#f8fafc;
+  --b1:#e2e8f0;--b2:#cbd5e1;--border:#e2e8f0;
+  --text:#0a0f1e;--txt:#0a0f1e;--dim:#374151;--mut:#374151;
+  --green:#166534;--gbg:#f0fdf4;--gbd:#86efac;
+  --acc:#166534;--acc2:#15803d;
+  --red:#9b1c1c;--rbg:#fef2f2;--rbd:#fca5a5;
+  --amber:#92400e;--abg:#fffbeb;--abd:#fcd34d;
+  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;--bbg:#eff6ff;
+  --mono:'Inter',-apple-system,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+
+/* NAV */
+nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+/* LAYOUT */
+.wrap{max-width:680px;margin:0 auto;padding:16px}
+.page-header{margin-bottom:28px}
+.page-header h1{font-size:1.8rem;font-weight:900;letter-spacing:-.04em;color:var(--txt);margin-bottom:6px;font-family:var(--sans)}
+.page-header p{color:#374151;font-size:.9rem;line-height:1.65;max-width:560px;font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,150,58,.08);border:1px solid rgba(0,150,58,.2);color:var(--acc);font-family:var(--sans);font-size:.68rem;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed #cbd5e1;border-radius:16px;padding:32px 24px;text-align:center;cursor:pointer;transition:all .25s;position:relative;background:linear-gradient(145deg,#ffffff,#f8fafc);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--acc);background:linear-gradient(145deg,#f0fdf4,#f8fff9);box-shadow:0 4px 18px rgba(22,101,52,.1);transform:translateY(-1px)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:10}
+.drop-zone .drop-icon,.drop-zone .drop-label,.drop-zone .drop-sub,.drop-zone .drop-hint{pointer-events:none;position:relative;z-index:1}
+.drop-icon{font-size:2.2rem;margin-bottom:10px;display:block}
+.drop-label{font-size:.9rem;color:var(--txt);font-weight:800;margin-bottom:4px}
+.drop-sub{font-size:.76rem;color:#64748b;font-weight:500;margin-bottom:8px}
+.drop-hint{display:inline-flex;align-items:center;gap:5px;background:rgba(22,101,52,.07);border:1px solid rgba(22,101,52,.15);color:var(--acc);font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+.preview-wrap{position:relative}
+.preview-wrap img{width:100%;border-radius:10px;border:1px solid var(--b1);display:block;max-height:240px;object-fit:contain;background:var(--s2)}
+.preview-clear{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:1px solid var(--b2);border-radius:50%;width:26px;height:26px;color:var(--mut);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.preview-clear:hover{color:var(--red);border-color:var(--red)}
+
+/* MANUAL INPUT */
+.manual-section{background:var(--p1);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.manual-title{font-size:10px;font-family:var(--sans);font-weight:800;letter-spacing:.15em;color:#374151;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.manual-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.field-group{display:flex;flex-direction:column;gap:4px}
+.field-label{font-size:.68rem;color:#374151;font-family:var(--sans);font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.field-input{background:var(--p2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font-family:var(--sans);font-size:13px;font-weight:700;width:100%;transition:border-color .15s}
+.field-input:focus{outline:none;border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(22,101,52,.1)}
+.field-input::placeholder{color:var(--mut);font-weight:400}
+@media(max-width:520px){.nav-tagline{display:none!important}
+  .manual-grid{grid-template-columns:1fr 1fr}
+  .wrap{padding:10px}
+  .drop-zone{padding:20px 16px}
+  .drop-icon{font-size:1.6rem;margin-bottom:6px}
+  .drop-label{font-size:.82rem}
+  .page-header h1{font-size:1.4rem}
+  .page-header{margin-bottom:16px}
+  .strat-body{padding:12px}
+  .strat-head{padding:10px 12px}
+  .summary-cards{grid-template-columns:repeat(2,1fr)}
+  nav .nav-tagline{display:none}
+}
+
+/* OUTLOOK TILES */
+.outlook-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:600px){.outlook-grid{grid-template-columns:repeat(2,1fr)}}
+.outlook-tile{background:#fff;border:2px solid #dde2ee;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--sans)}
+.outlook-tile:hover{border-color:var(--acc);background:rgba(22,101,52,.04)}
+
+/* ANALYZE BTN */
+.analyze-btn{width:100%;padding:14px;background:#0f172a;border:none;border-radius:10px;color:#fff;font-weight:800;letter-spacing:.06em;font-family:var(--sans);font-size:.95rem;cursor:pointer;letter-spacing:.02em;transition:all .2s;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,150,58,.2)}
+.analyze-btn:hover{background:#1e293b;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,0,0,.2)}
+.analyze-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.analyze-btn.loading{background:var(--s2);color:var(--mut);border:1px solid var(--b1);box-shadow:none}
+
+/* STATUS */
+.status-bar{background:var(--p2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-weight:600;margin-bottom:18px;font-family:var(--sans);font-size:.74rem;color:var(--mut);display:none;align-items:center;gap:10px}
+.status-bar.show{display:flex}
+.spinner{width:13px;height:13px;border:2px solid var(--b2);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESULTS */
+.results{display:none}
+.results.show{display:block}
+
+/* STRATEGY CARD */
+.strat-card{background:var(--p1);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-bottom:10px;overflow:hidden}
+.strat-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--b1);background:var(--s2)}
+.strat-body{padding:12px 14px}
+
+/* ACTION TAGS */
+.action-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.63rem;font-weight:700;letter-spacing:.04em}
+.at-call{background:rgba(0,150,58,.12);color:var(--acc)}
+.at-put{background:rgba(214,48,80,.1);color:var(--red)}
+.at-straddle{background:rgba(0,112,204,.1);color:var(--blu)}
+.at-strangle{background:rgba(92,70,166,.1);color:#5c46a6}
+.at-spread{background:rgba(184,134,11,.1);color:var(--yel)}
+.at-hedge{background:rgba(234,88,12,.1);color:#c2410c}
+
+.strategy-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:.72rem;font-weight:700;letter-spacing:.06em;padding:3px 12px;border-radius:20px;margin-bottom:12px}
+.sb-bullish{background:rgba(0,150,58,.1);color:var(--acc);border:1px solid rgba(0,150,58,.2)}
+.sb-bearish{background:rgba(214,48,80,.08);color:var(--red);border:1px solid rgba(214,48,80,.15)}
+.sb-neutral{background:rgba(184,134,11,.08);color:var(--yel);border:1px solid rgba(184,134,11,.15)}
+.sb-volatile{background:rgba(0,112,204,.08);color:var(--blu);border:1px solid rgba(0,112,204,.15)}
+
+.reasoning-box{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--acc);border-radius:0 7px 7px 0;padding:7px 11px;font-size:.76rem;line-height:1.5;color:#3a4560;margin-bottom:8px}
+
+/* P&L chart CSS removed */
+
+/* SUMMARY CARDS */
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:600px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
+.sum-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sum-card-label{font-size:.56rem;color:var(--mut);font-family:var(--sans);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.sum-card-val{font-size:.95rem;font-weight:800;font-family:var(--sans);color:var(--txt)}
+
+.error-box{background:rgba(214,48,80,.05);border:1px solid rgba(214,48,80,.2);border-radius:8px;padding:14px 16px;color:var(--red);font-family:var(--sans);font-size:.84rem;margin-bottom:16px;line-height:1.7;display:none}
+.error-box code{background:rgba(0,0,0,.06);padding:2px 7px;border-radius:4px;font-size:.75rem}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px}
+
+/* STEP LABEL */
+.step-label{font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px}
+.step-num{background:var(--acc);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:900}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">ChartEdge</span>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#1e293b;border:1.5px solid #475569;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;color:#e2e8f0;cursor:pointer;font-family:var(--sans);letter-spacing:.02em">⚙ API Key</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <span class="nav-tagline" style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.1em;text-transform:uppercase">Options Strategy Engine</span>
+    <a href="index.html" style="color:#94a3b8;text-decoration:none;font-size:10px;font-family:var(--sans);font-weight:700;display:flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid #334155;border-radius:6px;transition:all .15s;white-space:nowrap" onmouseover="this.style.color='#fff';this.style.borderColor='#475569';this.style.background='#1e293b'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='#334155';this.style.background='transparent'">← GammaEdge</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="badge">📈 Chart Analysis</div>
+    <h1>Read the chart. Get the play.</h1>
+    <p>Upload a stock or options chart · AI reads price action, trend, volatility · get a specific options strategy with DTE, strikes, and P&L scenarios.</p>
+  </div>
+
+  <!-- Collapsed bar after plan built -->
+  <div id="inputCollapsed" style="display:none;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-family:var(--sans);font-size:.76rem;align-items:center;gap:8px;color:var(--txt)"></div>
+
+  <div id="uploadWrap">
+    <!-- STEP 1: CHART UPLOAD -->
+    <div class="step-label"><span class="step-num">1</span>Upload a chart screenshot</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
+      <div style="flex:1">
+        <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+          <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
+          <span class="drop-icon">📊</span>
+          <div class="drop-label">Upload your chart screenshot</div>
+          <div class="drop-sub">Any timeframe · Any stock or ETF · Any broker</div>
+          <div class="drop-hint">✦ AI reads price action, trend & support/resistance</div>
+        </div>
+      </div>
+      <div id="previewCol" style="display:none;width:160px;flex-shrink:0">
+        <div class="preview-wrap"><img id="previewImg" src="" alt="preview"><button class="preview-clear" onclick="clearImage()">✕</button></div>
+        <div style="font-size:.68rem;color:var(--acc);font-family:var(--sans);margin-top:5px;text-align:center">✓ Chart loaded</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: OPTIONAL MANUAL CONTEXT -->
+    <div class="manual-section">
+      <div class="manual-title"><span>📋</span><span>Add context</span><span style="color:var(--b2);font-weight:400"> — optional, but improves accuracy</span></div>
+      <div class="manual-grid">
+        <div class="field-group">
+          <div class="field-label">Ticker</div>
+          <input class="field-input" id="inp-ticker" type="text" placeholder="e.g. SPY" style="text-transform:uppercase">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Current Price ($)</div>
+          <input class="field-input" id="inp-price" type="number" placeholder="e.g. 570.00" step="0.01">
+        </div>
+        <div class="field-group">
+          <div class="field-label">IV Rank (0–100)</div>
+          <input class="field-input" id="inp-ivr" type="number" placeholder="e.g. 42" min="0" max="100">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Account Size ($)</div>
+          <input class="field-input" id="inp-account" type="number" placeholder="e.g. 25000" step="100">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Max Risk ($)</div>
+          <input class="field-input" id="inp-risk" type="number" placeholder="e.g. 500" step="50">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Timeframe Shown</div>
+          <select class="field-input" id="inp-tf">
+            <option value="">Auto-detect</option>
+            <option value="5m">5-min intraday</option>
+            <option value="15m">15-min intraday</option>
+            <option value="1h">1-hour</option>
+            <option value="4h">4-hour</option>
+            <option value="1d">Daily</option>
+            <option value="1w">Weekly</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: OUTLOOK (optional bias) -->
+    <div id="outlookWrap" style="margin-bottom:16px">
+      <div class="step-label"><span class="step-num">2</span>Your bias <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--mut)"> — or let AI decide</span></div>
+      <div class="outlook-grid">
+        <button type="button" onclick="setOutlook('bullish',this)" id="out-bullish" class="outlook-tile">
+          <div style="font-size:1.4rem;margin-bottom:5px">🐂</div>
+          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Bullish</div>
+          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting upside</div>
+        </button>
+        <button type="button" onclick="setOutlook('bearish',this)" id="out-bearish" class="outlook-tile">
+          <div style="font-size:1.4rem;margin-bottom:5px">🐻</div>
+          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Bearish</div>
+          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting downside</div>
+        </button>
+        <button type="button" onclick="setOutlook('neutral',this)" id="out-neutral" class="outlook-tile">
+          <div style="font-size:1.4rem;margin-bottom:5px">⚖️</div>
+          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Neutral</div>
+          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Range-bound, collect</div>
+        </button>
+        <button type="button" onclick="setOutlook('volatile',this)" id="out-volatile" class="outlook-tile">
+          <div style="font-size:1.4rem;margin-bottom:5px">⚡</div>
+          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Big Move</div>
+          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting a breakout</div>
+        </button>
+      </div>
+      <div id="outlookHint" style="padding:9px 14px;background:var(--s2);border-radius:8px;font-size:.74rem;color:var(--mut);font-family:var(--sans);min-height:36px;transition:all .2s">AI will read the chart and recommend the best-fitting strategy.</div>
+    </div>
+
+    <div id="errorBox" class="error-box"></div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+      <span>🔍</span> <span id="analyzeBtnTxt">Scan Chart & Build Strategy</span>
+    </button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusTxt">Scanning chart…</span>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+</div>
+
+<!-- API Key Modal -->
+<div id="api-modal" onclick="if(event.target===this)closeApiModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:flex-end;justify-content:center">
+  <div class="modal-box">
+    <div style="font-size:16px;font-weight:900;color:#0a0f1e;margin-bottom:6px">API Key Setup</div>
+    <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:16px;line-height:1.6">Get your key at <b>console.anthropic.com</b> → API Keys.<br>Stored locally in your browser only — never sent anywhere except Anthropic.</div>
+    <input id="api-key-input" type="password" placeholder="sk-ant-..." style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px;font-size:13px;font-weight:600;font-family:var(--sans);color:#0a0f1e;box-sizing:border-box;margin-bottom:10px"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="saveApiKey()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:800;cursor:pointer">Save Key</button>
+      <button onclick="closeApiModal()" style="background:#f1f5f9;color:#374151;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:800;cursor:pointer">Cancel</button>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#64748b;text-align:center;font-weight:600">Key saved in your browser localStorage · Never in code</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+var imageB64 = null;
+var imageType = 'image/png';
+var currentOutlook = 'auto';
+var CLAUDE_MODEL = 'claude-sonnet-4-6';
+
+// ── API KEY ──
+function getApiKey(){ return localStorage.getItem('ce_api_key')||''; }
+function setApiKey(k){ localStorage.setItem('ce_api_key',k); }
+function showApiKeyModal(){ var m=document.getElementById('api-modal'); m.style.display='flex'; document.getElementById('api-key-input').value=getApiKey(); }
+function closeApiModal(){ document.getElementById('api-modal').style.display='none'; }
+function saveApiKey(){ var v=document.getElementById('api-key-input').value.trim(); if(!v){alert('Please enter your API key');return;} setApiKey(v); closeApiModal(); updateApiStatus(); }
+function updateApiStatus(){ var b=document.getElementById('api-status-btn'); var h=getApiKey().length>0; b.textContent=h?'✓ API Key':'⚙ API Key'; b.style.color=h?'#22c55e':'#94a3b8'; b.style.borderColor=h?'#166534':'#334155'; }
+
+// ── IMAGE ──
+function onDrag(e,over){ e.preventDefault(); document.getElementById('dropZone').classList.toggle('drag',over); }
+function onDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.remove('drag'); var f=e.dataTransfer.files[0]; if(f)loadFile(f); }
+function onFile(e){ var f=e.target.files[0]; if(f)loadFile(f); }
+function loadFile(f){
+  imageType = f.type||'image/png';
+  var r=new FileReader();
+  r.onload=function(ev){
+    imageB64=ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src=ev.target.result;
+    document.getElementById('previewCol').style.display='block';
+  };
+  r.readAsDataURL(f);
+}
+function clearImage(){
+  imageB64=null;
+  document.getElementById('previewCol').style.display='none';
+  document.getElementById('previewImg').src='';
+  document.getElementById('fileInput').value='';
+}
+
+// ── OUTLOOK ──
+var outlookColors={ bullish:'#166534', bearish:'#9b1c1c', neutral:'#92400e', volatile:'#1e3a8a' };
+var outlookHints={
+  bullish:'Likely strategies: Buy Call, Bull Call Spread, LEAPS. Higher DTE = more room to run.',
+  bearish:'Likely strategies: Buy Put, Bear Put Spread, Protective Put. Define your downside target.',
+  neutral:'Likely strategies: Iron Condor, Short Strangle, Cash-Secured Put. Sell time premium.',
+  volatile:'Likely strategies: Long Straddle, Long Strangle. Buy both sides before the big move.',
+};
+function setOutlook(o,btn){
+  currentOutlook=o;
+  document.querySelectorAll('.outlook-tile').forEach(function(b){ b.style.border='2px solid #dde2ee'; b.style.background='#fff'; });
+  var col=outlookColors[o];
+  if(btn){ btn.style.border='2px solid '+col; btn.style.background=col+'12'; }
+  var hint=document.getElementById('outlookHint');
+  if(hint){ hint.textContent=outlookHints[o]; hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25'; }
+  var btnEl=document.getElementById('analyzeBtn');
+  if(btnEl) btnEl.style.background=col;
+}
+
+// ── STATUS / ERROR ──
+function setStatus(msg){ var b=document.getElementById('statusBar'); b.className='status-bar show'; document.getElementById('statusTxt').textContent=msg; }
+function hideStatus(){ document.getElementById('statusBar').className='status-bar'; }
+function showError(msg){ var e=document.getElementById('errorBox'); e.style.display='block'; e.innerHTML='⚠ '+msg; }
+function hideError(){ document.getElementById('errorBox').style.display='none'; }
+
+// ── MAIN ANALYZE ──
+async function analyze(){
+  hideError();
+  document.getElementById('results').className='results';
+
+  var ticker = document.getElementById('inp-ticker').value.trim().toUpperCase();
+  var price  = document.getElementById('inp-price').value.trim();
+  var ivr    = document.getElementById('inp-ivr').value.trim();
+  var account= document.getElementById('inp-account').value.trim();
+  var risk   = document.getElementById('inp-risk').value.trim();
+  var tf     = document.getElementById('inp-tf').value;
+
+  if(!imageB64 && !ticker){
+    showError('Please upload a chart screenshot or enter a ticker so I have something to analyze.');
+    return;
+  }
+
+  var btn=document.getElementById('analyzeBtn');
+  var txtEl=document.getElementById('analyzeBtnTxt');
+  btn.disabled=true; btn.className='analyze-btn loading';
+  txtEl.textContent='Scanning chart…';
+
+  try {
+    setStatus('Reading chart & identifying patterns…');
+
+    var contextParts = [];
+    if(ticker)  contextParts.push('Ticker: '+ticker);
+    if(price)   contextParts.push('Current price: $'+price);
+    if(ivr)     contextParts.push('IV Rank: '+ivr+'/100');
+    if(account) contextParts.push('Account size: $'+account);
+    if(risk)    contextParts.push('Max risk per trade: $'+risk);
+    if(tf)      contextParts.push('Chart timeframe: '+tf);
+    if(currentOutlook!=='auto') contextParts.push('Trader bias: '+currentOutlook);
+
+    var contextStr = contextParts.length ? '\n\nAdditional context provided:\n'+contextParts.join('\n') : '';
+
+    var systemPrompt = `You are an expert options trader and technical analyst. When given a chart image, you analyze price action, trend, support/resistance, momentum, and volatility to recommend specific options strategies.
+
+You MUST respond with ONLY valid JSON (no markdown, no explanation outside JSON).
+
+Return this exact structure:
+{
+  "ticker": "string or null",
+  "price": number or null,
+  "timeframe": "string",
+  "trend": "bullish|bearish|neutral|volatile",
+  "confidence": "high|medium|low",
+  "chart_reading": {
+    "pattern": "e.g. ascending triangle, head and shoulders, support bounce, etc.",
+    "key_levels": ["support at X", "resistance at Y"],
+    "momentum": "string",
+    "volatility_outlook": "expanding|contracting|stable"
+  },
+  "strategies": [
+    {
+      "rank": 1,
+      "name": "e.g. Long Call",
+      "type": "call|put|straddle|strangle|spread|hedge",
+      "direction": "bullish|bearish|neutral|volatile",
+      "reasoning": "2-3 sentence explanation of why this fits the chart",
+      "structure": {
+        "action": "Buy|Sell",
+        "instrument": "e.g. Call option",
+        "strike_guidance": "e.g. ATM or 5% OTM",
+        "dte_min": 21,
+        "dte_max": 45,
+        "dte_ideal": 30,
+        "contracts": 1,
+        "est_premium": number or null,
+        "max_risk": number or null,
+        "max_reward": "string or number"
+      },
+      "pnl": {
+        "bear_case": { "label": "string", "pnl": number, "note": "string" },
+        "base_case": { "label": "string", "pnl": number, "note": "string" },
+        "bull_case": { "label": "string", "pnl": number, "note": "string" }
+      },
+      "risk_metrics": {
+        "probability_profit": "string e.g. ~45%",
+        "breakeven": "string e.g. $575",
+        "risk_reward": "string e.g. 1:3"
+      }
+    },
+    {
+      "rank": 2,
+      "name": "...",
+      "type": "...",
+      "direction": "...",
+      "reasoning": "...",
+      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":0,"dte_max":0,"dte_ideal":0,"contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
+      "pnl": { "bear_case":{"label":"","pnl":0,"note":""}, "base_case":{"label":"","pnl":0,"note":""}, "bull_case":{"label":"","pnl":0,"note":""} },
+      "risk_metrics": { "probability_profit":"","breakeven":"","risk_reward":"" }
+    },
+    {
+      "rank": 3,
+      "name": "...",
+      "type": "...",
+      "direction": "...",
+      "reasoning": "...",
+      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":0,"dte_max":0,"dte_ideal":0,"contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
+      "pnl": { "bear_case":{"label":"","pnl":0,"note":""}, "base_case":{"label":"","pnl":0,"note":""}, "bull_case":{"label":"","pnl":0,"note":""} },
+      "risk_metrics": { "probability_profit":"","breakeven":"","risk_reward":"" }
+    }
+  ],
+  "top_pick": 1,
+  "overall_note": "One sentence overall note for the trader"
+}`;
+
+    var userContent = [];
+    if(imageB64){
+      userContent.push({ type:'image', source:{ type:'base64', media_type:imageType, data:imageB64 } });
+    }
+    userContent.push({ type:'text', text:'Analyze this chart and recommend options strategies.'+contextStr });
+
+    var body = {
+      model: CLAUDE_MODEL,
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role:'user', content: userContent }]
+    };
+
+    setStatus('Building strategy recommendations…');
+
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(90000)
+    });
+
+    var d = await resp.json();
+    if(d.error){
+      var em = d.error.message||JSON.stringify(d.error);
+      if(d.error.type==='authentication_error'||em.toLowerCase().includes('x-api-key')||resp.status===401){
+        throw new Error('Invalid API key — tap ⚙ API Key and re-enter your key (starts with sk-ant-).');
+      }
+      throw new Error(em);
+    }
+
+    var raw = (d.content||[]).map(function(c){return c.text||'';}).join('');
+    // Strip possible markdown
+    raw = raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+
+    var plan;
+    try { plan = JSON.parse(raw); }
+    catch(e){
+      // Try to extract JSON
+      var m = raw.match(/\{[\s\S]*\}/);
+      if(m) plan = JSON.parse(m[0]);
+      else throw new Error('Could not parse AI response. Please try again.');
+    }
+
+    // Collapse inputs
+    document.getElementById('uploadWrap').style.display='none';
+    var bar=document.getElementById('inputCollapsed');
+    var src = imageB64 ? '📸 chart screenshot' : '📋 manual context';
+    bar.innerHTML = src+' loaded &nbsp;·&nbsp; <a href="#" onclick="resetAll();return false" style="color:var(--blu);text-decoration:none;font-weight:700">Scan another chart</a>';
+    bar.style.display='flex';
+
+    renderResults(plan);
+
+  } catch(e){
+    var msg = e.message||'Something went wrong.';
+    var extra = '';
+    if(msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('sk-ant')){
+      extra = '<br><b>Fix:</b> Tap <b>⚙ API Key</b> in the nav bar and re-paste your key from <a href="https://console.anthropic.com" target="_blank" style="color:#1a5fa8;font-weight:700">console.anthropic.com</a>.';
+    }
+    showError(msg+extra);
+  } finally {
+    btn.disabled=false; btn.className='analyze-btn';
+    var col=outlookColors[currentOutlook]||'#0f172a';
+    btn.style.background=col;
+    txtEl.textContent='Scan Chart & Build Strategy';
+    hideStatus();
+  }
+}
+
+function resetAll(){
+  document.getElementById('uploadWrap').style.display='block';
+  document.getElementById('inputCollapsed').style.display='none';
+  document.getElementById('results').className='results';
+  clearImage();
+  hideError();
+  // reset outlook
+  currentOutlook='auto';
+  document.querySelectorAll('.outlook-tile').forEach(function(b){b.style.border='2px solid #dde2ee';b.style.background='#fff';});
+  document.getElementById('analyzeBtn').style.background='#0f172a';
+  document.getElementById('outlookHint').textContent='AI will read the chart and recommend the best-fitting strategy.';
+  document.getElementById('outlookHint').style='';
+  // clear inputs
+  ['inp-ticker','inp-price','inp-ivr','inp-account','inp-risk'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('inp-tf').value='';
+}
+
+// ── RENDER ──
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fm(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}); }
+
+var typeMap={
+  call:'at-call', put:'at-put', straddle:'at-straddle',
+  strangle:'at-strangle', spread:'at-spread', hedge:'at-hedge'
+};
+var dirMap={
+  bullish:'sb-bullish', bearish:'sb-bearish', neutral:'sb-neutral', volatile:'sb-volatile'
+};
+var dirEmoji={ bullish:'📈', bearish:'📉', neutral:'⚖️', volatile:'⚡' };
+
+// P&L chart removed — using inline pill summary instead
+
+function renderResults(plan){
+  var strategies = plan.strategies||[];
+  var topPick = (plan.top_pick||1)-1;
+
+  // Summary cards
+  var cr = plan.chart_reading||{};
+  var html = '<div class="summary-cards">'
+    +'<div class="sum-card"><div class="sum-card-label">Ticker</div><div class="sum-card-val">'+(esc(plan.ticker)||'—')+'</div></div>'
+    +'<div class="sum-card"><div class="sum-card-label">Trend</div><div class="sum-card-val">'+(dirEmoji[plan.trend]||'')+'&nbsp;'+esc(plan.trend||'—')+'</div></div>'
+    +'<div class="sum-card"><div class="sum-card-label">Pattern</div><div class="sum-card-val" style="font-size:.78rem">'+esc(cr.pattern||'—')+'</div></div>'
+    +'<div class="sum-card"><div class="sum-card-label">Confidence</div><div class="sum-card-val">'+esc(plan.confidence||'—')+'</div></div>'
+    +'</div>';
+
+  // Key levels
+  if(cr.key_levels&&cr.key_levels.length){
+    html+='<div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:7px 11px;margin-bottom:10px;font-family:var(--sans);font-size:.74rem;color:var(--txt)">'
+      +'<div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:6px">Key Levels</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
+      +cr.key_levels.map(function(l){
+        return '<span style="background:var(--p1);border:1px solid var(--b1);border-radius:5px;padding:3px 9px;font-weight:700">'+esc(l)+'</span>';
+      }).join('')
+      +'</div></div>';
+  }
+
+  // Overall note
+  if(plan.overall_note){
+    html+='<div class="reasoning-box" style="margin-bottom:12px">💡 '+esc(plan.overall_note)+'</div>';
+  }
+
+  html+='<div style="font-size:.6rem;font-family:var(--sans);font-weight:700;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><span>Strategy Recommendations</span><span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:.7rem">sorted by fit</span></div>';
+
+  strategies.forEach(function(s, idx){
+    var isTop = idx===topPick;
+    var typeClass = typeMap[s.type]||'at-spread';
+    var dirClass  = dirMap[s.direction]||'sb-neutral';
+    var st = s.structure||{};
+    var pm = s.pnl||{};
+    var rm = s.risk_metrics||{};
+
+    html+='<div class="strat-card" style="'+(isTop?'border-color:'+((outlookColors[s.direction])||'#166534')+';box-shadow:0 2px 14px rgba(22,101,52,.1)':'')+'">';
+
+    // HEAD
+    html+='<div class="strat-head">'
+      +'<div>'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:1px">'
+          +'<span style="font-size:1.05rem;font-weight:900;letter-spacing:-.03em;color:var(--txt)">'+esc(s.name)+'</span>'
+          +(isTop?'<span style="background:var(--acc);color:#fff;font-size:.58rem;font-weight:900;padding:2px 7px;border-radius:10px;letter-spacing:.06em">★ TOP PICK</span>':'')
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:5px;margin-top:2px">'
+          +'<span class="action-tag '+typeClass+'">'+esc(s.type)+'</span>'
+          +'<span class="strategy-badge '+dirClass+'" style="margin-bottom:0;padding:2px 8px">'+dirEmoji[s.direction]+' '+esc(s.direction)+'</span>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+
+    // BODY
+    html+='<div class="strat-body">';
+
+    // Reasoning
+    if(s.reasoning){
+      html+='<div class="reasoning-box">'+esc(s.reasoning)+'</div>';
+    }
+
+    // Unified details grid: Strike | Action | Contracts | DTE | P(profit) | R:R
+    var dteStr = (st.dte_ideal||st.dte_min) ? (st.dte_ideal||st.dte_min)+'d'+(st.dte_min&&st.dte_max?' ('+st.dte_min+'–'+st.dte_max+')':'') : '—';
+    var detailItems=[
+      ['Strike', esc(String(st.strike_guidance||'—'))],
+      ['Action',  esc(String(st.action||'—'))],
+      ['Contracts', esc(String(st.contracts||'1'))],
+      ['DTE',     dteStr],
+      ['P(profit)', esc(rm.probability_profit||'—')],
+      ['R:R',     esc(rm.risk_reward||'—')],
+    ];
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">';
+    detailItems.forEach(function(item){
+      html+='<div style="background:var(--s2);border-radius:6px;padding:6px 8px">'
+        +'<div style="font-size:.54rem;color:var(--mut);font-family:var(--sans);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">'+item[0]+'</div>'
+        +'<div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+item[1]+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+
+    // Compact P&L pill row — no chart, just numbers
+    if(pm.bear_case && pm.bull_case){
+      var bearPnl=+pm.bear_case.pnl, basePnl=+pm.base_case.pnl, bullPnl=+pm.bull_case.pnl;
+      var beLabel = pm.base_case.label||'Breakeven', beNote = rm.breakeven ? ' · BE: '+rm.breakeven : '';
+      html+='<div style="display:flex;align-items:stretch;gap:0;border:1px solid var(--b1);border-radius:8px;overflow:hidden;margin-top:2px">';
+      // Bear
+      html+='<div style="flex:1;padding:7px 8px;background:rgba(214,48,80,.05);border-right:1px solid var(--b1);text-align:center">'
+        +'<div style="font-size:.54rem;color:#9b1c1c;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">📉 '+(pm.bear_case.label||'Bear')+'</div>'
+        +'<div style="font-size:.88rem;font-weight:900;color:#9b1c1c;font-family:var(--sans)">'+fm(bearPnl)+'</div>'
+        +(pm.bear_case.note?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px;line-height:1.2">'+esc(pm.bear_case.note)+'</div>':'')
+        +'</div>';
+      // Base
+      html+='<div style="flex:1;padding:7px 8px;background:rgba(184,134,11,.05);border-right:1px solid var(--b1);text-align:center">'
+        +'<div style="font-size:.54rem;color:#92400e;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">⚖️ '+(pm.base_case.label||'Base')+'</div>'
+        +'<div style="font-size:.88rem;font-weight:900;color:'+(basePnl>=0?'var(--acc)':'#92400e')+';font-family:var(--sans)">'+fm(basePnl)+'</div>'
+        +(beNote?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px">'+beNote+'</div>':'')
+        +'</div>';
+      // Bull
+      html+='<div style="flex:1;padding:7px 8px;background:rgba(0,150,58,.05);text-align:center">'
+        +'<div style="font-size:.54rem;color:#166534;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">📈 '+(pm.bull_case.label||'Bull')+'</div>'
+        +'<div style="font-size:.88rem;font-weight:900;color:#166534;font-family:var(--sans)">'+fm(bullPnl)+'</div>'
+        +(pm.bull_case.note?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px;line-height:1.2">'+esc(pm.bull_case.note)+'</div>':'')
+        +'</div>';
+      html+='</div>';
+    }
+
+    html+='</div></div>'; // body + card
+  });
+
+  html+='<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+
+  var el=document.getElementById('results');
+  el.innerHTML=html;
+  el.className='results show';
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Init
+window.addEventListener('load', updateApiStatus);
+document.addEventListener('focusin',function(e){
+  if(e.target.tagName==='INPUT'&&(e.target.type==='number'||e.target.type==='text')){
+    setTimeout(function(){e.target.select();},50);
+  }
+});
+</script>
+</body>
+</html>
