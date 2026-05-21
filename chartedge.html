@@ -375,6 +375,15 @@ async function analyze(){
 
     var systemPrompt = `You are an expert options trader and technical analyst. When given a chart image, you analyze price action, trend, support/resistance, momentum, and volatility to recommend specific options strategies.
 
+DTE GUIDELINES — always recommend conservative, low-risk timeframes:
+- Scalp / 1-min / 5-min chart → dte_ideal: 1 (same-day or next-day expiry, 0-1 DTE)
+- Intraday / 15-min chart → dte_ideal: 2 (2-3 DTE max)
+- Short-term / 1-hour chart → dte_ideal: 7 (1 week, 5-10 DTE range)
+- Swing / 4-hour chart → dte_ideal: 14 (2 weeks, 10-21 DTE range)
+- Position / Daily chart → dte_ideal: 30 (1 month, 21-45 DTE range)
+- Weekly chart → dte_ideal: 45 (6 weeks, 30-60 DTE range)
+NEVER recommend 0 for dte_ideal — minimum is 1. Always set dte_ideal to a concrete number matching the timeframe above.
+
 You MUST respond with ONLY valid JSON (no markdown, no explanation outside JSON).
 
 Return this exact structure:
@@ -401,9 +410,9 @@ Return this exact structure:
         "action": "Buy|Sell",
         "instrument": "e.g. Call option",
         "strike_guidance": "e.g. ATM or 5% OTM",
-        "dte_min": 21,
-        "dte_max": 45,
-        "dte_ideal": 30,
+        "dte_min": "<integer matching timeframe — see DTE GUIDELINES above>",
+        "dte_max": "<integer matching timeframe — see DTE GUIDELINES above>",
+        "dte_ideal": "<integer matching timeframe — MUST follow DTE GUIDELINES, e.g. 1 for scalp, 7 for 1h chart, 14 for 4h, 30 for daily — NEVER 0>",
         "contracts": 1,
         "est_premium": number or null,
         "max_risk": number or null,
@@ -426,7 +435,7 @@ Return this exact structure:
       "type": "...",
       "direction": "...",
       "reasoning": "...",
-      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":0,"dte_max":0,"dte_ideal":0,"contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
+      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":"<match timeframe>","dte_max":"<match timeframe>","dte_ideal":"<match timeframe — NEVER 0>","contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
       "pnl": { "bear_case":{"label":"","pnl":0,"note":""}, "base_case":{"label":"","pnl":0,"note":""}, "bull_case":{"label":"","pnl":0,"note":""} },
       "risk_metrics": { "probability_profit":"","breakeven":"","risk_reward":"" }
     },
@@ -436,7 +445,7 @@ Return this exact structure:
       "type": "...",
       "direction": "...",
       "reasoning": "...",
-      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":0,"dte_max":0,"dte_ideal":0,"contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
+      "structure": { "action":"","instrument":"","strike_guidance":"","dte_min":"<match timeframe>","dte_max":"<match timeframe>","dte_ideal":"<match timeframe — NEVER 0>","contracts":1,"est_premium":null,"max_risk":null,"max_reward":"" },
       "pnl": { "bear_case":{"label":"","pnl":0,"note":""}, "base_case":{"label":"","pnl":0,"note":""}, "bull_case":{"label":"","pnl":0,"note":""} },
       "risk_metrics": { "probability_profit":"","breakeven":"","risk_reward":"" }
     }
@@ -554,115 +563,164 @@ var dirEmoji={ bullish:'📈', bearish:'📉', neutral:'⚖️', volatile:'⚡' 
 function renderResults(plan){
   var strategies = plan.strategies||[];
   var topPick = (plan.top_pick||1)-1;
-
-  // Summary cards
   var cr = plan.chart_reading||{};
-  var html = '<div class="summary-cards">'
-    +'<div class="sum-card"><div class="sum-card-label">Ticker</div><div class="sum-card-val">'+(esc(plan.ticker)||'—')+'</div></div>'
-    +'<div class="sum-card"><div class="sum-card-label">Trend</div><div class="sum-card-val">'+(dirEmoji[plan.trend]||'')+'&nbsp;'+esc(plan.trend||'—')+'</div></div>'
-    +'<div class="sum-card"><div class="sum-card-label">Pattern</div><div class="sum-card-val" style="font-size:.78rem">'+esc(cr.pattern||'—')+'</div></div>'
-    +'<div class="sum-card"><div class="sum-card-label">Confidence</div><div class="sum-card-val">'+esc(plan.confidence||'—')+'</div></div>'
-    +'</div>';
 
-  // Key levels
-  if(cr.key_levels&&cr.key_levels.length){
-    html+='<div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:7px 11px;margin-bottom:10px;font-family:var(--sans);font-size:.74rem;color:var(--txt)">'
-      +'<div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:6px">Key Levels</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
-      +cr.key_levels.map(function(l){
-        return '<span style="background:var(--p1);border:1px solid var(--b1);border-radius:5px;padding:3px 9px;font-weight:700">'+esc(l)+'</span>';
-      }).join('')
-      +'</div></div>';
+  // Direction -> theme (bg, border, hdr, txt, sub, tile, pill, pillTxt)
+  var themes = {
+    bullish: { bg:'#f0fdf4', border:'#6ee7b7', hdr:'#15803d', txt:'#14532d', sub:'#166534', tile:'rgba(21,128,61,.10)', pill:'#bbf7d0', pillTxt:'#14532d' },
+    bearish: { bg:'#fff0f3', border:'#fda4af', hdr:'#be123c', txt:'#881337', sub:'#be123c', tile:'rgba(190,18,60,.08)', pill:'#fecdd3', pillTxt:'#881337' },
+    neutral: { bg:'#f8f9fb', border:'#c7d0de', hdr:'#3d4f6b', txt:'#2d3a4e', sub:'#4a5a72', tile:'rgba(61,79,107,.08)',  pill:'#dde3ee', pillTxt:'#2d3a4e' },
+    volatile:{ bg:'#eff6ff', border:'#93c5fd', hdr:'#1d4ed8', txt:'#1e3a8a', sub:'#1e3a8a', tile:'rgba(29,78,216,.08)', pill:'#bfdbfe', pillTxt:'#1e3a8a' },
+  };
+  function getTheme(dir){ return themes[dir]||themes.neutral; }
+
+  var dirLabel = {
+    bullish:'↑ Bullish — directional upside play',
+    bearish:'↓ Bearish — directional downside play',
+    neutral:'↔ Neutral — range-bound, collect premium',
+    volatile:'⚡ Volatile — expecting a big breakout move'
+  };
+
+  var overallDir = plan.trend||(strategies[topPick]&&strategies[topPick].direction)||'neutral';
+  var th = getTheme(overallDir);
+  var topStrat = strategies[topPick]||strategies[0]||{};
+  var topSt = topStrat.structure||{};
+  var topRm = topStrat.risk_metrics||{};
+  var topPm = topStrat.pnl||{};
+
+  // ── BIG HEADER SIGNAL CARD ──
+  var tickerStr = plan.ticker ? plan.ticker+' SIGNAL' : 'SIGNAL';
+  var confLabel = plan.confidence ? plan.confidence.toUpperCase()+' CONFIDENCE' : '';
+  var dteHdr = topSt.dte_ideal ? topSt.dte_ideal+' DTE' : (topSt.dte_min&&topSt.dte_max ? topSt.dte_min+'-'+topSt.dte_max+' DTE' : '');
+  var setupVal = [dteHdr, topSt.strike_guidance, topStrat.type ? topStrat.type.toUpperCase() : ''].filter(Boolean).join(' ');
+  var bullPnlHdr = topPm.bull_case ? fm(+topPm.bull_case.pnl) : '—';
+  var maxRiskHdr = topSt.max_risk ? '$'+Math.abs(topSt.max_risk) : (topRm.risk_reward||'—');
+
+  var topDteIdeal = parseInt(topSt.dte_ideal, 10);
+  var topDteMin   = parseInt(topSt.dte_min,   10);
+  var topDteMax   = parseInt(topSt.dte_max,   10);
+  var topDteStr = (!isNaN(topDteIdeal) && topDteIdeal > 0) ? topDteIdeal+'d'
+                : (!isNaN(topDteMin) && !isNaN(topDteMax) && topDteMin > 0) ? topDteMin+'-'+topDteMax+'d'
+                : '—';
+
+  var html = '<div style="background:'+th.bg+';border:2px solid '+th.border+';border-radius:16px;padding:18px 18px 14px;margin-bottom:10px">';
+  // Top row: signal label + DTE pill
+  html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">'
+    +'<div style="font-size:.68rem;font-weight:800;color:'+th.hdr+';letter-spacing:.1em;text-transform:uppercase">'+esc(tickerStr)+' · '+esc(confLabel)+'</div>'
+    +'<div style="background:'+th.pill+';color:'+th.pillTxt+';border-radius:10px;padding:6px 12px;text-align:center;min-width:52px;flex-shrink:0;margin-left:12px">'
+      +'<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px">DTE</div>'
+      +'<div style="font-size:1.1rem;font-weight:900;line-height:1">'+topDteStr+'</div>'
+    +'</div>'
+  +'</div>';
+  html += '<div style="font-size:.68rem;color:'+th.sub+';margin-bottom:8px;font-weight:500">as of '+new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'</div>';
+  html += '<div style="font-size:2.4rem;font-weight:900;color:'+th.hdr+';letter-spacing:-.04em;line-height:1;margin-bottom:5px;text-transform:uppercase">'+esc(topStrat.name||'—')+'</div>';
+  html += '<div style="font-size:.88rem;font-weight:600;color:'+th.txt+';margin-bottom:12px">'+esc(dirLabel[overallDir]||overallDir)+'</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  [
+    ['SETUP', setupVal||'—'],
+    ['MAX RISK / R:R', maxRiskHdr],
+    ['CONTRACTS', (topSt.contracts||'1')+'c · '+(topSt.action||'Buy')],
+    ['BULL CASE P&L', bullPnlHdr],
+  ].forEach(function(t){
+    html+='<div style="background:'+th.tile+';border-radius:10px;padding:10px 12px">'
+      +'<div style="font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:'+th.sub+';margin-bottom:4px">'+t[0]+'</div>'
+      +'<div style="font-size:1.05rem;font-weight:800;color:'+th.hdr+';line-height:1.2">'+esc(t[1])+'</div>'
+      +'</div>';
+  });
+  html += '</div>';
+  if(cr.pattern||( cr.key_levels&&cr.key_levels.length )){
+    html+='<div style="margin-top:10px;padding-top:9px;border-top:1px solid '+th.border+';font-size:.71rem;color:'+th.sub+';line-height:1.6">';
+    if(cr.pattern) html+=esc(cr.pattern);
+    if(cr.key_levels&&cr.key_levels.length) html+=' &nbsp;·&nbsp; '+cr.key_levels.map(esc).join(' · ');
+    html+='</div>';
   }
+  html+='</div>';
 
-  // Overall note
+  // overall note
   if(plan.overall_note){
-    html+='<div class="reasoning-box" style="margin-bottom:12px">💡 '+esc(plan.overall_note)+'</div>';
+    html+='<div style="background:var(--s2);border:1px solid var(--b1);border-left:3px solid '+th.hdr+';border-radius:0 8px 8px 0;padding:8px 12px;font-size:.77rem;line-height:1.55;color:#3a4560;margin-bottom:10px">'+esc(plan.overall_note)+'</div>';
   }
 
-  html+='<div style="font-size:.6rem;font-family:var(--sans);font-weight:700;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><span>Strategy Recommendations</span><span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:.7rem">sorted by fit</span></div>';
+  // ── STRATEGY CARDS ──
+  html+='<div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between"><span>All Recommendations</span><span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:.68rem">'+strategies.length+' strategies · sorted by fit</span></div>';
 
   strategies.forEach(function(s, idx){
     var isTop = idx===topPick;
-    var typeClass = typeMap[s.type]||'at-spread';
-    var dirClass  = dirMap[s.direction]||'sb-neutral';
     var st = s.structure||{};
     var pm = s.pnl||{};
     var rm = s.risk_metrics||{};
+    var th2 = getTheme(s.direction);
+    var dteIdeal = parseInt(st.dte_ideal, 10);
+    var dteMin   = parseInt(st.dte_min,   10);
+    var dteMax   = parseInt(st.dte_max,   10);
+    var dteStr = (!isNaN(dteIdeal) && dteIdeal > 0) ? dteIdeal+'d'
+               : (!isNaN(dteMin) && !isNaN(dteMax) && dteMin > 0) ? dteMin+'-'+dteMax+'d'
+               : '—';
 
-    html+='<div class="strat-card" style="'+(isTop?'border-color:'+((outlookColors[s.direction])||'#166534')+';box-shadow:0 2px 14px rgba(22,101,52,.1)':'')+'">';
+    html+='<div style="background:'+th2.bg+';border:2px solid '+(isTop?th2.hdr:th2.border)+';border-radius:16px;padding:18px 18px 14px;margin-bottom:10px'+(isTop?';box-shadow:0 4px 20px rgba(0,0,0,.1)':'')+'">';
 
-    // HEAD
-    html+='<div class="strat-head">'
-      +'<div>'
-        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:1px">'
-          +'<span style="font-size:1.05rem;font-weight:900;letter-spacing:-.03em;color:var(--txt)">'+esc(s.name)+'</span>'
-          +(isTop?'<span style="background:var(--acc);color:#fff;font-size:.58rem;font-weight:900;padding:2px 7px;border-radius:10px;letter-spacing:.06em">★ TOP PICK</span>':'')
+    // ── Header row: Name + TOP PICK badge | DTE pill ──
+    html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+      +'<div style="flex:1;min-width:0">'
+        // Strategy name — fixed consistent size across ALL cards
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+          +'<span style="font-size:1.15rem;font-weight:900;letter-spacing:-.02em;color:'+th2.hdr+';text-transform:uppercase;line-height:1.1">'+esc(s.name)+'</span>'
+          +(isTop?'<span style="background:'+th2.hdr+';color:#fff;font-size:.58rem;font-weight:900;padding:3px 9px;border-radius:12px;letter-spacing:.06em;white-space:nowrap;flex-shrink:0">★ TOP PICK</span>':'')
         +'</div>'
-        +'<div style="display:flex;align-items:center;gap:5px;margin-top:2px">'
-          +'<span class="action-tag '+typeClass+'">'+esc(s.type)+'</span>'
-          +'<span class="strategy-badge '+dirClass+'" style="margin-bottom:0;padding:2px 8px">'+dirEmoji[s.direction]+' '+esc(s.direction)+'</span>'
+        // Direction label — consistent size
+        +'<div style="font-size:.72rem;font-weight:700;color:'+th2.sub+'">'+esc(dirLabel[s.direction]||s.direction||'')+'</div>'
+      +'</div>'
+      // DTE pill — always rendered, same size on every card
+      +'<div style="flex-shrink:0;margin-left:12px">'
+        +'<div style="background:'+th2.pill+';color:'+th2.pillTxt+';border-radius:10px;padding:6px 12px;text-align:center;min-width:52px">'
+          +'<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px">DTE</div>'
+          +'<div style="font-size:1.1rem;font-weight:900;line-height:1">'+dteStr+'</div>'
         +'</div>'
       +'</div>'
     +'</div>';
 
-    // BODY
-    html+='<div class="strat-body">';
-
-    // Reasoning
+    // ── Reasoning text ──
     if(s.reasoning){
-      html+='<div class="reasoning-box">'+esc(s.reasoning)+'</div>';
+      html+='<div style="font-size:.78rem;color:'+th2.txt+';line-height:1.6;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid '+th2.border+'">'+esc(s.reasoning)+'</div>';
     }
 
-    // Unified details grid: Strike | Action | Contracts | DTE | P(profit) | R:R
-    var dteStr = (st.dte_ideal||st.dte_min) ? (st.dte_ideal||st.dte_min)+'d'+(st.dte_min&&st.dte_max?' ('+st.dte_min+'–'+st.dte_max+')':'') : '—';
-    var detailItems=[
-      ['Strike', esc(String(st.strike_guidance||'—'))],
-      ['Action',  esc(String(st.action||'—'))],
-      ['Contracts', esc(String(st.contracts||'1'))],
-      ['DTE',     dteStr],
-      ['P(profit)', esc(rm.probability_profit||'—')],
-      ['R:R',     esc(rm.risk_reward||'—')],
+    // ── 3-col detail tiles: Strike | Contracts | P(Profit)·R:R ──
+    var detailRow=[
+      ['Strike',       esc(String(st.strike_guidance||'—'))],
+      ['Contracts',    esc(String(st.contracts||'1'))+'c · '+esc(st.action||'Buy')],
+      ['P(Profit) · R:R', esc(rm.probability_profit||'—')+' · '+esc(rm.risk_reward||'—')],
     ];
-    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">';
-    detailItems.forEach(function(item){
-      html+='<div style="background:var(--s2);border-radius:6px;padding:6px 8px">'
-        +'<div style="font-size:.54rem;color:var(--mut);font-family:var(--sans);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">'+item[0]+'</div>'
-        +'<div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+item[1]+'</div>'
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">';
+    detailRow.forEach(function(item){
+      html+='<div style="background:'+th2.tile+';border-radius:8px;padding:9px 10px">'
+        +'<div style="font-size:.55rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:'+th2.sub+';margin-bottom:4px">'+item[0]+'</div>'
+        +'<div style="font-size:.82rem;font-weight:800;color:'+th2.hdr+';line-height:1.3">'+item[1]+'</div>'
         +'</div>';
     });
     html+='</div>';
 
-    // Compact P&L pill row — no chart, just numbers
-    if(pm.bear_case && pm.bull_case){
-      var bearPnl=+pm.bear_case.pnl, basePnl=+pm.base_case.pnl, bullPnl=+pm.bull_case.pnl;
-      var beLabel = pm.base_case.label||'Breakeven', beNote = rm.breakeven ? ' · BE: '+rm.breakeven : '';
-      html+='<div style="display:flex;align-items:stretch;gap:0;border:1px solid var(--b1);border-radius:8px;overflow:hidden;margin-top:2px">';
-      // Bear
-      html+='<div style="flex:1;padding:7px 8px;background:rgba(214,48,80,.05);border-right:1px solid var(--b1);text-align:center">'
-        +'<div style="font-size:.54rem;color:#9b1c1c;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">📉 '+(pm.bear_case.label||'Bear')+'</div>'
-        +'<div style="font-size:.88rem;font-weight:900;color:#9b1c1c;font-family:var(--sans)">'+fm(bearPnl)+'</div>'
-        +(pm.bear_case.note?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px;line-height:1.2">'+esc(pm.bear_case.note)+'</div>':'')
-        +'</div>';
-      // Base
-      html+='<div style="flex:1;padding:7px 8px;background:rgba(184,134,11,.05);border-right:1px solid var(--b1);text-align:center">'
-        +'<div style="font-size:.54rem;color:#92400e;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">⚖️ '+(pm.base_case.label||'Base')+'</div>'
-        +'<div style="font-size:.88rem;font-weight:900;color:'+(basePnl>=0?'var(--acc)':'#92400e')+';font-family:var(--sans)">'+fm(basePnl)+'</div>'
-        +(beNote?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px">'+beNote+'</div>':'')
-        +'</div>';
-      // Bull
-      html+='<div style="flex:1;padding:7px 8px;background:rgba(0,150,58,.05);text-align:center">'
-        +'<div style="font-size:.54rem;color:#166534;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">📈 '+(pm.bull_case.label||'Bull')+'</div>'
-        +'<div style="font-size:.88rem;font-weight:900;color:#166534;font-family:var(--sans)">'+fm(bullPnl)+'</div>'
-        +(pm.bull_case.note?'<div style="font-size:.56rem;color:var(--mut);margin-top:2px;line-height:1.2">'+esc(pm.bull_case.note)+'</div>':'')
-        +'</div>';
+    // ── P&L strip: Bear | Base | Bull ──
+    if(pm.bear_case&&pm.bull_case){
+      var bVal=+pm.bear_case.pnl, mVal=+pm.base_case.pnl, uVal=+pm.bull_case.pnl;
+      html+='<div style="display:flex;border:1px solid '+th2.border+';border-radius:10px;overflow:hidden">';
+      [
+        {sc:pm.bear_case, val:bVal, lbl:'📉 BEAR', col:'#9b1c1c', bg:'rgba(185,28,28,.07)'},
+        {sc:pm.base_case, val:mVal, lbl:'⚖️ BASE', col:mVal>=0?th2.hdr:'#92400e', bg:'rgba(0,0,0,.03)'},
+        {sc:pm.bull_case, val:uVal, lbl:'📈 BULL', col:th2.hdr, bg:th2.tile},
+      ].forEach(function(p,i){
+        html+='<div style="flex:1;padding:9px 6px;background:'+p.bg+';text-align:center'+(i<2?';border-right:1px solid '+th2.border:'')+'">'
+          +'<div style="font-size:.54rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:'+p.col+';margin-bottom:4px">'+p.lbl+'</div>'
+          +'<div style="font-size:1rem;font-weight:900;color:'+p.col+'">'+fm(p.val)+'</div>'
+          +(p.sc.note?'<div style="font-size:.57rem;color:#64748b;margin-top:3px;line-height:1.3">'+esc(p.sc.note)+'</div>':'')
+          +'</div>';
+      });
       html+='</div>';
     }
 
-    html+='</div></div>'; // body + card
+    html+='</div>';
   });
 
-  html+='<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+  html+='<div style="color:var(--mut);font-size:.66rem;text-align:center;padding:12px 0;border-top:1px solid var(--b1);margin-top:6px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
 
   var el=document.getElementById('results');
   el.innerHTML=html;
