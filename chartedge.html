@@ -487,7 +487,9 @@ Return this exact structure:
 
     setStatus('Building strategy recommendations…');
 
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    var _ac=new AbortController();var _at=setTimeout(function(){_ac.abort();},90000);
+    var resp;
+    try{ resp = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -496,8 +498,8 @@ Return this exact structure:
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(90000)
-    });
+      signal: _ac.signal
+    }); } finally{ clearTimeout(_at); }
 
     var d = await resp.json();
     if(d.error){
