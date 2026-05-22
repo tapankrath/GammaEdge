@@ -299,7 +299,7 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
 var imageB64 = null;
 var imageType = 'image/png';
 var currentOutlook = 'auto';
-var CLAUDE_MODEL = 'claude-sonnet-4-6';
+var CLAUDE_MODEL = 'claude-sonnet-4-5';
 
 // ── API KEY ──
 function getApiKey(){ return localStorage.getItem('ce_api_key')||''; }
@@ -317,9 +317,26 @@ function loadFile(f){
   imageType = f.type||'image/png';
   var r=new FileReader();
   r.onload=function(ev){
-    imageB64=ev.target.result.split(',')[1];
-    document.getElementById('previewImg').src=ev.target.result;
-    document.getElementById('previewCol').style.display='block';
+    var dataUrl = ev.target.result;
+    // Compress large images (phone cameras) before sending to API
+    var img = new Image();
+    img.onload = function(){
+      var MAX = 1200; // max dimension px
+      var w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        var scale = Math.min(MAX/w, MAX/h);
+        w = Math.round(w*scale); h = Math.round(h*scale);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var compressed = canvas.toDataURL('image/jpeg', 0.82);
+      imageB64 = compressed.split(',')[1];
+      imageType = 'image/jpeg';
+      document.getElementById('previewImg').src = compressed;
+      document.getElementById('previewCol').style.display='block';
+    };
+    img.src = dataUrl;
   };
   r.readAsDataURL(f);
 }
