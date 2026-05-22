@@ -243,7 +243,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   <h1 style="font-size:1.7rem;font-weight:900;letter-spacing:-.04em;color:#0a0f1e;margin-bottom:8px;line-height:1.1">What's your portfolio move?</h1>
   <p style="color:#374151;font-size:.9rem;line-height:1.65;max-width:520px;font-weight:500">Upload your brokerage screenshot · Pick your goal · Get a specific step-by-step options plan</p>
 </div>
-<div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
+<div id="uploadWrap" style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
       <div style="flex:1">
         <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
           <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
@@ -273,6 +273,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
       <span>🔍</span> <span>Analyze My Portfolio</span>
     </button>
   </div>
+
+  <!-- Collapsed input bar (shown after plan is built) -->
+  <div id="inputCollapsed" style="display:none;background:var(--p1);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-family:var(--sans);font-size:.78rem;font-weight:600;color:var(--txt);align-items:center;gap:8px"></div>
 
   <!-- Extracted positions -->
   <div id="extractedSummary" style="display:none;margin-bottom:16px"></div>
