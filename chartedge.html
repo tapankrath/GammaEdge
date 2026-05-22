@@ -18,7 +18,7 @@
   --acc:#166534;--acc2:#15803d;
   --red:#9b1c1c;--rbg:#fef2f2;--rbd:#fca5a5;
   --amber:#92400e;--abg:#fffbeb;--abd:#fcd34d;
-  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;--bbg:#eff6ff;
+  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;
   --mono:'Inter',-apple-system,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
 }
@@ -134,24 +134,42 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
 /* STEP LABEL */
 .step-label{font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px}
 .step-num{background:var(--acc);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:900}
+
+@media print {
+  nav, .upload-section, .manual-section, #api-modal,
+  .status-bar, .share-bar, button { display:none!important; }
+  body { background:#fff; font-size:12px; }
+  .wrap { max-width:100%; padding:10px; }
+  .outlook-tile { break-inside:avoid; box-shadow:none; }
+  .signal-header { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @page { margin:15mm; size:A4; }
+}
+.share-bar{display:none;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap}
+.share-bar.visible{display:flex}
+.share-btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 </style>
 </head>
 <body>
 
-<nav>
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-size:18px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">ChartEdge</span>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#1e293b;border:1.5px solid #475569;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;color:#e2e8f0;cursor:pointer;font-family:var(--sans);letter-spacing:.02em">⚙ API Key</button>
+<nav style="background:#0a0f1e;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+  <div style="display:flex;flex-direction:column;line-height:1.2">
+    <span style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">ChartEdge</span>
+    <span style="font-size:9px;font-weight:700;color:#475569;letter-spacing:.12em;text-transform:uppercase">Options Strategy Engine</span>
   </div>
-  <div style="display:flex;align-items:center;gap:6px">
-    <span class="nav-tagline" style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.1em;text-transform:uppercase">Options Strategy Engine</span>
-    <a href="index.html" style="color:#e2e8f0;text-decoration:none;font-size:11px;font-family:var(--sans);font-weight:800;display:flex;align-items:center;gap:4px;padding:5px 12px;border:1.5px solid #64748b;border-radius:6px;transition:all .15s;white-space:nowrap;letter-spacing:.02em;background:#1e293b" onmouseover="this.style.color='#fff';this.style.borderColor='#94a3b8';this.style.background='#334155'" onmouseout="this.style.color='#e2e8f0';this.style.borderColor='#64748b';this.style.background='#1e293b'">← GammaEdge</a>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="https://tapankrath.github.io/GammaEdge" target="_blank" style="background:#0a0f1e;color:#fff;border:1.5px solid #334155;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s" onmouseover="this.style.background='#1e293b';this.style.borderColor='#64748b'" onmouseout="this.style.background='#0a0f1e';this.style.borderColor='#334155'">← GammaEdge</a>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#0a0f1e;color:#fff;border:1.5px solid #334155;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s" onmouseover="this.style.background='#1e293b';this.style.borderColor='#64748b'" onmouseout="this.style.background='#0a0f1e';this.style.borderColor='#334155'">⚙ API Key</button>
   </div>
 </nav>
 
 <div class="wrap">
-  <div class="page-header">
-    <div class="badge">📈 Chart Analysis</div>
+  <div style="padding:24px 0 20px">
+  <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:5px 12px;margin-bottom:14px">
+    <span style="font-size:10px;font-weight:800;color:#1e3a8a;letter-spacing:.08em;text-transform:uppercase">📈 AI Chart Analysis</span>
+  </div>
+  <h1 style="font-size:1.7rem;font-weight:900;letter-spacing:-.04em;color:#0a0f1e;margin-bottom:8px;line-height:1.1">What's the chart telling you?</h1>
+  <p style="color:#374151;font-size:.9rem;line-height:1.65;max-width:520px;font-weight:500">Upload a chart screenshot · Claude reads price action, patterns & momentum · Get a specific options strategy</p>
+</div>
     <h1>Read the chart. Get the play.</h1>
     <p>Upload a stock or options chart · AI reads price action, trend, volatility · get a specific options strategy with DTE, strikes, and P&L scenarios.</p>
   </div>
@@ -735,6 +753,30 @@ document.addEventListener('focusin',function(e){
     setTimeout(function(){e.target.select();},50);
   }
 });
+
+function doPrint(){window.print();}
+function doEmail(){
+  var subj=encodeURIComponent('Chart Analysis — ChartEdge');
+  var body=encodeURIComponent(getPlanText());
+  window.location.href='mailto:?subject='+subj+'&body='+body;
+}
+function doCopy(){
+  var txt=getPlanText();
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){showToast('✓ Copied to clipboard');});}
+  else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✓ Copied');}
+}
+function getPlanText(){
+  var out='CHART ANALYSIS\nGenerated by ChartEdge\n'+new Date().toLocaleDateString()+'\n\n';
+  var res=document.getElementById('results');
+  if(res)out+=res.innerText;
+  return out;
+}
+function showToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
+}
+
 </script>
 </body>
 </html>

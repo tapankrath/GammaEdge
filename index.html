@@ -55,7 +55,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .price-card.spy .pc-name{color:var(--purple)}
 .price-card.qqq .pc-name{color:var(--amber)}
 .pc-price{font-size:15px;font-weight:700;color:var(--text)}
-.pc-chg{font-size:9px;margin-top:2px}
+.pc-chg{font-size:11px;font-weight:700;margin-top:3px}
 .ld{animation:blink 1s infinite;color:#475569}
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
 
@@ -262,45 +262,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
 </div>
 
-<!-- MKT STATUS + FIDELITY -->
-<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:6px">
-  <span class="mkt-pill wait" id="mktPill">MKT NOW —</span>
-  <a id="fidelityBtn"
-     href="https://www.fidelity.com"
-     target="_blank"
-     rel="noopener noreferrer"
-     onclick="openFidelity(event)"
-     style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:900;padding:4px 11px;border-radius:20px;letter-spacing:.06em;white-space:nowrap;text-transform:uppercase;background:#17375e;color:#fff;border:1.5px solid #1a4a7a;text-decoration:none;cursor:pointer;transition:all .2s"
-     onmouseover="this.style.background='#1a4a7a'"
-     onmouseout="this.style.background='#17375e'">
-    <svg width="11" height="11" viewBox="0 0 32 32" fill="currentColor" style="flex-shrink:0"><path d="M16 2a14 14 0 1 0 0 28A14 14 0 0 0 16 2zm-2 20h-3V10h3v12zm7 0h-3V10h3v12z"/></svg>
-    Fidelity
-  </a>
+<!-- MKT STATUS -->
+<div style="display:flex;justify-content:center;margin-bottom:6px">
+  <span class="mkt-pill wait" id="mktPill">MKT —</span>
 </div>
-<script>
-function openFidelity(e){
-  var ua = navigator.userAgent || '';
-  var isIOS     = /iPhone|iPad|iPod/i.test(ua);
-  var isAndroid = /Android/i.test(ua);
-  if(isIOS || isAndroid){
-    e.preventDefault();
-    var fallback = 'https://www.fidelity.com';
-    if(isIOS){
-      var appScheme = 'fidelity://';
-      var t = Date.now();
-      window.location = appScheme;
-      setTimeout(function(){
-        if(Date.now()-t < 1500){ window.open(fallback,'_blank'); }
-      }, 750);
-    } else {
-      // Android: intent URL with web fallback
-      window.location = 'intent://www.fidelity.com#Intent;scheme=https;package=com.fidelity.android.fidelitymobile;end';
-      setTimeout(function(){ window.open(fallback,'_blank'); }, 1200);
-    }
-  }
-  // Desktop: default href=https opens new tab automatically
-}
-</script>
 
 <!-- LIVE PRICES -->
 <div class="price-bar">
