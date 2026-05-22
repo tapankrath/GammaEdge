@@ -25,7 +25,7 @@
   --acc:#166534;--acc2:#15803d;
   --red:#9b1c1c;--rbg:#fef2f2;--rbd:#fca5a5;
   --amber:#92400e;--abg:#fffbeb;--abd:#fcd34d;
-  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;--bbg:#eff6ff;
+  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;
   --mono:'Inter',-apple-system,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
 }
@@ -154,9 +154,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .at-warn{background:rgba(184,134,11,.1);color:var(--yel)}
 .at-trim{background:rgba(184,134,11,.1);color:var(--yel)}
 
-.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}@media(max-width:600px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
-.sum-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sum-card{background:var(--p1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .sum-card-label{font-size:.56rem;color:var(--mut);font-family:var(--sans);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
 .sum-card-val{font-size:.95rem;font-weight:800;font-family:var(--sans);color:var(--txt)}
 
@@ -204,34 +204,114 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .sc-premium div{flex:1;text-align:center}
 .sc-premium .label{font-size:.6rem;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
 .sc-premium .val{font-weight:700;color:var(--txt)}
+
+@media print {
+  nav, .drop-zone, .manual-section, .intent-grid, .analyze-btn,
+  #api-modal, .status-bar, .inputCollapsed, .share-bar { display:none!important; }
+  body { background:#fff; font-size:12px; }
+  .wrap { max-width:100%; padding:10px; }
+  .pos-card { break-inside:avoid; box-shadow:none; border:1px solid #ccc; }
+  .summary-cards { grid-template-columns:repeat(4,1fr); }
+  .plan-table { font-size:11px; }
+  .pos-card-head { background:#0f172a!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .step-badge { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @page { margin:15mm; size:A4; }
+}
+.share-bar{display:none;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap}
+.share-bar.visible{display:flex}
+.share-btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em;white-space:nowrap}
+
+/* ── PRO RESULTS ── */
+.plan-hero{background:linear-gradient(135deg,#0f172a 0%,#1a2744 60%,#0f2a1a 100%);border-radius:16px;padding:22px 24px;margin-bottom:18px;position:relative;overflow:hidden}
+.plan-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.plan-hero-headline{font-size:1.05rem;font-weight:900;color:#fff;letter-spacing:-.02em;margin-bottom:6px;line-height:1.3;position:relative}
+.plan-hero-meta{font-size:.72rem;color:#94a3b8;font-family:var(--sans);position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.plan-hero-stat{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;min-width:80px}
+.plan-hero-stat-label{font-size:.56rem;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;font-family:var(--sans);font-weight:700}
+.plan-hero-stat-val{font-size:1.1rem;font-weight:900;font-family:var(--sans);letter-spacing:-.03em}
+.plan-hero-stats{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;position:relative}
+.plan-hero-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:.65rem;font-weight:800;letter-spacing:.06em;padding:4px 12px;border-radius:20px;position:relative}
+
+/* Share/action bar */
+.action-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.action-bar-btn{padding:9px 16px;border-radius:9px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:7px;letter-spacing:.02em;white-space:nowrap;transition:all .15s;border:1.5px solid transparent}
+.action-bar-btn.primary{background:#0f172a;color:#fff;border-color:#0f172a}
+.action-bar-btn.primary:hover{background:#1e293b}
+.action-bar-btn.secondary{background:#fff;color:#374151;border-color:#e2e8f0}
+.action-bar-btn.secondary:hover{border-color:#94a3b8;background:#f8fafc}
+.action-bar-label{font-size:.6rem;font-weight:700;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-right:auto;align-self:center;padding-left:2px}
+
+/* Position cards upgrade */
+.pos-card-v2{background:#fff;border:1px solid #e8edf5;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04)}
+.pos-card-v2-head{padding:14px 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #f1f5f9}
+.pos-sym-v2{font-size:1.25rem;font-weight:900;letter-spacing:-.04em;color:#0a0f1e;line-height:1}
+.pos-sym-sub{font-size:.68rem;color:#64748b;font-weight:600;margin-top:3px}
+.pos-pnl-v2{font-size:1rem;font-weight:900;font-family:var(--sans);letter-spacing:-.02em;text-align:right}
+.pos-pnl-pct{font-size:.65rem;font-weight:600;opacity:.75;margin-top:1px}
+.pos-card-v2-body{padding:14px 18px}
+.step-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:9px;margin-bottom:6px;transition:background .15s}
+.step-item:last-child{margin-bottom:0}
+.step-action-pill{flex-shrink:0;padding:3px 9px;border-radius:5px;font-size:.62rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
+.step-detail{font-size:.82rem;font-weight:600;color:#1e293b;flex:1;line-height:1.45}
+.step-urgency{flex-shrink:0;font-size:.8rem;margin-top:1px}
+.pnl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9}
+.pnl-cell{border-radius:10px;padding:10px 10px 8px;text-align:center}
+.pnl-cell-label{font-size:.58rem;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;font-weight:700}
+.pnl-cell-val{font-size:.92rem;font-weight:900;letter-spacing:-.02em}
+.pnl-cell-note{font-size:.58rem;color:#64748b;margin-top:3px;line-height:1.35}
+.strategy-chip{display:inline-flex;align-items:center;gap:5px;font-size:.63rem;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.04em;margin-bottom:6px}
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,#e2e8f0,transparent);margin:6px 0 14px}
+.disclaimer-footer{text-align:center;padding:16px 0 8px;font-size:.62rem;color:#94a3b8;font-weight:600;letter-spacing:.04em;border-top:1px solid #f1f5f9;margin-top:4px}
+
+/* Extracted positions upgrade */
+.ext-positions-box{background:linear-gradient(135deg,#f0fdf4,#f8fff9);border:1px solid #86efac;border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.ext-pos-title{font-size:.6rem;font-weight:800;color:#166534;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ext-pos-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(134,239,172,.35)}
+.ext-pos-row:last-child{border-bottom:none;padding-bottom:0}
+.ext-sym-badge{font-weight:900;font-size:.82rem;color:#166534;background:rgba(22,101,52,.1);border-radius:5px;padding:2px 8px;min-width:52px;text-align:center}
+.ext-type-tag{font-size:.66rem;font-weight:700;color:#374151;background:#f1f5f9;border-radius:4px;padding:2px 7px;text-transform:capitalize}
+.ext-pnl-tag{font-size:.76rem;font-weight:800;margin-left:auto}
+
+@media print {
+  nav, .drop-zone, .manual-section, .intent-grid, .analyze-btn,
+  #api-modal, .status-bar, .inputCollapsed, .share-bar, .action-bar { display:none!important; }
+  body { background:#fff; font-size:12px; }
+  .wrap { max-width:100%; padding:10px; }
+  .pos-card-v2 { break-inside:avoid; box-shadow:none; border:1px solid #ccc; }
+  .plan-hero { background:#0f172a!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @page { margin:15mm; size:A4; }
+}
 </style>
 </head>
 <body>
 
-<nav style="background:#0a0f1e;padding:0 16px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.2)">
-  <div style="display:flex;align-items:baseline;gap:8px">
-    <span style="font-size:18px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">PortfolioEdge</span>
-    <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase">Adjustment Engine</span>
+<nav style="background:#0a0f1e;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;flex-direction:column;line-height:1.15">
+      <span style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">PortfolioEdge</span>
+      <span style="font-size:9px;font-weight:700;color:#475569;letter-spacing:.12em;text-transform:uppercase">Adjustment Engine</span>
+    </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <a href="https://tapankrath.github.io/GammaEdge" target="_blank" style="background:#1e293b;border:1.5px solid #475569;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:800;color:#e2e8f0;cursor:pointer;font-family:var(--sans);text-decoration:none;display:inline-flex;align-items:center;gap:5px;letter-spacing:.01em" onmouseover="this.style.background='#334155';this.style.color='#fff'" onmouseout="this.style.background='#1e293b';this.style.color='#e2e8f0'">← GammaEdge</a>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#1e293b;border:1.5px solid #475569;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:800;color:#e2e8f0;cursor:pointer;font-family:var(--sans);letter-spacing:.01em" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">⚙ API Key</button>
+    <a href="https://tapankrath.github.io/GammaEdge" target="_blank" style="background:#1e293b;border:1px solid #334155;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;letter-spacing:.02em;transition:all .15s" onmouseover="this.style.background='#334155';this.style.color='#fff'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">← GammaEdge</a>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#1e293b;border:1px solid #334155;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;color:#94a3b8;cursor:pointer;font-family:var(--sans);letter-spacing:.02em;transition:all .15s" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">⚙ API Key</button>
   </div>
 </nav>
 
 <div class="wrap">
-  <div class="page-header">
-    <div class="badge">📊 Adjust Portfolio</div>
-    <h1>What's your move?</h1>
-    <p>Upload your positions · AI reads the data · you pick the goal · get a specific options plan.</p>
-  </div>
 
-  <!-- Collapsed bar after plan built -->
-  <div id="inputCollapsed" style="display:none;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-family:var(--sans);font-size:.76rem;align-items:center;gap:8px;color:var(--txt)"></div>
+  <!-- ── INPUT COLLAPSED BAR (shown after analysis, hidden by default) ── -->
+  <div id="inputCollapsed" style="display:none;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 16px;margin-bottom:14px;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:#374151;font-family:var(--sans)"></div>
 
-  <!-- STEP 1: UPLOAD -->
+  <!-- ── UPLOAD WRAP (hidden after plan is built) ── -->
   <div id="uploadWrap">
-    <div style="font-size:.6rem;font-family:var(--sans);color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:8px"><span style="background:var(--acc);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:900">1</span>Upload your positions screenshot</div>
+    <div style="padding:24px 0 20px">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #86efac;border-radius:20px;padding:5px 12px;margin-bottom:14px">
+        <span style="font-size:10px;font-weight:800;color:#166534;letter-spacing:.08em;text-transform:uppercase">📊 AI-Powered Analysis</span>
+      </div>
+      <h1 style="font-size:1.7rem;font-weight:900;letter-spacing:-.04em;color:#0a0f1e;margin-bottom:8px;line-height:1.1">What's your portfolio move?</h1>
+      <p style="color:#374151;font-size:.9rem;line-height:1.65;max-width:520px;font-weight:500">Upload your brokerage screenshot · Pick your goal · Get a specific step-by-step options plan</p>
+    </div>
     <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
       <div style="flex:1">
         <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
@@ -261,7 +341,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
     <button class="analyze-btn" id="extractBtn" onclick="extractPositions()" style="margin-top:16px">
       <span>🔍</span> <span>Analyze My Portfolio</span>
     </button>
-  </div>
+  </div><!-- /uploadWrap -->
 
   <!-- Extracted positions -->
   <div id="extractedSummary" style="display:none;margin-bottom:16px"></div>
@@ -343,9 +423,9 @@ const FINNHUB_KEY = 'd81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';
 // Model fallback list — tries newest first, falls back if unavailable.
 // To update: add the new model string at the front of this array.
 const CLAUDE_MODELS = [
-  'claude-opus-4-5',
   'claude-sonnet-4-5',
-  'claude-haiku-4-5-20251001'
+  'claude-haiku-4-5-20251001',
+  'claude-opus-4-5'
 ];
 var CLAUDE_MODEL = CLAUDE_MODELS[0]; // updated at runtime if a model fails
 var mode = 'auto';
@@ -663,13 +743,18 @@ function setRows(positions){
 }
 
 function collapseInputSection(count, source){
-  // hide all input UI
-  document.getElementById('uploadWrap').style.display    = 'none';
-  document.getElementById('manualSection').style.display = 'none';
-  document.getElementById('extractedSummary').style.display = 'none';
-  document.getElementById('analyzeBtn').style.display    = 'none';
+  // hide all input UI (uploadWrap contains dropzone + manual + extractBtn)
+  var uw = document.getElementById('uploadWrap');
+  if(uw) uw.style.display = 'none';
+  var es = document.getElementById('extractedSummary');
+  if(es) es.style.display = 'none';
+  var iw = document.getElementById('intentWrap');
+  if(iw) iw.style.display = 'none';
+  var ab = document.getElementById('analyzeBtn');
+  if(ab) ab.style.display = 'none';
   // show slim bar
   var bar = document.getElementById('inputCollapsed');
+  if(!bar) return;
   var icon = source === 'screenshot' ? '📸' : '📋';
   bar.innerHTML = icon+' <strong>'+count+' position'+(count!==1?'s':'')+' loaded</strong>'
     +' <span style="color:var(--mut)">via '+source+'</span>'
@@ -678,13 +763,18 @@ function collapseInputSection(count, source){
 }
 
 function expandInputSection(){
-  document.getElementById('uploadWrap').style.display    = 'block';
-  document.getElementById('manualSection').style.display = 'block';
-  document.getElementById('analyzeBtn').style.display    = 'flex';
-  document.getElementById('inputCollapsed').style.display= 'none';
-  document.getElementById('results').className = 'results';
-  document.getElementById('extractedSummary').style.display = 'none';
-  document.getElementById('extractedSummary').innerHTML = '';
+  var uw = document.getElementById('uploadWrap');
+  if(uw) uw.style.display = 'block';
+  var ms = document.getElementById('manualSection');
+  if(ms) ms.style.display = 'block';
+  var ab = document.getElementById('analyzeBtn');
+  if(ab) ab.style.display = 'flex';
+  var ic = document.getElementById('inputCollapsed');
+  if(ic) ic.style.display = 'none';
+  var res = document.getElementById('results');
+  if(res) res.className = 'results';
+  var es = document.getElementById('extractedSummary');
+  if(es){ es.style.display = 'none'; es.innerHTML = ''; }
   clearImage();
 }
 
@@ -727,7 +817,12 @@ async function analyze(){
         +'</div>';
     }
 
-    renderResults(plan, '');
+    // Show extracted positions above results if available
+    var sumEl = document.getElementById('extractedSummary');
+    if(sumEl && sumEl.innerHTML && sumEl.style.display==='none'){
+      sumEl.style.display='block';
+    }
+    renderResults(plan);
 
   } catch(e){
     var msg = e.message || 'Something went wrong.';
@@ -884,18 +979,48 @@ function fm(n){ n=+n; return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'curr
 
 // ── BUILD EXTRACTED HTML ──
 function buildExtractedHtml(positions){
+  // Group by symbol for a cleaner display
+  var totalPnl = positions.reduce(function(s,p){return s+(+p.pnl||0);},0);
+  var winners = positions.filter(function(p){return (+p.pnl||0)>0;}).length;
+  var losers  = positions.filter(function(p){return (+p.pnl||0)<0;}).length;
+
   var rows = positions.map(function(p){
-    var pnlColor = (+p.pnl)>=0 ? 'var(--acc)' : 'var(--red)';
-    return '<div class="extracted-row">'
-      +'<span class="er-sym">'+p.sym.toUpperCase()+'</span>'
-      +'<span class="er-val">'+p.type+'</span>'
-      +'<span class="er-val">qty <span>'+p.size+'</span></span>'
-      +'<span class="er-val">last <span>$'+f2(p.last||0)+'</span></span>'
-      +'<span class="er-val" style="color:'+pnlColor+';font-weight:700">P&L '+fm(p.pnl||0)+'</span>'
-      +(p.notes?'<span class="er-val" style="color:var(--mut)">'+p.notes+'</span>':'')
+    var pnl = +(p.pnl||0);
+    var pnlColor = pnl>=0?'#16a34a':'#dc2626';
+    var pnlBg    = pnl>=0?'rgba(22,101,52,.1)':'rgba(220,38,38,.08)';
+    var typeColor= p.type==='stock'?'#1e3a8a':(p.type==='call'?'#166534':'#9f1239');
+    var typeBg   = p.type==='stock'?'#eff6ff':(p.type==='call'?'#f0fdf4':'#fff1f2');
+    return ''
+      +'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(134,239,172,.2)">'
+      +'<div style="font-weight:900;font-size:.88rem;color:#166534;background:rgba(22,101,52,.12);border-radius:6px;padding:3px 10px;min-width:58px;text-align:center;letter-spacing:-.01em">'+esc(p.sym.toUpperCase())+'</div>'
+      +'<div style="font-size:.7rem;font-weight:700;color:'+typeColor+';background:'+typeBg+';border-radius:4px;padding:2px 8px;text-transform:capitalize">'+esc(p.type)+'</div>'
+      +(p.size?'<div style="font-size:.72rem;color:#64748b;font-weight:500">qty <strong style="color:#374151">'+esc(p.size)+'</strong></div>':'')
+      +(p.last?'<div style="font-size:.72rem;color:#64748b;font-weight:500">@ <strong style="color:#374151">$'+f2(p.last)+'</strong></div>':'')
+      +(p.notes?'<div style="font-size:.68rem;color:#94a3b8;font-style:italic;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.notes)+'</div>':'<div style="flex:1"></div>')
+      +'<div style="font-size:.82rem;font-weight:800;color:'+pnlColor+';background:'+pnlBg+';border-radius:6px;padding:3px 10px;white-space:nowrap;margin-left:auto">'
+      +(pnl>=0?'+':'')+pnl.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0})+'</div>'
       +'</div>';
   }).join('');
-  return '<div class="extracted-positions"><div class="extracted-title">📸 AI Extracted Positions</div>'+rows+'</div>';
+
+  var totalColor = totalPnl>=0?'#16a34a':'#dc2626';
+  var totalBg    = totalPnl>=0?'rgba(22,101,52,.08)':'rgba(220,38,38,.06)';
+
+  return ''
+    +'<div style="background:linear-gradient(135deg,#f0fdf4,#f8fff9);border:1.5px solid #86efac;border-radius:14px;overflow:hidden;margin-bottom:4px">'
+    // Header row
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 10px;border-bottom:1px solid #bbf7d0;flex-wrap:wrap;gap:8px">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<span style="font-size:.58rem;font-weight:800;color:#166534;letter-spacing:.12em;text-transform:uppercase">📸 AI Extracted Positions</span>'
+    +'<span style="background:#166534;color:#fff;font-size:.58rem;font-weight:800;padding:1px 7px;border-radius:10px">'+positions.length+'</span>'
+    +'</div>'
+    +'<div style="display:flex;gap:14px;font-size:.68rem;font-weight:600">'
+    +'<span style="color:#16a34a">✓ '+winners+' winner'+(winners!==1?'s':'')+'</span>'
+    +'<span style="color:#dc2626">✗ '+losers+' loser'+(losers!==1?'s':'')+'</span>'
+    +'<span style="font-weight:800;color:'+totalColor+'">Net: '+(totalPnl>=0?'+':'')+totalPnl.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0})+'</span>'
+    +'</div></div>'
+    // Rows
+    + rows
+    +'</div>';
 }
 
 // ── SCENARIO MODAL ──
@@ -961,87 +1086,139 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModa
 function renderResults(plan, extractedHtml){
   _scenarios = {};
   var s = plan.summary || {};
-  var urgColor = s.urgency==='high'?'var(--red)':s.urgency==='medium'?'var(--yel)':'var(--acc)';
   var totalPnl = s.totalPnl || 0;
-  var pnlColor = totalPnl>=0?'var(--acc)':'var(--red)';
-  var intentLabels = {harvest:'🌾 Harvesting',grow:'📈 Growing',protect:'🛡️ Protecting',repair:'🔧 Repairing',auto:'⚡ Plan',recover:'🔧 Recovery',mixed:'⚡ Mixed'};
+  var intentLabels = {harvest:'🌾 Harvest Plan',grow:'📈 Growth Plan',protect:'🛡️ Protection Plan',repair:'🔧 Repair Plan',auto:'⚡ Adjustment Plan',recover:'🔧 Recovery Plan',mixed:'⚡ Mixed Plan'};
   var intentCols   = {harvest:'#00963a',grow:'#1a5fa8',protect:'#7c3aed',repair:'#d63050',auto:'#7a859e',recover:'#d63050',mixed:'#b8860b'};
+  var urgLabels    = {high:'🔴 HIGH PRIORITY',medium:'🟡 MEDIUM',low:'🟢 LOW','this-week':'🟢 THIS WEEK',today:'🟡 TODAY',now:'🔴 NOW'};
   var intentKey    = currentIntent!=='auto' ? currentIntent : (s.mode||'auto');
   var intentLabel  = intentLabels[intentKey]||'⚡ Plan';
   var intentCol    = intentCols[intentKey]||'#7a859e';
-  var html = extractedHtml;
+  var positions    = plan.positions||[];
+  var fmM = function(n){n=+n;return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
 
-  // Summary bar
-  html += '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
-    +'<div><div style="font-size:1rem;font-weight:800;letter-spacing:-.02em;color:var(--txt)">'+esc(s.headline||'Plan')+'</div>'
-    +'<div style="font-size:.7rem;color:var(--mut);font-family:var(--sans);margin-top:2px">'
-    +'Urgency: <span style="color:'+urgColor+';font-weight:700">'+(s.urgency||'').toUpperCase()+'</span>'
-    +' &nbsp;·&nbsp; Total P&L: <span style="color:'+pnlColor+';font-weight:700">'+fm(totalPnl)+'</span>'
-    +' &nbsp;·&nbsp; '+((plan.positions||[]).length)+' positions'
-    +'</div></div>'
-    +'<span style="font-family:var(--sans);font-size:.68rem;font-weight:800;padding:4px 14px;border-radius:20px;background:'+intentCol+'18;color:'+intentCol+';border:1px solid '+intentCol+'33">'+intentLabel+'</span>'
+  // Count actions
+  var actionCounts = {};
+  positions.forEach(function(pos){(pos.steps||[]).forEach(function(st){actionCounts[st.action]=(actionCounts[st.action]||0)+1;});});
+
+  var html = '';
+
+  // ── HERO SUMMARY CARD ──
+  var pnlColor = totalPnl>=0?'#22c55e':'#f87171';
+  var urgLabel = urgLabels[s.urgency] || (s.urgency||'').toUpperCase();
+  html += '<div class="plan-hero">';
+  html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">';
+  html += '<div style="flex:1;min-width:180px">';
+  html += '<div class="plan-hero-badge" style="background:'+intentCol+'25;color:'+intentCol+';border:1px solid '+intentCol+'40;margin-bottom:10px">'+intentLabel+'</div>';
+  html += '<div class="plan-hero-headline">'+esc(s.headline||'Your Adjustment Plan')+'</div>';
+  html += '<div class="plan-hero-meta"><span>'+urgLabel+'</span><span style="color:#475569">·</span><span>'+positions.length+' position'+(positions.length!==1?'s':'')+'</span></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="plan-hero-stats">';
+  html += '<div class="plan-hero-stat"><div class="plan-hero-stat-label">Portfolio P&L</div><div class="plan-hero-stat-val" style="color:'+pnlColor+'">'+fmM(totalPnl)+'</div></div>';
+  // Count action types
+  var actionEntries = Object.entries(actionCounts).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];});
+  actionEntries.slice(0,3).forEach(function(entry){
+    html += '<div class="plan-hero-stat"><div class="plan-hero-stat-label">'+entry[0]+'</div><div class="plan-hero-stat-val" style="color:#fff">'+entry[1]+'</div></div>';
+  });
+  html += '<div class="plan-hero-stat"><div class="plan-hero-stat-label">Positions</div><div class="plan-hero-stat-val" style="color:#fff">'+positions.length+'</div></div>';
+  html += '</div>';
+  html += '</div>'; // plan-hero
+
+  // ── ACTION BAR ──
+  html += '<div class="action-bar">'
+    +'<span class="action-bar-label">Save &amp; Share</span>'
+    +'<button class="action-bar-btn primary" onclick="doPrint()">🖨️ Print / PDF</button>'
+    +'<button class="action-bar-btn secondary" onclick="doCopy()">📋 Copy Plan</button>'
+    +'<button class="action-bar-btn secondary" onclick="doEmail()">✉️ Email</button>'
     +'</div>';
 
-  (plan.positions||[]).forEach(function(pos, idx){
+  // ── POSITION CARDS ──
+  var actStyles = {
+    CLOSE: {bg:'#fff1f2',pill:'background:#fda4af;color:#9f1239'},
+    ROLL:  {bg:'#eff6ff',pill:'background:#93c5fd;color:#1e3a8a'},
+    ENTER: {bg:'#f0fdf4',pill:'background:#86efac;color:#166534'},
+    HOLD:  {bg:'#f8fafc',pill:'background:#e2e8f0;color:#374151'},
+    TRIM:  {bg:'#fffbeb',pill:'background:#fcd34d;color:#92400e'},
+    BUY:   {bg:'#f0fdf4',pill:'background:#86efac;color:#166534'},
+    SELL:  {bg:'#fff1f2',pill:'background:#fda4af;color:#9f1239'},
+  };
+  var pnlCellStyles = {
+    below: {bg:'#fff1f2',label:'📉 Below',vc:'#dc2626'},
+    at:    {bg:'#fffbeb',label:'⚖️ At Strike',vc:'#d97706'},
+    above: {bg:'#f0fdf4',label:'📈 Above',vc:'#16a34a'},
+  };
+
+  positions.forEach(function(pos, idx){
     var key = pos.sym+'_'+idx;
     _scenarios[key] = pos;
-    var pnl    = (pos.currentMetrics&&pos.currentMetrics.pnl)||0;
-    var pnlPct = (pos.currentMetrics&&pos.currentMetrics.pnlPct)||0;
-    var liveP  = (pos.currentMetrics&&pos.currentMetrics.livePrice)||0;
-    var isGreen= pnl >= 0;
-    var sc     = pos.scenarios||{};
-    var hasSc  = sc.below||sc.at||sc.above;
-    var urgMap = {now:'🔴',today:'🟡','this-week':'🟢',optional:'⚪'};
-    var actMap = {CLOSE:'at-close',ROLL:'at-roll',ENTER:'at-enter',HOLD:'at-hold',TRIM:'at-trim'};
-    var actBg  = {CLOSE:'rgba(214,48,80,.06)',ROLL:'rgba(0,112,204,.06)',ENTER:'rgba(0,150,58,.06)',TRIM:'rgba(184,134,11,.06)',HOLD:'rgba(0,0,0,.02)'};
+    var m = pos.currentMetrics||{};
+    var pnl = m.pnl||0;
+    var pnlPct = m.pnlPct||0;
+    var liveP = m.livePrice||0;
+    var isGreen = pnl>=0;
+    var sc = pos.scenarios||{};
+    var hasSc = sc.below||sc.at||sc.above;
+    var pnlClr = isGreen?'#16a34a':'#dc2626';
+    var pnlBg  = isGreen?'#f0fdf4':'#fff1f2';
 
-    html += '<div class="pos-card">';
-    html += '<div class="pos-card-head">'
-      +'<div style="display:flex;align-items:center;gap:10px">'
-      +'<div class="pos-sym">'+esc(pos.sym)+'</div>'
-      +(pos.strategyLabel?'<span style="font-family:var(--sans);font-size:.66rem;font-weight:800;color:'+intentCol+';padding:3px 9px;background:'+intentCol+'10;border-radius:20px;border:1px solid '+intentCol+'25">'+esc(pos.strategyLabel)+'</span>':'')
-      +(liveP?'<span style="font-family:var(--sans);font-size:.7rem;color:var(--mut)">$'+f2(liveP)+'</span>':'')
-      +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<div class="pos-pnl '+(isGreen?'green':'red')+'">'+fm(pnl)+(pnlPct?' <span style="font-size:.7rem;font-weight:400">('+f2(Math.abs(pnlPct))+'%)</span>':'')+'</div>'
-      +(hasSc?'<button onclick="openScenario(\''+key+'\')" style="background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:.64rem;font-family:var(--sans);font-weight:700;color:var(--blu);cursor:pointer;white-space:nowrap" onmouseover="this.style.background=\'var(--b1)\'" onmouseout="this.style.background=\'var(--s2)\'">📊 Scenarios</button>':'')
-      +'</div></div>';
+    html += '<div class="pos-card-v2">';
 
-    html += '<div class="pos-card-body" style="padding:12px 18px">';
-    if(pos.steps && pos.steps.length){
-      html += '<div style="display:flex;flex-direction:column;gap:5px">';
-      pos.steps.forEach(function(st){
-        html += '<div style="display:flex;align-items:center;gap:10px;background:'+(actBg[st.action]||'rgba(0,0,0,.02)')+';border-radius:7px;padding:7px 11px">'
-          +'<span class="action-tag '+(actMap[st.action]||'at-hold')+'" style="flex-shrink:0;font-size:.64rem">'+esc(st.action)+'</span>'
-          +'<span style="color:var(--txt);flex:1;font-size:.82rem;font-weight:700">'+esc(st.details||st.description)+'</span>'
-          +((urgMap[st.urgency]||'')?'<span style="flex-shrink:0;font-size:.76rem">'+(urgMap[st.urgency]||'')+'</span>':'')
-          +'</div>';
-      });
-      html += '</div>';
+    // Card header
+    html += '<div class="pos-card-v2-head">';
+    html += '<div>';
+    if(pos.strategyLabel){
+      html += '<div class="strategy-chip" style="background:'+intentCol+'12;color:'+intentCol+';border:1px solid '+intentCol+'25">'+esc(pos.strategyLabel)+'</div><br>';
     }
-
-    // Inline P&L model
+    html += '<div class="pos-sym-v2">'+esc(pos.sym)+'</div>';
+    if(liveP){ html += '<div class="pos-sym-sub">Live: $'+f2(liveP)+'</div>'; }
+    html += '</div>';
+    html += '<div style="text-align:right">';
+    html += '<div class="pos-pnl-v2" style="color:'+pnlClr+'">'+fmM(pnl)+'</div>';
+    if(pnlPct){ html += '<div class="pos-pnl-pct" style="color:'+pnlClr+'">'+(pnl>=0?'+':'')+f2(Math.abs(pnlPct))+'%</div>'; }
     if(hasSc){
-      var fmM=function(n){n=+n;return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
-      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">';
-      [['below','📉 Below','var(--red)'],['at','⚖️ At Strike','var(--yel)'],['above','📈 Above','var(--acc)']].forEach(function(s){
-        var d=sc[s[0]]||{}, hasPnl=d.pnl!=null, win=hasPnl&&d.pnl>=0;
-        html+='<div style="background:var(--s2);border-radius:8px;padding:8px 10px;text-align:center">'
-          +'<div style="font-size:.65rem;color:var(--mut);font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+(d.label||s[1])+'</div>'
-          +(hasPnl?'<div style="font-size:.88rem;font-weight:900;color:'+(win?'var(--acc)':'var(--red)')+';font-family:var(--sans)">'+fmM(d.pnl)+'</div>':'<div style="color:var(--mut);font-size:.8rem">—</div>')
-          +(d.note?'<div style="font-size:.6rem;color:var(--mut);margin-top:2px;line-height:1.3">'+esc(d.note)+'</div>':'')
-          +'</div>';
-      });
-      html += '</div>';
+      html += '<button onclick="openScenario(\''+key+'\')" style="margin-top:6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:4px 10px;font-size:.62rem;font-family:var(--sans);font-weight:700;color:#1e3a8a;cursor:pointer" onmouseover="this.style.background=\'#e2e8f0\'" onmouseout="this.style.background=\'#f1f5f9\'">📊 Scenarios</button>';
     }
     html += '</div></div>';
+
+    // Steps
+    html += '<div class="pos-card-v2-body">';
+    if(pos.steps && pos.steps.length){
+      var urgMap = {now:'🔴',today:'🟡','this-week':'🟢',optional:'⚪'};
+      pos.steps.forEach(function(st){
+        var aStyle = actStyles[st.action]||actStyles.HOLD;
+        html += '<div class="step-item" style="background:'+aStyle.bg+'">'
+          +'<span class="step-action-pill" style="'+aStyle.pill+'">'+esc(st.action)+'</span>'
+          +'<span class="step-detail">'+esc(st.details||st.description||'')+'</span>'
+          +((urgMap[st.urgency]||'')?'<span class="step-urgency">'+(urgMap[st.urgency])+'</span>':'')
+          +'</div>';
+      });
+    }
+
+    // P&L model grid
+    if(hasSc){
+      html += '<div class="pnl-grid">';
+      ['below','at','above'].forEach(function(k){
+        var d = sc[k]||{};
+        var cs = pnlCellStyles[k];
+        var hasPnl = d.pnl!=null;
+        var win = hasPnl && d.pnl>=0;
+        html += '<div class="pnl-cell" style="background:'+cs.bg+'">'
+          +'<div class="pnl-cell-label">'+esc(d.label||cs.label)+'</div>'
+          +(hasPnl?'<div class="pnl-cell-val" style="color:'+(win?'#16a34a':'#dc2626')+'">'+fmM(d.pnl)+'</div>':'<div class="pnl-cell-val" style="color:#94a3b8">—</div>')
+          +(d.note?'<div class="pnl-cell-note">'+esc(d.note)+'</div>':'')
+          +'</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div></div>'; // body + card
   });
 
-  html += '<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+  html += '<div class="disclaimer-footer">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
+
   var el = document.getElementById('results');
+  if(!el){ console.error('results element not found'); return; }
   el.innerHTML = html;
   el.className = 'results show';
-  // Show go-back button
   var gb = document.getElementById('goBackWrap');
   if(gb) gb.style.display='block';
   el.scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1090,49 +1267,62 @@ document.addEventListener('focusin',function(e){
 
 // ── GO BACK TO HOME ──
 function goBackToHome(){
-  // Hide results + go-back button
   var res = document.getElementById('results');
   if(res){ res.innerHTML=''; res.className='results'; }
   var gb = document.getElementById('goBackWrap');
   if(gb) gb.style.display='none';
-  // Hide intent wrap and analyze button
   var iw = document.getElementById('intentWrap');
   if(iw) iw.style.display='none';
   var ab = document.getElementById('analyzeBtn');
-  if(ab){ ab.style.display='none'; }
-  // Reset extract button
+  if(ab){ ab.style.display='none'; ab.style.background=''; }
   var eb = document.getElementById('extractBtn');
   if(eb){ eb.disabled=false; eb.innerHTML='<span>🔍</span> <span>Analyze My Portfolio</span>'; eb.style.background=''; }
-  // Show upload wrap
   var uw = document.getElementById('uploadWrap');
   if(uw) uw.style.display='block';
-  // Show manual section
   var ms = document.getElementById('manualSection');
   if(ms) ms.style.display='block';
-  // Hide extracted summary
   var es = document.getElementById('extractedSummary');
   if(es){ es.style.display='none'; es.innerHTML=''; }
-  // Hide collapsed bar
   var ic = document.getElementById('inputCollapsed');
   if(ic) ic.style.display='none';
-  // Clear rows and add a fresh one
   var pg = document.getElementById('posGrid');
   if(pg) pg.innerHTML='';
   rowId=0;
   _extractedPositions=[];
   clearImage();
   addRow();
-  // Hide status/error
   hideStatus(); hideError();
-  // Reset intent
   currentIntent='auto';
-  // Scroll to top
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 window.addEventListener('load',function(){
   updateApiStatus();
 });
+
+function doPrint(){window.print();}
+function doEmail(){
+  var subj=encodeURIComponent('Portfolio Adjustment Plan — PortfolioEdge');
+  var body=encodeURIComponent(getPlanText());
+  window.location.href='mailto:?subject='+subj+'&body='+body;
+}
+function doCopy(){
+  var txt=getPlanText();
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){showToast('✓ Copied to clipboard');});}
+  else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✓ Copied');}
+}
+function getPlanText(){
+  var out='PORTFOLIO ADJUSTMENT PLAN\nGenerated by PortfolioEdge\n'+new Date().toLocaleDateString()+'\n\n';
+  var res=document.getElementById('results');
+  if(res)out+=res.innerText;
+  return out;
+}
+function showToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
+}
+
 </script>
 
 <!-- API Key Modal -->
