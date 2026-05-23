@@ -263,8 +263,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- MKT STATUS -->
-<div style="display:flex;justify-content:center;margin-bottom:6px">
-  <span class="mkt-pill wait" id="mktPill">MKT —</span>
+<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+  <span class="mkt-pill wait" id="mktPill">MKT NOW</span>
+  <span id="sp-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
+  <span id="dow-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
+  <span id="nas-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
 </div>
 
 <!-- LIVE PRICES -->
@@ -896,23 +899,59 @@ function fetchP(sym){
 function fmtTs(){var n=new Date(),d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],h=n.getHours(),mi=n.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return d[n.getDay()]+' '+m[n.getMonth()]+' '+n.getDate()+' '+h+':'+(mi<10?'0':'')+mi+' '+ap;}
 function updateMktNow(bull,bear){
   // Always reflect today's actual price action (avg of SPY+QQQ % change).
-  // Signal-based bull/bear args are ignored — they describe the trend setup,
-  // not today's move, which caused the pill to disagree with reality.
   var el=$('mktPill');if(!el)return;
-  var cls,txt;
+  var cls;
   var spy=LIVE_CHG['spy'],qqq=LIVE_CHG['qqq'];
   if(spy===undefined&&qqq===undefined){
-    cls='wait';txt='MKT —';
+    cls='wait';
   } else {
     var avg=((spy||0)+(qqq||0))/((spy!==undefined?1:0)+(qqq!==undefined?1:0)||1);
-    if(avg>=0.3){cls='bull';txt='MKT ▲';}
-    else if(avg<=-0.3){cls='bear';txt='MKT ▼';}
-    else{cls='flat';txt='MKT —';}
+    if(avg>=0.3){cls='bull';}
+    else if(avg<=-0.3){cls='bear';}
+    else{cls='flat';}
   }
   el.className='mkt-pill '+cls;
-  el.textContent=txt;
+  el.textContent='MKT NOW';
+  // Update S&P pill — use SPY as S&P 500 proxy (already fetched)
+  var spEl=$('sp-pill');
+  var sc=LIVE_CHG['spy'];
+  if(spEl&&sc!==undefined){
+    spEl.style.display='inline';
+    spEl.style.color=sc>=0?'var(--green)':'var(--red)';
+    spEl.textContent='S&P '+(sc>=0?'+':'')+sc.toFixed(2)+'%';
+  }
+  // Update DOW pill
+  var dowEl=$('dow-pill');
+  if(dowEl&&LIVE_CHG['dow']!==undefined){
+    var dc=LIVE_CHG['dow'];
+    dowEl.style.display='inline';
+    dowEl.style.color=dc>=0?'var(--green)':'var(--red)';
+    dowEl.textContent='DOW '+(dc>=0?'+':'')+dc.toFixed(2)+'%';
+  }
+  // Update Nasdaq pill — use QQQ as Nasdaq-100 proxy (already fetched)
+  var nasEl=$('nas-pill');
+  var nc=LIVE_CHG['qqq'];
+  if(nasEl&&nc!==undefined){
+    nasEl.style.display='inline';
+    nasEl.style.color=nc>=0?'var(--green)':'var(--red)';
+    nasEl.textContent='NAS '+(nc>=0?'+':'')+nc.toFixed(2)+'%';
+  }
 }
-function fetchAll(){fetchP('SPY');fetchP('QQQ');}
+function fetchDIA(){
+  // DIA tracks the Dow Jones Industrial Average
+  var url=PROXY_URL
+    ?PROXY_URL+'?symbol=DIA'
+    :'https://finnhub.io/api/v1/quote?symbol=DIA&token='+FK;
+  fetch(url)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var p=d.c,ch=p-d.pc,pct=ch/d.pc*100;
+      if(isNaN(pct)||!isFinite(pct))return;
+      LIVE_CHG['dow']=pct;
+      updateMktNow();
+    }).catch(function(){});
+}
+function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();}
 
 /* ── TAB 1 ── */
 function setT1(t){
