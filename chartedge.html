@@ -59,17 +59,17 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
 #resultsView{flex:1;display:none;overflow:hidden;flex-direction:column}
 #resultsView.show{display:flex}
 
-/* Sticky top bar (chart thumbnail + signal) */
-.sticky-top{flex-shrink:0;background:#0a0f1e;display:flex;align-items:stretch;border-bottom:2px solid var(--border);max-height:100px}
-.sticky-thumb{width:110px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111827;border-right:1px solid #1e293b}
-.sticky-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+/* Sticky top bar (chart thumbnail + signal) — MOBILE: horizontal strip pinned at top */
+.sticky-top{flex-shrink:0;background:#0a0f1e;display:flex;align-items:stretch;border-bottom:2px solid var(--border)}
+.sticky-thumb{width:120px;height:90px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111827;border-right:1px solid #1e293b}
+.sticky-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .sticky-thumb-empty{color:#475569;font-size:.65rem;font-weight:600;text-align:center;padding:10px 6px}
-.sticky-info{flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;overflow:hidden}
-.sticky-trend{font-size:.88rem;font-weight:900;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sticky-meta{font-size:.58rem;color:#64748b;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sticky-pills{display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;margin-top:1px}
-.sticky-pill{font-size:.52rem;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
-.sticky-actions{flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:8px 8px 8px 4px;justify-content:center}
+.sticky-info{flex:1;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0;overflow:hidden}
+.sticky-trend{font-size:1.15rem;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.sticky-meta{font-size:.65rem;color:#64748b;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em;text-transform:uppercase}
+.sticky-pills{display:flex;gap:4px;flex-wrap:wrap;overflow:hidden;margin-top:2px}
+.sticky-pill{font-size:.55rem;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.sticky-actions{flex-shrink:0;display:flex;flex-direction:row;gap:4px;padding:6px 8px;justify-content:center;align-items:center;border-top:1px solid #1e293b;background:#0a0f1e}
 .new-chart-btn{background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800;cursor:pointer;font-family:var(--sans);white-space:nowrap;line-height:1}
 .new-chart-btn:hover{background:#334155;color:#fff}
 .share-mini{display:flex;gap:3px}
@@ -118,14 +118,14 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
 
 /* ── Responsive desktop: side by side ── */
 @media(min-width:700px){
-  #resultsView.show{flex-direction:row}
-  .sticky-top{width:250px;min-width:210px;flex-direction:column;max-height:none;height:100%;border-right:2px solid var(--border);border-bottom:none;flex-shrink:0}
+  #resultsView.show{flex-direction:row;flex-wrap:wrap}
+  .sticky-top{width:250px;min-width:210px;flex-direction:column;height:calc(100% - 45px);border-right:2px solid var(--border);border-bottom:none;flex-shrink:0}
+  .sticky-actions{width:250px;min-width:210px;flex-shrink:0;border-right:2px solid var(--border);justify-content:space-between;padding:8px 12px}
+  .cards-scroll{flex:1;min-width:0;height:100%;padding:10px 12px 40px}
   .sticky-thumb{width:100%;height:170px;border-right:none;border-bottom:1px solid #1e293b}
   .sticky-info{padding:10px 12px}
   .sticky-trend{font-size:1.1rem}
-  .sticky-actions{flex-direction:row;padding:10px 12px;border-top:1px solid #1e293b;align-items:center;justify-content:space-between}
   .share-mini button{padding:5px 9px;font-size:10px}
-  .cards-scroll{padding:10px 12px 40px}
   .manual-grid{grid-template-columns:repeat(3,1fr)}
 }
 
@@ -172,10 +172,10 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
 
       <div style="margin-bottom:10px">
         <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
-          <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
+          <input type="file" id="fileInput" accept="image/*" multiple onchange="onFile(event)">
           <span class="di">📊</span>
-          <div class="dl">Upload your chart screenshot</div>
-          <div class="ds">Any timeframe · Any stock or ETF · Any broker</div>
+          <div class="dl">Upload 1–3 chart screenshots</div>
+          <div class="ds">Any timeframe · Any stock or ETF · Any broker · Multi-chart combined analysis</div>
           <div class="dh">✦ AI reads price action, trend & support/resistance</div>
         </div>
         <div id="previewColUpload" style="display:none;margin:8px 0;text-align:center">
@@ -232,13 +232,13 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
         <div class="sticky-meta" id="stickyMeta"></div>
         <div class="sticky-pills" id="stickyPills"></div>
       </div>
-      <div class="sticky-actions">
-        <button class="new-chart-btn" onclick="resetAll()">📤 New Chart</button>
-        <div class="share-mini">
-          <button onclick="window.print()" title="Print">🖨️</button>
-          <button onclick="doEmail()" title="Email">✉️</button>
-          <button onclick="doCopy()" title="Copy">📋</button>
-        </div>
+    </div>
+    <div class="sticky-actions">
+      <button class="new-chart-btn" onclick="resetAll()">📤 New Chart</button>
+      <div class="share-mini">
+        <button onclick="window.print()" title="Print">🖨️</button>
+        <button onclick="doEmail()" title="Email">✉️</button>
+        <button onclick="doCopy()" title="Copy">📋</button>
       </div>
     </div>
 
@@ -271,6 +271,7 @@ function setStyle(id,p,v){var e=gid(id);if(e)e.style[p]=v;}
 function setDisp(id,v){setStyle(id,'display',v);}
 
 var imageB64=null, imageType='image/png', currentOutlook='auto';
+var imageFiles=[]; // multi-chart support
 var CLAUDE_MODEL='claude-sonnet-4-5';
 
 // API KEY
@@ -284,31 +285,69 @@ function updateApiStatus(){var b=gid('api-status-btn');if(!b)return;var h=getApi
 // IMAGE
 function onDrag(e,over){e.preventDefault();gid('dropZone').classList.toggle('drag',over);}
 function onDrop(e){e.preventDefault();gid('dropZone').classList.remove('drag');var f=e.dataTransfer.files[0];if(f)loadFile(f);}
-function onFile(e){var f=e.target.files[0];if(f)loadFile(f);}
-function loadFile(f){
-  imageType=f.type||'image/png';
-  var r=new FileReader();
-  r.onload=function(ev){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=1200,w=img.width,h=img.height;
-      if(w>MAX||h>MAX){var sc=Math.min(MAX/w,MAX/h);w=Math.round(w*sc);h=Math.round(h*sc);}
-      var c=document.createElement('canvas');c.width=w;c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      var comp=c.toDataURL('image/jpeg',.82);
-      imageB64=comp.split(',')[1]; imageType='image/jpeg';
-      var pu=gid('previewImgUpload');if(pu)pu.src=comp;
-      setDisp('previewColUpload','block');
-      gid('dropZone').style.display='none';
+function onFile(e){var files=Array.from(e.target.files||[]);if(files.length)loadFiles(files);}
+function loadFiles(files){
+  files=files.slice(0,3);
+  imageFiles=[];
+  imageB64=null;
+  var prev=gid('previewColUpload');if(prev)prev.innerHTML='';
+  var loaded=0;
+  files.forEach(function(f,idx){
+    var r=new FileReader();
+    r.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var MAX=1200,w=img.width,h=img.height;
+        if(w>MAX||h>MAX){var sc=Math.min(MAX/w,MAX/h);w=Math.round(w*sc);h=Math.round(h*sc);}
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        var comp=c.toDataURL('image/jpeg',.82);
+        imageFiles[idx]={b64:comp.split(',')[1],type:'image/jpeg',src:comp};
+        if(idx===0){imageB64=imageFiles[0].b64;imageType='image/jpeg';}
+        loaded++;
+        if(loaded===files.length){
+          var prev=gid('previewColUpload');
+          if(prev){
+            prev.style.display='block';
+            prev.innerHTML='';
+            var wrap=document.createElement('div');
+            wrap.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0';
+            imageFiles.forEach(function(im,i){
+              var d=document.createElement('div');
+              d.style.cssText='position:relative;display:inline-block';
+              var im2=document.createElement('img');
+              im2.src=im.src;
+              im2.style.cssText='height:80px;border-radius:6px;border:1px solid #e2e8f0;object-fit:cover';
+              var lbl=document.createElement('div');
+              lbl.style.cssText='font-size:9px;font-weight:700;color:#64748b;text-align:center;margin-top:2px';
+              lbl.textContent='Chart '+(i+1);
+              d.appendChild(im2);d.appendChild(lbl);wrap.appendChild(d);
+            });
+            prev.appendChild(wrap);
+            var btn=document.createElement('button');
+            btn.textContent='✕ Remove all';
+            btn.style.cssText='display:block;margin:4px auto 0;background:#0f172a;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--sans)';
+            btn.onclick=clearImage;
+            prev.appendChild(btn);
+            if(imageFiles.length>1){
+              var note=document.createElement('div');
+              note.style.cssText='font-size:10px;color:#166534;font-weight:700;text-align:center;margin-top:4px;background:#f0fdf4;border-radius:6px;padding:4px 8px;border:1px solid #86efac';
+              note.textContent='✦ '+imageFiles.length+' charts — AI will do combined analysis';
+              prev.appendChild(note);
+            }
+          }
+          gid('dropZone').style.display='none';
+        }
+      };
+      img.src=ev.target.result;
     };
-    img.src=ev.target.result;
-  };
-  r.readAsDataURL(f);
+    r.readAsDataURL(f);
+  });
 }
 function clearImage(){
-  imageB64=null;
+  imageB64=null;imageFiles=[];
   setDisp('previewColUpload','none');
-  var pu=gid('previewImgUpload');if(pu)pu.src='';
+  var prev=gid('previewColUpload');if(prev)prev.innerHTML='';
   var fi=gid('fileInput');if(fi)fi.value='';
   gid('dropZone').style.display='';
 }
@@ -364,8 +403,16 @@ Return ONLY valid JSON, no markdown.
 {"ticker":null,"price":null,"timeframe":"string","trend":"bullish|bearish|neutral|volatile","confidence":"high|medium|low","chart_reading":{"pattern":"string","key_levels":["string"],"momentum":"string","volatility_outlook":"expanding|contracting|stable"},"strategies":[{"rank":1,"label":"Conservative","name":"string","type":"call|put|spread|straddle","direction":"bullish|bearish|neutral|volatile","reasoning":"string","structure":{"strike_guidance":"string","dte_ideal":30,"est_premium":150,"max_risk":150,"max_reward":450},"pnl":{"bear_case":{"label":"Full loss","pnl":-150},"base_case":{"label":"Partial profit","pnl":80},"bull_case":{"label":"Target hit","pnl":450}},"risk_metrics":{"probability_profit":"~62%","breakeven":"$X","risk_reward":"1:3"}},{"rank":2,"label":"Moderate","name":"string","type":"call","direction":"bullish","reasoning":"string","structure":{"strike_guidance":"ATM","dte_ideal":14,"est_premium":250,"max_risk":250,"max_reward":625},"pnl":{"bear_case":{"label":"Full loss","pnl":-250},"base_case":{"label":"Breakeven","pnl":10},"bull_case":{"label":"Target hit","pnl":625}},"risk_metrics":{"probability_profit":"~48%","breakeven":"$X","risk_reward":"1:2.5"}},{"rank":3,"label":"Aggressive","name":"string","type":"call","direction":"bullish","reasoning":"string","structure":{"strike_guidance":"3-5% OTM","dte_ideal":5,"est_premium":80,"max_risk":160,"max_reward":960},"pnl":{"bear_case":{"label":"Full loss","pnl":-160},"base_case":{"label":"Expires worthless","pnl":-160},"bull_case":{"label":"Big move","pnl":960}},"risk_metrics":{"probability_profit":"~22%","breakeven":"$X","risk_reward":"1:6"}}],"top_pick":2,"overall_note":"string"}`;
 
     var uc=[];
-    if(imageB64)uc.push({type:'image',source:{type:'base64',media_type:imageType,data:imageB64}});
-    uc.push({type:'text',text:'Analyze this chart and recommend options strategies.'+ctx});
+    if(imageFiles.length>1){
+      imageFiles.forEach(function(im,i){
+        uc.push({type:'text',text:'Chart '+(i+1)+':'});
+        uc.push({type:'image',source:{type:'base64',media_type:im.type,data:im.b64}});
+      });
+      uc.push({type:'text',text:'Analyze ALL '+imageFiles.length+' charts above together and provide a combined multi-timeframe options strategy recommendation.'+ctx});
+    } else {
+      if(imageB64)uc.push({type:'image',source:{type:'base64',media_type:imageType,data:imageB64}});
+      uc.push({type:'text',text:'Analyze this chart and recommend options strategies.'+ctx});
+    }
     var body={model:CLAUDE_MODEL,max_tokens:3000,system:sys,messages:[{role:'user',content:uc}]};
     setStatus('Building strategy recommendations…');
     var _ac=new AbortController();var _at=setTimeout(function(){_ac.abort();},90000);
@@ -393,8 +440,11 @@ Return ONLY valid JSON, no markdown.
 function populateStickyPanel(plan){
   // Thumbnail
   var st=gid('stickyThumb');
-  if(imageB64&&st){
-    st.innerHTML='<img src="data:image/jpeg;base64,'+imageB64+'" alt="chart"/>';
+  var thumbSrc=imageFiles.length>0?imageFiles[0].src:(imageB64?'data:image/jpeg;base64,'+imageB64:null);
+  if(thumbSrc&&st){
+    var countBadge=imageFiles.length>1?' <div style="position:absolute;bottom:3px;right:3px;background:#0f172a;color:#94a3b8;font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;border:1px solid #334155">'+imageFiles.length+'×</div>':'';
+    st.style.position='relative';
+    st.innerHTML='<img src="'+thumbSrc+'" alt="chart"/>'+countBadge;
     var nt=gid('noThumb');if(nt)nt.style.display='none';
   }
   // Trend
