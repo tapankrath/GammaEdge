@@ -9,60 +9,48 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f1f5f9;--p1:#ffffff;--p2:#f8fafc;
-  --s1:#ffffff;--s2:#f8fafc;
-  --b1:#e2e8f0;--b2:#cbd5e1;--border:#e2e8f0;
-  --text:#0a0f1e;--txt:#0a0f1e;--dim:#374151;--mut:#374151;
-  --green:#166534;--gbg:#f0fdf4;--gbd:#86efac;
-  --acc:#166534;--acc2:#15803d;
-  --red:#9b1c1c;--rbg:#fef2f2;--rbd:#fca5a5;
-  --amber:#92400e;--abg:#fffbeb;--abd:#fcd34d;
-  --yel:#92400e;--blu:#1e3a8a;--blue:#1e3a8a;
-  --mono:'Inter',-apple-system,monospace;
-  --sans:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
-}
+:root{--bg:#f1f5f9;--p1:#fff;--p2:#f8fafc;--s1:#fff;--s2:#f8fafc;--b1:#e2e8f0;--b2:#cbd5e1;--border:#e2e8f0;--text:#0a0f1e;--txt:#0a0f1e;--dim:#374151;--mut:#374151;--green:#166534;--gbg:#f0fdf4;--gbd:#86efac;--acc:#166534;--red:#9b1c1c;--rbg:#fef2f2;--amber:#92400e;--abg:#fffbeb;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
 
 /* NAV */
 nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 
 /* LAYOUT */
-.wrap{max-width:680px;margin:0 auto;padding:16px}
+.wrap{max-width:540px;margin:0 auto;padding:8px 14px 40px}
 .page-header{margin-bottom:28px}
 .page-header h1{font-size:1.8rem;font-weight:900;letter-spacing:-.04em;color:var(--txt);margin-bottom:6px;font-family:var(--sans)}
 .page-header p{color:#374151;font-size:.9rem;line-height:1.65;max-width:560px;font-weight:500}
 .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,150,58,.08);border:1px solid rgba(0,150,58,.2);color:var(--acc);font-family:var(--sans);font-size:.68rem;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:20px;margin-bottom:12px}
 
 /* DROP ZONE */
-.drop-zone{border:2px dashed #cbd5e1;border-radius:16px;padding:32px 24px;text-align:center;cursor:pointer;transition:all .25s;position:relative;background:linear-gradient(145deg,#ffffff,#f8fafc);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.drop-zone{border:2px dashed #94a3b8;border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:#f8fafc}
 .drop-zone:hover,.drop-zone.drag{border-color:var(--acc);background:linear-gradient(145deg,#f0fdf4,#f8fff9);box-shadow:0 4px 18px rgba(22,101,52,.1);transform:translateY(-1px)}
 .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:10}
-.drop-zone .drop-icon,.drop-zone .drop-label,.drop-zone .drop-sub,.drop-zone .drop-hint{pointer-events:none;position:relative;z-index:1}
-.drop-icon{font-size:2.2rem;margin-bottom:10px;display:block}
-.drop-label{font-size:.9rem;color:var(--txt);font-weight:800;margin-bottom:4px}
-.drop-sub{font-size:.76rem;color:#64748b;font-weight:500;margin-bottom:8px}
-.drop-hint{display:inline-flex;align-items:center;gap:5px;background:rgba(22,101,52,.07);border:1px solid rgba(22,101,52,.15);color:var(--acc);font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+.drop-zone .drop-icon,.drop-zone .drop-label,.drop-zone .drop-sub,.drop-zone .drop-hint{display:inline-block;font-size:.68rem;font-weight:700;color:var(--acc);background:var(--gbg);border:1px solid var(--gbd);border-radius:20px;padding:3px 10px}
+.drop-icon{font-size:1.8rem;display:block;margin-bottom:6px}
+.drop-label{font-size:.9rem;font-weight:800;color:var(--txt);margin-bottom:3px}
+.drop-sub{font-size:.72rem;color:var(--mut);margin-bottom:8px}
+.drop-hint{display:inline-block;font-size:.68rem;font-weight:700;color:var(--acc);background:var(--gbg);border:1px solid var(--gbd);border-radius:20px;padding:3px 10px}
 .preview-wrap{position:relative}
 .preview-wrap img{width:100%;border-radius:10px;border:1px solid var(--b1);display:block;max-height:240px;object-fit:contain;background:var(--s2)}
 .preview-clear{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:1px solid var(--b2);border-radius:50%;width:26px;height:26px;color:var(--mut);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .preview-clear:hover{color:var(--red);border-color:var(--red)}
 
 /* MANUAL INPUT */
-.manual-section{background:var(--p1);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.manual-title{font-size:10px;font-family:var(--sans);font-weight:800;letter-spacing:.15em;color:#374151;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.manual-section{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.manual-title{font-size:.65rem;font-weight:800;letter-spacing:.1em;color:#374151;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .manual-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.field-group{display:flex;flex-direction:column;gap:4px}
-.field-label{font-size:.68rem;color:#374151;font-family:var(--sans);font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-.field-input{background:var(--p2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font-family:var(--sans);font-size:13px;font-weight:700;width:100%;transition:border-color .15s}
+.field-group{display:flex;flex-direction:column;gap:3px}
+.field-label{font-size:.6rem;color:#374151;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.field-input{background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:7px 9px;font-size:.82rem;font-weight:600;color:var(--txt);width:100%;box-sizing:border-box;font-family:var(--sans)}
 .field-input:focus{outline:none;border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(22,101,52,.1)}
 .field-input::placeholder{color:var(--mut);font-weight:400}
 @media(max-width:520px){.nav-tagline{display:none!important}
-  .manual-grid{grid-template-columns:1fr 1fr}
-  .wrap{padding:10px}
-  .drop-zone{padding:20px 16px}
-  .drop-icon{font-size:1.6rem;margin-bottom:6px}
-  .drop-label{font-size:.82rem}
+  .manual-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .wrap{max-width:540px;margin:0 auto;padding:8px 14px 40px}
+  .drop-zone{border:2px dashed #94a3b8;border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:#f8fafc}
+  .drop-icon{font-size:1.8rem;display:block;margin-bottom:6px}
+  .drop-label{font-size:.9rem;font-weight:800;color:var(--txt);margin-bottom:3px}
   .page-header h1{font-size:1.4rem}
   .page-header{margin-bottom:16px}
   .strat-body{padding:12px}
@@ -78,7 +66,7 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
 .outlook-tile:hover{border-color:var(--acc);background:rgba(22,101,52,.04)}
 
 /* ANALYZE BTN */
-.analyze-btn{width:100%;padding:14px;background:#0f172a;border:none;border-radius:10px;color:#fff;font-weight:800;letter-spacing:.06em;font-family:var(--sans);font-size:.95rem;cursor:pointer;letter-spacing:.02em;transition:all .2s;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,150,58,.2)}
+.analyze-btn{width:100%;padding:13px;background:#0f172a;border:none;border-radius:10px;color:#fff;font-weight:800;font-size:.9rem;font-family:var(--sans);cursor:pointer;letter-spacing:.04em;margin-bottom:10px}
 .analyze-btn:hover{background:#1e293b;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,0,0,.2)}
 .analyze-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
 .analyze-btn.loading{background:var(--s2);color:var(--mut);border:1px solid var(--b1);box-shadow:none}
@@ -147,41 +135,27 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
 .share-bar{display:none;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .share-bar.visible{display:flex}
 .share-btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+@media(max-width:480px){.manual-grid{grid-template-columns:1fr 1fr}}
+@media print{nav,.manual-section,#errorBox,.analyze-btn,.share-bar,#api-modal{display:none!important}body{background:#fff}.wrap{padding:10px}@page{margin:15mm}}
 </style>
 </head>
 <body>
 
-<nav style="background:#0a0f1e;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.25)">
-  <div style="display:flex;flex-direction:column;line-height:1.2">
-    <span style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-.02em;font-family:var(--sans)">ChartEdge</span>
-    <span style="font-size:9px;font-weight:700;color:#475569;letter-spacing:.12em;text-transform:uppercase">Options Strategy Engine</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <a href="https://tapankrath.github.io/GammaEdge" target="_blank" style="background:#0a0f1e;color:#fff;border:1.5px solid #334155;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s" onmouseover="this.style.background='#1e293b';this.style.borderColor='#64748b'" onmouseout="this.style.background='#0a0f1e';this.style.borderColor='#334155'">← GammaEdge</a>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#0a0f1e;color:#fff;border:1.5px solid #334155;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s" onmouseover="this.style.background='#1e293b';this.style.borderColor='#64748b'" onmouseout="this.style.background='#0a0f1e';this.style.borderColor='#334155'">⚙ API Key</button>
+<nav style="background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.2)">
+  <div style="display:flex;flex-direction:column;line-height:1.2"><span style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-.02em">ChartEdge</span><span style="font-size:8px;font-weight:700;color:#475569;letter-spacing:.12em;text-transform:uppercase">Options Strategy Engine</span></div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <a href="https://tapankrath.github.io/GammaEdge" target="_blank" style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;color:#94a3b8;text-decoration:none" onmouseover="this.style.background='#334155';this.style.color='#fff'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">← GammaEdge</a>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;color:#94a3b8;cursor:pointer" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">⚙ API Key</button>
   </div>
 </nav>
 
 <div class="wrap">
-  <div style="padding:24px 0 20px">
-  <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:5px 12px;margin-bottom:14px">
-    <span style="font-size:10px;font-weight:800;color:#1e3a8a;letter-spacing:.08em;text-transform:uppercase">📈 AI Chart Analysis</span>
-  </div>
-  <h1 style="font-size:1.7rem;font-weight:900;letter-spacing:-.04em;color:#0a0f1e;margin-bottom:8px;line-height:1.1">What's the chart telling you?</h1>
-  <p style="color:#374151;font-size:.9rem;line-height:1.65;max-width:520px;font-weight:500">Upload a chart screenshot · Claude reads price action, patterns & momentum · Get a specific options strategy</p>
+<div style="padding:12px 0 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);margin-bottom:14px">
+  <div style="background:#0f172a;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">📈</div>
+  <div><div style="font-size:1.05rem;font-weight:900;color:#0a0f1e;letter-spacing:-.02em;line-height:1.2">Read the chart. Get the play.</div>
+  <div style="font-size:.72rem;color:#64748b;font-weight:600;margin-top:3px">Upload any chart · AI reads price action · Get a specific options strategy</div></div>
 </div>
-    <h1>Read the chart. Get the play.</h1>
-    <p>Upload a stock or options chart · AI reads price action, trend, volatility · get a specific options strategy with DTE, strikes, and P&L scenarios.</p>
-  </div>
-
-  <!-- Collapsed bar after plan built -->
-  <div id="inputCollapsed" style="display:none;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-family:var(--sans);font-size:.76rem;align-items:center;gap:8px;color:var(--txt)"></div>
-
-  <div id="uploadWrap">
-    <!-- STEP 1: CHART UPLOAD -->
-    <div class="step-label"><span class="step-num">1</span>Upload a chart screenshot</div>
-    <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px">
-      <div style="flex:1">
+<div style="margin-bottom:10px">
         <div class="drop-zone" id="dropZone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
           <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
           <span class="drop-icon">📊</span>
@@ -190,11 +164,7 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
           <div class="drop-hint">✦ AI reads price action, trend & support/resistance</div>
         </div>
       </div>
-      <div id="previewCol" style="display:none;width:160px;flex-shrink:0">
-        <div class="preview-wrap"><img id="previewImg" src="" alt="preview"><button class="preview-clear" onclick="clearImage()">✕</button></div>
-        <div style="font-size:.68rem;color:var(--acc);font-family:var(--sans);margin-top:5px;text-align:center">✓ Chart loaded</div>
-      </div>
-    </div>
+<div id="previewCol" style="display:none;margin:8px 0;text-align:center"><img id="previewImg" src="" alt="preview" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"><button class="preview-clear" onclick="clearImage()" style="display:block;margin:4px auto;background:#0f172a;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">✕ Remove</button></div>
 
     <!-- STEP 2: OPTIONAL MANUAL CONTEXT -->
     <div class="manual-section">
@@ -234,35 +204,6 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
         </div>
       </div>
     </div>
-
-    <!-- STEP 3: OUTLOOK (optional bias) -->
-    <div id="outlookWrap" style="margin-bottom:16px">
-      <div class="step-label"><span class="step-num">2</span>Your bias <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--mut)"> — or let AI decide</span></div>
-      <div class="outlook-grid">
-        <button type="button" onclick="setOutlook('bullish',this)" id="out-bullish" class="outlook-tile">
-          <div style="font-size:1.4rem;margin-bottom:5px">🐂</div>
-          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Bullish</div>
-          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting upside</div>
-        </button>
-        <button type="button" onclick="setOutlook('bearish',this)" id="out-bearish" class="outlook-tile">
-          <div style="font-size:1.4rem;margin-bottom:5px">🐻</div>
-          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Bearish</div>
-          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting downside</div>
-        </button>
-        <button type="button" onclick="setOutlook('neutral',this)" id="out-neutral" class="outlook-tile">
-          <div style="font-size:1.4rem;margin-bottom:5px">⚖️</div>
-          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Neutral</div>
-          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Range-bound, collect</div>
-        </button>
-        <button type="button" onclick="setOutlook('volatile',this)" id="out-volatile" class="outlook-tile">
-          <div style="font-size:1.4rem;margin-bottom:5px">⚡</div>
-          <div style="font-size:.82rem;font-weight:800;color:#0d1424;margin-bottom:2px">Big Move</div>
-          <div style="font-size:.68rem;color:var(--mut);line-height:1.3">Expecting a breakout</div>
-        </button>
-      </div>
-      <div id="outlookHint" style="padding:9px 14px;background:var(--s2);border-radius:8px;font-size:.74rem;color:var(--mut);font-family:var(--sans);min-height:36px;transition:all .2s">AI will read the chart and recommend the best-fitting strategy.</div>
-    </div>
-
     <div id="errorBox" class="error-box"></div>
 
     <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
@@ -295,6 +236,15 @@ nav{background:#0a0f1e;padding:0 16px;height:52px;display:flex;align-items:cente
 </div>
 
 <script>
+
+function gid(id){return document.getElementById(id);}
+function setStyle(id,prop,val){var el=gid(id);if(el)el.style[prop]=val;}
+function setText(id,txt){var el=gid(id);if(el)el.textContent=txt;}
+function setClass(id,cls){var el=gid(id);if(el)el.className=cls;}
+function setDisp(id,val){setStyle(id,'display',val);}
+function setHTML(id,html){var el=gid(id);if(el)el.innerHTML=html;}
+function setTxt(id,txt){var el=gid(id);if(el)el.textContent=txt;}
+
 // ── STATE ──
 var imageB64 = null;
 var imageType = 'image/png';
@@ -304,8 +254,8 @@ var CLAUDE_MODEL = 'claude-sonnet-4-5';
 // ── API KEY ──
 function getApiKey(){ return localStorage.getItem('ce_api_key')||''; }
 function setApiKey(k){ localStorage.setItem('ce_api_key',k); }
-function showApiKeyModal(){ var m=document.getElementById('api-modal'); m.style.display='flex'; document.getElementById('api-key-input').value=getApiKey(); }
-function closeApiModal(){ document.getElementById('api-modal').style.display='none'; }
+function showApiKeyModal(){ var m=gid('api-modal'); if(!m)return; m.style.display='flex'; document.getElementById('api-key-input').value=getApiKey(); }
+function closeApiModal(){setDisp('api-modal','none');}
 function saveApiKey(){ var v=document.getElementById('api-key-input').value.trim(); if(!v){alert('Please enter your API key');return;} setApiKey(v); closeApiModal(); updateApiStatus(); }
 function updateApiStatus(){ var b=document.getElementById('api-status-btn'); var h=getApiKey().length>0; b.textContent=h?'✓ API Key':'⚙ API Key'; b.style.color=h?'#22c55e':'#94a3b8'; b.style.borderColor=h?'#166534':'#334155'; }
 
@@ -333,8 +283,8 @@ function loadFile(f){
       var compressed = canvas.toDataURL('image/jpeg', 0.82);
       imageB64 = compressed.split(',')[1];
       imageType = 'image/jpeg';
-      document.getElementById('previewImg').src = compressed;
-      document.getElementById('previewCol').style.display='block';
+      var _pi=gid('previewImg');if(_pi)_pi.src=compressed;
+      setDisp('previewCol','block');
     };
     img.src = dataUrl;
   };
@@ -342,7 +292,7 @@ function loadFile(f){
 }
 function clearImage(){
   imageB64=null;
-  document.getElementById('previewCol').style.display='none';
+  setDisp('previewCol','none');
   document.getElementById('previewImg').src='';
   document.getElementById('fileInput').value='';
 }
@@ -361,21 +311,21 @@ function setOutlook(o,btn){
   var col=outlookColors[o];
   if(btn){ btn.style.border='2px solid '+col; btn.style.background=col+'12'; }
   var hint=document.getElementById('outlookHint');
-  if(hint){ hint.textContent=outlookHints[o]; hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25'; }
-  var btnEl=document.getElementById('analyzeBtn');
+  if(hint){ hint.textContent=outlookHints[o]||''; hint.style.color=col; hint.style.background=col+'08'; hint.style.border='1px solid '+col+'25'; }
+  var btnEl=gid('analyzeBtn');
   if(btnEl) btnEl.style.background=col;
 }
 
 // ── STATUS / ERROR ──
 function setStatus(msg){ var b=document.getElementById('statusBar'); b.className='status-bar show'; document.getElementById('statusTxt').textContent=msg; }
-function hideStatus(){ document.getElementById('statusBar').className='status-bar'; }
-function showError(msg){ var e=document.getElementById('errorBox'); e.style.display='block'; e.innerHTML='⚠ '+msg; }
-function hideError(){ document.getElementById('errorBox').style.display='none'; }
+function hideStatus(){setClass('statusBar','status-bar');}
+function showError(msg){ var e=gid('errorBox'); if(!e)return; e.style.display='block'; e.innerHTML='⚠ '+msg; }
+function hideError(){setDisp('errorBox','none');}
 
 // ── MAIN ANALYZE ──
 async function analyze(){
   hideError();
-  document.getElementById('results').className='results';
+  setClass('results','results');
 
   var ticker = document.getElementById('inp-ticker').value.trim().toUpperCase();
   var price  = document.getElementById('inp-price').value.trim();
@@ -541,11 +491,10 @@ Return this exact structure:
     }
 
     // Collapse inputs
-    document.getElementById('uploadWrap').style.display='none';
-    var bar=document.getElementById('inputCollapsed');
+    setDisp('uploadWrap','none');
+    var bar=gid('inputCollapsed');
     var src = imageB64 ? '📸 chart screenshot' : '📋 manual context';
-    bar.innerHTML = src+' loaded &nbsp;·&nbsp; <a href="#" onclick="resetAll();return false" style="color:var(--blu);text-decoration:none;font-weight:700">Scan another chart</a>';
-    bar.style.display='flex';
+    if(bar){bar.innerHTML=src+' loaded &nbsp;·&nbsp; <a href="#" onclick="resetAll();return false" style="color:var(--blu);text-decoration:none;font-weight:700">Scan another chart</a>';bar.style.display='flex';}
 
     renderResults(plan);
 
@@ -566,17 +515,16 @@ Return this exact structure:
 }
 
 function resetAll(){
-  document.getElementById('uploadWrap').style.display='block';
-  document.getElementById('inputCollapsed').style.display='none';
-  document.getElementById('results').className='results';
+  setDisp('uploadWrap','block');
+  setDisp('inputCollapsed','none');
+  setClass('results','results');
   clearImage();
   hideError();
   // reset outlook
   currentOutlook='auto';
   document.querySelectorAll('.outlook-tile').forEach(function(b){b.style.border='2px solid #dde2ee';b.style.background='#fff';});
-  document.getElementById('analyzeBtn').style.background='#0f172a';
-  document.getElementById('outlookHint').textContent='AI will read the chart and recommend the best-fitting strategy.';
-  document.getElementById('outlookHint').style='';
+  setStyle('analyzeBtn','background','#0f172a');
+  var _oh=document.getElementById('outlookHint');if(_oh){_oh.textContent='AI will read the chart and recommend the best-fitting strategy.';_oh.style='';}
   // clear inputs
   ['inp-ticker','inp-price','inp-ivr','inp-account','inp-risk'].forEach(function(id){ document.getElementById(id).value=''; });
   document.getElementById('inp-tf').value='';
@@ -759,7 +707,8 @@ function renderResults(plan){
 
   html+='<div style="color:var(--mut);font-size:.66rem;text-align:center;padding:12px 0;border-top:1px solid var(--b1);margin-top:6px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
 
-  var el=document.getElementById('results');
+  var el=gid('results');
+  if(!el)return;
   el.innerHTML=html;
   el.className='results show';
   el.scrollIntoView({behavior:'smooth',block:'start'});
