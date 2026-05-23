@@ -470,21 +470,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <!-- Condensed controls row — single line -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:4px 10px;font-size:11px;border-radius:6px;flex-shrink:0">SPY</button>
-    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:4px 10px;font-size:11px;border-radius:6px;flex-shrink:0">QQQ</button>
-    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Capital $</label>
-      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:60px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
+  <!-- Condensed controls row -->
+  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 8px;margin-bottom:8px;display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:4px 10px;font-size:11px;border-radius:6px">SPY</button>
+    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:4px 10px;font-size:11px;border-radius:6px">QQQ</button>
+    <div style="display:flex;align-items:center;gap:3px;min-width:0">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Cap $</label>
+      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:100%;min-width:0;max-width:72px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
     </div>
-    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop %</label>
-      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--orange)"/>
+    <div style="display:flex;align-items:center;gap:3px">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop%</label>
+      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:36px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 4px;font-size:12px;font-weight:700;color:var(--orange)"/>
     </div>
-    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Target %</label>
-      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
+    <div style="display:flex;align-items:center;gap:3px">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Tgt%</label>
+      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:36px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 4px;font-size:12px;font-weight:700;color:var(--green)"/>
     </div>
   </div>
 
