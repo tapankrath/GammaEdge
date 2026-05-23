@@ -103,7 +103,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .ctx-box.cv.no{background:var(--rbg);border-color:var(--red)}.ctx-box.cv.no .ctx-val{color:var(--red);font-size:11px}
 
 /* SCENARIO TABLE */
-.stbl{background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.stbl{background:#ffffff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 /* Header */
 .stbl-hd{display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;background:#0f172a}
 .shd{padding:10px 4px;text-align:center;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff;line-height:1.4}
@@ -134,8 +134,8 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .vamt{font-size:14px;font-weight:800}
 .vpct{font-size:11px;font-weight:700}
 /* P/L colors - dark on light bg = high contrast */
-.gp{color:#14532d}.rn{color:#7f1d1d}.yn{color:#713f12}.on{color:#7c2d12}
-.srow.stop .vamt,.srow.stop .vpct{color:#7f1d1d!important}
+.gp{color:#14532d}.rn{color:#fff;background:#ef4444;border-radius:3px;padding:1px 3px}.yn{color:#713f12}.on{color:#fff;background:#b91c1c;border-radius:3px;padding:1px 3px}
+.srow.stop .vamt,.srow.stop .vpct{color:#fff!important}
 
 /* LEGEND */
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
@@ -203,9 +203,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .rrow .mlbl{font-size:13px;font-weight:800;color:var(--text)}
 .rrow.mega .mlbl{color:var(--pink)}
 .rrow span{text-align:center;font-size:12px;font-weight:700}
-.c0{color:#b91c1c}.c1{color:#c2410c}.c2{color:#92400e}.c3{color:#166534}.c4{color:#15803d}.c5{color:#14532d}
+.c0{display:inline-block;background:#b91c1c;color:#fff;border-radius:3px;padding:1px 3px}.c1{display:inline-block;background:#ef4444;color:#fff;border-radius:3px;padding:1px 3px}.c2,.c3,.c4,.c5{display:inline-block;background:#15803d;color:#fff;border-radius:3px;padding:1px 3px}
 
-.note{color:#4b5563;font-size:10px;text-align:center;font-style:italic;margin-top:6px;line-height:1.5;font-weight:600}
+.note{color:#374151;font-size:10px;text-align:center;font-style:italic;margin-top:6px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:5px 8px}
 @supports(padding-bottom:env(safe-area-inset-bottom)){.app{padding-bottom:calc(60px + env(safe-area-inset-bottom))}}
 
 .pm-pos{background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -299,9 +299,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
       <div class="field"><label class="flbl">DTE</label><input type="number" id="c4" value="10" step="1" min="1" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fg"><label class="flbl">Cap $</label><input type="number" id="c5" value="2000" step="100" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fg"><label class="flbl">Cap $</label><input type="number" id="c5" value="20000" step="100" inputmode="decimal" oninput="go1()"/></div>
       <div class="field fg"><label class="flbl">Target $</label><input type="number" id="c6" value="500" step="50" inputmode="decimal" oninput="go1()"/></div>
-      <div class="field fo"><label class="flbl">Stop %</label><input type="number" id="c7" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fo"><label class="flbl">Stop %</label><input type="number" id="c7" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go1()"/></div>
     </div>
     <div class="info" id="c-info"></div>
   </div>
@@ -368,7 +368,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="r4" value="500" step="50" inputmode="decimal" oninput="go2()"/></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-        <div class="field fo"><label class="flbl">Stop % prem</label><input type="number" id="r6" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go2()"/></div>
+        <div class="field fo"><label class="flbl">Stop % prem</label><input type="number" id="r6" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go2()"/></div>
         <div class="field fa"><label class="flbl">Move % lo</label><input type="number" id="r7" value="0.5" step="0.25" inputmode="decimal" oninput="go2()"/></div>
         <div class="field fa"><label class="flbl">Move % hi</label><input type="number" id="r8" value="3.0" step="0.25" inputmode="decimal" oninput="go2()"/></div>
       </div>
@@ -390,7 +390,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div style="font-size:10px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Expected Move — Profit Zone</div>
       <div id="sz-cone-wrap"></div>
     </div>
-    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;font-weight:700">P&L across move range</div>
+    <div style="font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;font-weight:700;background:#f1f5f9;border-radius:5px;padding:4px 8px">P&L across move range</div>
     <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;background:#1e293b;padding:9px 10px" id="sz-tbl-hd">
         <span style="font-size:9px;font-weight:700;color:#fff;text-transform:uppercase">Move</span>
@@ -401,7 +401,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       </div>
       <div id="sz-rows"></div>
     </div>
-    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;font-weight:700">Which DTE works best?</div>
+    <div style="font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;font-weight:700;background:#f1f5f9;border-radius:5px;padding:4px 8px">Which DTE works best?</div>
     <div id="sz-dte-rows"></div>
     <div class="note">Capital shown is minimum needed · Stop = loss as % of premium · Mid of move range used for DTE comparison</div>
   </div>
@@ -432,7 +432,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="706" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">IV %</label><input type="number" id="s2" value="21" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">DTE</label><input type="number" id="s3" value="7" step="1" min="1" inputmode="decimal" oninput="go3()"/></div>
-      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="1000" step="100" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="20000" step="100" inputmode="decimal" oninput="go3()"/></div>
     </div>
   </div>
 
@@ -476,11 +476,15 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:4px 10px;font-size:11px;border-radius:6px;flex-shrink:0">QQQ</button>
     <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
       <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Capital $</label>
-      <input type="number" id="g1" value="2000" step="100" inputmode="decimal" oninput="go4()" style="width:60px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
+      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:60px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
     </div>
     <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop Loss %</label>
-      <input type="number" id="g3" value="50" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--orange)"/>
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop %</label>
+      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--orange)"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Target %</label>
+      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
     </div>
   </div>
 
@@ -519,7 +523,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
 
     <!-- P&L table for the recommended trade -->
-    <div style="font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:700" id="g-pnl-label">P&L by Day</div>
+    <div style="font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:700;background:#f1f5f9;border-radius:5px;padding:4px 8px" id="g-pnl-label">P&L by Day</div>
     <div class="stbl">
       <div class="stbl-hd" id="g-stbl-hd">
         <div class="shd">Move</div>
@@ -555,7 +559,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="tk qqq on" id="t5-qqq" onclick="setT5('qqq')">QQQ</button>
     </div>
     <div class="grid2">
-      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="b-capital" value="2000" step="100" inputmode="decimal" oninput="go5()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="b-capital" value="20000" step="100" inputmode="decimal" oninput="go5()"/></div>
       <div class="field"><label class="flbl">IV % (est)</label><input type="number" id="b-iv" value="21" step="1" inputmode="decimal" oninput="go5()"/></div>
     </div>
     <!-- DTE selector -->
@@ -861,7 +865,10 @@ function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays
     sh+='<div class="'+rc+'" onclick="tapRow('+day+')"><div class="dcell" style="min-height:38px;padding:5px 4px"><span class="dname" style="font-size:12px">'+dn+'</span><span class="dnote" style="font-size:8px">'+note+'</span></div>';
     cols.forEach(function(col){
       var pctStr=(col.pct>=0?'+':'')+Math.round(col.pct)+'%';
-      sh+='<div class="vcell '+col.col+'" style="min-height:38px;padding:4px 2px"><span class="vamt '+clr(col.c)+'" style="font-size:12px;font-weight:800">'+pctStr+'</span></div>';
+      var isWin=col.c==='p',isStop=col.c==='o',isLoss=col.c==='n';
+      var cellBg=isWin?'background:#15803d;border-left-color:#14532d;':isStop?'background:#b91c1c;border-left-color:#7f1d1d;':isLoss?'background:#ef4444;border-left-color:#dc2626;':'';
+      var txtClr=isWin||isStop||isLoss?'color:#fff;':'';
+      sh+='<div class="vcell '+col.col+'" style="min-height:38px;padding:4px 2px;'+cellBg+'"><span class="vamt" style="font-size:12px;font-weight:800;'+txtClr+'">'+pctStr+'</span></div>';
     });
     sh+='</div>';
   }
@@ -1232,15 +1239,19 @@ function go2(){
       var d3=_stdlExit(spot,iv3,bestDTE,mv,Math.min(3,bestDTE)).dol*bestContracts;
       var dE=_stdlExit(spot,iv3,bestDTE,mv,bestDTE).dol*bestContracts;
       var stopThresh=-(bestCP*bestContracts*stopPct/100);
-      function pclr(v){return v>=target?'#14532d':v>0?'#15803d':v>stopThresh?'#b91c1c':'#7f1d1d';}
-      function pbg(v){return v>=target?'#f0fdf4':v>0?'#f0fdf4':v>stopThresh?'#fef2f2':'#fef2f2';}
+      function cellStyle(v){
+        if(v>=target)return 'background:#14532d;color:#fff;border-radius:4px;padding:2px 4px;';
+        if(v>0)return 'background:#15803d;color:#fff;border-radius:4px;padding:2px 4px;';
+        if(v>stopThresh)return 'background:#ef4444;color:#fff;border-radius:4px;padding:2px 4px;';
+        return 'background:#b91c1c;color:#fff;border-radius:4px;padding:2px 4px;';
+      }
       var inRange=mv>=moveLo&&mv<=moveHi;
       var rowBg=inRange?'#fffbeb':'#fafafa';
       var mvClr=inRange?'#b45309':'#334155';
       sh+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:9px 10px;border-top:1px solid var(--border);background:'+rowBg+'">';
       sh+='<span style="font-size:12px;font-weight:700;color:'+mvClr+'">'+(inRange?'▶ ':'')+mv+'%</span>';
       [d1,d2,d3,dE].forEach(function(v){
-        sh+='<span style="text-align:center;font-size:11px;font-weight:700;color:'+pclr(v)+'">'+fp(v)+'</span>';
+        sh+='<span style="display:inline-block;text-align:center;font-size:11px;font-weight:700;'+cellStyle(v)+'">'+fp(v)+'</span>';
       });
       sh+='</div>';
     });
@@ -1532,7 +1543,7 @@ setInterval(function(){
 },5*60*1000);
 
 /* ── DIRECTIONAL P&L TABLE (single leg call or put) ── */
-function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bestDay,isCall,targetId){
+function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,targetPct,bestDay,isCall,targetId){
   var DMOVES=[0.5,1,1.5,2,3,5];
   // Dynamic day slabs — fewer columns for readability
   var DAYS=[];
@@ -1570,7 +1581,9 @@ function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bestDay,i
       var pct=costPer>0?(exitVal-costPer)/costPer*100:0;
       var c=cat(dol,costPer*contracts,stopPct);
       if(c==='o')isStop=true;
-      return{dol:dol,pct:pct,c:c};
+      // Mark as target-hit if pct >= targetPct
+      var hit=targetPct>0&&pct>=targetPct;
+      return{dol:dol,pct:pct,c:c,hit:hit};
     });
     var rowCls='srow'+(isStop?' stop':cells.some(function(c,i){return DAYS[i]===bestDay&&c.c==='p'})?' best':'');
     sh+='<div class="'+rowCls+'" style="grid-template-columns:'+colW+'">';
@@ -1578,7 +1591,34 @@ function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bestDay,i
     cells.forEach(function(cell,ci){
       var pctStr=(cell.pct>=0?'+':'')+Math.round(cell.pct)+'%';
       var colCls=ci%2===0?'vcell dr':'vcell mo';
-      sh+='<div class="'+colCls+'" style="min-height:32px;padding:4px 2px"><span class="vamt '+clr(cell.c)+'" style="font-size:12px;font-weight:800">'+pctStr+'</span></div>';
+      var isLoss=cell.c==='o'||cell.c==='n';
+      var cellStyle,textColor,markHtml;
+      if(cell.hit){
+        cellStyle='background:#15803d;border-left-color:#14532d;';
+        textColor='#ffffff';
+        markHtml='<span style="font-size:7px;display:block;color:#bbf7d0;font-weight:800;letter-spacing:.04em">TARGET</span>';
+      } else if(cell.c==='o'){
+        cellStyle='background:#b91c1c;border-left-color:#7f1d1d;';
+        textColor='#ffffff';
+        markHtml='';
+      } else if(cell.c==='n'){
+        cellStyle='background:#ef4444;border-left-color:#dc2626;';
+        textColor='#ffffff';
+        markHtml='';
+      } else if(cell.c==='p'){
+        cellStyle='background:#15803d;border-left-color:#14532d;';
+        textColor='#ffffff';
+        markHtml='';
+      } else if(cell.c==='y'){
+        cellStyle='background:#b45309;border-left-color:#92400e;';
+        textColor='#ffffff';
+        markHtml='';
+      } else {
+        cellStyle='';
+        textColor='#94a3b8';
+        markHtml='';
+      }
+      sh+='<div class="'+colCls+'" style="min-height:32px;padding:4px 2px;'+cellStyle+'"><span class="vamt" style="font-size:12px;font-weight:800;color:'+textColor+'">'+pctStr+'</span>'+markHtml+'</div>';
     });
     sh+='</div>';
   });
@@ -1799,7 +1839,7 @@ function processSignal(valid,capital,target,stopPct,sym){
     // P&L table
     var rowsEl=$('g-rows');
     if(rowsEl){
-      buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,bd,isCall,'g-rows');
+      buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,fv('g4'),bd,isCall,'g-rows');
       $('g-pnl-label').textContent=(isCall?'Call':'Put')+' P&L by Day — '+dte+' DTE $'+K+' Strike';
     }
 
