@@ -36,7 +36,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 
 /* TABS */
 .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.tab{background:transparent;color:#6b7280;padding:10px 4px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:center}
+.tab{background:transparent;color:#6b7280;padding:10px 4px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:center;line-height:1.3}
 .tab.on{background:var(--text);color:#fff}
 .pane{display:none}.pane.on{display:block}
 /* MKT STATUS PILL */
@@ -256,7 +256,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
   <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-  <button class="tab" id="tab2" onclick="showTab(2)">Strdl/Strngl</button>
+  <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em">Strdl/<br>Strngl</button>
   <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
   <button class="tab" id="tab4" onclick="showTab(4)">Bktest</button>
   <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
@@ -471,20 +471,25 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
   <!-- Condensed controls row -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 8px;margin-bottom:8px;display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:4px 10px;font-size:11px;border-radius:6px">SPY</button>
-    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:4px 10px;font-size:11px;border-radius:6px">QQQ</button>
-    <div style="display:flex;align-items:center;gap:3px;min-width:0">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Cap $</label>
-      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:100%;min-width:0;max-width:72px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 5px;font-size:12px;font-weight:700;color:var(--green)"/>
+  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:stretch;gap:4px">
+    <!-- SPY -->
+    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">SPY</button>
+    <!-- QQQ -->
+    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">QQQ</button>
+    <!-- Capital -->
+    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--gbd);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box">
+      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Cap $</label>
+      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:100%;min-width:0;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
-    <div style="display:flex;align-items:center;gap:3px">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Stop%</label>
-      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:36px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 4px;font-size:12px;font-weight:700;color:var(--orange)"/>
+    <!-- Stop -->
+    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
+      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Stop %</label>
+      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--orange);line-height:1"/>
     </div>
-    <div style="display:flex;align-items:center;gap:3px">
-      <label style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Tgt%</label>
-      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:36px;background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:4px 4px;font-size:12px;font-weight:700;color:var(--green)"/>
+    <!-- Target -->
+    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
+      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Tgt %</label>
+      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
   </div>
 
