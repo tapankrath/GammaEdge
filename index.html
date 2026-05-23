@@ -243,49 +243,54 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <body>
 <div class="app">
 
-<div style="padding:14px 4px 8px;display:flex;align-items:center;gap:8px;justify-content:space-between">
-  <div style="display:flex;flex-direction:column;gap:0;line-height:1.1;min-width:0">
-    <span style="font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">GammaEdge</span>
-    <span style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-top:2px">Options Intelligence</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-    <a href="portfolioedge.html" target="_blank" rel="noopener" style="background:#0a0f1e;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">PortfolioAI →</a>
-    <a href="chartedge.html" target="_blank" rel="noopener" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">ChartAI →</a>
-  </div>
-</div>
+<!-- STICKY HEADER -->
+<div style="position:sticky;top:0;z-index:100;background:var(--bg);padding-bottom:6px;margin:0 -10px;padding-left:10px;padding-right:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
 
-<div class="tabs" style="grid-template-columns:repeat(5,1fr)">
-  <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-  <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em">Strdl/<br>Strngl</button>
-  <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
-  <button class="tab" id="tab4" onclick="showTab(4)">Bktest</button>
-  <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
-</div>
-
-<!-- MKT STATUS -->
-<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-  <span class="mkt-pill wait" id="mktPill">MKT NOW</span>
-  <span id="sp-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-  <span id="dow-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-  <span id="nas-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-</div>
-
-<!-- LIVE PRICES -->
-<div class="price-bar">
-  <div class="price-card spy" onclick="setT1('spy')">
-    <div class="pc-name">SPY</div>
-    <div class="pc-price" id="px-spy"><span class="ld">...</span></div>
-    <div class="pc-chg" id="pc-spy"></div>
+  <div style="padding:10px 4px 6px;display:flex;align-items:center;gap:8px;justify-content:space-between">
+    <div style="display:flex;flex-direction:column;gap:0;line-height:1.1;min-width:0">
+      <span style="font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">GammaEdge</span>
+      <span style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-top:2px">Options Intelligence</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+      <a href="portfolioedge.html" target="_blank" rel="noopener" style="background:#0a0f1e;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">PortfolioAI →</a>
+      <a href="chartedge.html" target="_blank" rel="noopener" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">ChartAI →</a>
+    </div>
   </div>
-  <div class="price-card qqq" onclick="setT1('qqq')">
-    <div class="pc-name">QQQ</div>
-    <div class="pc-price" id="px-qqq"><span class="ld">...</span></div>
-    <div class="pc-chg" id="pc-qqq"></div>
+
+  <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
+    <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em">Strdl/<br>Strngl</button>
+    <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
+    <button class="tab" id="tab4" onclick="showTab(4)">Bktest</button>
+    <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
   </div>
-</div>
+
+  <!-- MKT STATUS -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;margin-bottom:6px;flex-wrap:wrap">
+    <span class="mkt-pill wait" id="mktPill">MKT NOW</span>
+    <span id="sp-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
+    <span id="dow-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
+    <span id="nas-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
+  </div>
+
+  <!-- LIVE PRICES -->
+  <div class="price-bar" style="margin-bottom:0">
+    <div class="price-card spy" onclick="setT1('spy')">
+      <div class="pc-name">SPY</div>
+      <div class="pc-price" id="px-spy"><span class="ld">...</span></div>
+      <div class="pc-chg" id="pc-spy"></div>
+    </div>
+    <div class="price-card qqq" onclick="setT1('qqq')">
+      <div class="pc-name">QQQ</div>
+      <div class="pc-price" id="px-qqq"><span class="ld">...</span></div>
+      <div class="pc-chg" id="pc-qqq"></div>
+    </div>
+  </div>
+
+</div><!-- end sticky header -->
 
 <!-- TAB 1: P&L CALC -->
-<div class="pane" id="pane1">
+<div class="pane" id="pane1" style="padding-top:8px">
   <div class="card">
     <div class="card-title">Position</div>
     <div class="tickers">
@@ -343,7 +348,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- TAB 2: RECOMMEND -->
-<div class="pane" id="pane2">
+<div class="pane" id="pane2" style="padding-top:8px">
 
   <!-- Delta selector -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
@@ -410,7 +415,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 <!-- TAB 3: SPIKE/CRASH -->
-<div class="pane" id="pane3">
+<div class="pane" id="pane3" style="padding-top:8px">
   <div class="card">
     <!-- Ticker + direction on one compact row -->
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:nowrap">
@@ -450,7 +455,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- TAB 4: SIGNAL -->
-<div class="pane on" id="pane4">
+<div class="pane on" id="pane4" style="padding-top:8px">
 
   <!-- DUAL SIGNAL CARDS: SPY + QQQ side by side -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -545,7 +550,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- PANE 5: BACKTEST -->
-<div class="pane" id="pane5">
+<div class="pane" id="pane5" style="padding-top:8px">
   <!-- Delta selector -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
     <button id="bt-delta-40" onclick="setBtDelta(40)" class="tab" style="font-size:11px;padding:8px">Strangle 40Δ</button>
@@ -630,7 +635,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- PANE 6: PORTFOLIO -->
-<div class="pane" id="pane6">
+<div class="pane" id="pane6" style="padding-top:8px">
 
   <!-- Plan Setup -->
   <div class="card" id="pm-setup-card">
