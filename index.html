@@ -2486,21 +2486,15 @@ function pmRenderSignalCards(){
     var iv3=DEFS[tk].iv/100;
     var chg=LIVE_CHG&&LIVE_CHG[tk]!==undefined?LIVE_CHG[tk]:null;
 
-    // Get signal from g-sig elements if this is the active ticker
+    // Use processSignalSilent for consistent signal across all tabs
     var action='',conf='',color='#374151',bg='#f8fafc',border='#e2e8f0';
-    if(tk===T4&&$('g-sig-action')){
+    if(tk===T4&&$('g-sig-action')&&$('g-sig-action').textContent&&$('g-sig-action').textContent!=='-'){
       action=$('g-sig-action').textContent||'';
       var lbl=$('g-sig-lbl')?$('g-sig-lbl').textContent:'';
       conf=lbl.indexOf('High')>-1?'High':lbl.indexOf('Medium')>-1?'Medium':'Low';
     } else {
-      // Derive quick signal from live price change for the other ticker
-      if(chg!==null){
-        if(chg>0.6){action='LEAN CALL';conf='Low';}
-        else if(chg<-0.6){action='LEAN PUT';conf='Low';}
-        else{action='NO TRADE';conf='—';}
-      } else {
-        action='Loading...';conf='';
-      }
+      var sr=processSignalForPlan(tk,spot,chg,iv3);
+      action=sr.action;conf=sr.conf;
     }
 
     var isCall=action.indexOf('CALL')>-1;
@@ -2943,6 +2937,24 @@ function setTSt(t){
   var r1=$('r1');if(r1)r1.value=p.toFixed(2);
   var r2=$('r2');if(r2)r2.value=d.iv;
   go2();
+}
+
+
+function processSignalForPlan(tk,spot,chg,iv3){
+  // Same scoring logic as processSignal
+  var bull=0,bear=0;
+  if(chg>1.0)bull+=2; else if(chg>0.3)bull+=1;
+  else if(chg<-1.0)bear+=2; else if(chg<-0.3)bear+=1;
+  if(iv3>0.25)bear+=1;
+  var action,conf;
+  if(bull>=3){action='BUY CALL';conf='High';}
+  else if(bull===2){action='BUY CALL';conf='Medium';}
+  else if(bull===1&&bear===0){action='LEAN CALL';conf='Low';}
+  else if(bear>=3){action='BUY PUT';conf='High';}
+  else if(bear===2){action='BUY PUT';conf='Medium';}
+  else if(bear===1&&bull===0){action='LEAN PUT';conf='Low';}
+  else{action='NO TRADE';conf='Low';}
+  return{action:action,conf:conf};
 }
 
 /* ── INIT ── */
