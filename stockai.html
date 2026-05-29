@@ -274,17 +274,20 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
 ══════════════════════════════ */
 .hz-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
 .hz{
-  padding:10px 4px;text-align:center;
+  padding:10px 4px 8px;text-align:center;
   background:var(--p2);border:1.5px solid var(--borderB);
   border-radius:8px;font-size:13px;font-weight:700;
   color:var(--sub);transition:all .12s;
   -webkit-tap-highlight-color:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1.2;
 }
 .hz:active{opacity:.8;}
 .hz.on{
   background:var(--text);color:#fff;
   border-color:var(--text);
 }
+.hz.on .hz-cache-dot{background:#4ade80;}
 
 /* macro badge */
 .macro-badge{
@@ -833,7 +836,11 @@ if(!Array.isArray(analysisLog))analysisLog=[];
 document.addEventListener('DOMContentLoaded',function(){
   updateGearState(); renderHistory(); checkKeyOnLoad();
   var inp=document.getElementById('tickerInp');
-  inp.addEventListener('input',function(){this.value=this.value.replace(/[^A-Za-z]/g,'').toUpperCase();});
+  inp.addEventListener('input',function(){
+    this.value=this.value.replace(/[^A-Za-z]/g,'').toUpperCase();
+    // Clear cache badge dots when ticker changes
+    document.querySelectorAll('.hz-cache-dot').forEach(function(d){d.remove();});
+  });
   inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();runForecast();}});
   // Fetch live market quotes on load then every 60s
   fetchMarketQuotes();
@@ -938,10 +945,29 @@ function toast(msg,dur){
 }
 function showErr(msg){var b=document.getElementById('errBox');b.innerHTML='❌ '+msg;b.style.display='block';}
 function clearErr(){document.getElementById('errBox').style.display='none';}
+// Cache: key = ticker+horizon, value = parsed result
+var resultCache={};
+
 function setHz(el,h){
   horizon=h;
   document.querySelectorAll('.hz').forEach(function(b){b.classList.remove('on');});
   el.classList.add('on');
+
+  // If results are currently showing, refresh for new horizon
+  var resultsEl=document.getElementById('results');
+  if(resultsEl.classList.contains('on')){
+    var ticker=document.getElementById('tickerInp').value.trim().toUpperCase();
+    if(!ticker) return;
+    var cacheKey=ticker+'_'+h;
+    if(resultCache[cacheKey]){
+      // Serve from cache instantly
+      renderResults(resultCache[cacheKey],ticker);
+      toast('Loaded cached '+ticker+' '+h+' forecast');
+    } else {
+      // Re-run analysis for new horizon
+      runForecast();
+    }
+  }
 }
 
 // MAIN
@@ -960,16 +986,19 @@ function runForecast(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var steps=['Connecting to Claude AI…','Analyzing macro + earnings…','Running scenario models…','Building options strategy…','Writing forecast report…'];
+  var hzName=horizon==='1D'?'1-Day':horizon==='1W'?'1-Week':'1-Month';
+  var steps=['Connecting to Claude AI…','Analyzing '+hzName+' macro factors…','Running '+hzName+' scenario models…','Building options strategy…','Writing forecast report…'];
   var si=0;st.textContent=steps[0];
   var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
 
-  callClaude(apiKey,buildPrompt(ticker,hLabel,horizon))
+  var hz=horizon; // capture at call time
+  callClaude(apiKey,buildPrompt(ticker,hLabel,hz))
     .then(function(raw){
       clearInterval(stimer);sb.classList.remove('on');
       var parsed=parseJSON(raw);
+      resultCache[ticker+'_'+hz]=parsed; // store in cache
       renderResults(parsed,ticker);
-      saveLog(ticker,horizon,parsed.signal);
+      saveLog(ticker,hz,parsed.signal);
     })
     .catch(function(err){
       clearInterval(stimer);sb.classList.remove('on');
@@ -1054,8 +1083,28 @@ function parseJSON(raw){
   }
 }
 
+// Show cache dots on horizon buttons
+function updateHzCacheBadges(ticker){
+  ['1D','1W','1M'].forEach(function(h){
+    var btn=document.querySelector('.hz[data-h="'+h+'"]');
+    if(!btn) return;
+    var cached=!!resultCache[ticker+'_'+h];
+    // Add or remove a small dot indicator
+    var dot=btn.querySelector('.hz-cache-dot');
+    if(cached&&!dot){
+      var d=document.createElement('span');
+      d.className='hz-cache-dot';
+      d.style.cssText='display:block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin:3px auto 0;opacity:.9;';
+      btn.appendChild(d);
+    } else if(!cached&&dot){
+      dot.remove();
+    }
+  });
+}
+
 // RENDER
 function renderResults(d,ticker){
+  updateHzCacheBadges(ticker); // show which horizons are cached
   var sc=d.signal==='BULLISH'?'bull':d.signal==='BEARISH'?'bear':'neutral';
   var arrow=d.signal==='BULLISH'?'▲ Bullish':d.signal==='BEARISH'?'▼ Bearish':'◆ Neutral';
   var hzLbl=horizon==='1D'?'1-Day':horizon==='1W'?'1-Week':'1-Month';
