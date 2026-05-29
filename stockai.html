@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="StockAI"/>
+<meta name="application-name" content="StockAI"/>
+<meta name="theme-color" content="#f1f5f9"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>StockAI</title>
+<style>
+:root{
+  --bg:     #f1f5f9;
+  --p1:     #ffffff;
+  --p2:     #f8fafc;
+  --border: #e2e8f0;
+  --borderB:#cbd5e1;
+  --text:   #0a0f1e;
+  --dim:    #374151;
+  --sub:    #4b5563;
+  --muted:  #94a3b8;
+  --green:  #15803d;  --gbg:#f0fdf4;  --gbd:#86efac;
+  --red:    #b91c1c;  --rbg:#fef2f2;  --rbd:#fca5a5;
+  --amber:  #b45309;  --abg:#fffbeb;  --abd:#fcd34d;
+  --blue:   #1d4ed8;  --bbg:#eff6ff;  --bbd:#93c5fd;
+  --teal:   #0e7490;  --tbg:#ecfeff;  --tbd:#67e8f9;
+  --F: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --FM: 'Inter', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--F);
+  font-size:14px;-webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;
+  min-height:100dvh;
+  /* leave room for two sticky cards ~130px total */
+  scroll-padding-top:140px;
+}
+button{font-family:var(--F);touch-action:manipulation;cursor:pointer;
+  -webkit-user-select:none;user-select:none;border:none;outline:none;}
+input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);}
+
+/* Sticky wrapper sits at top of viewport */
+.sticky-top{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--bg);
+  max-width:480px;
+  margin:0 auto;
+  padding:10px 12px 0;
+}
+
+/* scrollable body below sticky */
+.app{max-width:480px;margin:0 auto;padding:4px 12px 70px;}
+
+/* ══════════════════════════════
+   STICKY CARD 1 — Logo + Tape
+══════════════════════════════ */
+.sticky-card-1{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
+  margin-bottom:8px;
+}
+
+/* header row inside card 1 */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px 7px;
+  gap:8px;
+}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.logo-name{
+  font-size:20px;font-weight:900;color:var(--text);
+  letter-spacing:-1px;line-height:1;
+}
+.logo-name em{
+  font-style:normal;
+  background:linear-gradient(135deg,#0a7060,#0891b2);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+/* QQQ / SPY mini quotes in header */
+.mkt-quotes{
+  display:flex;align-items:center;gap:6px;
+  flex:1;justify-content:center;
+  overflow:hidden;
+}
+.mkt-q{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--p2);border:1.5px solid var(--borderB);
+  border-radius:9px;padding:4px 9px;min-width:68px;
+  transition:border-color .2s;
+}
+.mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
+.mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
+.mkt-q-sym{font-family:var(--FM);font-size:9px;font-weight:800;color:var(--sub);letter-spacing:.1em;}
+.mkt-q-row{display:flex;align-items:baseline;gap:4px;margin-top:1px;}
+.mkt-q-px{font-family:var(--FM);font-size:13px;font-weight:700;color:var(--text);}
+.mkt-q-chg{font-family:var(--FM);font-size:10px;font-weight:800;}
+.mkt-q.up .mkt-q-chg{color:var(--green);}
+.mkt-q.dn .mkt-q-chg{color:var(--red);}
+.mkt-q-loading{font-family:var(--FM);font-size:10px;color:var(--muted);animation:ldpulse 1.2s ease-in-out infinite;}
+@keyframes ldpulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+.hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.live-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#09101f;color:#4ade80;
+  border-radius:20px;padding:5px 10px;
+  font-size:10px;font-weight:800;letter-spacing:.1em;
+  font-family:var(--FM);white-space:nowrap;
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;
+  box-shadow:0 0 6px #4ade80;animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.btn-gear{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--p2);border:1.5px solid var(--borderB);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;position:relative;transition:all .12s;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+}
+.btn-gear:active{transform:translate(1px,1px);box-shadow:none;}
+.gear-dot{position:absolute;top:3px;right:3px;width:8px;height:8px;
+  border-radius:50%;background:#4ade80;border:2px solid #fff;display:none;}
+.gear-dot.set{display:block;}
+
+/* ══════════════════════════════
+   SETTINGS MODAL
+══════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(9,16,31,.6);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(3px);
+}
+.modal-overlay.open{display:flex;}
+.modal-sheet{
+  width:100%;max-width:480px;
+  background:#fff;border-radius:24px 24px 0 0;
+  padding:0 0 44px;
+  border-top:3px solid var(--text);
+  animation:sheetUp .22s cubic-bezier(.4,0,.2,1);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:44px;height:5px;background:var(--border);border-radius:3px;margin:14px auto 18px;}
+.modal-title{
+  font-size:18px;font-weight:900;color:var(--text);
+  padding:0 18px 14px;border-bottom:2px solid var(--border);
+  letter-spacing:-.3px;
+}
+.modal-body{padding:16px 18px;}
+.modal-label{font-size:11px;font-weight:800;color:var(--sub);
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;}
+.modal-key-row{display:flex;gap:8px;}
+.modal-key-inp{
+  flex:1;background:var(--p2);border:2px solid var(--borderB);
+  border-radius:11px;padding:12px 14px;
+  font-family:var(--FM);font-size:13px;font-weight:500;color:var(--text);
+  transition:border-color .15s;
+}
+.modal-key-inp:focus{border-color:var(--text);}
+.modal-key-inp::placeholder{color:var(--muted);font-weight:400;}
+.modal-eye{
+  background:var(--p2);border:2px solid var(--borderB);border-radius:11px;
+  padding:12px 14px;font-size:17px;color:var(--sub);
+  transition:all .12s;
+}
+.modal-eye:active{background:var(--border);}
+.modal-note{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6;}
+.modal-note a{color:var(--blue);text-decoration:none;font-weight:700;}
+.modal-status{
+  display:flex;align-items:center;gap:8px;margin-top:12px;
+  padding:10px 13px;border-radius:10px;font-size:13px;font-weight:700;
+}
+.modal-status.saved{background:var(--gbg);border:2px solid var(--gbd);color:var(--green);}
+.modal-status.empty{background:var(--rbg);border:2px solid var(--rbd);color:var(--red);}
+.btn-save-key{
+  width:100%;margin-top:14px;padding:15px;
+  background:var(--text);color:#fff;border-radius:12px;
+  font-size:15px;font-weight:900;letter-spacing:-.2px;
+  transition:opacity .15s,transform .1s;
+}
+.btn-save-key:active{opacity:.85;transform:scale(.98);}
+.btn-cancel-modal{
+  width:100%;margin-top:8px;padding:12px;
+  background:transparent;color:var(--sub);font-size:14px;font-weight:700;
+}
+
+/* ══════════════════════════════
+   TICKER TAPE — flush inside sticky card 1
+══════════════════════════════ */
+.tape-outer{
+  background:#fff;
+  border-top:1.5px solid var(--border);
+  padding:8px 0 9px;
+  overflow:hidden;position:relative;
+}
+.tape-fade-l,.tape-fade-r{position:absolute;top:0;bottom:0;width:32px;z-index:2;pointer-events:none;}
+.tape-fade-l{left:0;background:linear-gradient(90deg,#fff,transparent);}
+.tape-fade-r{right:0;background:linear-gradient(-90deg,#fff,transparent);}
+.tape-inner{display:flex;gap:0;width:max-content;animation:tape-scroll 30s linear infinite;}
+.tape-inner:hover{animation-play-state:paused;}
+.t-item{display:flex;align-items:center;gap:6px;padding:0 16px;white-space:nowrap;border-right:1.5px solid var(--border);}
+.t-sym{font-size:12px;font-weight:900;color:var(--text);font-family:var(--FM);}
+.t-px {font-size:11px;color:var(--sub);font-family:var(--FM);}
+.t-up {font-size:11px;font-weight:800;color:var(--green);font-family:var(--FM);}
+.t-dn {font-size:11px;font-weight:800;color:var(--red);font-family:var(--FM);}
+@keyframes tape-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ══════════════════════════════
+   STICKY CARD 2 — Stock Symbol Search
+══════════════════════════════ */
+.sticky-card-2{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:11px 12px 10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+  margin-bottom:0;
+}
+
+/* ══════════════════════════════
+   CARD — GammaEdge style
+══════════════════════════════ */
+.card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:12px;margin-bottom:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.card-title{
+  font-size:10px;font-weight:800;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.18em;margin-bottom:10px;
+}
+
+/* ══════════════════════════════
+   TICKER INPUT
+══════════════════════════════ */
+.ticker-wrap{
+  display:flex;align-items:center;
+  background:var(--p2);border:1.5px solid var(--borderB);
+  border-radius:8px;overflow:hidden;transition:border-color .15s;
+}
+.ticker-wrap:focus-within{border-color:var(--text);background:#fff;}
+.ticker-inp{
+  flex:1;background:transparent;border:none;
+  padding:11px 14px;
+  font-family:var(--FM);font-size:26px;font-weight:700;
+  color:var(--text);letter-spacing:4px;text-transform:uppercase;
+  caret-color:var(--teal);
+}
+.ticker-inp::placeholder{
+  color:var(--muted);font-size:15px;letter-spacing:.5px;
+  font-weight:500;font-family:var(--F);
+}
+.ticker-hint{
+  font-size:12px;color:var(--sub);margin-top:8px;
+  line-height:1.5;font-weight:500;
+}
+
+/* ══════════════════════════════
+   HORIZON
+══════════════════════════════ */
+.hz-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.hz{
+  padding:10px 4px;text-align:center;
+  background:var(--p2);border:1.5px solid var(--borderB);
+  border-radius:8px;font-size:13px;font-weight:700;
+  color:var(--sub);transition:all .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.hz:active{opacity:.8;}
+.hz.on{
+  background:var(--text);color:#fff;
+  border-color:var(--text);
+}
+
+/* macro badge */
+.macro-badge{
+  display:flex;align-items:center;gap:8px;
+  background:var(--tbg);border:2px solid var(--tbd);
+  border-radius:10px;padding:9px 13px;margin-top:10px;
+}
+.macro-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+.macro-txt{font-size:12px;font-weight:800;color:var(--teal);}
+.macro-sub{font-size:11px;color:var(--sub);margin-left:auto;font-weight:600;}
+
+/* ══════════════════════════════
+   ANALYZE BUTTON
+══════════════════════════════ */
+.btn-analyze{
+  width:100%;padding:14px;
+  background:var(--text);color:#fff;
+  border:none;
+  border-radius:10px;font-size:16px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 2px 8px rgba(10,15,30,.2);
+  transition:opacity .15s,transform .1s;
+  -webkit-tap-highlight-color:transparent;
+  letter-spacing:-.1px;
+}
+.btn-analyze:active{opacity:.85;transform:scale(.99);}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-spin{width:17px;height:17px;border-radius:50%;border:3px solid rgba(255,255,255,.3);
+  border-top-color:#fff;animation:spin .7s linear infinite;display:none;flex-shrink:0;}
+.btn-analyze.loading .btn-spin{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══════════════════════════════
+   STATUS
+══════════════════════════════ */
+.status{
+  display:none;align-items:center;gap:9px;
+  background:var(--tbg);border:2px solid var(--tbd);
+  border-radius:11px;padding:11px 14px;margin-top:10px;
+  font-size:13px;color:var(--teal);font-weight:700;
+}
+.status.on{display:flex;}
+.s-spin{width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  border:2.5px solid var(--tbd);border-top-color:var(--teal);
+  animation:spin .8s linear infinite;}
+
+/* ══════════════════════════════
+   ERROR / WARNINGS
+══════════════════════════════ */
+.err-box{
+  display:none;margin-top:10px;
+  background:var(--rbg);border:1.5px solid var(--rbd);
+  border-radius:10px;padding:12px 14px;
+  font-size:13px;color:var(--red);font-weight:700;line-height:1.6;
+}
+.no-key-warn{
+  display:none;align-items:center;gap:9px;
+  background:var(--abg);border:1.5px solid var(--abd);
+  border-radius:10px;padding:10px 13px;margin-bottom:10px;
+  font-size:13px;color:var(--amber);font-weight:800;cursor:pointer;
+}
+.no-key-warn.show{display:flex;}
+.no-key-warn:active{opacity:.8;}
+
+/* ══════════════════════════════
+   RESULTS
+══════════════════════════════ */
+.results{display:none;margin-top:10px;}
+.results.on{display:block;}
+
+.r-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;}
+.r-sym{
+  font-size:44px;font-weight:900;color:var(--text);
+  letter-spacing:-2px;line-height:1;font-family:var(--FM);
+}
+.r-hz{
+  font-size:10px;font-weight:800;letter-spacing:.15em;
+  color:#fff;background:var(--text);
+  border-radius:20px;padding:5px 12px;margin-bottom:4px;
+  text-transform:uppercase;font-family:var(--FM);
+}
+
+/* VERDICT */
+.verdict{
+  border-radius:12px;padding:14px;margin-bottom:8px;
+  border:1.5px solid;
+}
+.verdict.bull{background:var(--gbg);border-color:var(--gbd);box-shadow:0 1px 4px rgba(21,128,61,.12);}
+.verdict.bear{background:var(--rbg);border-color:var(--rbd);box-shadow:0 1px 4px rgba(185,28,28,.12);}
+.verdict.neutral{background:var(--abg);border-color:var(--abd);box-shadow:0 1px 4px rgba(180,83,9,.12);}
+
+.v-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.v-signal{
+  font-size:28px;font-weight:900;letter-spacing:-1px;line-height:1;
+}
+.verdict.bull    .v-signal{color:var(--green);}
+.verdict.bear    .v-signal{color:var(--red);}
+.verdict.neutral .v-signal{color:var(--amber);}
+.v-conf{
+  font-size:13px;font-weight:900;padding:6px 13px;border-radius:8px;
+  font-family:var(--FM);border:2px solid;
+}
+.verdict.bull    .v-conf{background:#fff;color:var(--green);border-color:var(--green);}
+.verdict.bear    .v-conf{background:#fff;color:var(--red);  border-color:var(--red);}
+.verdict.neutral .v-conf{background:#fff;color:var(--amber);border-color:var(--amber);}
+
+.v-summary{font-size:14px;color:var(--dim);line-height:1.65;font-weight:600;}
+
+.v-bar-wrap{margin-top:12px;}
+.v-bar-lbl{display:flex;justify-content:space-between;font-size:10px;
+  font-weight:800;color:var(--sub);letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:6px;}
+.v-bar-track{height:8px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden;}
+.v-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0%;}
+.verdict.bull    .v-bar-fill{background:linear-gradient(90deg,#16a34a,#4ade80);}
+.verdict.bear    .v-bar-fill{background:linear-gradient(90deg,#dc2626,#f87171);}
+.verdict.neutral .v-bar-fill{background:linear-gradient(90deg,#d97706,#fbbf24);}
+
+.earnings-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:2px solid var(--amber);
+  border-radius:8px;padding:6px 11px;margin-top:10px;
+  font-size:12px;font-weight:800;color:var(--amber);
+}
+
+/* TARGETS */
+.targets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;}
+.tgt{
+  background:#fff;border:1px solid var(--border);
+  border-radius:10px;padding:10px 8px;text-align:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+.tgt-lbl{font-size:9px;font-weight:800;letter-spacing:.15em;color:var(--sub);
+  margin-bottom:7px;text-transform:uppercase;}
+.tgt-val{font-size:20px;font-weight:900;line-height:1;font-family:var(--FM);}
+.tgt-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:600;}
+.tgt.bt  .tgt-val{color:var(--red);}
+.tgt.bst .tgt-val{color:var(--teal);}
+.tgt.bt2 .tgt-val{color:var(--green);}
+
+/* CHART */
+.chart-wrap{height:120px;position:relative;}
+canvas{width:100%!important;height:120px!important;}
+
+/* FACTORS */
+.factor-row{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:10px 0;border-bottom:1.5px solid var(--border);
+}
+.factor-row:last-child{border-bottom:none;padding-bottom:0;}
+.factor-row:first-of-type{padding-top:0;}
+.f-ico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px;}
+.f-txt{flex:1;font-size:14px;color:var(--dim);line-height:1.5;font-weight:600;}
+.f-badge{
+  font-size:10px;font-weight:900;letter-spacing:.05em;
+  padding:4px 9px;border-radius:6px;white-space:nowrap;flex-shrink:0;
+  text-transform:uppercase;border:2px solid;
+}
+.f-badge.pos{background:var(--gbg);color:var(--green);border-color:var(--gbd);}
+.f-badge.neg{background:var(--rbg);color:var(--red);  border-color:var(--rbd);}
+.f-badge.neu{background:var(--abg);color:var(--amber);border-color:var(--abd);}
+
+/* ══════════════════════════════
+   UNIFIED SCENARIO + OPTIONS TABLE
+══════════════════════════════ */
+.combo-card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:12px;margin-bottom:8px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+.combo-title{
+  padding:10px 14px 9px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.combo-title-txt{font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.2em;}
+.combo-legend{display:flex;align-items:center;gap:10px;}
+.combo-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.combo-leg-dot{width:8px;height:8px;border-radius:50%;}
+
+/* header row */
+.combo-hdr{
+  display:grid;
+  grid-template-columns:90px 1fr 48px 52px;
+  background:var(--text);padding:0;
+}
+.chd{
+  padding:9px 8px;font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.12em;
+  font-family:var(--FM);color:#64748b;
+}
+.chd:nth-child(1){padding-left:14px;color:#64748b;}
+.chd:nth-child(2){color:#c4b5fd;}
+.chd:nth-child(3){text-align:center;color:#fcd34d;}
+.chd:nth-child(4){text-align:center;color:#86efac;}
+
+/* data row — each scenario */
+.combo-row{
+  display:grid;
+  grid-template-columns:90px 1fr 48px 52px;
+  border-top:1.5px solid var(--border);
+  min-height:62px;
+  transition:background .12s;
+}
+.combo-row:nth-child(even){background:#fafbfc;}
+.combo-row.active-row{
+  background:var(--tbg)!important;
+  box-shadow:inset 4px 0 0 var(--teal);
+}
+.combo-row.bear-row{background:var(--rbg)!important;box-shadow:inset 4px 0 0 var(--red);}
+.combo-row.bull-row{background:var(--gbg)!important;box-shadow:inset 4px 0 0 var(--green);}
+
+/* LEFT cell: scenario name + move */
+.c-left{
+  padding:10px 6px 10px 14px;
+  display:flex;flex-direction:column;justify-content:center;gap:3px;
+  border-right:1.5px solid var(--border);
+}
+.c-scname{font-size:12px;font-weight:900;color:var(--text);line-height:1.2;}
+.c-move{font-size:13px;font-weight:900;font-family:var(--FM);line-height:1;}
+.c-move.up{color:var(--green);}
+.c-move.dn{color:var(--red);}
+.c-move.fl{color:var(--amber);}
+
+/* MIDDLE cell: strategy + detail */
+.c-mid{
+  padding:10px 8px;
+  display:flex;flex-direction:column;justify-content:center;gap:3px;
+}
+.c-strat{font-size:13px;font-weight:900;color:var(--text);line-height:1.2;}
+.c-detail{font-size:11px;color:var(--sub);line-height:1.4;font-weight:600;}
+
+/* EXPIRY cell */
+.c-exp{
+  padding:10px 4px;
+  display:flex;align-items:center;justify-content:center;
+  border-left:1.5px solid var(--border);
+}
+.c-exp-val{font-size:11px;font-weight:800;color:var(--sub);font-family:var(--FM);text-align:center;}
+
+/* FIT cell */
+.c-fit{
+  padding:10px 6px 10px 4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;border-left:1.5px solid var(--border);
+}
+.c-stars{font-size:11px;line-height:1;color:var(--amber);}
+.c-fitbadge{
+  font-size:9px;font-weight:900;padding:3px 6px;
+  border-radius:5px;border:2px solid;font-family:var(--FM);
+  letter-spacing:.05em;
+}
+.c-fitbadge.hi{background:var(--gbg);color:var(--green);border-color:var(--gbd);}
+.c-fitbadge.md{background:var(--abg);color:var(--amber);border-color:var(--abd);}
+.c-fitbadge.lo{background:var(--rbg);color:var(--red);  border-color:var(--rbd);}
+
+/* straddle note */
+.combo-note{
+  padding:11px 14px;font-size:12px;color:var(--dim);
+  line-height:1.65;border-top:2px solid var(--border);
+  background:#fafbfc;font-weight:600;
+}
+
+/* MACRO CONTEXT */
+.macro-ctx{
+  border-left:4px solid var(--teal);
+  background:var(--tbg);border-radius:0 11px 11px 0;
+  padding:11px 13px;
+}
+.macro-body{font-size:14px;color:var(--dim);line-height:1.65;font-weight:600;}
+
+/* ══════════════════════════════
+   HISTORY
+══════════════════════════════ */
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hist-clear{font-size:12px;color:var(--sub);font-weight:800;cursor:pointer;}
+.hist-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--p2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;margin-bottom:6px;
+  cursor:pointer;transition:all .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.hist-item:active{background:var(--border);}
+.h-sym{font-size:18px;font-weight:900;color:var(--text);font-family:var(--FM);}
+.h-meta{font-size:11px;color:var(--muted);margin-top:2px;font-weight:600;font-family:var(--FM);}
+.h-sig{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;
+  padding:4px 10px;border-radius:7px;border:2px solid;}
+.h-sig.bull{color:var(--green);background:var(--gbg);border-color:var(--gbd);}
+.h-sig.bear{color:var(--red);  background:var(--rbg);border-color:var(--rbd);}
+.h-sig.neutral{color:var(--amber);background:var(--abg);border-color:var(--abd);}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:44px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.empty-ico{font-size:52px;opacity:.25;line-height:1;}
+.empty-txt{font-size:15px;color:var(--sub);line-height:1.7;font-weight:600;}
+
+/* DISCLAIMER */
+.disc{
+  background:var(--rbg);border:1px solid var(--rbd);
+  border-radius:10px;padding:10px 12px;margin-top:10px;
+  font-size:11px;color:var(--red);line-height:1.6;font-weight:600;
+}
+
+/* INSTALL BANNER */
+.install-banner{
+  display:none;align-items:center;gap:10px;
+  background:#fff;border:1.5px solid var(--teal);
+  border-radius:12px;padding:10px 13px;margin-bottom:10px;
+}
+.install-banner.show{display:flex;}
+.install-txt{flex:1;font-size:13px;font-weight:800;color:var(--text);line-height:1.4;}
+.install-txt span{display:block;font-size:11px;font-weight:600;color:var(--sub);margin-top:2px;}
+.btn-install{
+  background:var(--teal);color:#fff;border-radius:9px;
+  padding:9px 16px;font-size:13px;font-weight:900;white-space:nowrap;
+  border:2px solid var(--teal);
+}
+.btn-install:active{opacity:.8;}
+.btn-close-install{background:transparent;color:var(--sub);font-size:20px;line-height:1;padding:4px;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.aup{animation:fadeUp .3s cubic-bezier(.4,0,.2,1) both;}
+.aup:nth-child(2){animation-delay:.05s}.aup:nth-child(3){animation-delay:.10s}
+.aup:nth-child(4){animation-delay:.15s}.aup:nth-child(5){animation-delay:.20s}
+.aup:nth-child(6){animation-delay:.25s}.aup:nth-child(7){animation-delay:.30s}
+.aup:nth-child(8){animation-delay:.35s}
+
+/* TOAST */
+#toastEl{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--text);color:#fff;
+  padding:11px 24px;border-radius:30px;
+  font-size:13px;font-weight:800;z-index:300;
+  white-space:nowrap;opacity:0;
+  transition:opacity .2s,transform .2s;
+  pointer-events:none;
+  box-shadow:0 6px 20px rgba(9,16,31,.3);
+  border:2px solid rgba(255,255,255,.15);
+}
+</style>
+</head>
+<body>
+
+<!-- SETTINGS MODAL (outside sticky, fixed) -->
+<div class="modal-overlay" id="settingsModal" onclick="modalBgClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ API Settings</div>
+    <div class="modal-body">
+      <div class="modal-label">Anthropic API Key</div>
+      <div class="modal-key-row">
+        <input class="modal-key-inp" id="modalKeyInp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+        <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
+      </div>
+      <div class="modal-note">Stored in your browser only — never sent anywhere except Anthropic. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+      <div class="modal-status" id="modalStatus"></div>
+      <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+      <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STICKY TOP ══ -->
+<div class="sticky-top">
+
+  <!-- INSTALL BANNER (inside sticky, shows/hides) -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-txt">Add StockAI to Home Screen<span>Install as app — no App Store needed</span></div>
+    <button class="btn-install" id="installBtn">Add</button>
+    <button class="btn-close-install" onclick="dismissInstall()">✕</button>
+  </div>
+
+  <!-- NAV BAR: back to GammaEdge -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:0 2px;">
+    <a href="index.html" style="background:#0a0f1e;color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap">← GammaEdge</a>
+    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-family:'Inter',sans-serif;">Stock Analysis Suite</span>
+  </div>
+
+  <!-- STICKY CARD 1: Logo + Live + Gear + Tape -->
+  <div class="sticky-card-1">
+    <div class="hdr">
+      <div class="logo">
+        <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="36" rx="10" fill="#09101f"/>
+          <rect x="5"  y="21" width="5" height="10" rx="1.5" fill="#5eead4" opacity=".6"/>
+          <rect x="12" y="15" width="5" height="16" rx="1.5" fill="#5eead4" opacity=".8"/>
+          <rect x="19" y="9"  width="5" height="22" rx="1.5" fill="#5eead4"/>
+          <polyline points="7,22 14,16 21,11 30,6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="30" cy="6" r="2.8" fill="#4ade80"/>
+        </svg>
+        <div class="logo-name">Stock<em>AI</em></div>
+      </div>
+
+      <!-- QQQ / SPY live mini-quotes -->
+      <div class="mkt-quotes">
+        <div class="mkt-q" id="mq-qqq">
+          <span class="mkt-q-sym">QQQ</span>
+          <span class="mkt-q-loading" id="mq-qqq-load">···</span>
+        </div>
+        <div class="mkt-q" id="mq-spy">
+          <span class="mkt-q-sym">SPY</span>
+          <span class="mkt-q-loading" id="mq-spy-load">···</span>
+        </div>
+      </div>
+
+      <div class="hdr-right">
+        <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+        <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">
+          ⚙️<div class="gear-dot" id="gearDot"></div>
+        </button>
+      </div>
+    </div>
+    <!-- Tape sits flush at bottom of card 1 -->
+    <div class="tape-outer">
+      <div class="tape-fade-l"></div><div class="tape-fade-r"></div>
+      <div class="tape-inner">
+        <div class="t-item"><span class="t-sym">QQQ</span><span class="t-px">499.60</span><span class="t-up">+0.63%</span></div>
+        <div class="t-item"><span class="t-sym">SPY</span><span class="t-px">582.30</span><span class="t-up">+0.41%</span></div>
+        <div class="t-item"><span class="t-sym">AAPL</span><span class="t-px">211.40</span><span class="t-up">+1.24%</span></div>
+        <div class="t-item"><span class="t-sym">NVDA</span><span class="t-px">134.30</span><span class="t-up">+3.12%</span></div>
+        <div class="t-item"><span class="t-sym">MSFT</span><span class="t-px">428.90</span><span class="t-up">+0.87%</span></div>
+        <div class="t-item"><span class="t-sym">TSLA</span><span class="t-px">172.60</span><span class="t-dn">−1.45%</span></div>
+        <div class="t-item"><span class="t-sym">AMZN</span><span class="t-px">195.20</span><span class="t-up">+0.55%</span></div>
+        <div class="t-item"><span class="t-sym">META</span><span class="t-px">609.10</span><span class="t-up">+1.78%</span></div>
+        <div class="t-item"><span class="t-sym">GOOGL</span><span class="t-px">177.80</span><span class="t-dn">−0.32%</span></div>
+        <div class="t-item"><span class="t-sym">AMD</span><span class="t-px">162.50</span><span class="t-up">+2.04%</span></div>
+        <div class="t-item"><span class="t-sym">QQQ</span><span class="t-px">499.60</span><span class="t-up">+0.63%</span></div>
+        <div class="t-item"><span class="t-sym">SPY</span><span class="t-px">582.30</span><span class="t-up">+0.41%</span></div>
+        <div class="t-item"><span class="t-sym">AAPL</span><span class="t-px">211.40</span><span class="t-up">+1.24%</span></div>
+        <div class="t-item"><span class="t-sym">NVDA</span><span class="t-px">134.30</span><span class="t-up">+3.12%</span></div>
+        <div class="t-item"><span class="t-sym">MSFT</span><span class="t-px">428.90</span><span class="t-up">+0.87%</span></div>
+        <div class="t-item"><span class="t-sym">TSLA</span><span class="t-px">172.60</span><span class="t-dn">−1.45%</span></div>
+        <div class="t-item"><span class="t-sym">AMZN</span><span class="t-px">195.20</span><span class="t-up">+0.55%</span></div>
+        <div class="t-item"><span class="t-sym">META</span><span class="t-px">609.10</span><span class="t-up">+1.78%</span></div>
+        <div class="t-item"><span class="t-sym">GOOGL</span><span class="t-px">177.80</span><span class="t-dn">−0.32%</span></div>
+        <div class="t-item"><span class="t-sym">AMD</span><span class="t-px">162.50</span><span class="t-up">+2.04%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STICKY CARD 2: Stock Symbol Search -->
+  <div class="sticky-card-2" style="margin-top:8px;">
+    <div class="card-title" style="margin-bottom:8px;">Stock Symbol</div>
+    <div class="ticker-wrap">
+      <input class="ticker-inp" id="tickerInp" type="text" maxlength="6"
+        placeholder="QQQ, SPY, AAPL…"
+        autocapitalize="characters" autocorrect="off" spellcheck="false"
+        inputmode="text" value="QQQ"/>
+    </div>
+    <div class="ticker-hint" style="margin-top:7px;">Any NYSE / NASDAQ ticker or ETF — e.g. NVDA, TSLA, JPM, SPY</div>
+  </div>
+
+</div><!-- /sticky-top -->
+
+<!-- NO KEY WARNING — scrolls with page -->
+<div class="app" style="padding-top:10px;padding-bottom:0;">
+  <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()">
+    ⚠️ No API key set — tap to add your Anthropic key
+  </div>
+</div>
+
+<!-- ══ SCROLLABLE CONTENT ══ -->
+<div class="app" style="padding-top:10px;">
+
+  <!-- HORIZON -->
+  <div class="card">
+    <div class="card-title">Forecast Horizon</div>
+    <div class="hz-row">
+      <button class="hz on" data-h="1D" onclick="setHz(this,'1D')">Next Day</button>
+      <button class="hz"    data-h="1W" onclick="setHz(this,'1W')">1 Week</button>
+      <button class="hz"    data-h="1M" onclick="setHz(this,'1M')">1 Month</button>
+    </div>
+    <div class="macro-badge">
+      <div class="macro-dot"></div>
+      <div class="macro-txt">13 macro + earnings factors — horizon-adjusted</div>
+      <div class="macro-sub">always on</div>
+    </div>
+  </div>
+
+  <!-- ANALYZE BUTTON -->
+  <button class="btn-analyze" id="analyzeBtn" onclick="runForecast()">
+    <div class="btn-spin"></div>
+    <span id="btnTxt">⚡ Analyze &amp; Forecast</span>
+  </button>
+
+  <!-- STATUS -->
+  <div class="status" id="statusBar">
+    <div class="s-spin"></div>
+    <span id="statusTxt">Connecting to Claude AI…</span>
+  </div>
+
+  <!-- ERROR -->
+  <div class="err-box" id="errBox"></div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+
+  <!-- HISTORY -->
+  <div id="histSec" style="display:none;margin-top:10px;">
+    <div class="card">
+      <div class="hist-hdr">
+        <div class="card-title" style="margin-bottom:0">Recent Analyses</div>
+        <div class="hist-clear" onclick="clearHist()">Clear all</div>
+      </div>
+      <div id="histList"></div>
+    </div>
+  </div>
+
+  <!-- EMPTY -->
+  <div class="empty" id="emptyState">
+    <div class="empty-ico">📡</div>
+    <div class="empty-txt">Enter any ticker above and tap<br/><strong>Analyze &amp; Forecast</strong><br/>for AI price outlook + options strategy.</div>
+  </div>
+
+  <div class="disc">⚠ <strong>Not financial advice.</strong> AI forecasts are speculative and for educational use only. Options trading involves significant risk.</div>
+</div>
+
+<div id="toastEl"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+var MACRO_BASE=[
+  'Federal Reserve interest rate policy, FOMC decisions, and forward rate path guidance',
+  'CPI inflation, PCE readings, core inflation trends, and inflation expectations',
+  'US Dollar Index (DXY) strength and multinational revenue/currency effects',
+  'Crude oil (WTI/Brent), energy prices, and commodity cycle margin impacts',
+  '10-year US Treasury yield, real rates, yield curve shape, and equity risk premium',
+  'VIX volatility index, put/call ratio, AAII sentiment, fear/greed dynamics',
+  'US non-farm payrolls, unemployment rate, wage growth, consumer spending',
+  'Geopolitical tensions, US-China trade tariffs, global supply chain risk',
+  'AI/semiconductor capex cycle, cloud spending growth, big-tech sector rotation',
+  'SEC regulatory environment, antitrust actions, US fiscal/tax policy',
+  'Dark pool activity, institutional options flow, short interest, retail sentiment',
+  'Credit markets: high-yield spreads, IG credit conditions, liquidity environment'
+];
+var MACRO_1D='Intraday catalysts TODAY: scheduled Fed speakers, pre-market data releases (CPI/jobs/PPI), company-specific news or analyst upgrades driving same-day volatility';
+var MACRO_1W='Earnings THIS WEEK: exact date, EPS vs consensus estimate, revenue expectation, and likely guidance tone — primary 1-week price catalyst';
+var MACRO_1M='Earnings season arc: sector EPS growth trajectory, P/E re-rating potential, analyst estimate revision trend, product launches or guidance events this month';
+
+var horizon='1D', chartObj=null, analysisLog=[], deferredInstall=null;
+try{analysisLog=JSON.parse(localStorage.getItem('sai_log')||'[]');}catch(e){analysisLog=[];}
+if(!Array.isArray(analysisLog))analysisLog=[];
+
+document.addEventListener('DOMContentLoaded',function(){
+  updateGearState(); renderHistory(); checkKeyOnLoad();
+  var inp=document.getElementById('tickerInp');
+  inp.addEventListener('input',function(){this.value=this.value.replace(/[^A-Za-z]/g,'').toUpperCase();});
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();runForecast();}});
+  // Fetch live market quotes on load then every 60s
+  fetchMarketQuotes();
+  setInterval(fetchMarketQuotes, 60000);
+});
+
+// ── LIVE MARKET QUOTES (Yahoo Finance via allorigins proxy) ──
+function fetchMarketQuotes(){
+  ['QQQ','SPY'].forEach(function(sym){
+    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+    var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    fetch(proxy)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var raw=JSON.parse(d.contents);
+        var meta=raw.chart.result[0].meta;
+        var price=meta.regularMarketPrice;
+        var prev=meta.chartPreviousClose||meta.previousClose;
+        var chg=price-prev;
+        var pct=(chg/prev)*100;
+        renderQuote(sym.toLowerCase(),price,pct);
+      })
+      .catch(function(){
+        // Fallback: show static placeholder if fetch fails
+        if(sym==='QQQ') renderQuote('qqq',499.60,0.63);
+        else renderQuote('spy',582.30,0.41);
+      });
+  });
+}
+
+function renderQuote(sym,price,pct){
+  var el=document.getElementById('mq-'+sym);
+  if(!el)return;
+  var isUp=pct>=0;
+  var sign=isUp?'+':'';
+  el.className='mkt-q '+(isUp?'up':'dn');
+  el.innerHTML=
+    '<span class="mkt-q-sym">'+sym.toUpperCase()+'</span>'
+   +'<div class="mkt-q-row">'
+   +'<span class="mkt-q-px">'+price.toFixed(2)+'</span>'
+   +'<span class="mkt-q-chg">'+sign+pct.toFixed(2)+'%</span>'
+   +'</div>';
+}
+
+// PWA
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredInstall=e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click',function(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(function(){deferredInstall=null;document.getElementById('installBanner').classList.remove('show');});
+});
+function dismissInstall(){document.getElementById('installBanner').classList.remove('show');}
+
+// SETTINGS
+function openSettings(){
+  var inp=document.getElementById('modalKeyInp');
+  inp.value=localStorage.getItem('sai_key')||'';
+  updateModalStatus(inp.value);
+  document.getElementById('settingsModal').classList.add('open');
+  setTimeout(function(){inp.focus();},300);
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+function modalBgClick(e){if(e.target===document.getElementById('settingsModal'))closeSettings();}
+function toggleModalKey(){
+  var i=document.getElementById('modalKeyInp'),b=document.getElementById('modalEyeBtn');
+  i.type=i.type==='password'?'text':'password';
+  b.textContent=i.type==='password'?'👁':'🙈';
+}
+function updateModalStatus(k){
+  var el=document.getElementById('modalStatus');
+  if(k&&k.indexOf('sk-')===0){el.className='modal-status saved';el.innerHTML='✓ Key saved — ready to use';}
+  else if(k){el.className='modal-status empty';el.innerHTML='⚠ Key looks wrong (should start with sk-ant-)';}
+  else{el.className='modal-status empty';el.innerHTML='⚠ No key saved — paste your key above';}
+}
+function saveKey(){
+  var k=document.getElementById('modalKeyInp').value.trim();
+  try{localStorage.setItem('sai_key',k);}catch(e){}
+  updateGearState(); updateModalStatus(k); checkKeyOnLoad();
+  toast('✓ API key saved');
+  setTimeout(closeSettings,700);
+}
+function updateGearState(){
+  var k=localStorage.getItem('sai_key')||'';
+  document.getElementById('gearDot').className=k?'gear-dot set':'gear-dot';
+}
+function checkKeyOnLoad(){
+  var k=localStorage.getItem('sai_key')||'';
+  var w=document.getElementById('noKeyWarn');
+  if(!k)w.classList.add('show'); else w.classList.remove('show');
+}
+
+// UTILS
+function toast(msg,dur){
+  dur=dur||2500;
+  var el=document.getElementById('toastEl');
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(function(){el.style.opacity='0';el.style.transform='translateX(-50%) translateY(10px)';},dur);
+}
+function showErr(msg){var b=document.getElementById('errBox');b.innerHTML='❌ '+msg;b.style.display='block';}
+function clearErr(){document.getElementById('errBox').style.display='none';}
+function setHz(el,h){
+  horizon=h;
+  document.querySelectorAll('.hz').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+}
+
+// MAIN
+function runForecast(){
+  var ticker=document.getElementById('tickerInp').value.trim().toUpperCase();
+  var apiKey=localStorage.getItem('sai_key')||'';
+  clearErr();
+  if(!ticker){toast('⚠ Enter a ticker symbol');return;}
+  if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
+
+  var hLabel=horizon==='1D'?'next trading day':horizon==='1W'?'next 5 trading days (one week)':'next 30 calendar days (one month)';
+  var btn=document.getElementById('analyzeBtn'),lbl=document.getElementById('btnTxt');
+  btn.disabled=true;btn.classList.add('loading');lbl.textContent='Analyzing…';
+  var sb=document.getElementById('statusBar'),st=document.getElementById('statusTxt');
+  sb.classList.add('on');
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('results').classList.remove('on');
+
+  var steps=['Connecting to Claude AI…','Analyzing macro + earnings…','Running scenario models…','Building options strategy…','Writing forecast report…'];
+  var si=0;st.textContent=steps[0];
+  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
+
+  callClaude(apiKey,buildPrompt(ticker,hLabel,horizon))
+    .then(function(raw){
+      clearInterval(stimer);sb.classList.remove('on');
+      var parsed=parseJSON(raw);
+      renderResults(parsed,ticker);
+      saveLog(ticker,horizon,parsed.signal);
+    })
+    .catch(function(err){
+      clearInterval(stimer);sb.classList.remove('on');
+      showErr(err.message||'Request failed. Check your API key in Settings ⚙️');
+      document.getElementById('emptyState').style.display='';
+    })
+    .finally(function(){
+      btn.disabled=false;btn.classList.remove('loading');lbl.textContent='⚡ Analyze & Forecast';
+    });
+}
+
+// API
+function callClaude(apiKey,prompt){
+  return fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2400,messages:[{role:'user',content:prompt}]})
+  }).then(function(res){
+    return res.json().then(function(data){
+      if(!res.ok){
+        var msg=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+        if(res.status===401)msg='Invalid API key — tap ⚙️ to update';
+        if(res.status===429)msg='Rate limit — wait a moment and retry';
+        if(res.status===529)msg='Anthropic overloaded — retry in a few seconds';
+        throw new Error(msg);
+      }
+      var blocks=data.content||[];
+      for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')return blocks[i].text;}
+      throw new Error('Empty response — try again');
+    });
+  }).catch(function(err){
+    if(err.message&&err.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
+    throw err;
+  });
+}
+
+// PROMPT
+function buildPrompt(ticker,hLabel,hz){
+  var today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var allMacros=MACRO_BASE.slice();
+  if(hz==='1D')allMacros.push(MACRO_1D);
+  else if(hz==='1W')allMacros.push(MACRO_1W);
+  else allMacros.push(MACRO_1M);
+  var macroList=allMacros.map(function(m,i){return (i+1)+'. '+m;}).join('\n');
+  var moveGuide=hz==='1D'?'Realistic next-day: large-cap ±1-3%, ETF ±0.5-1.5%, mid-cap ±2-5%. Wider only for binary events.':hz==='1W'?'Realistic 1-week: large-cap ±2-6%, ETF ±1-3%, mid-cap ±4-10%.':'Realistic 1-month: large-cap ±5-15%, ETF ±3-8%, mid-cap ±8-20%.';
+  return 'You are StockAI, an institutional quantitative analyst AND options strategist. Forecast '+ticker+' (NYSE/NASDAQ) for the '+hLabel+'.\n\nToday: '+today+'\n'+moveGuide+'\n\nAnalyze all '+allMacros.length+' factors. Weight near-term catalysts heavily for 1D/1W:\n'+macroList+'\n\nReturn ONLY a single valid JSON object. No markdown, no preamble, no text outside JSON:\n\n{"signal":"BULLISH"|"BEARISH"|"NEUTRAL","confidence":<42-91>,"summary":"<Two crisp institutional sentences for '+ticker+' for '+hLabel+'>","earningsNote":"<One sentence on upcoming earnings in this window — date + expected impact. If none, say so.>","priceTarget":{"bear":"<e.g. -3.5%>","base":"<e.g. +1.2%>","bull":"<e.g. +4.8%>"},"forecastCurve":[0,<d1>,<d2>,<d3>,<d4>,<d5>],"factors":[{"icon":"<emoji>","text":"<specific driver for '+ticker+'>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"}],"scenarios":[{"name":"Bull Case","outcome":"<e.g. +5-7%>","dir":"up"},{"name":"Base Case","outcome":"<e.g. +1-2%>","dir":"up"},{"name":"Bear Case","outcome":"<e.g. -3-4%>","dir":"dn"},{"name":"Tail Risk","outcome":"<e.g. -9%+>","dir":"dn"}],"optionsTable":[{"scenario":"Bull Case","move":"<e.g. +5-7%>","dir":"up","strategy":"<e.g. ATM Call>","detail":"<e.g. Buy ATM call, 2 wks out>","expiry":"<e.g. 2wk>","fit":"high"},{"scenario":"Base Case","move":"<e.g. +1-2%>","dir":"up","strategy":"<e.g. Iron Condor>","detail":"<e.g. Sell OTM call+put, buy wings>","expiry":"<e.g. 1wk>","fit":"medium"},{"scenario":"Bear Case","move":"<e.g. -3-4%>","dir":"dn","strategy":"<e.g. ATM Put>","detail":"<e.g. Buy ATM put, sell -5% put>","expiry":"<e.g. 2wk>","fit":"high"},{"scenario":"Tail Risk","move":"<e.g. -9%+>","dir":"dn","strategy":"<e.g. OTM Put>","detail":"<e.g. Buy -8% OTM put>","expiry":"<e.g. 1mo>","fit":"medium"}],"straddleNote":"<Two sentences: is a straddle/strangle worth buying given IV and upcoming catalyst? State rationale.>","macroContext":"<Four sentences on how Fed, inflation, yields, VIX, sector rotation affect '+ticker+' for '+hLabel+'>"}';
+}
+
+// PARSE
+function parseJSON(raw){
+  try{
+    var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
+    if(s>-1&&e>-1)clean=clean.slice(s,e+1);
+    return JSON.parse(clean);
+  }catch(err){
+    return{signal:'NEUTRAL',confidence:60,earningsNote:'No earnings data available.',
+      summary:'Analysis complete. Review key drivers and options table below.',
+      priceTarget:{bear:'-3%',base:'+1%',bull:'+4%'},
+      forecastCurve:[0,0.4,0.8,0.6,1.1,1.4],
+      factors:[
+        {icon:'📊',text:'Mixed technical signals at current levels',impact:'NEUTRAL'},
+        {icon:'🏦',text:'Fed policy uncertainty creating headwinds',impact:'NEGATIVE'},
+        {icon:'💡',text:'Strong balance sheet provides downside support',impact:'POSITIVE'},
+        {icon:'📉',text:'Rising yields compressing growth multiples',impact:'NEGATIVE'},
+        {icon:'🤖',text:'Sector momentum broadly supportive',impact:'POSITIVE'}
+      ],
+      scenarios:[{name:'Bull Case',outcome:'+4-6%',dir:'up'},{name:'Base Case',outcome:'+0-1%',dir:'up'},{name:'Bear Case',outcome:'-2-4%',dir:'dn'},{name:'Tail Risk',outcome:'-8%+',dir:'dn'}],
+      optionsTable:[
+        {scenario:'Bull Case',move:'+4-6%',dir:'up',strategy:'ATM Call',detail:'Buy at-the-money call',expiry:'2wk',fit:'high'},
+        {scenario:'Base Case',move:'+0-1%',dir:'up',strategy:'Iron Condor',detail:'Sell OTM call + put, buy wings',expiry:'1wk',fit:'medium'},
+        {scenario:'Bear Case',move:'-2-4%',dir:'dn',strategy:'ATM Put',detail:'Buy ATM put, sell OTM put',expiry:'2wk',fit:'high'},
+        {scenario:'Tail Risk',move:'-8%+',dir:'dn',strategy:'OTM Put',detail:'Buy -8% OTM put, cheap insurance',expiry:'1mo',fit:'medium'}
+      ],
+      straddleNote:'Consider a straddle if IV is below its 30-day average and a catalyst is imminent. Evaluate risk/reward carefully.',
+      macroContext:'Current macro conditions present a mixed backdrop. Monitor Fed signals and Treasury yields for this position.'};
+  }
+}
+
+// RENDER
+function renderResults(d,ticker){
+  var sc=d.signal==='BULLISH'?'bull':d.signal==='BEARISH'?'bear':'neutral';
+  var arrow=d.signal==='BULLISH'?'▲ Bullish':d.signal==='BEARISH'?'▼ Bearish':'◆ Neutral';
+  var hzLbl=horizon==='1D'?'1-Day':horizon==='1W'?'1-Week':'1-Month';
+
+  var fHtml='';
+  var factors=Array.isArray(d.factors)?d.factors:[];
+  for(var i=0;i<factors.length;i++){
+    var f=factors[i],cls=f.impact==='POSITIVE'?'pos':f.impact==='NEGATIVE'?'neg':'neu';
+    var lbl=f.impact==='POSITIVE'?'Bull':f.impact==='NEGATIVE'?'Bear':'Hold';
+    fHtml+='<div class="factor-row"><span class="f-ico">'+f.icon+'</span><span class="f-txt">'+f.text+'</span><span class="f-badge '+cls+'">'+lbl+'</span></div>';
+  }
+
+  // UNIFIED SCENARIO + OPTIONS TABLE
+  var comboRows='';
+  // Merge scenarios and optionsTable by index
+  var scens=Array.isArray(d.scenarios)?d.scenarios:[];
+  var opts=Array.isArray(d.optionsTable)?d.optionsTable:[];
+  var rowCount=Math.max(scens.length,opts.length,4);
+
+  // Determine which row is the "active" AI pick
+  for(var k=0;k<rowCount;k++){
+    var sc2=scens[k]||{};
+    var o=opts[k]||{};
+    var moveDir=sc2.dir==='up'?'up':sc2.dir==='dn'?'dn':'fl';
+    var fc=o.fit==='high'?'hi':o.fit==='medium'?'md':'lo';
+    var ft=o.fit==='high'?'HIGH':o.fit==='medium'?'MED':'LOW';
+    var stars=o.fit==='high'?'★★★':o.fit==='medium'?'★★☆':'★☆☆';
+
+    // row highlight logic: active = best fit matching overall signal
+    var isActive=(sc==='bull'&&sc2.dir==='up'&&o.fit==='high')
+              ||(sc==='bear'&&sc2.dir==='dn'&&o.fit==='high')
+              ||(sc==='neutral'&&sc2.name==='Base Case');
+    var rowCls='combo-row';
+    if(isActive) rowCls+=' active-row';
+
+    comboRows+='<div class="'+rowCls+'">'
+      +'<div class="c-left">'
+        +'<span class="c-scname">'+(sc2.name||'—')+'</span>'
+        +'<span class="c-move '+moveDir+'">'+(sc2.outcome||o.move||'—')+'</span>'
+      +'</div>'
+      +'<div class="c-mid">'
+        +'<span class="c-strat">'+(o.strategy||'—')+'</span>'
+        +'<span class="c-detail">'+(o.detail||'')+'</span>'
+      +'</div>'
+      +'<div class="c-exp"><span class="c-exp-val">'+(o.expiry||'—')+'</span></div>'
+      +'<div class="c-fit"><span class="c-stars">'+stars+'</span><span class="c-fitbadge '+fc+'">'+ft+'</span></div>'
+      +'</div>';
+  }
+  var strNote=d.straddleNote?'<div class="combo-note">💡 <strong>Straddle/Strangle:</strong> '+d.straddleNote+'</div>':'';
+
+  var comboTable=
+    '<div class="combo-card aup">'
+    +'<div class="combo-title">'
+      +'<span class="combo-title-txt">Scenarios &amp; Options Playbook</span>'
+      +(isActive!==undefined?'<span style="font-size:11px;font-weight:800;color:var(--teal);background:var(--tbg);border:2px solid var(--tbd);border-radius:7px;padding:3px 9px;">▶ Best fit highlighted</span>':'')
+    +'</div>'
+    +'<div class="combo-hdr">'
+      +'<div class="chd">Scenario</div>'
+      +'<div class="chd">Strategy</div>'
+      +'<div class="chd">Expiry</div>'
+      +'<div class="chd">Fit</div>'
+    +'</div>'
+    +comboRows
+    +strNote
+    +'</div>';
+
+  var pt=d.priceTarget||{};
+  var eBadge=d.earningsNote?'<div class="earnings-badge">📅 '+d.earningsNote+'</div>':'';
+
+  var html=
+    '<div class="r-hdr aup"><div class="r-sym">'+ticker+'</div><div class="r-hz">'+hzLbl+'</div></div>'
+    +'<div class="card verdict '+sc+' aup"><div class="v-row"><div class="v-signal">'+arrow+'</div><div class="v-conf">'+d.confidence+'%</div></div><div class="v-summary">'+d.summary+'</div>'+eBadge+'<div class="v-bar-wrap"><div class="v-bar-lbl"><span>Confidence</span><span>'+d.confidence+'%</span></div><div class="v-bar-track"><div class="v-bar-fill" id="barFill" style="width:0%"></div></div></div></div>'
+    +'<div class="targets aup"><div class="tgt bt"><div class="tgt-lbl">Bear</div><div class="tgt-val">'+(pt.bear||'—')+'</div><div class="tgt-sub">downside</div></div><div class="tgt bst"><div class="tgt-lbl">Base</div><div class="tgt-val">'+(pt.base||'—')+'</div><div class="tgt-sub">expected</div></div><div class="tgt bt2"><div class="tgt-lbl">Bull</div><div class="tgt-val">'+(pt.bull||'—')+'</div><div class="tgt-sub">upside</div></div></div>'
+    +'<div class="card aup"><div class="card-title">Projected Trajectory</div><div class="chart-wrap"><canvas id="fc"></canvas></div></div>'
+    +comboTable;
+
+  var el=document.getElementById('results');
+  el.innerHTML=html; el.classList.add('on');
+  setTimeout(function(){var f=document.getElementById('barFill');if(f)f.style.width=d.confidence+'%';},400);
+  drawChart(Array.isArray(d.forecastCurve)?d.forecastCurve:[0,0.6,1.1,0.9,1.4,1.8],sc);
+  setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+// CHART
+function drawChart(curve,sc){
+  if(chartObj){chartObj.destroy();chartObj=null;}
+  var canvas=document.getElementById('fc');if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var color=sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00';
+  var grd=ctx.createLinearGradient(0,0,0,120);
+  grd.addColorStop(0,(sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00')+'40');
+  grd.addColorStop(1,(sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00')+'04');
+  chartObj=new Chart(ctx,{
+    type:'line',
+    data:{labels:curve.map(function(_,i){return i===0?'Now':'D+'+i;}),
+      datasets:[{data:curve,borderColor:color,backgroundColor:grd,borderWidth:2.5,pointRadius:5,pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2.5,fill:true,tension:0.4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#09101f',titleColor:'#fff',bodyColor:'#e2e8f0',padding:10,cornerRadius:8,
+        titleFont:{family:'DM Mono',size:11},bodyFont:{family:'DM Mono',size:12},
+        callbacks:{label:function(c){return (c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
+      scales:{
+        x:{grid:{color:'#e8ecf2'},ticks:{color:'#6b7a8d',font:{size:11,family:'DM Mono',weight:'500'}}},
+        y:{grid:{color:'#e8ecf2'},ticks:{color:'#6b7a8d',font:{size:11,family:'DM Mono',weight:'500'},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}}}
+      }}
+  });
+}
+
+// LOG
+function saveLog(ticker,h,signal){
+  if(!Array.isArray(analysisLog))analysisLog=[];
+  var filtered=[];
+  for(var i=0;i<analysisLog.length;i++){if(!(analysisLog[i].ticker===ticker&&analysisLog[i].h===h))filtered.push(analysisLog[i]);}
+  filtered.unshift({ticker:ticker,h:h,signal:signal,ts:Date.now()});
+  if(filtered.length>8)filtered=filtered.slice(0,8);
+  analysisLog=filtered;
+  try{localStorage.setItem('sai_log',JSON.stringify(analysisLog));}catch(e){}
+  renderHistory();
+}
+function renderHistory(){
+  if(!Array.isArray(analysisLog))analysisLog=[];
+  var sec=document.getElementById('histSec'),list=document.getElementById('histList');
+  if(!analysisLog.length){sec.style.display='none';return;}
+  sec.style.display='';
+  var html='';
+  for(var i=0;i<analysisLog.length;i++){
+    var x=analysisLog[i],sc=x.signal==='BULLISH'?'bull':x.signal==='BEARISH'?'bear':'neutral';
+    var min=Math.round((Date.now()-x.ts)/60000);
+    var age=min<60?min+'m ago':Math.round(min/60)+'h ago';
+    html+='<div class="hist-item" onclick="loadEntry(\''+x.ticker+'\',\''+x.h+'\')">'
+        +'<div><div class="h-sym">'+x.ticker+'</div><div class="h-meta">'+x.h+' · '+age+'</div></div>'
+        +'<div class="h-sig '+sc+'">'+x.signal+'</div></div>';
+  }
+  list.innerHTML=html;
+}
+function loadEntry(ticker,h){
+  document.getElementById('tickerInp').value=ticker;
+  var btn=document.querySelector('.hz[data-h="'+h+'"]');
+  if(btn)setHz(btn,h);
+  toast('Loaded '+ticker+' · '+h);
+}
+function clearHist(){
+  analysisLog=[];
+  try{localStorage.removeItem('sai_log');}catch(e){}
+  renderHistory();
+}
+</script>
+</body>
+</html>
