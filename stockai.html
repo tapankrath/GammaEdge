@@ -1392,212 +1392,171 @@ function drawPnLChart(d, sc){
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
 
-  var t=d.trade||{};
-  var p=t.primary||{};
-  var h=t.hedge||{};
+  var t=d.trade||{}, p=t.primary||{}, h=t.hedge||{};
   var hw=(t.hedgeWeight||Math.round(100-d.confidence))/100;
-  var pw=1-hw;
   var pt=d.priceTarget||{};
 
-  // Parse price targets as numbers (strip % and sign)
   function parsePct(s){return parseFloat((s||'0').replace('%','').replace('+',''));}
-  var bearPct=parsePct(pt.bear);   // e.g. -3.5
-  var basePct=parsePct(pt.base);   // e.g. +1.2
-  var bullPct=parsePct(pt.bull);   // e.g. +4.8
-
-  // Build price range: from bear-2% to bull+2%
-  var minPct=Math.min(bearPct-2, -5);
-  var maxPct=Math.max(bullPct+2, 6);
-  var steps=40;
-  var labels=[], pnlData=[], bgColors=[];
-
-  // Model P&L of combined position across price moves
-  // For a call spread: profit = min(move - breakeven, spread_width) if move > breakeven, else -premium
-  // For a put hedge: profit if move < put_strike
-  // Simplified model based on confidence & signal direction
-
+  var bearPct=parsePct(pt.bear), basePct=parsePct(pt.base), bullPct=parsePct(pt.bull);
   var isBull=sc==='bull', isBear=sc==='bear';
-
-  // Spread width approximation from bull/base targets
   var spreadWidth=Math.abs(bullPct-basePct)||3;
-  // Premium cost approximation (call spread = ~35-45% of spread width)
   var spreadPremiumPct=spreadWidth*0.4;
-  // Hedge cost = hedgeWeight% of premium
   var hedgeCostPct=spreadPremiumPct*hw;
   var totalCostPct=spreadPremiumPct+hedgeCostPct;
+  var breakEvenPct=isBull?totalCostPct:isBear?-totalCostPct:0;
+  var exitTriggerPct=isBull?(bearPct+1):isBear?(bullPct-1):bearPct;
+  var maxProfit=spreadWidth-totalCostPct;
+  var maxLoss=-totalCostPct;
+  var hedgePayoff=hedgeCostPct*2.5;
+  var dte=horizon==='1D'?1:horizon==='1W'?7:30;
 
-  // Break-even: where total cost is recovered
-  var breakEvenPct= isBull ? spreadPremiumPct+hedgeCostPct
-                  : isBear ? -(spreadPremiumPct+hedgeCostPct)
-                  : 0;
-
-  // Exit trigger from hedge detail
-  var exitTriggerPct= isBull ? (bearPct+1) : isBear ? (bullPct-1) : bearPct;
-
-  // Max profit = spread_width - total_cost (primary wins, hedge expires)
-  var maxProfit= isBull||isBear ? spreadWidth-totalCostPct : spreadWidth*0.6-totalCostPct;
-  // Max loss = total cost paid (both legs expire worthless)
-  var maxLoss= -totalCostPct;
-  // Hedge payoff: if move goes wrong way past exit trigger, hedge partially offsets
-  var hedgePayoff=hedgeCostPct*2.5; // puts typically pay 2-3x when triggered
-
-  for(var i=0;i<=steps;i++){
-    var movePct=minPct+(maxPct-minPct)*(i/steps);
-    labels.push((movePct>=0?'+':'')+movePct.toFixed(1)+'%');
-
+  function calcPricePnl(movePct){
     var pnl=0;
     if(isBull){
-      if(movePct>=breakEvenPct+spreadWidth){
-        // Max profit zone
-        pnl=maxProfit;
-      } else if(movePct>=breakEvenPct){
-        // Profit ramp
-        pnl=(movePct-breakEvenPct)*(maxProfit/spreadWidth);
-      } else if(movePct<=exitTriggerPct){
-        // Hedge kicks in, partially offsets loss
-        pnl=maxLoss+hedgePayoff*Math.min(1,(exitTriggerPct-movePct)/Math.abs(exitTriggerPct));
-      } else {
-        // Loss zone (between exit trigger and breakeven)
-        pnl=maxLoss*((breakEvenPct-movePct)/(breakEvenPct-exitTriggerPct));
-      }
+      if(movePct>=breakEvenPct+spreadWidth) pnl=maxProfit;
+      else if(movePct>=breakEvenPct) pnl=(movePct-breakEvenPct)*(maxProfit/spreadWidth);
+      else if(movePct<=exitTriggerPct) pnl=maxLoss+hedgePayoff*Math.min(1,(exitTriggerPct-movePct)/Math.abs(exitTriggerPct||1));
+      else pnl=maxLoss*((breakEvenPct-movePct)/(breakEvenPct-exitTriggerPct||0.01));
     } else if(isBear){
       var inv=-movePct;
-      if(inv>=breakEvenPct+spreadWidth){pnl=maxProfit;}
-      else if(inv>=breakEvenPct){pnl=(inv-breakEvenPct)*(maxProfit/spreadWidth);}
-      else if(movePct>=Math.abs(exitTriggerPct)){pnl=maxLoss+hedgePayoff*Math.min(1,(movePct-Math.abs(exitTriggerPct))/2);}
-      else{pnl=maxLoss*((breakEvenPct-inv)/(breakEvenPct-Math.abs(exitTriggerPct)));}
+      if(inv>=breakEvenPct+spreadWidth) pnl=maxProfit;
+      else if(inv>=breakEvenPct) pnl=(inv-breakEvenPct)*(maxProfit/spreadWidth);
+      else if(movePct>=Math.abs(exitTriggerPct)) pnl=maxLoss+hedgePayoff*Math.min(1,(movePct-Math.abs(exitTriggerPct))/2);
+      else pnl=maxLoss*((breakEvenPct-inv)/(breakEvenPct-Math.abs(exitTriggerPct)||0.01));
     } else {
-      // Neutral: iron condor shape
-      var abs=Math.abs(movePct);
-      if(abs<=breakEvenPct){pnl=maxProfit*(1-abs/breakEvenPct);}
-      else{pnl=maxLoss*((abs-breakEvenPct)/2);}
+      var a=Math.abs(movePct), be=Math.abs(breakEvenPct)||1;
+      pnl=a<=be?maxProfit*(1-a/be):maxLoss*((a-be)/2);
     }
-
-    pnl=Math.max(maxLoss*1.1, Math.min(maxProfit*1.05, pnl));
-    pnlData.push(parseFloat(pnl.toFixed(3)));
-    bgColors.push(pnl>=0 ? 'rgba(21,128,61,0.15)' : 'rgba(185,28,28,0.12)');
+    return Math.max(maxLoss*1.15, Math.min(maxProfit*1.05, pnl));
   }
 
-  // Gradient fill
-  var grdProfit=ctx.createLinearGradient(0,0,0,200);
-  grdProfit.addColorStop(0,'rgba(21,128,61,0.25)');
-  grdProfit.addColorStop(1,'rgba(21,128,61,0.02)');
-  var grdLoss=ctx.createLinearGradient(0,0,0,200);
-  grdLoss.addColorStop(0,'rgba(185,28,28,0.02)');
-  grdLoss.addColorStop(1,'rgba(185,28,28,0.22)');
+  function thetaDecay(frac){ return Math.pow(1-frac, 0.65); }
 
-  // Find exit trigger and base/bull/bear label positions
-  var exitIdx=Math.round((exitTriggerPct-minPct)/(maxPct-minPct)*steps);
-  var baseIdx=Math.round((basePct-minPct)/(maxPct-minPct)*steps);
-  var bullIdx=Math.round((bullPct-minPct)/(maxPct-minPct)*steps);
-  var bearIdx=Math.round((bearPct-minPct)/(maxPct-minPct)*steps);
-  var breakEvenIdx=Math.round((breakEvenPct-minPct)/(maxPct-minPct)*steps);
+  function calcTimePnl(scenario, dayFrac){
+    var finalMove=scenario==='bull'?bullPct:scenario==='base'?basePct:bearPct;
+    var currentMove=finalMove*dayFrac;
+    var intrinsicPnl=calcPricePnl(currentMove);
+    pnl=intrinsicPnl*dayFrac - totalCostPct*(1-thetaDecay(dayFrac))*(1-dayFrac*0.4);
+    return parseFloat(Math.max(maxLoss*1.15, Math.min(maxProfit*1.05, pnl)).toFixed(3));
+  }
 
-  chartObj=new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:labels,
-      datasets:[
-        // Main P&L line
-        {
-          data:pnlData,
-          borderColor:function(ctx2){
-            if(!ctx2.chart.chartArea)return '#15803d';
-            return '#0a0f1e';
-          },
-          segment:{
-            borderColor:function(ctx2){return ctx2.p1.parsed.y>=0?'#15803d':'#b91c1c';},
-          },
-          backgroundColor:function(ctx2){
-            if(!ctx2.chart||!ctx2.chart.chartArea)return 'transparent';
-            var chart=ctx2.chart;
-            var area=chart.chartArea;
-            var yZero=chart.scales.y.getPixelForValue(0);
-            var gUp=ctx.createLinearGradient(0,area.top,0,yZero);
-            gUp.addColorStop(0,'rgba(21,128,61,0.3)');gUp.addColorStop(1,'rgba(21,128,61,0.02)');
-            var gDn=ctx.createLinearGradient(0,yZero,0,area.bottom);
-            gDn.addColorStop(0,'rgba(185,28,28,0.02)');gDn.addColorStop(1,'rgba(185,28,28,0.25)');
-            // Use a simple gradient based on signal
-            return sc==='bull'?gUp:sc==='bear'?gDn:gUp;
-          },
-          borderWidth:2.5,
-          pointRadius:function(ctx2){
-            var i=ctx2.dataIndex;
-            return (i===exitIdx||i===breakEvenIdx||i===baseIdx||i===bullIdx||i===bearIdx)?6:0;
-          },
-          pointBackgroundColor:function(ctx2){
-            var i=ctx2.dataIndex;
-            if(i===exitIdx)return '#ef4444';
-            if(i===breakEvenIdx)return '#f59e0b';
-            if(i===bullIdx)return '#15803d';
-            if(i===bearIdx)return '#b91c1c';
-            return '#0a0f1e';
-          },
-          pointBorderColor:'#fff',pointBorderWidth:2,
-          fill:true,tension:0.4
-        },
-        // Zero line
-        {
-          data:labels.map(function(){return 0;}),
-          borderColor:'rgba(100,116,139,0.4)',
-          borderWidth:1,borderDash:[4,4],
-          pointRadius:0,fill:false,tension:0
-        }
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      animation:{duration:600},
-      interaction:{mode:'index',intersect:false},
+  function buildPriceChart(){
+    var steps=40, minP=Math.min(bearPct-2,-5), maxP=Math.max(bullPct+2,6);
+    var labels=[], pnlData=[], exitIdx=0, breakEvenIdx=0, bullIdx=steps, bearIdx=0;
+    for(var i=0;i<=steps;i++){
+      var m=minP+(maxP-minP)*(i/steps);
+      labels.push((m>=0?'+':'')+m.toFixed(1)+'%');
+      pnlData.push(parseFloat(calcPricePnl(m).toFixed(3)));
+      var span=(maxP-minP)/steps*1.5;
+      if(Math.abs(m-exitTriggerPct)<span) exitIdx=i;
+      if(Math.abs(m-breakEvenPct)<span) breakEvenIdx=i;
+      if(Math.abs(m-bullPct)<span) bullIdx=i;
+      if(Math.abs(m-bearPct)<span) bearIdx=i;
+    }
+    return {labels:labels, _steps:steps, _ei:exitIdx, _bi:breakEvenIdx, _bull:bullIdx, _bear:bearIdx, datasets:[
+      {data:pnlData,
+       segment:{borderColor:function(c){return c.p1.parsed.y>=0?'#15803d':'#b91c1c';}},
+       backgroundColor:function(c){
+         if(!c.chart||!c.chart.chartArea)return 'transparent';
+         var g=ctx.createLinearGradient(0,c.chart.chartArea.top,0,c.chart.chartArea.bottom);
+         g.addColorStop(0,'rgba(21,128,61,0.25)');g.addColorStop(0.5,'rgba(21,128,61,0.04)');g.addColorStop(1,'rgba(185,28,28,0.18)');return g;
+       },
+       borderWidth:2.5,fill:true,tension:0.35,
+       pointRadius:function(c){var i=c.dataIndex;return(i===exitIdx||i===breakEvenIdx||i===bullIdx||i===bearIdx)?5:0;},
+       pointBackgroundColor:function(c){var i=c.dataIndex;return i===exitIdx?'#ef4444':i===breakEvenIdx?'#f59e0b':i===bullIdx?'#15803d':i===bearIdx?'#b91c1c':'#0a0f1e';},
+       pointBorderColor:'#fff',pointBorderWidth:2},
+      {data:labels.map(function(){return 0;}),borderColor:'rgba(100,116,139,0.35)',borderWidth:1,borderDash:[3,3],pointRadius:0,fill:false,tension:0}
+    ]};
+  }
+
+  function buildTimeChart(){
+    var days=[], bullData=[], baseData=[], bearData=[];
+    for(var d2=0;d2<=dte;d2++){
+      days.push(d2===0?'Now':(d2===dte?'DTE':'D'+d2));
+      var frac=dte>0?d2/dte:1;
+      bullData.push(calcTimePnl('bull',frac));
+      baseData.push(calcTimePnl('base',frac));
+      bearData.push(calcTimePnl('bear',frac));
+    }
+    return {labels:days,datasets:[
+      {label:'Bull ('+bullPct+'%)',data:bullData,borderColor:'#15803d',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#15803d',pointBorderColor:'#fff',pointBorderWidth:1.5,fill:false,tension:0.4},
+      {label:'Base ('+basePct+'%)',data:baseData,borderColor:'#1d4ed8',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1d4ed8',pointBorderColor:'#fff',pointBorderWidth:1.5,fill:false,tension:0.4,borderDash:[5,3]},
+      {label:'Bear ('+bearPct+'%)',data:bearData,borderColor:'#b91c1c',borderWidth:2,pointRadius:3,pointBackgroundColor:'#b91c1c',pointBorderColor:'#fff',pointBorderWidth:1.5,fill:false,tension:0.4,borderDash:[3,3]},
+      {data:days.map(function(){return 0;}),borderColor:'rgba(100,116,139,0.35)',borderWidth:1,borderDash:[3,3],pointRadius:0,fill:false,tension:0,label:'_zero'}
+    ]};
+  }
+
+  function renderChart(view){
+    window._chartView=view;
+    if(chartObj){chartObj.destroy();chartObj=null;}
+    var cd=view==='price'?buildPriceChart():buildTimeChart();
+    // Update tabs
+    var tabs=document.getElementById('fc-tabs');
+    if(tabs){
+      ['price','time'].forEach(function(v){
+        var btn=tabs.querySelector('[data-v="'+v+'"]');
+        if(btn){btn.style.background=view===v?'var(--text)':'transparent';btn.style.color=view===v?'#fff':'var(--muted)';}
+      });
+    }
+    chartObj=new Chart(ctx,{type:'line',data:cd,options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:500},
       plugins:{
-        legend:{display:false},
-        tooltip:{enabled:false},  // disabled — not mobile friendly
+        legend:{display:view==='time',position:'top',labels:{boxWidth:20,boxHeight:2,padding:8,font:{size:10,family:'Inter',weight:'700'},color:'#374151',filter:function(item){return item.text!=='_zero';}}},
+        tooltip:{enabled:false}
       },
       scales:{
-        x:{
-          grid:{color:'rgba(226,232,240,0.6)'},
-          ticks:{
-            color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},
-            maxTicksLimit:7,
-            callback:function(val,i){
-              // Only show key price points
-              if(i===0||i===steps||i===baseIdx||i===exitIdx||i===breakEvenIdx)
-                return this.getLabelForValue(val);
-              return '';
-            }
-          }
-        },
-        y:{
-          grid:{color:'rgba(226,232,240,0.6)'},
-          ticks:{
-            color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},
-            callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}
-          }
-        }
+        x:{grid:{color:'rgba(226,232,240,0.5)'},ticks:{color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},maxTicksLimit:view==='time'?(dte<=7?dte+1:8):7,
+          callback:view==='price'?function(val,i){
+            var s=cd._steps||40;
+            if(i===0||i===s||i===(cd._ei||0)||i===(cd._bi||0)) return this.getLabelForValue(val);
+            return '';
+          }:undefined
+        }},
+        y:{grid:{color:'rgba(226,232,240,0.5)'},ticks:{color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}}}
       }
-    }
-  });
+    }});
+    updateLegend(view);
+  }
 
-  // Legend below chart
-  var legend=document.getElementById('fc-legend');
-  if(legend){
-    var items=[
-      {color:'#15803d', label:'Profit zone'},
-      {color:'#b91c1c', label:'Loss zone'},
-      {color:'#f59e0b', label:'Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%'},
-      {color:'#ef4444', label:'Exit trigger: '+(exitTriggerPct>=0?'+':'')+exitTriggerPct.toFixed(1)+'%'},
-      {color:'#15803d', label:'Max profit: +'+(maxProfit).toFixed(1)+'%', bold:true},
-      {color:'#b91c1c', label:'Max loss: '+(maxLoss).toFixed(1)+'%', bold:true},
-    ];
+  function updateLegend(view){
+    var legend=document.getElementById('fc-legend');
+    if(!legend)return;
     legend.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:10px;padding:10px;background:var(--p2);border-radius:8px;border:1px solid var(--border);';
+    var items=view==='price'?[
+      {color:'#15803d',label:'Profit zone'},
+      {color:'#b91c1c',label:'Loss zone'},
+      {color:'#f59e0b',label:'Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%'},
+      {color:'#ef4444',label:'Exit trigger: '+(exitTriggerPct>=0?'+':'')+exitTriggerPct.toFixed(1)+'%'},
+      {color:'#15803d',label:'Max profit: +'+maxProfit.toFixed(1)+'%',bold:true},
+      {color:'#b91c1c',label:'Max loss: '+maxLoss.toFixed(1)+'%',bold:true}
+    ]:[
+      {color:'#15803d',label:'Bull → '+bullPct+'% by DTE',bold:true},
+      {color:'#1d4ed8',label:'Base → '+basePct+'% by DTE'},
+      {color:'#b91c1c',label:'Bear → '+bearPct+'% by DTE'},
+      {color:'#f59e0b',label:'Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%'},
+      {color:'#6b7280',label:'Theta accel. final 30% of DTE'},
+      {color:'#ef4444',label:'Max loss flat hold: '+maxLoss.toFixed(1)+'%',bold:true}
+    ];
     legend.innerHTML=items.map(function(item){
       return '<span style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:'+(item.bold?'800':'700')+';color:var(--sub);">'
-        +'<span style="width:8px;height:8px;border-radius:50%;background:'+item.color+';flex-shrink:0;"></span>'
-        +item.label
-        +'</span>';
+        +'<span style="width:8px;height:8px;border-radius:50%;background:'+item.color+';flex-shrink:0;"></span>'+item.label+'</span>';
     }).join('');
   }
+
+  // Inject tab switcher above canvas if not already there
+  if(!document.getElementById('fc-tabs')){
+    var tabBar=document.createElement('div');
+    tabBar.id='fc-tabs';
+    tabBar.style.cssText='display:flex;gap:3px;background:var(--p2);border-radius:8px;padding:3px;margin-bottom:10px;border:1px solid var(--border);';
+    tabBar.innerHTML=
+      '<button data-v="price" onclick="window._renderPnLChart(\'price\')" style="flex:1;padding:6px 0;font-size:11px;font-weight:800;border-radius:6px;border:none;cursor:pointer;transition:all .15s;background:var(--text);color:#fff;">💰 Price Range</button>'
+     +'<button data-v="time" onclick="window._renderPnLChart(\'time\')" style="flex:1;padding:6px 0;font-size:11px;font-weight:800;border-radius:6px;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);">⏱ D1 → DTE</button>';
+    canvas.parentNode.insertBefore(tabBar, canvas);
+  }
+  window._renderPnLChart=renderChart;
+  renderChart(window._chartView||'price');
 }
+
 
 // ══════════════════════════════════════════
 // WATCHLIST
