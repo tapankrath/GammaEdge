@@ -896,71 +896,99 @@ document.addEventListener('DOMContentLoaded',function(){
   setInterval(fetchMarketQuotes, 60000);
 });
 
-// ── LIVE MARKET QUOTES ──
+// ── LIVE MARKET QUOTES via Claude web_search ──
 function fetchMarketQuotes(){
-  var syms=[
-    {sym:'QQQ', id:'qqq', fallbackPx:479.60, fallbackPct:0.63},
-    {sym:'SPY', id:'spy', fallbackPx:534.20, fallbackPct:0.41},
-    {sym:'%5EVIX', id:'vix', label:'VIX', fallbackPx:18.4, fallbackPct:-2.1}
-  ];
-  syms.forEach(function(s){
-    // Try two proxies in sequence
-    tryFetchQuote(s.sym, s.id, s.label||s.sym.toUpperCase(), s.fallbackPx, s.fallbackPct);
+  var apiKey=localStorage.getItem('sai_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1){
+    // No key yet — show placeholders, will refresh after key is set
+    renderQuote('qqq',0,0,'QQQ',true);
+    renderQuote('spy',0,0,'SPY',true);
+    renderQuote('vix',0,0,'VIX',true);
+    return;
+  }
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:256,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:'What are the current prices of QQQ, SPY, and VIX right now? Return ONLY a JSON object like: {"QQQ":{"price":479.50,"pct":0.63},"SPY":{"price":534.20,"pct":0.41},"VIX":{"price":18.4,"pct":-2.1}} No other text.'}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    // Extract text from response (may have tool_use blocks first)
+    var text='';
+    if(data.content){
+      data.content.forEach(function(block){
+        if(block.type==='text') text+=block.text;
+      });
+    }
+    var clean=text.replace(/```json|```/g,'').trim();
+    // Find JSON object in response
+    var match=clean.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('no json');
+    var q=JSON.parse(match[0]);
+    if(q.QQQ) renderQuote('qqq', q.QQQ.price, q.QQQ.pct, 'QQQ', false);
+    if(q.SPY) renderQuote('spy', q.SPY.price, q.SPY.pct, 'SPY', false);
+    if(q.VIX) renderQuote('vix', q.VIX.price, q.VIX.pct, 'VIX', false);
+  })
+  .catch(function(){
+    // Silent fail — just hide the loading dots
+    renderQuote('qqq',0,0,'QQQ',true);
+    renderQuote('spy',0,0,'SPY',true);
+    renderQuote('vix',0,0,'VIX',true);
   });
 }
 
-function tryFetchQuote(sym, id, label, fallbackPx, fallbackPct){
-  var yahooUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
-  // Proxy 1: allorigins
-  var proxy1='https://api.allorigins.win/raw?url='+encodeURIComponent(yahooUrl);
-  // Proxy 2: corsproxy.io
-  var proxy2='https://corsproxy.io/?'+encodeURIComponent(yahooUrl);
-
-  fetch(proxy1, {cache:'no-store'})
-    .then(function(r){
-      if(!r.ok)throw new Error('p1 fail');
-      return r.json();
-    })
-    .then(function(raw){
-      parseAndRenderQuote(raw, id, label);
-    })
-    .catch(function(){
-      // Try proxy 2
-      fetch(proxy2, {cache:'no-store'})
-        .then(function(r){return r.json();})
-        .then(function(raw){
-          parseAndRenderQuote(raw, id, label);
-        })
-        .catch(function(){
-          // Show fallback with stale indicator
-          renderQuote(id, fallbackPx, fallbackPct, label, true);
-        });
-    });
-}
-
-function parseAndRenderQuote(raw, id, label){
-  var meta=raw.chart.result[0].meta;
-  var price=meta.regularMarketPrice;
-  var prev=meta.chartPreviousClose||meta.previousClose||price;
-  var pct=prev?((price-prev)/prev*100):0;
-  renderQuote(id, price, pct, label, false);
-}
-
-function renderQuote(sym, price, pct, label, stale){
+function renderQuote(sym, price, pct, label, unavailable){
   var el=document.getElementById('mq-'+sym);
   if(!el)return;
+  if(unavailable||!price){
+    el.className='mkt-q';
+    el.innerHTML='<span class="mkt-q-sym">'+label+'</span><span class="mkt-q-loading">···</span>';
+    return;
+  }
   var isUp=pct>=0;
   var isVix=sym==='vix';
   var colorClass=isVix?(isUp?'dn':'up'):(isUp?'up':'dn');
   var sign=isUp?'+':'';
   el.className='mkt-q '+colorClass;
   el.innerHTML=
-    '<span class="mkt-q-sym">'+(label||sym.toUpperCase())+(stale?' *':'')+'</span>'
+    '<span class="mkt-q-sym">'+label+'</span>'
    +'<div class="mkt-q-row">'
    +'<span class="mkt-q-px">'+price.toFixed(2)+'</span>'
    +'<span class="mkt-q-chg">'+sign+pct.toFixed(2)+'%</span>'
    +'</div>';
 }
+
+// Also fix price fetch for forecasts — use corsproxy as it's more reliable for single fetches
+function fetchLivePrice(ticker, cb){
+  var url='https://query2.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+  ];
+  function tryNext(i){
+    if(i>=proxies.length){cb(null);return;}
+    fetch(proxies[i],{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        cb(d.chart.result[0].meta.regularMarketPrice);
+      })
+      .catch(function(){tryNext(i+1);});
+  }
+  tryNext(0);
+}
+
 
 // PWA
 window.addEventListener('beforeinstallprompt',function(e){
@@ -999,6 +1027,7 @@ function saveKey(){
   var k=document.getElementById('modalKeyInp').value.trim();
   try{localStorage.setItem('sai_key',k);}catch(e){}
   updateGearState(); updateModalStatus(k); checkKeyOnLoad();
+  fetchMarketQuotes(); // refresh quotes now that key is available
   toast('✓ API key saved');
   setTimeout(closeSettings,700);
 }
@@ -1090,19 +1119,11 @@ function runForecast(){
       });
   }
 
-  // Try to get live price; proceed with null if it fails (Claude will use % targets only)
-  var priceUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-  var priceProxy='https://api.allorigins.win/raw?url='+encodeURIComponent(priceUrl);
-  fetch(priceProxy)
-    .then(function(r){return r.json();})
-    .then(function(raw){
-      try{
-        var price=raw.chart.result[0].meta.regularMarketPrice;
-        st.textContent='Got live price $'+price.toFixed(2)+' — building strategy…';
-        doForecast(price);
-      }catch(e){doForecast(null);}
-    })
-    .catch(function(){doForecast(null);});
+  // Fetch live price first so Claude uses real strikes
+  fetchLivePrice(ticker, function(price){
+    if(price) st.textContent='Got live price $'+price.toFixed(2)+' — building strategy…';
+    doForecast(price);
+  });
 }
 
 // API
@@ -1496,8 +1517,8 @@ function fetchIVAndSector(ticker){
   if(sector&&sector!==ticker)symbols.push(sector);
 
   // Fetch Yahoo Finance quote data
-  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=30d';
-  var proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
+  var url='https://query2.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=30d';
+  var proxy='https://corsproxy.io/?'+encodeURIComponent(url);
 
   fetch(proxy)
     .then(function(r){return r.json();})
@@ -1803,23 +1824,7 @@ function renderCalibration(){
 }
 
 // ══════════════════════════════════════════
-function fetchPriceForLog(ticker,cb){
-  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-  var proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
-  fetch(proxy)
-    .then(function(r){return r.json();})
-    .then(function(raw){
-      var price=raw.chart.result[0].meta.regularMarketPrice;
-      cb(price);
-    })
-    .catch(function(){
-      // try proxy 2
-      fetch('https://corsproxy.io/?'+encodeURIComponent(url))
-        .then(function(r){return r.json();})
-        .then(function(raw){cb(raw.chart.result[0].meta.regularMarketPrice);})
-        .catch(function(){cb(null);});
-    });
-}
+function fetchPriceForLog(ticker,cb){fetchLivePrice(ticker,cb);}
 
 function saveLog(ticker,h,signal,livePrice){
   if(!Array.isArray(analysisLog))analysisLog=[];
