@@ -1368,9 +1368,7 @@ function renderResults(d,ticker){
     +'<div class="card verdict '+sc+' aup"><div class="v-row"><div class="v-signal">'+arrow+'</div><div class="v-conf">'+d.confidence+'%</div></div><div class="v-summary">'+d.summary+'</div>'+eBadge+'<div class="v-bar-wrap"><div class="v-bar-lbl"><span>Confidence</span><span>'+d.confidence+'%</span></div><div class="v-bar-track"><div class="v-bar-fill" id="barFill" style="width:0%"></div></div></div></div>'
     +'<div class="targets aup"><div class="tgt bt"><div class="tgt-lbl">Bear</div><div class="tgt-val">'+(pt.bear||'—')+'</div><div class="tgt-sub">downside</div></div><div class="tgt bst"><div class="tgt-lbl">Base</div><div class="tgt-val">'+(pt.base||'—')+'</div><div class="tgt-sub">expected</div></div><div class="tgt bt2"><div class="tgt-lbl">Bull</div><div class="tgt-val">'+(pt.bull||'—')+'</div><div class="tgt-sub">upside</div></div></div>'
     // IV + sector context card (populated async)
-    +'<div class="card aup" id="ivContextCard" style="display:none;"></div>'
     // News sentiment card (populated async)
-    +'<div class="card aup" id="newsCard" style="display:none;"></div>'
     +'<div class="card aup"><div class="card-title">Projected Trajectory</div><div class="chart-wrap"><canvas id="fc"></canvas></div></div>'
     +comboTable
     // Track trade button
@@ -1386,10 +1384,6 @@ function renderResults(d,ticker){
   // Store for paper trade tracking
   lastResult={ticker:ticker,signal:d.signal,confidence:d.confidence,horizon:horizon,
     trade:d.trade,priceTarget:d.priceTarget,ts:Date.now()};
-
-  // Async: fetch IV + sector data, earnings, news
-  fetchIVAndSector(ticker);
-  fetchNews(ticker);
 }
 
 // CHART
