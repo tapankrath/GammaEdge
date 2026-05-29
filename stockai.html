@@ -41,7 +41,7 @@ body{
   font-size:14px;-webkit-font-smoothing:antialiased;
   -webkit-text-size-adjust:100%;
   min-height:100dvh;
-  /* leave room for two sticky cards ~130px total */
+  overflow-x:hidden;
   scroll-padding-top:140px;
 }
 button{font-family:var(--F);touch-action:manipulation;cursor:pointer;
@@ -54,16 +54,18 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
   top:0;
   z-index:50;
   background:var(--bg);
+  width:100%;
   max-width:480px;
   margin:0 auto;
   padding:10px 12px 0;
+  box-sizing:border-box;
 }
 
 /* scrollable body below sticky */
-.app{max-width:480px;margin:0 auto;padding:4px 12px 70px;}
+.app{max-width:480px;margin:0 auto;padding:4px 12px 70px;box-sizing:border-box;overflow-x:hidden;}
 
 /* ══════════════════════════════
-   STICKY CARD 1 — Logo + Tape
+   STICKY CARD 1 — Logo + Quotes
 ══════════════════════════════ */
 .sticky-card-1{
   background:#fff;
@@ -74,10 +76,10 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
   margin-bottom:8px;
 }
 
-/* header row inside card 1 */
+/* header row inside card 1 — logo left, actions right */
 .hdr{
   display:flex;align-items:center;justify-content:space-between;
-  padding:9px 12px 7px;
+  padding:9px 12px 6px;
   gap:8px;
 }
 .logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -91,16 +93,15 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
 
-/* QQQ / SPY mini quotes in header */
+/* QQQ / SPY mini quotes — own row below logo row */
 .mkt-quotes{
   display:flex;align-items:center;gap:6px;
-  flex:1;justify-content:center;
-  overflow:hidden;
+  padding:0 12px 9px;
 }
 .mkt-q{
   display:flex;flex-direction:column;align-items:center;
   background:var(--p2);border:1.5px solid var(--borderB);
-  border-radius:9px;padding:4px 9px;min-width:68px;
+  border-radius:9px;padding:4px 10px;flex:1;
   transition:border-color .2s;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
@@ -696,8 +697,9 @@ canvas{width:100%!important;height:120px!important;}
     <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-family:'Inter',sans-serif;">Stock Analysis Suite</span>
   </div>
 
-  <!-- STICKY CARD 1: Logo + Live + Gear + Tape -->
+  <!-- STICKY CARD 1: Logo + Live + Gear + Quotes -->
   <div class="sticky-card-1">
+    <!-- Row 1: Logo | LIVE + Gear -->
     <div class="hdr">
       <div class="logo">
         <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -710,19 +712,6 @@ canvas{width:100%!important;height:120px!important;}
         </svg>
         <div class="logo-name">Stock<em>AI</em></div>
       </div>
-
-      <!-- QQQ / SPY live mini-quotes -->
-      <div class="mkt-quotes">
-        <div class="mkt-q" id="mq-qqq">
-          <span class="mkt-q-sym">QQQ</span>
-          <span class="mkt-q-loading" id="mq-qqq-load">···</span>
-        </div>
-        <div class="mkt-q" id="mq-spy">
-          <span class="mkt-q-sym">SPY</span>
-          <span class="mkt-q-loading" id="mq-spy-load">···</span>
-        </div>
-      </div>
-
       <div class="hdr-right">
         <div class="live-pill"><div class="live-dot"></div>LIVE</div>
         <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">
@@ -731,6 +720,21 @@ canvas{width:100%!important;height:120px!important;}
       </div>
     </div>
 
+    <!-- Row 2: QQQ / SPY live mini-quotes — full width -->
+    <div class="mkt-quotes">
+      <div class="mkt-q" id="mq-qqq">
+        <span class="mkt-q-sym">QQQ</span>
+        <span class="mkt-q-loading" id="mq-qqq-load">···</span>
+      </div>
+      <div class="mkt-q" id="mq-spy">
+        <span class="mkt-q-sym">SPY</span>
+        <span class="mkt-q-loading" id="mq-spy-load">···</span>
+      </div>
+      <div class="mkt-q" id="mq-vix">
+        <span class="mkt-q-sym">VIX</span>
+        <span class="mkt-q-loading" id="mq-vix-load">···</span>
+      </div>
+    </div>
   </div>
 
   <!-- STICKY CARD 2: Stock Symbol Search -->
@@ -894,9 +898,10 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── LIVE MARKET QUOTES (Yahoo Finance via allorigins proxy) ──
 function fetchMarketQuotes(){
-  ['QQQ','SPY'].forEach(function(sym){
+  ['QQQ','SPY','^VIX'].forEach(function(sym){
     var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
     var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    var id=sym==='^^VIX'?'vix':sym.replace('^','').toLowerCase();
     fetch(proxy)
       .then(function(r){return r.json();})
       .then(function(d){
@@ -906,24 +911,28 @@ function fetchMarketQuotes(){
         var prev=meta.chartPreviousClose||meta.previousClose;
         var chg=price-prev;
         var pct=(chg/prev)*100;
-        renderQuote(sym.toLowerCase(),price,pct);
+        var displaySym=sym==='^VIX'?'VIX':sym;
+        renderQuote(sym==='^VIX'?'vix':sym.toLowerCase(),price,pct,displaySym);
       })
       .catch(function(){
-        // Fallback: show static placeholder if fetch fails
-        if(sym==='QQQ') renderQuote('qqq',499.60,0.63);
-        else renderQuote('spy',582.30,0.41);
+        if(sym==='QQQ') renderQuote('qqq',499.60,0.63,'QQQ');
+        else if(sym==='SPY') renderQuote('spy',582.30,0.41,'SPY');
+        else renderQuote('vix',18.4,-2.1,'VIX');
       });
   });
 }
 
-function renderQuote(sym,price,pct){
+function renderQuote(sym,price,pct,label){
   var el=document.getElementById('mq-'+sym);
   if(!el)return;
   var isUp=pct>=0;
+  // VIX: inverse color (high VIX = bad for stocks = red)
+  var isVix=sym==='vix';
+  var colorClass=isVix?(isUp?'dn':'up'):(isUp?'up':'dn');
   var sign=isUp?'+':'';
-  el.className='mkt-q '+(isUp?'up':'dn');
+  el.className='mkt-q '+colorClass;
   el.innerHTML=
-    '<span class="mkt-q-sym">'+sym.toUpperCase()+'</span>'
+    '<span class="mkt-q-sym">'+(label||sym.toUpperCase())+'</span>'
    +'<div class="mkt-q-row">'
    +'<span class="mkt-q-px">'+price.toFixed(2)+'</span>'
    +'<span class="mkt-q-chg">'+sign+pct.toFixed(2)+'%</span>'
