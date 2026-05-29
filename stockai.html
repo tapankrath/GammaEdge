@@ -414,8 +414,8 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
 .tgt.bt2 .tgt-val{color:var(--green);}
 
 /* CHART */
-.chart-wrap{height:120px;position:relative;}
-canvas{width:100%!important;height:120px!important;}
+.chart-wrap{height:200px;position:relative;}
+canvas{width:100%!important;height:200px!important;}
 
 /* FACTORS */
 .factor-row{
@@ -1369,7 +1369,7 @@ function renderResults(d,ticker){
     +'<div class="targets aup"><div class="tgt bt"><div class="tgt-lbl">Bear</div><div class="tgt-val">'+(pt.bear||'—')+'</div><div class="tgt-sub">downside</div></div><div class="tgt bst"><div class="tgt-lbl">Base</div><div class="tgt-val">'+(pt.base||'—')+'</div><div class="tgt-sub">expected</div></div><div class="tgt bt2"><div class="tgt-lbl">Bull</div><div class="tgt-val">'+(pt.bull||'—')+'</div><div class="tgt-sub">upside</div></div></div>'
     // IV + sector context card (populated async)
     // News sentiment card (populated async)
-    +'<div class="card aup"><div class="card-title">Projected Trajectory</div><div class="chart-wrap"><canvas id="fc"></canvas></div></div>'
+    +'<div class="card aup"><div class="card-title">P&amp;L Zone — Combined Position</div><div class="chart-wrap" style="height:200px;"><canvas id="fc"></canvas></div><div id="fc-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;padding:0 2px;"></div></div>'
     +comboTable
     // Track trade button
     +'<button onclick="trackTrade()" id="trackBtn" style="width:100%;padding:13px;background:#fff;color:var(--blue);border:1.5px solid var(--bbd);border-radius:10px;font-size:14px;font-weight:800;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;">📋 Track as Paper Trade</button>';
@@ -1378,7 +1378,7 @@ function renderResults(d,ticker){
   var el=document.getElementById('results');
   el.innerHTML=html; el.classList.add('on');
   setTimeout(function(){var f=document.getElementById('barFill');if(f)f.style.width=d.confidence+'%';},400);
-  drawChart(Array.isArray(d.forecastCurve)?d.forecastCurve:[0,0.6,1.1,0.9,1.4,1.8],sc);
+  drawPnLChart(d, sc);
   setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
   // Store for paper trade tracking
@@ -1387,27 +1387,220 @@ function renderResults(d,ticker){
 }
 
 // CHART
-function drawChart(curve,sc){
+function drawPnLChart(d, sc){
   if(chartObj){chartObj.destroy();chartObj=null;}
-  var canvas=document.getElementById('fc');if(!canvas)return;
+  var canvas=document.getElementById('fc');
+  if(!canvas)return;
   var ctx=canvas.getContext('2d');
-  var color=sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00';
-  var grd=ctx.createLinearGradient(0,0,0,120);
-  grd.addColorStop(0,(sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00')+'40');
-  grd.addColorStop(1,(sc==='bull'?'#059c4b':sc==='bear'?'#d6173a':'#c07c00')+'04');
+
+  var t=d.trade||{};
+  var p=t.primary||{};
+  var h=t.hedge||{};
+  var hw=(t.hedgeWeight||Math.round(100-d.confidence))/100;
+  var pw=1-hw;
+  var pt=d.priceTarget||{};
+
+  // Parse price targets as numbers (strip % and sign)
+  function parsePct(s){return parseFloat((s||'0').replace('%','').replace('+',''));}
+  var bearPct=parsePct(pt.bear);   // e.g. -3.5
+  var basePct=parsePct(pt.base);   // e.g. +1.2
+  var bullPct=parsePct(pt.bull);   // e.g. +4.8
+
+  // Build price range: from bear-2% to bull+2%
+  var minPct=Math.min(bearPct-2, -5);
+  var maxPct=Math.max(bullPct+2, 6);
+  var steps=40;
+  var labels=[], pnlData=[], bgColors=[];
+
+  // Model P&L of combined position across price moves
+  // For a call spread: profit = min(move - breakeven, spread_width) if move > breakeven, else -premium
+  // For a put hedge: profit if move < put_strike
+  // Simplified model based on confidence & signal direction
+
+  var isBull=sc==='bull', isBear=sc==='bear';
+
+  // Spread width approximation from bull/base targets
+  var spreadWidth=Math.abs(bullPct-basePct)||3;
+  // Premium cost approximation (call spread = ~35-45% of spread width)
+  var spreadPremiumPct=spreadWidth*0.4;
+  // Hedge cost = hedgeWeight% of premium
+  var hedgeCostPct=spreadPremiumPct*hw;
+  var totalCostPct=spreadPremiumPct+hedgeCostPct;
+
+  // Break-even: where total cost is recovered
+  var breakEvenPct= isBull ? spreadPremiumPct+hedgeCostPct
+                  : isBear ? -(spreadPremiumPct+hedgeCostPct)
+                  : 0;
+
+  // Exit trigger from hedge detail
+  var exitTriggerPct= isBull ? (bearPct+1) : isBear ? (bullPct-1) : bearPct;
+
+  // Max profit = spread_width - total_cost (primary wins, hedge expires)
+  var maxProfit= isBull||isBear ? spreadWidth-totalCostPct : spreadWidth*0.6-totalCostPct;
+  // Max loss = total cost paid (both legs expire worthless)
+  var maxLoss= -totalCostPct;
+  // Hedge payoff: if move goes wrong way past exit trigger, hedge partially offsets
+  var hedgePayoff=hedgeCostPct*2.5; // puts typically pay 2-3x when triggered
+
+  for(var i=0;i<=steps;i++){
+    var movePct=minPct+(maxPct-minPct)*(i/steps);
+    labels.push((movePct>=0?'+':'')+movePct.toFixed(1)+'%');
+
+    var pnl=0;
+    if(isBull){
+      if(movePct>=breakEvenPct+spreadWidth){
+        // Max profit zone
+        pnl=maxProfit;
+      } else if(movePct>=breakEvenPct){
+        // Profit ramp
+        pnl=(movePct-breakEvenPct)*(maxProfit/spreadWidth);
+      } else if(movePct<=exitTriggerPct){
+        // Hedge kicks in, partially offsets loss
+        pnl=maxLoss+hedgePayoff*Math.min(1,(exitTriggerPct-movePct)/Math.abs(exitTriggerPct));
+      } else {
+        // Loss zone (between exit trigger and breakeven)
+        pnl=maxLoss*((breakEvenPct-movePct)/(breakEvenPct-exitTriggerPct));
+      }
+    } else if(isBear){
+      var inv=-movePct;
+      if(inv>=breakEvenPct+spreadWidth){pnl=maxProfit;}
+      else if(inv>=breakEvenPct){pnl=(inv-breakEvenPct)*(maxProfit/spreadWidth);}
+      else if(movePct>=Math.abs(exitTriggerPct)){pnl=maxLoss+hedgePayoff*Math.min(1,(movePct-Math.abs(exitTriggerPct))/2);}
+      else{pnl=maxLoss*((breakEvenPct-inv)/(breakEvenPct-Math.abs(exitTriggerPct)));}
+    } else {
+      // Neutral: iron condor shape
+      var abs=Math.abs(movePct);
+      if(abs<=breakEvenPct){pnl=maxProfit*(1-abs/breakEvenPct);}
+      else{pnl=maxLoss*((abs-breakEvenPct)/2);}
+    }
+
+    pnl=Math.max(maxLoss*1.1, Math.min(maxProfit*1.05, pnl));
+    pnlData.push(parseFloat(pnl.toFixed(3)));
+    bgColors.push(pnl>=0 ? 'rgba(21,128,61,0.15)' : 'rgba(185,28,28,0.12)');
+  }
+
+  // Gradient fill
+  var grdProfit=ctx.createLinearGradient(0,0,0,200);
+  grdProfit.addColorStop(0,'rgba(21,128,61,0.25)');
+  grdProfit.addColorStop(1,'rgba(21,128,61,0.02)');
+  var grdLoss=ctx.createLinearGradient(0,0,0,200);
+  grdLoss.addColorStop(0,'rgba(185,28,28,0.02)');
+  grdLoss.addColorStop(1,'rgba(185,28,28,0.22)');
+
+  // Find exit trigger and base/bull/bear label positions
+  var exitIdx=Math.round((exitTriggerPct-minPct)/(maxPct-minPct)*steps);
+  var baseIdx=Math.round((basePct-minPct)/(maxPct-minPct)*steps);
+  var bullIdx=Math.round((bullPct-minPct)/(maxPct-minPct)*steps);
+  var bearIdx=Math.round((bearPct-minPct)/(maxPct-minPct)*steps);
+  var breakEvenIdx=Math.round((breakEvenPct-minPct)/(maxPct-minPct)*steps);
+
   chartObj=new Chart(ctx,{
     type:'line',
-    data:{labels:curve.map(function(_,i){return i===0?'Now':'D+'+i;}),
-      datasets:[{data:curve,borderColor:color,backgroundColor:grd,borderWidth:2.5,pointRadius:5,pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2.5,fill:true,tension:0.4}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#09101f',titleColor:'#fff',bodyColor:'#e2e8f0',padding:10,cornerRadius:8,
-        titleFont:{family:'DM Mono',size:11},bodyFont:{family:'DM Mono',size:12},
-        callbacks:{label:function(c){return (c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
+    data:{
+      labels:labels,
+      datasets:[
+        // Main P&L line
+        {
+          data:pnlData,
+          borderColor:function(ctx2){
+            if(!ctx2.chart.chartArea)return '#15803d';
+            return '#0a0f1e';
+          },
+          segment:{
+            borderColor:function(ctx2){return ctx2.p1.parsed.y>=0?'#15803d':'#b91c1c';},
+          },
+          backgroundColor:function(ctx2){
+            if(!ctx2.chart||!ctx2.chart.chartArea)return 'transparent';
+            var chart=ctx2.chart;
+            var area=chart.chartArea;
+            var yZero=chart.scales.y.getPixelForValue(0);
+            var gUp=ctx.createLinearGradient(0,area.top,0,yZero);
+            gUp.addColorStop(0,'rgba(21,128,61,0.3)');gUp.addColorStop(1,'rgba(21,128,61,0.02)');
+            var gDn=ctx.createLinearGradient(0,yZero,0,area.bottom);
+            gDn.addColorStop(0,'rgba(185,28,28,0.02)');gDn.addColorStop(1,'rgba(185,28,28,0.25)');
+            // Use a simple gradient based on signal
+            return sc==='bull'?gUp:sc==='bear'?gDn:gUp;
+          },
+          borderWidth:2.5,
+          pointRadius:function(ctx2){
+            var i=ctx2.dataIndex;
+            return (i===exitIdx||i===breakEvenIdx||i===baseIdx||i===bullIdx||i===bearIdx)?6:0;
+          },
+          pointBackgroundColor:function(ctx2){
+            var i=ctx2.dataIndex;
+            if(i===exitIdx)return '#ef4444';
+            if(i===breakEvenIdx)return '#f59e0b';
+            if(i===bullIdx)return '#15803d';
+            if(i===bearIdx)return '#b91c1c';
+            return '#0a0f1e';
+          },
+          pointBorderColor:'#fff',pointBorderWidth:2,
+          fill:true,tension:0.4
+        },
+        // Zero line
+        {
+          data:labels.map(function(){return 0;}),
+          borderColor:'rgba(100,116,139,0.4)',
+          borderWidth:1,borderDash:[4,4],
+          pointRadius:0,fill:false,tension:0
+        }
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:600},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#09101f',titleColor:'#94a3b8',bodyColor:'#fff',
+          padding:10,cornerRadius:8,
+          callbacks:{
+            title:function(items){return 'Stock move: '+items[0].label;},
+            label:function(c){
+              if(c.datasetIndex===1)return null;
+              var v=c.parsed.y;
+              return 'Combined P&L: '+(v>=0?'+':'')+v.toFixed(2)+'% of premium';
+            }
+          }
+        },
+        annotation:{} // placeholder
+      },
       scales:{
-        x:{grid:{color:'#e8ecf2'},ticks:{color:'#6b7a8d',font:{size:11,family:'DM Mono',weight:'500'}}},
-        y:{grid:{color:'#e8ecf2'},ticks:{color:'#6b7a8d',font:{size:11,family:'DM Mono',weight:'500'},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}}}
-      }}
+        x:{
+          grid:{color:'rgba(226,232,240,0.6)'},
+          ticks:{
+            color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},
+            maxTicksLimit:7,
+            callback:function(val,i){
+              // Only show key price points
+              if(i===0||i===steps||i===baseIdx||i===exitIdx||i===breakEvenIdx)
+                return this.getLabelForValue(val);
+              return '';
+            }
+          }
+        },
+        y:{
+          grid:{color:'rgba(226,232,240,0.6)'},
+          ticks:{
+            color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},
+            callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}
+          }
+        }
+      }
+    }
   });
+
+  // Legend below chart
+  var legend=document.getElementById('fc-legend');
+  if(legend){
+    legend.innerHTML=
+      '<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;display:inline-block;"></span>Profit zone</span>'
+     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--red);"><span style="width:10px;height:10px;border-radius:50%;background:#b91c1c;display:inline-block;"></span>Loss zone</span>'
+     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--amber);"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;border:2px solid #fff;box-shadow:0 0 0 1.5px #f59e0b;display:inline-block;"></span>Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%</span>'
+     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--red);"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 1.5px #ef4444;display:inline-block;"></span>Exit: '+(exitTriggerPct>=0?'+':'')+exitTriggerPct.toFixed(1)+'%</span>'
+     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;border:2px solid #fff;box-shadow:0 0 0 1.5px #15803d;display:inline-block;"></span>Target: '+(bullPct>=0?'+':'')+bullPct.toFixed(1)+'%</span>';
+  }
 }
 
 // ══════════════════════════════════════════
