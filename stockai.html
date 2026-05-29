@@ -896,43 +896,66 @@ document.addEventListener('DOMContentLoaded',function(){
   setInterval(fetchMarketQuotes, 60000);
 });
 
-// ── LIVE MARKET QUOTES (Yahoo Finance via allorigins proxy) ──
+// ── LIVE MARKET QUOTES ──
 function fetchMarketQuotes(){
-  ['QQQ','SPY','^VIX'].forEach(function(sym){
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
-    var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
-    var id=sym==='^^VIX'?'vix':sym.replace('^','').toLowerCase();
-    fetch(proxy)
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var raw=JSON.parse(d.contents);
-        var meta=raw.chart.result[0].meta;
-        var price=meta.regularMarketPrice;
-        var prev=meta.chartPreviousClose||meta.previousClose;
-        var chg=price-prev;
-        var pct=(chg/prev)*100;
-        var displaySym=sym==='^VIX'?'VIX':sym;
-        renderQuote(sym==='^VIX'?'vix':sym.toLowerCase(),price,pct,displaySym);
-      })
-      .catch(function(){
-        if(sym==='QQQ') renderQuote('qqq',499.60,0.63,'QQQ');
-        else if(sym==='SPY') renderQuote('spy',582.30,0.41,'SPY');
-        else renderQuote('vix',18.4,-2.1,'VIX');
-      });
+  var syms=[
+    {sym:'QQQ', id:'qqq', fallbackPx:479.60, fallbackPct:0.63},
+    {sym:'SPY', id:'spy', fallbackPx:534.20, fallbackPct:0.41},
+    {sym:'%5EVIX', id:'vix', label:'VIX', fallbackPx:18.4, fallbackPct:-2.1}
+  ];
+  syms.forEach(function(s){
+    // Try two proxies in sequence
+    tryFetchQuote(s.sym, s.id, s.label||s.sym.toUpperCase(), s.fallbackPx, s.fallbackPct);
   });
 }
 
-function renderQuote(sym,price,pct,label){
+function tryFetchQuote(sym, id, label, fallbackPx, fallbackPct){
+  var yahooUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+  // Proxy 1: allorigins
+  var proxy1='https://api.allorigins.win/raw?url='+encodeURIComponent(yahooUrl);
+  // Proxy 2: corsproxy.io
+  var proxy2='https://corsproxy.io/?'+encodeURIComponent(yahooUrl);
+
+  fetch(proxy1, {cache:'no-store'})
+    .then(function(r){
+      if(!r.ok)throw new Error('p1 fail');
+      return r.json();
+    })
+    .then(function(raw){
+      parseAndRenderQuote(raw, id, label);
+    })
+    .catch(function(){
+      // Try proxy 2
+      fetch(proxy2, {cache:'no-store'})
+        .then(function(r){return r.json();})
+        .then(function(raw){
+          parseAndRenderQuote(raw, id, label);
+        })
+        .catch(function(){
+          // Show fallback with stale indicator
+          renderQuote(id, fallbackPx, fallbackPct, label, true);
+        });
+    });
+}
+
+function parseAndRenderQuote(raw, id, label){
+  var meta=raw.chart.result[0].meta;
+  var price=meta.regularMarketPrice;
+  var prev=meta.chartPreviousClose||meta.previousClose||price;
+  var pct=prev?((price-prev)/prev*100):0;
+  renderQuote(id, price, pct, label, false);
+}
+
+function renderQuote(sym, price, pct, label, stale){
   var el=document.getElementById('mq-'+sym);
   if(!el)return;
   var isUp=pct>=0;
-  // VIX: inverse color (high VIX = bad for stocks = red)
   var isVix=sym==='vix';
   var colorClass=isVix?(isUp?'dn':'up'):(isUp?'up':'dn');
   var sign=isUp?'+':'';
   el.className='mkt-q '+colorClass;
   el.innerHTML=
-    '<span class="mkt-q-sym">'+(label||sym.toUpperCase())+'</span>'
+    '<span class="mkt-q-sym">'+(label||sym.toUpperCase())+(stale?' *':'')+'</span>'
    +'<div class="mkt-q-row">'
    +'<span class="mkt-q-px">'+price.toFixed(2)+'</span>'
    +'<span class="mkt-q-chg">'+sign+pct.toFixed(2)+'%</span>'
@@ -1069,12 +1092,11 @@ function runForecast(){
 
   // Try to get live price; proceed with null if it fails (Claude will use % targets only)
   var priceUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-  var priceProxy='https://api.allorigins.win/get?url='+encodeURIComponent(priceUrl);
+  var priceProxy='https://api.allorigins.win/raw?url='+encodeURIComponent(priceUrl);
   fetch(priceProxy)
     .then(function(r){return r.json();})
-    .then(function(d){
+    .then(function(raw){
       try{
-        var raw=JSON.parse(d.contents);
         var price=raw.chart.result[0].meta.regularMarketPrice;
         st.textContent='Got live price $'+price.toFixed(2)+' — building strategy…';
         doForecast(price);
@@ -1475,12 +1497,12 @@ function fetchIVAndSector(ticker){
 
   // Fetch Yahoo Finance quote data
   var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=30d';
-  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+  var proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
 
   fetch(proxy)
     .then(function(r){return r.json();})
     .then(function(d){
-      var raw=JSON.parse(d.contents);
+      var raw=typeof d==='string'?JSON.parse(d):d;
       var meta=raw.chart.result[0].meta;
       var price=meta.regularMarketPrice;
       var prevClose=meta.previousClose||meta.chartPreviousClose;
@@ -1783,15 +1805,20 @@ function renderCalibration(){
 // ══════════════════════════════════════════
 function fetchPriceForLog(ticker,cb){
   var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+  var proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
   fetch(proxy)
     .then(function(r){return r.json();})
-    .then(function(d){
-      var raw=JSON.parse(d.contents);
+    .then(function(raw){
       var price=raw.chart.result[0].meta.regularMarketPrice;
       cb(price);
     })
-    .catch(function(){cb(null);});
+    .catch(function(){
+      // try proxy 2
+      fetch('https://corsproxy.io/?'+encodeURIComponent(url))
+        .then(function(r){return r.json();})
+        .then(function(raw){cb(raw.chart.result[0].meta.regularMarketPrice);})
+        .catch(function(){cb(null);});
+    });
 }
 
 function saveLog(ticker,h,signal,livePrice){
