@@ -951,22 +951,41 @@ function runForecast(){
   var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
 
   var hz=horizon; // capture at call time
-  callClaude(apiKey,buildPrompt(ticker,hLabel,hz))
-    .then(function(raw){
-      clearInterval(stimer);sb.classList.remove('on');
-      var parsed=parseJSON(raw);
-      resultCache[ticker+'_'+hz]=parsed; // store in cache
-      renderResults(parsed,ticker);
-      saveLog(ticker,hz,parsed.signal);
+
+  // Fetch live price first so Claude uses real strikes, then run forecast
+  function doForecast(livePrice){
+    callClaude(apiKey,buildPrompt(ticker,hLabel,hz,livePrice))
+      .then(function(raw){
+        clearInterval(stimer);sb.classList.remove('on');
+        var parsed=parseJSON(raw);
+        resultCache[ticker+'_'+hz]=parsed;
+        renderResults(parsed,ticker);
+        saveLog(ticker,hz,parsed.signal,livePrice);
+      })
+      .catch(function(err){
+        clearInterval(stimer);sb.classList.remove('on');
+        showErr(err.message||'Request failed. Check your API key in Settings ⚙️');
+        document.getElementById('emptyState').style.display='';
+      })
+      .finally(function(){
+        btn.disabled=false;btn.classList.remove('loading');lbl.textContent='⚡ Analyze & Forecast';
+      });
+  }
+
+  // Try to get live price; proceed with null if it fails (Claude will use % targets only)
+  var priceUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
+  var priceProxy='https://api.allorigins.win/get?url='+encodeURIComponent(priceUrl);
+  fetch(priceProxy)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      try{
+        var raw=JSON.parse(d.contents);
+        var price=raw.chart.result[0].meta.regularMarketPrice;
+        st.textContent='Got live price $'+price.toFixed(2)+' — building strategy…';
+        doForecast(price);
+      }catch(e){doForecast(null);}
     })
-    .catch(function(err){
-      clearInterval(stimer);sb.classList.remove('on');
-      showErr(err.message||'Request failed. Check your API key in Settings ⚙️');
-      document.getElementById('emptyState').style.display='';
-    })
-    .finally(function(){
-      btn.disabled=false;btn.classList.remove('loading');lbl.textContent='⚡ Analyze & Forecast';
-    });
+    .catch(function(){doForecast(null);});
 }
 
 // API
@@ -1000,7 +1019,7 @@ function callClaude(apiKey,prompt){
 }
 
 // PROMPT
-function buildPrompt(ticker,hLabel,hz){
+function buildPrompt(ticker,hLabel,hz,livePrice){
   var today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   var allMacros=MACRO_BASE.slice();
   if(hz==='1D')allMacros.push(MACRO_1D);
@@ -1008,6 +1027,11 @@ function buildPrompt(ticker,hLabel,hz){
   else allMacros.push(MACRO_1M);
   var macroList=allMacros.map(function(m,i){return (i+1)+'. '+m;}).join('\n');
   var moveGuide=hz==='1D'?'Realistic next-day: large-cap ±1-3%, ETF ±0.5-1.5%, mid-cap ±2-5%. Wider only for binary events.':hz==='1W'?'Realistic 1-week: large-cap ±2-6%, ETF ±1-3%, mid-cap ±4-10%.':'Realistic 1-month: large-cap ±5-15%, ETF ±3-8%, mid-cap ±8-20%.';
+
+  var priceContext=livePrice
+    ? 'LIVE PRICE: '+ticker+' is currently trading at $'+livePrice.toFixed(2)+'. Use this EXACT price as your anchor for all strike prices. ATM = ~$'+livePrice.toFixed(2)+'. All dollar strikes in the trade must be calculated from this real price. Do NOT invent or guess a different price.\n'
+    : 'Live price unavailable — use percentage-based targets only, no specific dollar strikes.\n';
+
   var tradeRule='TRADE CONSTRUCTION: Output ONE unified position — do NOT output separate bull and bear trades.\n'
    +'The hedge is sized INVERSE to confidence and is part of the same trade, not a competing bet:\n'
    +'• 75-91% confidence → Primary leg full size, small insurance hedge only (10-25% of premium)\n'
@@ -1016,6 +1040,11 @@ function buildPrompt(ticker,hLabel,hz){
    +'• BULLISH: primary=call or call spread. Hedge=OTM put sized to (100-confidence)% of position cost\n'
    +'• BEARISH: primary=put or put spread. Hedge=OTM call sized to (100-confidence)% of position cost\n'
    +'• NEUTRAL: primary=iron condor or straddle. hedgeWeight=0\n';
+
+  var strikeNote=livePrice
+    ? 'All dollar amounts in trade.primary.detail and trade.hedge.detail MUST be real strikes anchored to the live price of $'+livePrice.toFixed(2)+'.'
+    : 'Express strikes as percentages (e.g. ATM, +3% OTM, -5% OTM) since no live price is available.';
+
   var jsonSchema='{"signal":"BULLISH"|"BEARISH"|"NEUTRAL",'
    +'"confidence":<42-91>,'
    +'"summary":"<Two crisp institutional sentences for '+ticker+' for '+hLabel+'>",'
@@ -1025,14 +1054,14 @@ function buildPrompt(ticker,hLabel,hz){
    +'"factors":[{"icon":"<emoji>","text":"<specific driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"},{"icon":"<emoji>","text":"<driver>","impact":"POSITIVE"|"NEGATIVE"|"NEUTRAL"}],'
    +'"scenarios":[{"name":"Bull Case","outcome":"<e.g. +5-7%>","dir":"up"},{"name":"Base Case","outcome":"<e.g. +1-2%>","dir":"up"},{"name":"Bear Case","outcome":"<e.g. -3-4%>","dir":"dn"},{"name":"Tail Risk","outcome":"<e.g. -9%+>","dir":"dn"}],'
    +'"trade":{'
-     +'"primary":{"label":"<e.g. ATM Call Spread>","detail":"<exactly what to do, e.g. Buy $195 call / sell $205 call, exp 2wk>","expiry":"<e.g. 2 weeks>","target":"<profit target e.g. +75% on spread>","sizing":"<e.g. Risk 1-2% of portfolio>","rationale":"<one sentence tying this to the thesis>"},'
-     +'"hedge":{"label":"<e.g. OTM Put — stop-loss insurance>","detail":"<exactly what, e.g. Buy 1x $185 put per 4 spreads, costs ~18% of spread premium>","trigger":"<price or event that invalidates thesis, e.g. Close below $190>","rationale":"<one sentence on what this protects against>"},'
+     +'"primary":{"label":"<e.g. ATM Call Spread>","detail":"<'+strikeNote+', e.g. Buy $'+( livePrice ? livePrice.toFixed(0) : 'ATM')+' call / sell $'+(livePrice?(livePrice*1.03).toFixed(0):'ATM+3%')+' call, exp 2wk>","expiry":"<e.g. 2 weeks>","target":"<profit target e.g. +75% on spread>","sizing":"<e.g. Risk 1-2% of portfolio>","rationale":"<one sentence tying this to the thesis>"},'
+     +'"hedge":{"label":"<e.g. OTM Put — stop-loss insurance>","detail":"<e.g. Buy 1x $'+(livePrice?(livePrice*0.95).toFixed(0):'ATM-5%')+' put per 4 spreads, costs ~X% of spread premium>","trigger":"<specific price level that invalidates thesis, e.g. Close below $'+(livePrice?(livePrice*0.97).toFixed(0):'support')+'>","rationale":"<one sentence on what this protects against>"},'
      +'"hedgeWeight":<integer: 100 minus confidence, range 10-55>,'
      +'"structureNote":"<one sentence why this structure matches confidence level>"'
    +'},'
    +'"macroContext":"<Four sentences on macro drivers for '+ticker+' over '+hLabel+'>"'
    +'}';
-  return 'You are StockAI, an institutional quantitative analyst and options strategist.\nForecast '+ticker+' for the '+hLabel+'.\nToday: '+today+'\n'+moveGuide+'\n\n'+tradeRule+'\nAnalyze all '+allMacros.length+' macro factors:\n'+macroList+'\n\nReturn ONLY valid JSON, no markdown, no preamble:\n'+jsonSchema;
+  return 'You are StockAI, an institutional quantitative analyst and options strategist.\nForecast '+ticker+' for the '+hLabel+'.\nToday: '+today+'\n'+priceContext+moveGuide+'\n\n'+tradeRule+'\nAnalyze all '+allMacros.length+' macro factors:\n'+macroList+'\n\nReturn ONLY valid JSON, no markdown, no preamble:\n'+jsonSchema;
 }
 
 // PARSE
@@ -1248,28 +1277,15 @@ function fetchPriceForLog(ticker,cb){
     .catch(function(){cb(null);});
 }
 
-function saveLog(ticker,h,signal){
+function saveLog(ticker,h,signal,livePrice){
   if(!Array.isArray(analysisLog))analysisLog=[];
   var filtered=[];
   for(var i=0;i<analysisLog.length;i++){if(!(analysisLog[i].ticker===ticker&&analysisLog[i].h===h))filtered.push(analysisLog[i]);}
-  // horizon in ms: 1D=1day, 1W=7days, 1M=30days
   var horizonMs=h==='1D'?86400000:h==='1W'?7*86400000:30*86400000;
-  var entry={ticker:ticker,h:h,signal:signal,ts:Date.now(),targetTs:Date.now()+horizonMs,entryPrice:null,actualPrice:null,resolved:false};
+  var entry={ticker:ticker,h:h,signal:signal,ts:Date.now(),targetTs:Date.now()+horizonMs,entryPrice:livePrice||null,actualPrice:null,resolved:false};
   filtered.unshift(entry);
   if(filtered.length>12)filtered=filtered.slice(0,12);
   analysisLog=filtered;
-  // fetch entry price and store it
-  fetchPriceForLog(ticker,function(price){
-    if(price){
-      for(var i=0;i<analysisLog.length;i++){
-        if(analysisLog[i].ticker===ticker&&analysisLog[i].h===h&&analysisLog[i].ts===entry.ts){
-          analysisLog[i].entryPrice=price;break;
-        }
-      }
-      try{localStorage.setItem('sai_log',JSON.stringify(analysisLog));}catch(e){}
-      renderHistory();
-    }
-  });
   try{localStorage.setItem('sai_log',JSON.stringify(analysisLog));}catch(e){}
   renderHistory();
 }
