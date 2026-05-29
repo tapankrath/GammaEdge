@@ -414,8 +414,8 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
 .tgt.bt2 .tgt-val{color:var(--green);}
 
 /* CHART */
-.chart-wrap{height:200px;position:relative;}
-canvas{width:100%!important;height:200px!important;}
+.chart-wrap{height:180px;position:relative;}
+canvas{width:100%!important;height:180px!important;}
 
 /* FACTORS */
 .factor-row{
@@ -1369,9 +1369,8 @@ function renderResults(d,ticker){
     +'<div class="targets aup"><div class="tgt bt"><div class="tgt-lbl">Bear</div><div class="tgt-val">'+(pt.bear||'—')+'</div><div class="tgt-sub">downside</div></div><div class="tgt bst"><div class="tgt-lbl">Base</div><div class="tgt-val">'+(pt.base||'—')+'</div><div class="tgt-sub">expected</div></div><div class="tgt bt2"><div class="tgt-lbl">Bull</div><div class="tgt-val">'+(pt.bull||'—')+'</div><div class="tgt-sub">upside</div></div></div>'
     // IV + sector context card (populated async)
     // News sentiment card (populated async)
-    +'<div class="card aup"><div class="card-title">P&amp;L Zone — Combined Position</div><div class="chart-wrap" style="height:200px;"><canvas id="fc"></canvas></div><div id="fc-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;padding:0 2px;"></div></div>'
     +comboTable
-    // Track trade button
+    +'<div class="card aup"><div class="card-title">P&amp;L Zone — Combined Position</div><div class="chart-wrap" style="height:180px;"><canvas id="fc"></canvas></div><div id="fc-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding:0 2px;"></div></div>'
     +'<button onclick="trackTrade()" id="trackBtn" style="width:100%;padding:13px;background:#fff;color:var(--blue);border:1.5px solid var(--bbd);border-radius:10px;font-size:14px;font-weight:800;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;">📋 Track as Paper Trade</button>';
 
 
@@ -1552,19 +1551,7 @@ function drawPnLChart(d, sc){
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
-        tooltip:{
-          backgroundColor:'#09101f',titleColor:'#94a3b8',bodyColor:'#fff',
-          padding:10,cornerRadius:8,
-          callbacks:{
-            title:function(items){return 'Stock move: '+items[0].label;},
-            label:function(c){
-              if(c.datasetIndex===1)return null;
-              var v=c.parsed.y;
-              return 'Combined P&L: '+(v>=0?'+':'')+v.toFixed(2)+'% of premium';
-            }
-          }
-        },
-        annotation:{} // placeholder
+        tooltip:{enabled:false},  // disabled — not mobile friendly
       },
       scales:{
         x:{
@@ -1594,12 +1581,21 @@ function drawPnLChart(d, sc){
   // Legend below chart
   var legend=document.getElementById('fc-legend');
   if(legend){
-    legend.innerHTML=
-      '<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;display:inline-block;"></span>Profit zone</span>'
-     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--red);"><span style="width:10px;height:10px;border-radius:50%;background:#b91c1c;display:inline-block;"></span>Loss zone</span>'
-     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--amber);"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;border:2px solid #fff;box-shadow:0 0 0 1.5px #f59e0b;display:inline-block;"></span>Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%</span>'
-     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--red);"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 1.5px #ef4444;display:inline-block;"></span>Exit: '+(exitTriggerPct>=0?'+':'')+exitTriggerPct.toFixed(1)+'%</span>'
-     +'<span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;border:2px solid #fff;box-shadow:0 0 0 1.5px #15803d;display:inline-block;"></span>Target: '+(bullPct>=0?'+':'')+bullPct.toFixed(1)+'%</span>';
+    var items=[
+      {color:'#15803d', label:'Profit zone'},
+      {color:'#b91c1c', label:'Loss zone'},
+      {color:'#f59e0b', label:'Break-even: '+(breakEvenPct>=0?'+':'')+breakEvenPct.toFixed(1)+'%'},
+      {color:'#ef4444', label:'Exit trigger: '+(exitTriggerPct>=0?'+':'')+exitTriggerPct.toFixed(1)+'%'},
+      {color:'#15803d', label:'Max profit: +'+(maxProfit).toFixed(1)+'%', bold:true},
+      {color:'#b91c1c', label:'Max loss: '+(maxLoss).toFixed(1)+'%', bold:true},
+    ];
+    legend.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:10px;padding:10px;background:var(--p2);border-radius:8px;border:1px solid var(--border);';
+    legend.innerHTML=items.map(function(item){
+      return '<span style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:'+(item.bold?'800':'700')+';color:var(--sub);">'
+        +'<span style="width:8px;height:8px;border-radius:50%;background:'+item.color+';flex-shrink:0;"></span>'
+        +item.label
+        +'</span>';
+    }).join('');
   }
 }
 
