@@ -1440,7 +1440,9 @@ function showDeepAnalysis(apiKey, sig){
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:'+(sig.aboveMA?'#f0fdf4':'#fef2f2')+';color:'+(sig.aboveMA?'#15803d':'#b91c1c')+';border:1px solid '+(sig.aboveMA?'#86efac':'#fca5a5')+';">'+(sig.aboveMA?'Above':'Below')+' 20MA</span>'
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#fffbeb;color:#b45309;border:1px solid #fcd34d;">IV ~'+sig.iv+'%</span>'
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;">3d: '+(sig.mom3>=0?'+':'')+sig.mom3.toFixed(1)+'%</span>'
-        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Cap: $'+sig.capital.toLocaleString()+' → $'+sig.target.toLocaleString()+' target ('+sig.capRatioPct+'%)</span>'
+        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Capital: $'+sig.capital.toLocaleString()+'</span>'
+        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;">Stop: −'+sig.stopPct+'%</span>'
+        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f0fdf4;color:#15803d;border:1px solid #86efac;">Target: +'+sig.tgtPct+'%</span>'
       +'</div>'
       // Result area
       +'<div id="deep-result" style="font-size:13px;line-height:1.7;color:#374151;">'
@@ -1524,11 +1526,13 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
     +'Signal: '+sig.sym+' · '+sig.action+' · '+sig.confidence+' confidence\n'
     +'RSI-14: '+sig.rsi.toFixed(0)+' | Price vs 20MA: '+(sig.aboveMA?'+':'')+sig.ma20Pct.toFixed(1)+'% | 3d momentum: '+(sig.mom3>=0?'+':'')+sig.mom3.toFixed(2)+'%\n'
     +'Est. IV: '+sig.iv+'% | ATR: ±'+sig.atr+'% daily | DTE suggested: '+sig.dte+'d\n'
-    +'Capital: $'+sig.capital.toLocaleString()+' | Target: $'+sig.target.toLocaleString()+' ('+sig.capRatioPct+'% of capital)\n'
+    +'Trading capital: $'+sig.capital.toLocaleString()+'\n'
+    +'Option stop-loss: −'+sig.stopPct+'% (exit if option loses this much)\n'
+    +'Option profit target: +'+sig.tgtPct+'% (take profit here)\n'
     +'Live price: '+(livePrice?'$'+livePrice.toFixed(2):'unavailable')+'\n'
     +(optionsData?'P/C OI ratio: '+optionsData.pcRatio+' | Max pain: $'+optionsData.maxPain+'\nTop call OI walls: '+optionsData.topCalls+'\nTop put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:''):'Options chain: unavailable')+'\n\n'
     +'Return ONLY valid JSON:\n'
-    +'{"verdict":"GO"|"WAIT"|"ADJUST","emoji":"👍"|"👎"|"⚠️","headline":"<8 words max — punchy verdict>","summary":"<2-3 sentences: does OI/macro confirm the signal? plain english, no jargon>","adjustment":"<one sentence trade tweak, or empty string if no adjustment needed>","trade":"<specific: e.g. Buy $757 call / sell $765 call, exp Jun 13, risk $200> or empty if WAIT","risk":"<one sentence on the key risk>","color":"green"|"red"|"amber"}';
+    +'{"verdict":"GO"|"WAIT"|"ADJUST","emoji":"👍"|"👎"|"⚠️","headline":"<8 words max>","summary":"<2-3 sentences: does OI/macro confirm? Is stop/target ratio sensible for this setup?>","adjustment":"<one sentence tweak if needed, e.g. tighten stop or reduce size, else empty string>","trade":"<specific: e.g. Buy $738 call exp Jun 13, risk $400 (2% of capital), exit at +50% or −30%> or empty if WAIT","risk":"<one sentence on key risk>","color":"green"|"red"|"amber"}';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -2012,12 +2016,15 @@ function processSignal(valid,capital,target,stopPct,sym){
   }
 
   // Store for deep analysis
+  var stopPctVal=parseFloat($('g3')&&$('g3').value||'30');
+  var tgtPctVal=parseFloat($('g4')&&$('g4').value||'50');
   G_LAST_SIGNAL={
     sym:sym.toUpperCase(), action:action, confidence:confidence,
     rsi:rsi, aboveMA:aboveMA20, ma20Pct:ma20Pct,
     mom3:mom3, iv:Math.round(iv3*100), atr:atrPct.toFixed(2),
-    capital:capital||0, target:target||0, targetPct:Math.round(capRatio*100),
-    capRatioPct:Math.round((capital>0?target/capital:0)*100),
+    capital:capital||0,
+    stopPct:stopPctVal,   // max loss % on option before exit
+    tgtPct:tgtPctVal,     // profit target % on option
     dte:dte||7, signals:signals
   };
 
