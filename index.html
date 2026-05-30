@@ -2040,58 +2040,84 @@ function processSignal(valid,capital,target,stopPct,sym){
     var T=dte/365;
     var K=Math.round(spot/5)*5;
 
-    // Show immediately with BS estimate, then refine with live ask
+    // Show immediately with BS estimate badge
     var bsPrem=isCall?bsC(spot,K,T,iv3):bsP(spot,K,T,iv3);
     if(bsPrem<=0) bsPrem=spot*iv3*Math.sqrt(T)*0.4;
     renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,bsPrem,false);
 
-    // Fetch live ask price from Yahoo options chain
-    var optUrl='https://query2.finance.yahoo.com/v7/finance/options/'+sym;
-    var proxies=[
-      'https://corsproxy.io/?'+encodeURIComponent(optUrl),
-      'https://api.allorigins.win/raw?url='+encodeURIComponent(optUrl)
-    ];
-    function tryFetchChain(pi){
-      if(pi>=proxies.length) return; // stick with BS estimate
-      fetch(proxies[pi],{cache:'no-store',signal:AbortSignal.timeout(6000)})
-        .then(function(r){if(!r.ok)throw 0;return r.json();})
-        .then(function(raw){
-          try{
-            var result=raw.optionChain.result[0];
-            var exps=result.expirationDates||[];
-            var now=Math.floor(Date.now()/1000);
-            // Pick expiry closest to DTE
-            var targetTs=now+dte*86400;
-            var bestExp=exps.reduce(function(b,ts){
-              return Math.abs(ts-targetTs)<Math.abs(b-targetTs)?ts:b;
-            },exps[0]||targetTs);
-            // Fetch chain for that specific expiry
-            var expUrl=optUrl+'?date='+bestExp;
-            var expProxy=proxies[pi].replace(encodeURIComponent(optUrl),encodeURIComponent(expUrl));
-            return fetch(expProxy,{cache:'no-store',signal:AbortSignal.timeout(6000)})
-              .then(function(r2){return r2.json();})
-              .then(function(raw2){
-                var res2=raw2.optionChain.result[0];
-                var chain=isCall?(res2.options[0]&&res2.options[0].calls||[]):(res2.options[0]&&res2.options[0].puts||[]);
-                // Find the closest strike to K
-                var best=null,bestDist=Infinity;
-                chain.forEach(function(o){
-                  var dist=Math.abs(o.strike-K);
-                  if(dist<bestDist){bestDist=dist;best=o;}
-                });
-                if(best&&best.ask>0){
-                  // Use midpoint of bid/ask for realism
-                  var mid=best.bid>0?(best.bid+best.ask)/2:best.ask;
-                  renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,mid,true);
-                }
-              });
-          }catch(e){}
-        })
-        .catch(function(){tryFetchChain(pi+1);});
-    }
-    tryFetchChain(0);
+    // Fetch live bid/ask mid via Claude web_search (reliable on mobile)
+    var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+    if(!apiKey||apiKey.indexOf('sk-')===-1) return; // no key — keep BS estimate
+
+    var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var optType=isCall?'call':'put';
+    var prompt='Search Yahoo Finance options for '+sym+' today '+today+'. '
+      +'Find the '+dte+'-day expiry (approximately '+dte+' days from now). '
+      +'Find the ATM '+optType+' closest to strike $'+K+'. '
+      +'Return ONLY JSON, no markdown: {"strike":<number>,"bid":<number>,"ask":<number>,"mid":<number>,"iv":"<e.g. 19.2%>","expiry":"<e.g. Jun 13>"}';
+
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:150,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var text='';
+      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      var match=text.match(/\{[^}]+\}/);
+      if(!match) return;
+      var opt=JSON.parse(match[0]);
+      var liveMid=opt.mid||(opt.bid>0?(opt.bid+opt.ask)/2:opt.ask);
+      if(liveMid>0){
+        renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,liveMid,true);
+      }
+    })
+    .catch(function(){/* keep BS estimate */});
+  }  // end if(isCall!==null&&dte)
+  else {
+    var sgEl=$('g-setup-grid');
+    if(sgEl)sgEl.innerHTML='<div style="grid-column:1/-1;padding:10px;font-size:12px;color:#1e293b;font-weight:600">No trade recommended — wait for stronger signal</div>';
+    if($('g-rows'))$('g-rows').innerHTML='';
+    if($('g-stdl-context'))$('g-stdl-context').innerHTML='';
+    $('g-pnl-label').textContent='P&L by Day';
   }
 
+  // Reasoning
+  $('g-reason').innerHTML='<div style="font-size:11px;color:#0f172a;line-height:1.7;font-weight:600">'+reasons.join(' · ')+'</div>'
+    +'<div style="font-size:10px;color:#374151;margin-top:6px;font-weight:500">ATR +/-'+expMove+'%/day · RSI '+rsi.toFixed(0)+' · IV '+(iv3*100).toFixed(0)+'%</div>';
+
+  // Indicators
+  var ih='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  signals.forEach(function(s){
+    var sc=s.bull===true?'#166534':s.bull===false?'#9b1c1c':'#1e3a8a';
+    var bg=s.bull===true?'#f0fdf4':s.bull===false?'#fef2f2':'#eff6ff';
+    var bd=s.bull===true?'#bbf7d0':s.bull===false?'#fecaca':'#bfdbfe';
+    var icon=s.bull===true?'▲':s.bull===false?'▼':'─';
+    ih+='<div style="background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:10px 11px">';
+    ih+='<div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">'+s.lbl+'</div>';
+    ih+='<div style="font-size:15px;font-weight:800;color:'+sc+'">'+icon+' '+s.val+'</div>';
+    ih+='<div style="font-size:10px;color:'+sc+';font-weight:600;margin-top:3px;opacity:.85">'+s.note+'</div>';
+    ih+='</div>';
+  });
+  ih+='</div>';
+  $('g-indicators').innerHTML=ih;
+  $('g-loading').style.display='none';
+  $('g-signal').style.display='block';
+  G_LOADED[T4]=true;
+  updateMktNow(bullPoints,bearPoints);
+  var tsEl=$('g-sig-ts');if(tsEl)tsEl.textContent='as of '+fmtTs();
+  renderIVMeter(iv3,atrPct,spot);
 function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShare,isLive){
   var sg=$('g-setup-grid');
   if(!sg) return;
@@ -2149,34 +2175,6 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+ctxRows+'</div>';
   }
 }  // end renderSetupGrid
-
-  // Reasoning
-  $('g-reason').innerHTML='<div style="font-size:11px;color:#0f172a;line-height:1.7;font-weight:600">'+reasons.join(' · ')+'</div>'
-    +'<div style="font-size:10px;color:#374151;margin-top:6px;font-weight:500">ATR +/-'+expMove+'%/day · RSI '+rsi.toFixed(0)+' · IV '+(iv3*100).toFixed(0)+'%</div>';
-
-  // Indicators - clean 2-column grid of compact cards
-  var ih='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  signals.forEach(function(s){
-    var sc=s.bull===true?'#166534':s.bull===false?'#9b1c1c':'#1e3a8a';
-    var bg=s.bull===true?'#f0fdf4':s.bull===false?'#fef2f2':'#eff6ff';
-    var bd=s.bull===true?'#bbf7d0':s.bull===false?'#fecaca':'#bfdbfe';
-    var icon=s.bull===true?'▲':s.bull===false?'▼':'─';
-    ih+='<div style="background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:10px 11px">';
-    ih+='<div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">'+s.lbl+'</div>';
-    ih+='<div style="font-size:15px;font-weight:800;color:'+sc+'">'+icon+' '+s.val+'</div>';
-    ih+='<div style="font-size:10px;color:'+sc+';font-weight:600;margin-top:3px;opacity:.85">'+s.note+'</div>';
-    ih+='</div>';
-  });
-  ih+='</div>';
-  $('g-indicators').innerHTML=ih;
-  $('g-loading').style.display='none';
-  $('g-signal').style.display='block';
-  G_LOADED[T4]=true;
-  updateMktNow(bullPoints,bearPoints);
-  var tsEl=$('g-sig-ts');if(tsEl)tsEl.textContent='as of '+fmtTs();
-  // IV meter
-  renderIVMeter(iv3,atrPct,spot);
-}  // end processSignal
 
 /* ── TAB 5: BACKTEST ── */
 var AV_KEY='SBJ9BETAMVAZQM9D';
