@@ -1505,12 +1505,18 @@ function drawPnLChart(d, sc){
         tooltip:{enabled:false}
       },
       scales:{
-        x:{grid:{color:'rgba(226,232,240,0.5)'},ticks:{color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},maxTicksLimit:view==='time'?(dte<=7?dte+1:8):7,
+        x:{grid:{color:'rgba(226,232,240,0.5)'},ticks:{color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},maxRotation:0,
           callback:view==='price'?function(val,i){
             var s=cd._steps||40;
             if(i===0||i===s||i===(cd._ei||0)||i===(cd._bi||0)) return this.getLabelForValue(val);
             return '';
-          }:undefined
+          }:function(val,i,all){
+            // Time chart: only show Now, middle day, and DTE
+            var total=all.length-1;
+            var mid=Math.round(total/2);
+            if(i===0||i===total||i===mid) return this.getLabelForValue(val);
+            return '';
+          }
         }},
         y:{grid:{color:'rgba(226,232,240,0.5)'},ticks:{color:'#94a3b8',font:{size:9,family:'Inter',weight:'600'},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}}}
       }
