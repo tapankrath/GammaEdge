@@ -3259,6 +3259,12 @@ function processSignalForPlan(tk,spot,chg,iv3){
 }
 
 /* ── INIT ── */
+window.onerror=function(msg,src,line,col,err){
+  var errDiv=document.getElementById('ge-runtime-err');
+  if(!errDiv){errDiv=document.createElement('div');errDiv.id='ge-runtime-err';errDiv.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;background:#b91c1c;color:#fff;padding:10px;border-radius:8px;font-size:11px;font-weight:700;z-index:9999;';document.body.appendChild(errDiv);}
+  errDiv.textContent='JS Error: '+msg+' (line '+line+')';
+  return false;
+};
 go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
