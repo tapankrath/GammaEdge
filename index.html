@@ -1665,9 +1665,7 @@ function setT4(t){
 var G4_CACHE={};  // cache fetched data per ticker
 
 function go4(){
-  var capital=fv('g1'),stopPct=fv('g3'),targetPct=fv('g4');
-  // target in dollars = capital * targetPct% (g4 is profit target %)
-  var target=capital>0&&targetPct>0?Math.round(capital*targetPct/100):0;
+  var capital=fv('g1'),target=0,stopPct=fv('g3'),targetPct=fv('g4');
   var sym=T4.toUpperCase();
   renderDualCards(); // always refresh both cards
 
@@ -1960,10 +1958,9 @@ function processSignal(valid,capital,target,stopPct,sym){
     reasons.push('Strong bearish signals — price below 20MA with negative momentum');
   } else if(bullPoints>bearPoints){
     if(aggressiveTrade){
-      // Need strong signal for high capital commitment — don't take weak signals
-      action='WAIT — LEAN CALL';isCall=true;color='#166534';bgColor='#ffffff';borderColor='#e2e8f0';
-      confidence='Low';
-      reasons.push('Mildly bullish but signals mixed — with your capital:target ratio, wait for stronger confirmation');
+      action='LEAN CALL';isCall=true;color='#166534';bgColor='#ffffff';borderColor='#e2e8f0';
+      confidence='Low — size small';
+      reasons.push('Mildly bullish but signals mixed — reduce size, use 1-2 contracts max');
     } else {
       action='LEAN CALL';isCall=true;color='#166534';bgColor='#ffffff';borderColor='#e2e8f0';
       confidence=lowRiskTrade?'Medium (small size)':'Low';
@@ -1977,9 +1974,9 @@ function processSignal(valid,capital,target,stopPct,sym){
       confidence='Medium';
       reasons.push('RSI '+rsi.toFixed(0)+' overbought — mean reversion put play despite price above MA');
     } else if(aggressiveTrade){
-      action='WAIT — LEAN PUT';isCall=false;color='#991b1b';bgColor='#ffffff';borderColor='#e2e8f0';
-      confidence='Low';
-      reasons.push('Mildly bearish — with your capital:target ratio ('+Math.round(capRatio*100)+'%), wait for stronger confirmation');
+      action='LEAN PUT';isCall=false;color='#991b1b';bgColor='#ffffff';borderColor='#e2e8f0';
+      confidence='Low — size small';
+      reasons.push('Mildly bearish — reduce size, use 1-2 contracts max');
     } else {
       action='LEAN PUT';isCall=false;color='#991b1b';bgColor='#ffffff';borderColor='#e2e8f0';
       confidence=lowRiskTrade?'Medium (small size)':'Low';
