@@ -887,56 +887,74 @@ document.addEventListener('DOMContentLoaded',function(){
   setInterval(fetchMarketQuotes, 60000);
 });
 
-// ── LIVE MARKET QUOTES via Claude web_search ──
+// ── LIVE MARKET QUOTES ──
 function fetchMarketQuotes(){
-  var apiKey=localStorage.getItem('sai_key')||'';
-  if(!apiKey||apiKey.indexOf('sk-')===-1){
-    // No key yet — show placeholders, will refresh after key is set
-    renderQuote('qqq',0,0,'QQQ',true);
-    renderQuote('spy',0,0,'SPY',true);
-    renderQuote('vix',0,0,'VIX',true);
-    return;
-  }
+  // Use Yahoo Finance quote endpoint directly via proxies — no API key needed
+  var symbols='QQQ,SPY,%5EVIX';
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/QQQ?interval=1d&range=2d';
+  // Fetch each independently for reliability
+  [
+    {sym:'QQQ', id:'qqq'},
+    {sym:'SPY',  id:'spy'},
+    {sym:'%5EVIX', id:'vix', label:'VIX'}
+  ].forEach(function(s){
+    fetchSingleQuote(s.sym, s.id, s.label||s.sym);
+  });
+}
 
+function fetchSingleQuote(sym, id, label){
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
+    'https://corsproxy.io/?'+encodeURIComponent(url2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url2)
+  ];
+  function tryNext(i){
+    if(i>=proxies.length){
+      // All proxies failed — try Claude web_search as last resort
+      tryClaudeQuote(id, label);
+      return;
+    }
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var meta=d.chart.result[0].meta;
+        var price=meta.regularMarketPrice;
+        var prev=meta.chartPreviousClose||meta.previousClose||price;
+        var pct=prev?((price-prev)/prev*100):0;
+        renderQuote(id, price, pct, label, false);
+      })
+      .catch(function(){tryNext(i+1);});
+  }
+  tryNext(0);
+}
+
+function tryClaudeQuote(id, label){
+  var apiKey=localStorage.getItem('sai_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1) return; // no key, leave as ···
+  var sym=label==='VIX'?'VIX':label;
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':apiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:256,
+      model:'claude-haiku-4-5-20251001',max_tokens:80,
       tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:'What are the current prices of QQQ, SPY, and VIX right now? Return ONLY a JSON object like: {"QQQ":{"price":479.50,"pct":0.63},"SPY":{"price":534.20,"pct":0.41},"VIX":{"price":18.4,"pct":-2.1}} No other text.'}]
+      messages:[{role:'user',content:'Current price and day % change of '+sym+'? Reply ONLY: {"price":123.45,"pct":0.63}'}]
     })
   })
   .then(function(r){return r.json();})
   .then(function(data){
-    // Extract text from response (may have tool_use blocks first)
     var text='';
-    if(data.content){
-      data.content.forEach(function(block){
-        if(block.type==='text') text+=block.text;
-      });
-    }
-    var clean=text.replace(/```json|```/g,'').trim();
-    // Find JSON object in response
-    var match=clean.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('no json');
-    var q=JSON.parse(match[0]);
-    if(q.QQQ) renderQuote('qqq', q.QQQ.price, q.QQQ.pct, 'QQQ', false);
-    if(q.SPY) renderQuote('spy', q.SPY.price, q.SPY.pct, 'SPY', false);
-    if(q.VIX) renderQuote('vix', q.VIX.price, q.VIX.pct, 'VIX', false);
+    (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    var m=text.match(/\{[^}]+\}/);
+    if(!m)return;
+    var q=JSON.parse(m[0]);
+    if(q.price) renderQuote(id, q.price, q.pct||0, label, false);
   })
-  .catch(function(){
-    // Silent fail — just hide the loading dots
-    renderQuote('qqq',0,0,'QQQ',true);
-    renderQuote('spy',0,0,'SPY',true);
-    renderQuote('vix',0,0,'VIX',true);
-  });
+  .catch(function(){});
 }
 
 function renderQuote(sym, price, pct, label, unavailable){
