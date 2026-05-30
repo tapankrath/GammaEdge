@@ -548,6 +548,15 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div id="g-rows"></div>
     </div>
     <div class="note">Based on 30-day price history · RSI-14 · 20-day MA · Signals are indicative only</div>
+
+    <!-- Deep Analysis link to StockAI -->
+    <div id="g-stockai-btn" style="margin-top:10px;display:flex;align-items:center;gap:10px;background:#0e7490;border-radius:12px;padding:13px 16px;cursor:pointer;" onclick="openInStockAI()">
+      <div style="font-size:22px;line-height:1;">📊</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:.02em;">Run Deep Analysis in StockAI →</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;margin-top:2px;">OI · Flow · Macro · Options strategy · P&L chart</div>
+      </div>
+    </div>
   </div>
 
   <div id="g-error" style="display:none;background:var(--rbg);border:1px solid var(--rbd);border-radius:10px;padding:14px;color:var(--red);font-size:12px;line-height:1.6"></div>
@@ -1392,6 +1401,11 @@ function go3(){
 
 /* ── TAB 4: SIGNAL ── */
 var T4='qqq',G_LOADED={};
+
+function openInStockAI(){
+  var ticker=(T4||'QQQ').toUpperCase();
+  window.open('stockai.html?ticker='+ticker,'_blank');
+}
 
 /* Runs same math as processSignal but returns a result object instead of writing DOM.
    Keeps processSignal 100% untouched. */
