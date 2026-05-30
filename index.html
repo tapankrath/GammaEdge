@@ -1440,7 +1440,7 @@ function showDeepAnalysis(apiKey, sig){
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:'+(sig.aboveMA?'#f0fdf4':'#fef2f2')+';color:'+(sig.aboveMA?'#15803d':'#b91c1c')+';border:1px solid '+(sig.aboveMA?'#86efac':'#fca5a5')+';">'+(sig.aboveMA?'Above':'Below')+' 20MA</span>'
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#fffbeb;color:#b45309;border:1px solid #fcd34d;">IV ~'+sig.iv+'%</span>'
         +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;">3d: '+(sig.mom3>=0?'+':'')+sig.mom3.toFixed(1)+'%</span>'
-        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Cap: $'+sig.capital.toLocaleString()+' → $'+sig.target.toLocaleString()+'</span>'
+        +'<span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Cap: $'+sig.capital.toLocaleString()+' → $'+sig.target.toLocaleString()+' target ('+sig.capRatioPct+'%)</span>'
       +'</div>'
       // Result area
       +'<div id="deep-result" style="font-size:13px;line-height:1.7;color:#374151;">'
@@ -1661,7 +1661,9 @@ function setT4(t){
 var G4_CACHE={};  // cache fetched data per ticker
 
 function go4(){
-  var capital=fv('g1'),target=0,stopPct=fv('g3');
+  var capital=fv('g1'),stopPct=fv('g3'),targetPct=fv('g4');
+  // target in dollars = capital * targetPct% (g4 is profit target %)
+  var target=capital>0&&targetPct>0?Math.round(capital*targetPct/100):0;
   var sym=T4.toUpperCase();
   renderDualCards(); // always refresh both cards
 
@@ -2014,7 +2016,7 @@ function processSignal(valid,capital,target,stopPct,sym){
     sym:sym.toUpperCase(), action:action, confidence:confidence,
     rsi:rsi, aboveMA:aboveMA20, ma20Pct:ma20Pct,
     mom3:mom3, iv:Math.round(iv3*100), atr:atrPct.toFixed(2),
-    capital:capital||0, target:target||0,
+    capital:capital||0, target:target||0, targetPct:Math.round(capRatio*100),
     capRatioPct:Math.round((capital>0?target/capital:0)*100),
     dte:dte||7, signals:signals
   };
