@@ -414,8 +414,8 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);
 .tgt.bt2 .tgt-val{color:var(--green);}
 
 /* CHART */
-.chart-wrap{height:180px;position:relative;}
-canvas{width:100%!important;height:180px!important;}
+.chart-wrap{height:200px;position:relative;margin-bottom:0;}
+canvas{width:100%!important;height:200px!important;}
 
 /* FACTORS */
 .factor-row{
@@ -737,16 +737,28 @@ canvas{width:100%!important;height:180px!important;}
     </div>
   </div>
 
-  <!-- STICKY CARD 2: Stock Symbol Search -->
-  <div class="sticky-card-2" style="margin-top:8px;">
-    <div class="card-title" style="margin-bottom:8px;">Stock Symbol</div>
-    <div class="ticker-wrap">
-      <input class="ticker-inp" id="tickerInp" type="text" maxlength="6"
-        placeholder="QQQ, SPY, AAPL…"
-        autocapitalize="characters" autocorrect="off" spellcheck="false"
-        inputmode="text" value="QQQ"/>
+  <!-- STICKY CARD 2: Compact ticker + analyze + horizon -->
+  <div class="sticky-card-2" style="margin-top:6px;">
+    <!-- Row 1: ticker input + analyze button -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <div class="ticker-wrap" style="flex:1;">
+        <input class="ticker-inp" id="tickerInp" type="text" maxlength="6"
+          placeholder="Ticker — QQQ, AAPL…"
+          autocapitalize="characters" autocorrect="off" spellcheck="false"
+          inputmode="text" value="QQQ"/>
+      </div>
+      <button class="btn-analyze" id="analyzeBtn" onclick="runForecast()"
+        style="width:auto;padding:11px 16px;font-size:14px;border-radius:9px;flex-shrink:0;">
+        <div class="btn-spin"></div>
+        <span id="btnTxt">⚡ Analyze</span>
+      </button>
     </div>
-    <div class="ticker-hint" style="margin-top:7px;">Any NYSE / NASDAQ ticker or ETF — e.g. NVDA, TSLA, JPM, SPY</div>
+    <!-- Row 2: horizon tabs -->
+    <div class="hz-row" style="gap:5px;">
+      <button class="hz on" data-h="1D" onclick="setHz(this,'1D')">Next Day</button>
+      <button class="hz"    data-h="1W" onclick="setHz(this,'1W')">1 Week</button>
+      <button class="hz"    data-h="1M" onclick="setHz(this,'1M')">1 Month</button>
+    </div>
   </div>
 
 </div><!-- /sticky-top -->
@@ -775,27 +787,6 @@ canvas{width:100%!important;height:180px!important;}
       <button onclick="addToWatchlist()" style="background:var(--text);color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:800;">+</button>
     </div>
   </div>
-
-  <!-- HORIZON -->
-  <div class="card">
-    <div class="card-title">Forecast Horizon</div>
-    <div class="hz-row">
-      <button class="hz on" data-h="1D" onclick="setHz(this,'1D')">Next Day</button>
-      <button class="hz"    data-h="1W" onclick="setHz(this,'1W')">1 Week</button>
-      <button class="hz"    data-h="1M" onclick="setHz(this,'1M')">1 Month</button>
-    </div>
-    <div class="macro-badge">
-      <div class="macro-dot"></div>
-      <div class="macro-txt">13 macro + earnings factors — horizon-adjusted</div>
-      <div class="macro-sub">always on</div>
-    </div>
-  </div>
-
-  <!-- ANALYZE BUTTON -->
-  <button class="btn-analyze" id="analyzeBtn" onclick="runForecast()">
-    <div class="btn-spin"></div>
-    <span id="btnTxt">⚡ Analyze &amp; Forecast</span>
-  </button>
 
   <!-- STATUS -->
   <div class="status" id="statusBar">
@@ -849,7 +840,7 @@ canvas{width:100%!important;height:180px!important;}
     <div class="empty-txt">Enter any ticker above and tap<br/><strong>Analyze &amp; Forecast</strong><br/>for AI price outlook + options strategy.</div>
   </div>
 
-  <div class="disc">⚠ <strong>Not financial advice.</strong> AI forecasts are speculative and for educational use only. Options trading involves significant risk.</div>
+
 </div>
 
 <div id="toastEl"></div>
@@ -1639,7 +1630,7 @@ function renderResults(d,ticker,optionsData,flowData){
     +'<div class="targets aup"><div class="tgt bt"><div class="tgt-lbl">Bear</div><div class="tgt-val">'+(pt.bear||'—')+'</div><div class="tgt-sub">downside</div></div><div class="tgt bst"><div class="tgt-lbl">Base</div><div class="tgt-val">'+(pt.base||'—')+'</div><div class="tgt-sub">expected</div></div><div class="tgt bt2"><div class="tgt-lbl">Bull</div><div class="tgt-val">'+(pt.bull||'—')+'</div><div class="tgt-sub">upside</div></div></div>'
     +dataCard
     +comboTable
-    +'<div class="card aup"><div class="card-title">P&amp;L Zone — Combined Position</div><div class="chart-wrap" style="height:180px;"><canvas id="fc"></canvas></div><div id="fc-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding:0 2px;"></div></div>'
+    +'<div class="card aup"><div class="card-title">P&amp;L Zone — Combined Position</div><div class="chart-wrap" style="height:200px;"><canvas id="fc"></canvas></div><div id="fc-legend"></div></div>'
     +'<button onclick="trackTrade()" id="trackBtn" style="width:100%;padding:13px;background:#fff;color:var(--blue);border:1.5px solid var(--bbd);border-radius:10px;font-size:14px;font-weight:800;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;">📋 Track as Paper Trade</button>';
 
 
@@ -1796,7 +1787,7 @@ function drawPnLChart(d, sc){
   function updateLegend(view){
     var legend=document.getElementById('fc-legend');
     if(!legend)return;
-    legend.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:10px;padding:10px;background:var(--p2);border-radius:8px;border:1px solid var(--border);';
+    legend.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:12px;padding:10px;background:var(--p2);border-radius:8px;border:1px solid var(--border);clear:both;';
     var items=view==='price'?[
       {color:'#15803d',label:'Profit zone'},
       {color:'#b91c1c',label:'Loss zone'},
