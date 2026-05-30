@@ -907,24 +907,47 @@ function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays
 var PROXY_URL=''; // set this after Cloudflare Worker setup
 
 function fetchP(sym){
-  var url=PROXY_URL
-    ?PROXY_URL+'?symbol='+sym
-    :'https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK;
-  fetch(url)
-    .then(function(r){return r.json();})
-    .then(function(d){
-      var p=d.c,ch=p-d.pc,pct=ch/d.pc*100,k=sym.toLowerCase();
-      LIVE[k]=p;LIVE_CHG[k]=pct;
-      $('px-'+k).textContent='$'+p.toFixed(2);
-      var el=$('pc-'+k),s=ch>=0?'+':'';
-      el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
-      el.style.color=ch>=0?'var(--green)':'var(--red)';
-      if(!G_LOADED[T4])updateMktNow();
-      if(T1===k)$('c1').value=p.toFixed(2);
-      if(T2===k)$('r1').value=p.toFixed(2);
-      if(T3===k)$('s1').value=p.toFixed(2);
-      go1();go2();go3();
-    }).catch(function(){});
+  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1){
+    fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK)
+      .then(function(r){return r.json();})
+      .then(function(d){applyPrice(sym,d.c,d.pc);})
+      .catch(function(){});
+    return;
+  }
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',max_tokens:80,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:'Current price and previous close of '+sym+'? Reply ONLY JSON: {"c":123.45,"pc":122.10}'}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var text='';
+    (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    var m=text.match(/\{"c":[^}]+\}/);
+    if(!m)return;
+    var d=JSON.parse(m[0]);
+    applyPrice(sym,d.c,d.pc);
+  })
+  .catch(function(){});
+}
+
+function applyPrice(sym,p,pc){
+  if(!p)return;
+  var ch=p-(pc||p),pct=pc?(ch/pc*100):0,k=sym.toLowerCase();
+  LIVE[k]=p;LIVE_CHG[k]=pct;
+  var pxEl=$('px-'+k);if(pxEl)pxEl.textContent='$'+p.toFixed(2);
+  var el=$('pc-'+k);
+  if(el){var s=ch>=0?'+':'';el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';el.style.color=ch>=0?'var(--green)':'var(--red)';}
+  if(!G_LOADED[T4])updateMktNow();
+  if(T1===k)$('c1')&&($('c1').value=p.toFixed(2));
+  if(T2===k)$('r1')&&($('r1').value=p.toFixed(2));
+  if(T3===k)$('s1')&&($('s1').value=p.toFixed(2));
+  go1();go2();go3();
 }
 function fmtTs(){var n=new Date(),d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],h=n.getHours(),mi=n.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return d[n.getDay()]+' '+m[n.getMonth()]+' '+n.getDate()+' '+h+':'+(mi<10?'0':'')+mi+' '+ap;}
 function updateMktNow(bull,bear){
@@ -1708,50 +1731,65 @@ function go4(){
     indEl.innerHTML=oldContent+'<div style="margin-top:8px;font-size:10px;color:#64748b;font-weight:600;padding:6px 8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0">⟳ Fetching live RSI/MA data in background...</div>';
   }
 
-  // Background fetch — try Yahoo via multiple proxies
-  var yahooPath='/v8/finance/chart/'+sym+'?interval=1d&range=60d';
-  var endpoints=[
-    'https://corsproxy.io/?url=https://query1.finance.yahoo.com'+yahooPath,
-    'https://api.allorigins.win/raw?url='+encodeURIComponent('https://query1.finance.yahoo.com'+yahooPath),
-    'https://corsproxy.io/?url=https://query2.finance.yahoo.com'+yahooPath
-  ];
-
-  function parseYahoo(data){
-    var res=data.chart&&data.chart.result&&data.chart.result[0];
-    if(!res)throw new Error('No data');
-    var q=res.indicators.quote[0];
-    var valid=[];
-    for(var i=0;i<q.close.length;i++){
-      if(q.close[i]&&q.high[i]&&q.low[i])valid.push({c:q.close[i],h:q.high[i],l:q.low[i],v:q.volume[i]||0});
+  // Fetch 30-day price history via Claude web_search (reliable on mobile)
+  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1){
+    // No key — show synthetic signal only
+    if($('g-indicators')){
+      var el=$('g-indicators').querySelector('div:last-child');
+      if(el&&el.textContent.indexOf('Fetching')>-1)
+        el.textContent='⚠ Add API key in settings for live RSI/MA data';
     }
-    if(valid.length<20)throw new Error('Too few days');
-    return valid;
+    return;
   }
 
-  function tryFetch(idx){
-    if(idx>=endpoints.length){
-      // Silently fail — synthetic data already showing
-      if($('g-indicators')){
-        var el=$('g-indicators').querySelector('div:last-child');
-        if(el&&el.textContent.indexOf('Fetching')>-1)
-          el.textContent='⚠ Using estimated indicators (live data unavailable)';
-      }
-      return;
+  var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var histPrompt='Search Yahoo Finance for '+sym+' stock data today '+today+'. '
+    +'I need the last 30 trading days of closing prices to calculate RSI and moving averages. '
+    +'Return ONLY valid JSON array of the last 30 daily closes in chronological order (oldest first): '
+    +'{"closes":[price1,price2,...,price30],"currentPrice":<number>,"prevClose":<number>}';
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:600,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:histPrompt}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    var match=text.match(/\{[\s\S]*\}/);
+    if(!match)throw new Error('no json');
+    var parsed=JSON.parse(match[0]);
+    var closes=parsed.closes||[];
+    if(closes.length<10)throw new Error('too few');
+    // Build valid array in format processSignal expects
+    var valid=closes.map(function(c,i){
+      return {c:c,h:c*1.005,l:c*0.995,v:1000000}; // estimate H/L from close
+    });
+    // Update live price display
+    if(parsed.currentPrice) applyPrice(sym,parsed.currentPrice,parsed.prevClose);
+    G4_CACHE[sym]=valid;
+    $('g-loading').style.display='none';
+    $('g-signal').style.display='block';
+    processSignal(valid,capital,target,stopPct,sym);
+    renderDualCards();
+  })
+  .catch(function(e){
+    // Show what we have with synthetic data
+    $('g-loading').style.display='none';
+    $('g-signal').style.display='block';
+    if($('g-indicators')){
+      var errEl=document.createElement('div');
+      errEl.style.cssText='margin-top:8px;font-size:10px;color:#92400e;font-weight:600;padding:6px 8px;background:#fffbeb;border-radius:6px;border:1px solid #fcd34d';
+      errEl.textContent='⚠ Using estimated indicators — live data fetch failed';
+      $('g-indicators').appendChild(errEl);
     }
-    fetch(endpoints[idx])
-      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-      .then(function(data){
-        var valid=parseYahoo(data);
-        G4_CACHE[sym]=valid;  // cache it
-        renderDualCards();    // refresh both summary cards with real data
-        // Update signal with real data
-        $('g-loading').style.display='none';
-        $('g-signal').style.display='block';
-        processSignal(valid,capital,target,stopPct,sym);
-      })
-      .catch(function(){tryFetch(idx+1);});
-  }
-  tryFetch(0);
+  });
 }
 
 // Refresh cache every 5 minutes
