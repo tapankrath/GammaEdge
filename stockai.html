@@ -875,6 +875,13 @@ document.addEventListener('DOMContentLoaded',function(){
   renderPaperTrades();
   resolveOpenPaperTrades();
   renderCalibration();
+
+  // Pre-fill ticker from URL param (e.g. ?ticker=QQQ from GammaEdge)
+  var urlTicker=new URLSearchParams(window.location.search).get('ticker');
+  if(urlTicker){
+    var inp=document.getElementById('tickerInp');
+    if(inp) inp.value=urlTicker.toUpperCase().replace(/[^A-Z]/g,'');
+  }
   var inp=document.getElementById('tickerInp');
   inp.addEventListener('input',function(){
     this.value=this.value.replace(/[^A-Za-z]/g,'').toUpperCase();
