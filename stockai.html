@@ -985,16 +985,19 @@ function renderQuote(sym, price, pct, label, unavailable){
    +'</div>';
 }
 
-// Also fix price fetch for forecasts — use corsproxy as it's more reliable for single fetches
+// ══════════════════════════════════════════
+// LIVE PRICE — via Claude web_search (reliable on mobile)
+// ══════════════════════════════════════════
 function fetchLivePrice(ticker, cb){
-  var url='https://query2.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
+  // Try proxy first (instant, free), fall back to Claude
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
   var proxies=[
     'https://corsproxy.io/?'+encodeURIComponent(url),
     'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
   ];
   function tryNext(i){
     if(i>=proxies.length){cb(null);return;}
-    fetch(proxies[i],{cache:'no-store'})
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(4000)})
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -1005,109 +1008,65 @@ function fetchLivePrice(ticker, cb){
   tryNext(0);
 }
 
-
 // ══════════════════════════════════════════
-// OPTIONS CHAIN — OI, Volume, Put/Call Ratio
+// OPTIONS CHAIN — via Claude web_search (works on mobile)
 // ══════════════════════════════════════════
-function fetchOptionsChain(ticker, hz, cb){
-  // Pick expiry offset: 1D=nearest weekly, 1W=1-2 weeks out, 1M=3-4 weeks out
+function fetchOptionsChain(ticker, hz, apiKey, cb){
   var daysOut=hz==='1D'?3:hz==='1W'?10:32;
-  var url='https://query2.finance.yahoo.com/v7/finance/options/'+ticker;
-  var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(url),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
-  ];
-  function tryNext(i){
-    if(i>=proxies.length){cb(null);return;}
-    fetch(proxies[i],{cache:'no-store'})
-      .then(function(r){if(!r.ok)throw 0;return r.json();})
-      .then(function(raw){
-        try{
-          var result=raw.optionChain.result[0];
-          var spot=result.quote.regularMarketPrice;
-          var expirations=result.expirationDates||[];
-          var now=Math.floor(Date.now()/1000);
-          // Pick best expiry closest to daysOut
-          var targetTs=now+daysOut*86400;
-          var bestExp=expirations.reduce(function(best,ts){
-            return Math.abs(ts-targetTs)<Math.abs(best-targetTs)?ts:best;
-          }, expirations[0]||targetTs);
+  var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-          var opts=result.options[0];
-          var calls=(opts&&opts.calls)||[];
-          var puts=(opts&&opts.puts)||[];
+  var prompt='Search Yahoo Finance options chain for '+ticker+' today '+today+'.\n'
+    +'I need the options expiring in approximately '+daysOut+' days from today.\n\n'
+    +'Return ONLY a valid JSON object with NO markdown, NO explanation:\n'
+    +'{\n'
+    +'"spot": <current stock price as number>,\n'
+    +'"expiry": "<e.g. Jun 13>",\n'
+    +'"daysToExp": <integer>,\n'
+    +'"pcOIRatio": <put/call open interest ratio as number, e.g. 0.85>,\n'
+    +'"pcVolRatio": <put/call volume ratio as number>,\n'
+    +'"maxPain": <max pain strike price as number>,\n'
+    +'"totalCallOI": <total call open interest integer>,\n'
+    +'"totalPutOI": <total put open interest integer>,\n'
+    +'"topCallOI": [{"strike":<number>,"oi":<number>,"vol":<number>,"iv":"<e.g. 18.5%>"},... top 5],\n'
+    +'"topPutOI":  [{"strike":<number>,"oi":<number>,"vol":<number>,"iv":"<e.g. 18.5%>"},... top 5],\n'
+    +'"callVolSpikes": [{"strike":<number>,"vol":<number>,"oi":<number>,"ratio":"<vol/OI e.g. 2.3x>"},... up to 4 with vol/OI > 1.0],\n'
+    +'"putVolSpikes":  [{"strike":<number>,"vol":<number>,"oi":<number>,"ratio":"<vol/OI e.g. 1.8x>"},... up to 4],\n'
+    +'"atmIV": "<ATM implied volatility e.g. 19.2%>",\n'
+    +'"ivSkew": "<brief note on skew e.g. Put skew elevated — 25Δ puts 3% over calls>"\n'
+    +'}';
 
-          // Find top OI strikes (calls and puts separately)
-          function topStrikes(chain, n){
-            return chain
-              .filter(function(o){return o.openInterest>0;})
-              .sort(function(a,b){return (b.openInterest||0)-(a.openInterest||0);})
-              .slice(0,n)
-              .map(function(o){return {
-                strike:o.strike,
-                oi:o.openInterest||0,
-                vol:o.volume||0,
-                iv:o.impliedVolatility?(o.impliedVolatility*100).toFixed(1)+'%':'—',
-                volOiRatio:o.openInterest>0?((o.volume||0)/o.openInterest).toFixed(2):'0',
-                lastPrice:o.lastPrice||0
-              };});
-          }
-
-          // Volume spikes: vol/OI > 0.5 = unusual
-          function spikeStrikes(chain){
-            return chain
-              .filter(function(o){return o.openInterest>100&&(o.volume||0)/o.openInterest>0.4;})
-              .sort(function(a,b){return ((b.volume||0)/b.openInterest)-((a.volume||0)/a.openInterest);})
-              .slice(0,4)
-              .map(function(o){return {
-                strike:o.strike,
-                oi:o.openInterest||0,
-                vol:o.volume||0,
-                ratio:((o.volume||0)/o.openInterest).toFixed(2),
-                iv:o.impliedVolatility?(o.impliedVolatility*100).toFixed(1)+'%':'—'
-              };});
-          }
-
-          var totalCallOI=calls.reduce(function(s,o){return s+(o.openInterest||0);},0);
-          var totalPutOI=puts.reduce(function(s,o){return s+(o.openInterest||0);},0);
-          var pcRatio=totalCallOI>0?(totalPutOI/totalCallOI).toFixed(2):'—';
-
-          var totalCallVol=calls.reduce(function(s,o){return s+(o.volume||0);},0);
-          var totalPutVol=puts.reduce(function(s,o){return s+(o.volume||0);},0);
-          var pcVolRatio=totalCallVol>0?(totalPutVol/totalCallVol).toFixed(2):'—';
-
-          // Max pain: strike where total OI loss is minimized
-          var allStrikes=[...new Set(calls.concat(puts).map(function(o){return o.strike;}))].sort(function(a,b){return a-b;});
-          var maxPainStrike=spot;
-          var minLoss=Infinity;
-          allStrikes.forEach(function(s2){
-            var loss=0;
-            calls.forEach(function(c){if(c.strike<s2)loss+=(c.openInterest||0)*(s2-c.strike);});
-            puts.forEach(function(p){if(p.strike>s2)loss+=(p.openInterest||0)*(p.strike-s2);});
-            if(loss<minLoss){minLoss=loss;maxPainStrike=s2;}
-          });
-
-          cb({
-            spot:spot,
-            expiry:new Date(bestExp*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-            expiryTs:bestExp,
-            daysToExp:Math.round((bestExp-now)/86400),
-            topCallOI:topStrikes(calls,5),
-            topPutOI:topStrikes(puts,5),
-            callVolSpikes:spikeStrikes(calls),
-            putVolSpikes:spikeStrikes(puts),
-            pcRatio:pcRatio,
-            pcVolRatio:pcVolRatio,
-            maxPain:maxPainStrike,
-            totalCallOI:totalCallOI,
-            totalPutOI:totalPutOI
-          });
-        }catch(e){cb(null);}
-      })
-      .catch(function(){tryNext(i+1);});
-  }
-  tryNext(0);
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:800,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var text='';
+    (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    var match=text.match(/\{[\s\S]*\}/);
+    if(!match)throw new Error('no json');
+    var d=JSON.parse(match[0]);
+    // Validate minimum fields
+    if(!d.spot||!d.topCallOI)throw new Error('incomplete');
+    cb(d);
+  })
+  .catch(function(e){
+    console.warn('Options chain fetch failed:',e);
+    cb(null);
+  });
 }
+
 
 // ══════════════════════════════════════════
 // FLOW SIGNALS — Claude web_search
@@ -1246,14 +1205,14 @@ function runForecast(){
   var hzName=horizon==='1D'?'1-Day':horizon==='1W'?'1-Week':'1-Month';
   var steps=[
     'Fetching live price…',
-    'Scanning options chain OI & volume…',
+    'Scanning options chain via AI…',
     'Checking unusual flow signals…',
     'Running '+hzName+' macro analysis…',
     'Building OI-informed strategy…',
     'Writing forecast…'
   ];
   var si=0;st.textContent=steps[0];
-  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1800);
+  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},2200);
 
   var hz=horizon;
 
@@ -1272,7 +1231,7 @@ function runForecast(){
         document.getElementById('emptyState').style.display='';
       })
       .finally(function(){
-        btn.disabled=false;btn.classList.remove('loading');lbl.textContent='⚡ Analyze & Forecast';
+        btn.disabled=false;btn.classList.remove('loading');lbl.textContent='⚡ Analyze';
       });
   }
 
@@ -1284,20 +1243,21 @@ function runForecast(){
     if(done===3) doForecast(livePrice, optionsData, flowData);
   }
 
-  // 1. Live price
+  // 1. Live price (proxy first, fast)
   fetchLivePrice(ticker, function(price){
     livePrice=price;
-    if(price) st.textContent='Price: $'+price.toFixed(2)+' — scanning options chain…';
+    if(price) st.textContent='Price $'+price.toFixed(2)+' — scanning options chain…';
     check();
   });
 
-  // 2. Options chain OI + volume
-  fetchOptionsChain(ticker, hz, function(data){
+  // 2. Options chain via Claude Haiku + web_search (reliable on mobile)
+  fetchOptionsChain(ticker, hz, apiKey, function(data){
     optionsData=data;
+    if(data) st.textContent='Options chain loaded — checking flow…';
     check();
   });
 
-  // 3. Flow signals via Claude web_search
+  // 3. Flow signals via Claude Haiku + web_search
   fetchFlowSignals(ticker, apiKey, function(data){
     flowData=data;
     check();
@@ -1352,45 +1312,47 @@ function buildPrompt(ticker,hLabel,hz,livePrice,optionsData,flowData){
   var oiContext='';
   if(optionsData){
     var o=optionsData;
-    oiContext='\nOPTIONS CHAIN DATA (use this to select strikes — do NOT ignore):\n'
-      +'Expiry targeted: '+o.expiry+' ('+o.daysToExp+' days out)\n'
-      +'Put/Call OI Ratio: '+o.pcRatio+' (>1.2 = bearish skew, <0.8 = bullish skew)\n'
-      +'Put/Call Volume Ratio: '+o.pcVolRatio+'\n'
-      +'Max Pain Strike: $'+o.maxPain+' (market makers want price here at expiry)\n'
-      +'Total Call OI: '+o.totalCallOI.toLocaleString()+' | Total Put OI: '+o.totalPutOI.toLocaleString()+'\n';
+    oiContext='\nOPTIONS CHAIN DATA (real market data — use to select strikes):\n'
+      +'Expiry: '+o.expiry+' ('+o.daysToExp+' days out)\n'
+      +'ATM IV: '+(o.atmIV||'—')+'\n'
+      +'IV Skew: '+(o.ivSkew||'—')+'\n'
+      +'Put/Call OI Ratio: '+(o.pcOIRatio||o.pcRatio||'—')+' (>1.2 = bearish skew, <0.8 = bullish skew)\n'
+      +'Put/Call Volume Ratio: '+(o.pcVolRatio||'—')+'\n'
+      +'Max Pain Strike: $'+o.maxPain+'\n'
+      +'Total Call OI: '+((o.totalCallOI||0).toLocaleString())+' | Total Put OI: '+((o.totalPutOI||0).toLocaleString())+'\n';
 
     if(o.topCallOI&&o.topCallOI.length){
-      oiContext+='Top Call OI Strikes (resistance walls):\n';
+      oiContext+='Top Call OI Strikes (resistance walls — sell pressure above these):\n';
       o.topCallOI.forEach(function(s){
-        oiContext+='  $'+s.strike+' — OI:'+s.oi.toLocaleString()+' Vol:'+s.vol+' IV:'+s.iv+(s.vol>0&&s.oi>0?' Vol/OI:'+s.volOiRatio:'')+'\n';
+        oiContext+='  $'+s.strike+' OI:'+s.oi+' Vol:'+s.vol+' IV:'+s.iv+'\n';
       });
     }
     if(o.topPutOI&&o.topPutOI.length){
-      oiContext+='Top Put OI Strikes (support walls):\n';
+      oiContext+='Top Put OI Strikes (support walls — buy pressure below these):\n';
       o.topPutOI.forEach(function(s){
-        oiContext+='  $'+s.strike+' — OI:'+s.oi.toLocaleString()+' Vol:'+s.vol+' IV:'+s.iv+'\n';
+        oiContext+='  $'+s.strike+' OI:'+s.oi+' Vol:'+s.vol+' IV:'+s.iv+'\n';
       });
     }
     if(o.callVolSpikes&&o.callVolSpikes.length){
-      oiContext+='Unusual Call Volume (Vol/OI spikes — potential smart money):\n';
+      oiContext+='Unusual Call Volume (smart money positioning):\n';
       o.callVolSpikes.forEach(function(s){
-        oiContext+='  $'+s.strike+' — Vol:'+s.vol+' OI:'+s.oi+' Ratio:'+s.ratio+'x IV:'+s.iv+'\n';
+        oiContext+='  $'+s.strike+' Vol:'+s.vol+' OI:'+s.oi+' Ratio:'+s.ratio+'\n';
       });
     }
     if(o.putVolSpikes&&o.putVolSpikes.length){
       oiContext+='Unusual Put Volume:\n';
       o.putVolSpikes.forEach(function(s){
-        oiContext+='  $'+s.strike+' — Vol:'+s.vol+' OI:'+s.oi+' Ratio:'+s.ratio+'x IV:'+s.iv+'\n';
+        oiContext+='  $'+s.strike+' Vol:'+s.vol+' OI:'+s.oi+' Ratio:'+s.ratio+'\n';
       });
     }
-    oiContext+='\nSTRIKE SELECTION RULES based on OI:\n'
-      +'• For BULLISH call spread: buy strike just BELOW the largest call OI wall (so you profit before resistance), sell strike AT or just above it\n'
-      +'• For BEARISH put spread: buy strike just ABOVE largest put OI wall, sell below it\n'
-      +'• Avoid strikes where Vol/OI ratio > 1.0 on the wrong side (too crowded)\n'
-      +'• If max pain is far from spot, note the direction — market makers will push price toward it\n'
-      +'• Prefer expiries where IV is not spiked (avoid buying expensive premium)\n';
+    oiContext+='\nSTRIKE SELECTION RULES:\n'
+      +'• BULLISH call spread: buy strike just BELOW biggest call OI wall (profit before resistance), sell AT the wall\n'
+      +'• BEARISH put spread: buy strike just ABOVE biggest put OI wall, sell below it\n'
+      +'• Max pain $'+o.maxPain+': market makers push price here by expiry — factor into target\n'
+      +'• Avoid buying high-IV strikes; prefer strikes where IV is at or below ATM\n'
+      +'• Vol spikes (high ratio) = institutional positioning — trade WITH these, not against\n';
   } else {
-    oiContext='\nOptions chain data unavailable — use price-based strike estimation only.\n';
+    oiContext='\nOptions chain: unavailable — use price-based strike estimation only.\n';
   }
 
   // Build flow context
@@ -1622,9 +1584,10 @@ function renderResults(d,ticker,optionsData,flowData){
   var dataSources=[];
   dataSources.push('📊 Live price');
   if(optionsData){
-    dataSources.push('📋 Options chain OI/Vol (exp '+optionsData.expiry+')');
+    dataSources.push('📋 Options chain (exp '+optionsData.expiry+')');
     dataSources.push('🎯 Max pain: $'+optionsData.maxPain);
-    dataSources.push('P/C ratio: '+optionsData.pcRatio);
+    dataSources.push('P/C OI: '+optionsData.pcOIRatio+'  Vol: '+(optionsData.pcVolRatio||'—'));
+    if(optionsData.atmIV) dataSources.push('IV: '+optionsData.atmIV);
   }
   if(flowData&&flowData.confidence!=='NONE'){
     var fIcon=flowData.sentiment==='BULLISH'?'🟢':flowData.sentiment==='BEARISH'?'🔴':'🟡';
@@ -1640,13 +1603,15 @@ function renderResults(d,ticker,optionsData,flowData){
     }).join('')
     +'</div>'
     +(optionsData&&optionsData.callVolSpikes&&optionsData.callVolSpikes.length?
-      '<div style="margin-top:8px;font-size:11px;font-weight:700;color:var(--green);">⚡ Unusual call volume: $'
-      +optionsData.callVolSpikes.map(function(s){return s.strike+' ('+s.ratio+'x)';}).join(', $')
+      '<div style="margin-top:8px;font-size:11px;font-weight:700;color:var(--green);">⚡ Unusual call vol: $'
+      +optionsData.callVolSpikes.map(function(s){return s.strike+' ('+s.ratio+')';}).join(', $')
       +'</div>':'')
     +(optionsData&&optionsData.putVolSpikes&&optionsData.putVolSpikes.length?
-      '<div style="margin-top:4px;font-size:11px;font-weight:700;color:var(--red);">⚡ Unusual put volume: $'
-      +optionsData.putVolSpikes.map(function(s){return s.strike+' ('+s.ratio+'x)';}).join(', $')
+      '<div style="margin-top:4px;font-size:11px;font-weight:700;color:var(--red);">⚡ Unusual put vol: $'
+      +optionsData.putVolSpikes.map(function(s){return s.strike+' ('+s.ratio+')';}).join(', $')
       +'</div>':'')
+    +(optionsData&&optionsData.ivSkew?
+      '<div style="margin-top:4px;font-size:11px;font-weight:600;color:var(--amber);">📐 '+optionsData.ivSkew+'</div>':'')
     +'</div>';
 
   var html=
