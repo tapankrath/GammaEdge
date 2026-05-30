@@ -1678,10 +1678,14 @@ function quickSignal(sym){
   return{action:action,color:color,bgColor:bgColor,borderColor:borderColor,conf:conf,sub:sub,detail:detail,bull:bull,bear:bear};
 }
 
+// Store last signal results so dual cards always match processSignal
+var G4_LAST_SIGNAL={spy:null,qqq:null};
+
 function renderDualCards(){
   ['spy','qqq'].forEach(function(tk){
     var sym=tk.toUpperCase();
-    var r=quickSignal(sym);
+    // Use stored processSignal result if available — guarantees consistency
+    var r=G4_LAST_SIGNAL[tk]||quickSignal(sym);
     var card=$('ds-'+tk);
     if(!card)return;
     card.style.background=r.bgColor;
@@ -1694,8 +1698,7 @@ function renderDualCards(){
     $('ds-'+tk+'-detail').style.color=r.color;
     $('ds-'+tk+'-ts').textContent='as of '+fmtTs();
   });
-  // Also update mkt pill from QQQ (primary signal)
-  var q=quickSignal('QQQ');
+  var q=G4_LAST_SIGNAL['qqq']||quickSignal('QQQ');
   updateMktNow(q.bull,q.bear);
 }
 
@@ -2078,10 +2081,19 @@ function processSignal(valid,capital,target,stopPct,sym){
     rsi:rsi, aboveMA:aboveMA20, ma20Pct:ma20Pct,
     mom3:mom3, iv:Math.round(iv3*100), atr:atrPct.toFixed(2),
     capital:capital||0,
-    stopPct:stopPctVal,   // max loss % on option before exit
-    tgtPct:tgtPctVal,     // profit target % on option
+    stopPct:stopPctVal,
+    tgtPct:tgtPctVal,
     dte:dte||7, signals:signals
   };
+
+  // Store in G4_LAST_SIGNAL so dual cards always match main card
+  var sub2=isCall===true?'↑ Bullish':isCall===false?'↓ Bearish':'─ Wait';
+  var detail2='RSI '+rsi.toFixed(0)+' · '+(aboveMA20?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
+  G4_LAST_SIGNAL[sym.toLowerCase()]={
+    action:action,color:color,bgColor:bgColor,borderColor:borderColor,
+    conf:confidence,sub:sub2,detail:detail2,bull:bullPoints,bear:bearPoints
+  };
+  renderDualCards();
 
   // Style the main card
   var mc=$('g-main-card');
