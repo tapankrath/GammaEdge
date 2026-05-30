@@ -2156,6 +2156,8 @@ function processSignal(valid,capital,target,stopPct,sym){
   updateMktNow(bullPoints,bearPoints);
   var tsEl=$('g-sig-ts');if(tsEl)tsEl.textContent='as of '+fmtTs();
   renderIVMeter(iv3,atrPct,spot);
+}  // end processSignal
+
 function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShare,isLive){
   var sg=$('g-setup-grid');
   if(!sg) return;
