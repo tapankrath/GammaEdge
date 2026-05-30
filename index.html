@@ -1520,68 +1520,77 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
     'Put/Call OI Ratio: '+optionsData.pcRatio+'\nMax Pain: $'+optionsData.maxPain+'\nTop Call OI walls: '+optionsData.topCalls+'\nTop Put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:'')+'\nBest expiry: '+optionsData.expiry+' ('+optionsData.daysOut+'d out)'
     :'Options chain unavailable.';
 
-  var prompt='You are StockAI, an institutional options strategist. Today: '+today+'.\n\n'
-    +'A GammaEdge technical signal was generated for '+sig.sym+':\n'
-    +'• Action: '+sig.action+'\n'
-    +'• Confidence: '+sig.confidence+'\n'
-    +'• RSI-14: '+sig.rsi.toFixed(0)+(sig.rsi>65?' (overbought)':sig.rsi<35?' (oversold)':'')+'\n'
-    +'• Price vs 20-day MA: '+(sig.aboveMA?'+':'')+sig.ma20Pct.toFixed(1)+'% '+(sig.aboveMA?'(above — bullish)':'(below — bearish)')+'\n'
-    +'• 3-day momentum: '+(sig.mom3>=0?'+':'')+sig.mom3.toFixed(2)+'%\n'
-    +'• Est. IV: '+sig.iv+'%\n'
-    +'• ATR daily range: ±'+sig.atr+'%\n'
-    +'• Capital: $'+sig.capital.toLocaleString()+' | Target P&L: $'+sig.target.toLocaleString()+' ('+sig.capRatioPct+'% of capital)\n'
-    +'• Suggested DTE: '+sig.dte+' days\n\n'
-    +'LIVE MARKET DATA:\n'
-    +'• Live price: '+priceStr+'\n'
-    +oiStr+'\n\n'
-    +'YOUR JOB — in 3 clear sections:\n\n'
-    +'1. VALIDATE — Does the OI/flow data CONFIRM or CONTRADICT the technical signal? Be specific (e.g. "Put/call ratio of 1.4 is bearish — contradicts the BUY CALL signal").\n\n'
-    +'2. TRADE — Give ONE specific trade: exact strikes anchored to live price and OI walls, expiry, entry cost estimate, profit target, exit trigger. If signal is weak or contradicted by OI, say so and size down or recommend WAIT.\n\n'
-    +'3. RISK — Two sentences on the biggest risk to this trade and when to exit early.\n\n'
-    +'Be direct and concise. No fluff. Use $ amounts where possible.';
+  var prompt='You are a concise options trading advisor. Analyze this signal and respond in JSON only.\n\n'
+    +'Signal: '+sig.sym+' · '+sig.action+' · '+sig.confidence+' confidence\n'
+    +'RSI-14: '+sig.rsi.toFixed(0)+' | Price vs 20MA: '+(sig.aboveMA?'+':'')+sig.ma20Pct.toFixed(1)+'% | 3d momentum: '+(sig.mom3>=0?'+':'')+sig.mom3.toFixed(2)+'%\n'
+    +'Est. IV: '+sig.iv+'% | ATR: ±'+sig.atr+'% daily | DTE suggested: '+sig.dte+'d\n'
+    +'Capital: $'+sig.capital.toLocaleString()+' | Target: $'+sig.target.toLocaleString()+' ('+sig.capRatioPct+'% of capital)\n'
+    +'Live price: '+(livePrice?'$'+livePrice.toFixed(2):'unavailable')+'\n'
+    +(optionsData?'P/C OI ratio: '+optionsData.pcRatio+' | Max pain: $'+optionsData.maxPain+'\nTop call OI walls: '+optionsData.topCalls+'\nTop put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:''):'Options chain: unavailable')+'\n\n'
+    +'Return ONLY valid JSON:\n'
+    +'{"verdict":"GO"|"WAIT"|"ADJUST","emoji":"👍"|"👎"|"⚠️","headline":"<8 words max — punchy verdict>","summary":"<2-3 sentences: does OI/macro confirm the signal? plain english, no jargon>","adjustment":"<one sentence trade tweak, or empty string if no adjustment needed>","trade":"<specific: e.g. Buy $757 call / sell $765 call, exp Jun 13, risk $200> or empty if WAIT","risk":"<one sentence on the key risk>","color":"green"|"red"|"amber"}';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})
   })
   .then(function(r){return r.json();})
   .then(function(data){
     var text='';
     (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-    if(data.error)text='Error: '+(data.error.message||'Unknown error');
-    renderDeepResult(text, sig, livePrice, optionsData);
+    if(data.error)throw new Error(data.error.message);
+    var match=text.match(/\{[\s\S]*\}/);
+    if(!match)throw new Error('No JSON');
+    renderDeepResult(JSON.parse(match[0]), sig, livePrice, optionsData);
   })
   .catch(function(err){
-    renderDeepResult('Network error — check connection and try again.', sig, null, null);
+    var el=document.getElementById('deep-result');
+    if(el)el.innerHTML='<div style="padding:16px;color:#b91c1c;font-size:13px;">Error: '+(err.message||'Unknown')+'</div>';
   });
 }
 
-function renderDeepResult(text, sig, livePrice, optionsData){
+function renderDeepResult(r, sig, livePrice, optionsData){
   var el=document.getElementById('deep-result');
   if(!el)return;
+  var colors={green:'#15803d',red:'#b91c1c',amber:'#b45309'};
+  var bgs={green:'#f0fdf4',red:'#fef2f2',amber:'#fffbeb'};
+  var bds={green:'#86efac',red:'#fca5a5',amber:'#fcd34d'};
+  var c=r.color||'amber';
 
-  // Format sections with bold headers
-  var html=text
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/^(1\.|2\.|3\.)\s*(VALIDATE|TRADE|RISK)/gm,function(m,n,h){
-      var colors={'VALIDATE':'#1d4ed8','TRADE':'#15803d','RISK':'#b91c1c'};
-      var bgs={'VALIDATE':'#eff6ff','TRADE':'#f0fdf4','RISK':'#fef2f2'};
-      var bds={'VALIDATE':'#93c5fd','TRADE':'#86efac','RISK':'#fca5a5'};
-      return '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:'+colors[h]+';background:'+bgs[h]+';border:1px solid '+bds[h]+';border-radius:6px;padding:4px 10px;display:inline-block;margin:14px 0 6px;">'+n+' '+h+'</div>';
-    })
-    .split('\n').map(function(l){return l.trim()?'<p style="margin:0 0 6px;">'+l+'</p>':'';}).join('');
+  var tradeHtml=r.trade?
+    '<div style="background:#0a0f1e;border-radius:10px;padding:12px 14px;margin-top:12px;">'
+      +'<div style="font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px;">Recommended Trade</div>'
+      +'<div style="font-size:13px;font-weight:700;color:#fff;line-height:1.5;">'+r.trade+'</div>'
+    +'</div>':'';
 
-  // Data pills
-  var pills='';
-  if(livePrice) pills+='<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:#f0fdf4;color:#15803d;border:1px solid #86efac;">💰 $'+livePrice.toFixed(2)+'</span> ';
-  if(optionsData){
-    pills+='<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;">P/C: '+optionsData.pcRatio+'</span> ';
-    pills+='<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Max Pain: $'+optionsData.maxPain+'</span> ';
-  }
+  var adjustHtml=r.adjustment?
+    '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px 12px;background:#eff6ff;border-radius:8px;border:1px solid #93c5fd;">'
+      +'<span style="font-size:16px;flex-shrink:0;">💡</span>'
+      +'<div style="font-size:12px;font-weight:600;color:#1d4ed8;line-height:1.5;">'+r.adjustment+'</div>'
+    +'</div>':'';
 
-  el.innerHTML=(pills?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">'+pills+'</div>':'')+html;
-}
+  var riskHtml=r.risk?
+    '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:10px 12px;background:#fef2f2;border-radius:8px;border:1px solid #fca5a5;">'
+      +'<span style="font-size:16px;flex-shrink:0;">⚠️</span>'
+      +'<div style="font-size:12px;font-weight:600;color:#b91c1c;line-height:1.5;">'+r.risk+'</div>'
+    +'</div>':'';
+
+  var dataPills='';
+  if(livePrice) dataPills+='<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f0fdf4;color:#15803d;border:1px solid #86efac;">$'+livePrice.toFixed(2)+'</span> ';
+  if(optionsData) dataPills+='<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;">P/C '+optionsData.pcRatio+'</span> <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">Max pain $'+optionsData.maxPain+'</span>';
+
+  el.innerHTML=
+    // Verdict block
+    '<div style="background:'+bgs[c]+';border:1.5px solid '+bds[c]+';border-radius:14px;padding:16px;">'
+      +'<div style="font-size:42px;line-height:1;margin-bottom:8px;">'+r.emoji+'</div>'
+      +'<div style="font-size:18px;font-weight:900;color:'+colors[c]+';margin-bottom:8px;line-height:1.2;">'+r.headline+'</div>'
+      +'<div style="font-size:13px;font-weight:500;color:#374151;line-height:1.6;">'+r.summary+'</div>'
+    +'</div>'
+    +adjustHtml
+    +tradeHtml
+    +riskHtml
+    +(dataPills?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;">'+dataPills+'</div>':'');
 
 /* Runs same math as processSignal but returns a result object instead of writing DOM.
    Keeps processSignal 100% untouched. */
