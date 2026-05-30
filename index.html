@@ -907,30 +907,50 @@ function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays
 var PROXY_URL=''; // set this after Cloudflare Worker setup
 
 function fetchP(sym){
-  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
-  if(!apiKey||apiKey.indexOf('sk-')===-1){
-    fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+FK)
-      .then(function(r){return r.json();})
-      .then(function(d){applyPrice(sym,d.c,d.pc);})
-      .catch(function(){});
-    return;
+  var k=sym.toLowerCase();
+  // Try fast proxies first (no API cost), Claude as last resort
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
+    'https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d'
+  ];
+  function tryProxy(i){
+    if(i>=proxies.length){tryClaudePrice(sym);return;}
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(3000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var p=d.chart.result[0].meta.regularMarketPrice;
+        var pc=d.chart.result[0].meta.chartPreviousClose||d.chart.result[0].meta.previousClose||p;
+        applyPrice(sym,p,pc);
+      })
+      .catch(function(){tryProxy(i+1);});
   }
+  tryProxy(0);
+}
+
+function tryClaudePrice(sym){
+  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1) return;
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
       model:'claude-haiku-4-5-20251001',max_tokens:80,
       tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:'Current price and previous close of '+sym+'? Reply ONLY JSON: {"c":123.45,"pc":122.10}'}]
+      messages:[{role:'user',content:'Current price and previous close of '+sym+' stock right now? Reply ONLY JSON: {"c":123.45,"pc":122.10}'}]
     })
   })
   .then(function(r){return r.json();})
   .then(function(data){
     var text='';
     (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-    var m=text.match(/\{"c":[^}]+\}/);
+    var m=text.match(/\{"c":\s*[\d.]+/);
     if(!m)return;
-    var d=JSON.parse(m[0]);
+    var full=text.slice(text.indexOf(m[0]));
+    var end=full.indexOf('}')+1;
+    var d=JSON.parse(full.slice(0,end));
     applyPrice(sym,d.c,d.pc);
   })
   .catch(function(){});
