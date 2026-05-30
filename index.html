@@ -2042,72 +2042,116 @@ function processSignal(valid,capital,target,stopPct,sym){
     var capital=fv('g1'),stopPct=fv('g3');
     var T=dte/365;
     var K=Math.round(spot/5)*5;
-    var premPerShare=isCall?bsC(spot,K,T,iv3):bsP(spot,K,T,iv3);
-    var costPer=premPerShare*100;
-    if(costPer<=0)costPer=spot*iv3*Math.sqrt(T)*0.4*100;
 
-    // Contracts = purely capital driven
-    var contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
-    var totalDeployed=costPer*contracts;
+    // Show immediately with BS estimate, then refine with live ask
+    var bsPrem=isCall?bsC(spot,K,T,iv3):bsP(spot,K,T,iv3);
+    if(bsPrem<=0) bsPrem=spot*iv3*Math.sqrt(T)*0.4;
+    renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,bsPrem,false);
 
-    // Find best exit day
-    var bp=-Infinity,bd=1;
-    for(var dd=1;dd<=dte;dd++){
-      var remDays=Math.max(dte-dd,0);
-      var eiv=iv3*(1-crush(dd,dte));
-      var ns=spot*(1+(isCall?1:-1)*SCENS[2].mid/100);
-      var exitVal=(isCall?bsC(ns,K,remDays/365,eiv):bsP(ns,K,remDays/365,eiv))*100;
-      var pnlDD=(exitVal-costPer);
-      if(pnlDD>bp){bp=pnlDD;bd=dd;}
+    // Fetch live ask price from Yahoo options chain
+    var optUrl='https://query2.finance.yahoo.com/v7/finance/options/'+sym;
+    var proxies=[
+      'https://corsproxy.io/?'+encodeURIComponent(optUrl),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(optUrl)
+    ];
+    function tryFetchChain(pi){
+      if(pi>=proxies.length) return; // stick with BS estimate
+      fetch(proxies[pi],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+        .then(function(r){if(!r.ok)throw 0;return r.json();})
+        .then(function(raw){
+          try{
+            var result=raw.optionChain.result[0];
+            var exps=result.expirationDates||[];
+            var now=Math.floor(Date.now()/1000);
+            // Pick expiry closest to DTE
+            var targetTs=now+dte*86400;
+            var bestExp=exps.reduce(function(b,ts){
+              return Math.abs(ts-targetTs)<Math.abs(b-targetTs)?ts:b;
+            },exps[0]||targetTs);
+            // Fetch chain for that specific expiry
+            var expUrl=optUrl+'?date='+bestExp;
+            var expProxy=proxies[pi].replace(encodeURIComponent(optUrl),encodeURIComponent(expUrl));
+            return fetch(expProxy,{cache:'no-store',signal:AbortSignal.timeout(6000)})
+              .then(function(r2){return r2.json();})
+              .then(function(raw2){
+                var res2=raw2.optionChain.result[0];
+                var chain=isCall?(res2.options[0]&&res2.options[0].calls||[]):(res2.options[0]&&res2.options[0].puts||[]);
+                // Find the closest strike to K
+                var best=null,bestDist=Infinity;
+                chain.forEach(function(o){
+                  var dist=Math.abs(o.strike-K);
+                  if(dist<bestDist){bestDist=dist;best=o;}
+                });
+                if(best&&best.ask>0){
+                  // Use midpoint of bid/ask for realism
+                  var mid=best.bid>0?(best.bid+best.ask)/2:best.ask;
+                  renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,mid,true);
+                }
+              });
+          }catch(e){}
+        })
+        .catch(function(){tryFetchChain(pi+1);});
     }
-    var expectedPnl=bp*contracts;
-    var pnlClr=expectedPnl>0?'#166534':'#b91c1c';
-
-    sg.innerHTML=
-      '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Setup</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' ATM '+(isCall?'CALL':'PUT')+'</div></div>'
-      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Premium</div><div style="font-size:15px;font-weight:800;color:'+color+'">$'+premPerShare.toFixed(2)+'/sh · $'+fmt(costPer)+'/ct</div></div>'
-      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts (from $'+fmt(capital)+')</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+contracts+'c · $'+fmt(totalDeployed)+' deployed</div></div>'
-      +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Expected P&L at 1.5% D'+bd+'</div><div style="font-size:15px;font-weight:800;color:'+pnlClr+'">'+(expectedPnl>=0?'+':'')+'$'+fmt(expectedPnl)+'</div></div>';
-
-    // P&L table
-    var rowsEl=$('g-rows');
-    if(rowsEl){
-      buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,fv('g4'),bd,isCall,'g-rows');
-      $('g-pnl-label').textContent=(isCall?'Call':'Put')+' P&L by Day — '+dte+' DTE $'+K+' Strike';
-    }
-
-    // ── Equivalent straddle/strangle context strip ──
-    // Shows what 50Δ/45Δ/40Δ packages would cost at this DTE — informational only.
-    var ctxEl=$('g-stdl-context');
-    if(ctxEl){
-      var ctxRows='';
-      [50,45,40].forEach(function(d){
-        var sg=strangleAtDelta(spot,T,iv3,d/100);
-        var pkgCost=sg.cost*100;
-        var pkgCostPct=sg.cost/spot*100;
-        var pkgContracts=capital>0&&pkgCost>0?Math.max(1,Math.floor(capital/pkgCost)):0;
-        var lbl=d===50?'Straddle (ATM)':d+'Δ Strangle';
-        var strikes=d===50
-          ?'$'+Math.round(sg.Kc)
-          :'$'+sg.Kp.toFixed(0)+'/$'+sg.Kc.toFixed(0);
-        ctxRows+='<div style="background:rgba(0,0,0,.04);padding:8px 10px;border-radius:7px">';
-        ctxRows+='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:3px">'+lbl+'</div>';
-        ctxRows+='<div style="font-size:13px;font-weight:800;color:'+color+'">$'+pkgCost.toFixed(0)+'/pkg</div>';
-        ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600;margin-top:2px">'+strikes+' · '+pkgCostPct.toFixed(2)+'% of spot</div>';
-        if(pkgContracts>0)ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600">'+pkgContracts+'c · $'+fmt(pkgCost*pkgContracts)+'</div>';
-        ctxRows+='</div>';
-      });
-      ctxEl.innerHTML=
-        '<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Non-directional alternatives at '+dte+' DTE</div>'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+ctxRows+'</div>';
-    }
-
-  } else {
-    sg.innerHTML='<div style="grid-column:1/-1;padding:10px;font-size:12px;color:#1e293b;font-weight:600">No trade recommended — wait for stronger signal</div>';
-    if($('g-rows'))$('g-rows').innerHTML='';
-    if($('g-stdl-context'))$('g-stdl-context').innerHTML='';
-    $('g-pnl-label').textContent='P&L by Day';
+    tryFetchChain(0);
   }
+
+function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShare,isLive){
+  var sg=$('g-setup-grid');
+  if(!sg) return;
+  var costPer=premPerShare*100;
+  var contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
+  var totalDeployed=costPer*contracts;
+
+  // Find best exit day using real premium
+  var bp=-Infinity,bd=1;
+  for(var dd=1;dd<=dte;dd++){
+    var remDays=Math.max(dte-dd,0);
+    var eiv=iv3*(1-crush(dd,dte));
+    var ns=spot*(1+(isCall?1:-1)*SCENS[2].mid/100);
+    var exitVal=(isCall?bsC(ns,K,remDays/365,eiv):bsP(ns,K,remDays/365,eiv))*100;
+    var pnlDD=(exitVal-costPer);
+    if(pnlDD>bp){bp=pnlDD;bd=dd;}
+  }
+  var expectedPnl=bp*contracts;
+  var pnlClr=expectedPnl>0?'#166534':'#b91c1c';
+  var premLabel=isLive?'<span style="font-size:8px;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle;margin-left:4px;">LIVE MID</span>':'<span style="font-size:8px;background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle;margin-left:4px;">EST</span>';
+
+  sg.innerHTML=
+    '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Setup</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' ATM '+(isCall?'CALL':'PUT')+'</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Premium'+premLabel+'</div><div style="font-size:15px;font-weight:800;color:'+color+'">$'+premPerShare.toFixed(2)+'/sh · $'+fmt(costPer)+'/ct</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts (from $'+fmt(capital)+')</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+contracts+'c · $'+fmt(totalDeployed)+' deployed</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Expected P&L at 1.5% D'+bd+'</div><div style="font-size:15px;font-weight:800;color:'+pnlClr+'">'+(expectedPnl>=0?'+':'')+'$'+fmt(expectedPnl)+'</div></div>';
+
+  // P&L table
+  var rowsEl=$('g-rows');
+  if(rowsEl){
+    buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,fv('g4'),bd,isCall,'g-rows');
+    $('g-pnl-label').textContent=(isCall?'Call':'Put')+' P&L by Day — '+dte+' DTE $'+K+' Strike'+(isLive?' (live mid)':'');
+  }
+
+  // Straddle/strangle context strip
+  var ctxEl=$('g-stdl-context');
+  if(ctxEl){
+    var T2=dte/365;
+    var ctxRows='';
+    [50,45,40].forEach(function(d){
+      var sgl=strangleAtDelta(spot,T2,iv3,d/100);
+      var pkgCost=sgl.cost*100;
+      var pkgCostPct=sgl.cost/spot*100;
+      var pkgContracts=capital>0&&pkgCost>0?Math.max(1,Math.floor(capital/pkgCost)):0;
+      var lbl=d===50?'Straddle (ATM)':d+'Δ Strangle';
+      var strikes=d===50?'$'+Math.round(sgl.Kc):'$'+sgl.Kp.toFixed(0)+'/$'+sgl.Kc.toFixed(0);
+      ctxRows+='<div style="background:rgba(0,0,0,.04);padding:8px 10px;border-radius:7px">';
+      ctxRows+='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:3px">'+lbl+'</div>';
+      ctxRows+='<div style="font-size:13px;font-weight:800;color:'+color+'">$'+pkgCost.toFixed(0)+'/pkg</div>';
+      ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600;margin-top:2px">'+strikes+' · '+pkgCostPct.toFixed(2)+'% of spot</div>';
+      if(pkgContracts>0)ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600">'+pkgContracts+'c · $'+fmt(pkgCost*pkgContracts)+'</div>';
+      ctxRows+='</div>';
+    });
+    ctxEl.innerHTML='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Non-directional alternatives at '+dte+' DTE</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+ctxRows+'</div>';
+  }
+}  // end renderSetupGrid
 
   // Reasoning
   $('g-reason').innerHTML='<div style="font-size:11px;color:#0f172a;line-height:1.7;font-weight:600">'+reasons.join(' · ')+'</div>'
@@ -2135,7 +2179,7 @@ function processSignal(valid,capital,target,stopPct,sym){
   var tsEl=$('g-sig-ts');if(tsEl)tsEl.textContent='as of '+fmtTs();
   // IV meter
   renderIVMeter(iv3,atrPct,spot);
-}
+}  // end processSignal
 
 /* ── TAB 5: BACKTEST ── */
 var AV_KEY='SBJ9BETAMVAZQM9D';
