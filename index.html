@@ -256,10 +256,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <!-- SUITE LINKS ROW -->
   <div style="margin:0 4px 8px;background:#0f172a;border-radius:10px;display:flex;align-items:stretch;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.22);">
-    <a href="portfolioedge.html" target="_blank" rel="noopener" style="flex:1;color:#a78bfa;padding:10px 2px;font-size:11px;font-weight:800;letter-spacing:.01em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#1e1b4b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
-    <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#4ade80;padding:10px 2px;font-size:11px;font-weight:800;letter-spacing:.01em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#052e16'" onmouseout="this.style.background='transparent'">ChartAI</a>
-    <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#38bdf8;padding:10px 2px;font-size:11px;font-weight:800;letter-spacing:.01em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#082f49'" onmouseout="this.style.background='transparent'">StockAI</a>
-    <a href="OptionsAI.html" target="_blank" rel="noopener" style="flex:1;color:#fbbf24;padding:10px 2px;font-size:11px;font-weight:800;letter-spacing:.01em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#1c1003'" onmouseout="this.style.background='transparent'">OptionsAI</a>
+    <a href="portfolioedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:10px 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
+    <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:10px 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
+    <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:10px 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
+    <a href="OptionsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:10px 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">OptionsAI</a>
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -1748,72 +1748,105 @@ function go4(){
   synthetic[synthetic.length-1]={c:liveP,h:liveP*1.004,l:liveP*0.996,v:50000000};
   processSignal(synthetic,capital,target,stopPct,sym);
 
-  // Show subtle loading indicator in the indicator card
+  // Show subtle loading indicator
   var indEl=$('g-indicators');
   if(indEl){
-    var oldContent=indEl.innerHTML;
-    indEl.innerHTML=oldContent+'<div style="margin-top:8px;font-size:10px;color:#64748b;font-weight:600;padding:6px 8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0">⟳ Fetching live RSI/MA data in background...</div>';
+    var loadDiv=document.createElement('div');
+    loadDiv.id='g-ind-load-'+sym;
+    loadDiv.style.cssText='margin-top:8px;font-size:10px;color:#64748b;font-weight:600;padding:6px 8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0';
+    loadDiv.textContent='⟳ Fetching live RSI/MA data…';
+    indEl.appendChild(loadDiv);
   }
 
-  // Fetch 30-day price history via Claude web_search (reliable on mobile)
-  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
-  if(!apiKey||apiKey.indexOf('sk-')===-1){
-    // No key — show synthetic signal only
-    if($('g-indicators')){
-      var el=$('g-indicators').querySelector('div:last-child');
-      if(el&&el.textContent.indexOf('Fetching')>-1)
-        el.textContent='⚠ Add API key in settings for live RSI/MA data';
-    }
-    return;
+  function clearLoadMsg(){
+    var ld=document.getElementById('g-ind-load-'+sym);
+    if(ld)ld.remove();
   }
-
-  var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var histPrompt='Search Yahoo Finance for '+sym+' stock data today '+today+'. '
-    +'I need the last 30 trading days of closing prices to calculate RSI and moving averages. '
-    +'Return ONLY valid JSON array of the last 30 daily closes in chronological order (oldest first): '
-    +'{"closes":[price1,price2,...,price30],"currentPrice":<number>,"prevClose":<number>}';
-
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:600,
-      tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:histPrompt}]
-    })
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-    var match=text.match(/\{[\s\S]*\}/);
-    if(!match)throw new Error('no json');
-    var parsed=JSON.parse(match[0]);
-    var closes=parsed.closes||[];
-    if(closes.length<10)throw new Error('too few');
-    // Build valid array in format processSignal expects
-    var valid=closes.map(function(c,i){
-      return {c:c,h:c*1.005,l:c*0.995,v:1000000}; // estimate H/L from close
-    });
-    // Update live price display
-    if(parsed.currentPrice) applyPrice(sym,parsed.currentPrice,parsed.prevClose);
+  function showIndError(){
+    clearLoadMsg();
+    // Only add error once per symbol
+    if(document.getElementById('g-ind-err-'+sym)) return;
+    var el=$('g-indicators');
+    if(!el) return;
+    var errEl=document.createElement('div');
+    errEl.id='g-ind-err-'+sym;
+    errEl.style.cssText='margin-top:8px;font-size:10px;color:#92400e;font-weight:600;padding:6px 8px;background:#fffbeb;border-radius:6px;border:1px solid #fcd34d';
+    errEl.textContent='⚠ Using estimated indicators — using synthetic data';
+    el.appendChild(errEl);
+  }
+  function applyHistData(closes,currentPrice,prevClose){
+    if(closes.length<10){showIndError();return;}
+    var valid=closes.map(function(c){return{c:c,h:c*1.005,l:c*0.995,v:1000000};});
+    if(currentPrice) applyPrice(sym,currentPrice,prevClose);
     G4_CACHE[sym]=valid;
+    clearLoadMsg();
     $('g-loading').style.display='none';
     $('g-signal').style.display='block';
     processSignal(valid,capital,target,stopPct,sym);
     renderDualCards();
-  })
-  .catch(function(e){
-    // Show what we have with synthetic data
-    $('g-loading').style.display='none';
-    $('g-signal').style.display='block';
-    if($('g-indicators')){
-      var errEl=document.createElement('div');
-      errEl.style.cssText='margin-top:8px;font-size:10px;color:#92400e;font-weight:600;padding:6px 8px;background:#fffbeb;border-radius:6px;border:1px solid #fcd34d';
-      errEl.textContent='⚠ Using estimated indicators — live data fetch failed';
-      $('g-indicators').appendChild(errEl);
+  }
+
+  // ── Step 1: Try Yahoo Finance directly for 30-day history ──
+  var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=45d';
+  var yhUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=45d';
+  var yhProxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl),
+    'https://corsproxy.io/?'+encodeURIComponent(yhUrl2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl2)
+  ];
+
+  function tryYahooHist(i){
+    if(i>=yhProxies.length){
+      // ── Step 2: Fall back to Claude web search ──
+      tryClaude30Day();
+      return;
     }
-  });
+    fetch(yhProxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var res=d.chart.result[0];
+        var closes=res.indicators.quote[0].close||[];
+        var meta=res.meta;
+        // Filter nulls
+        closes=closes.filter(function(c){return c!=null;});
+        if(closes.length<10)throw new Error('too few');
+        applyHistData(closes,meta.regularMarketPrice,meta.chartPreviousClose||meta.previousClose);
+      })
+      .catch(function(){tryYahooHist(i+1);});
+  }
+
+  function tryClaude30Day(){
+    var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||localStorage.getItem('oai_key')||'';
+    if(!apiKey||apiKey.indexOf('sk-')===-1){
+      showIndError();
+      return;
+    }
+    var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var prompt='Search Yahoo Finance for '+sym+' stock. Return ONLY valid JSON (no markdown): '
+      +'{"closes":[<last 30 daily closing prices oldest first>],"currentPrice":<number>,"prevClose":<number>}';
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:600,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      var match=text.match(/\{[\s\S]*?\}/);
+      if(!match)throw new Error('no json');
+      var parsed=JSON.parse(match[0]);
+      applyHistData(parsed.closes||[],parsed.currentPrice,parsed.prevClose);
+    })
+    .catch(function(){showIndError();});
+  }
+
+  tryYahooHist(0);
 }
 
 // Refresh cache every 5 minutes
