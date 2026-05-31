@@ -1989,6 +1989,11 @@ function processSignal(valid,capital,target,stopPct,sym){
   var iv3=realizedVol*1.15; // apply ~15% vol risk premium
   iv3=Math.max(0.10,Math.min(iv3,0.80)); // clamp 10–80%
 
+  // ── CAPITAL CONTEXT — defined early so signals can reference them ──
+  var capRatio=capital>0&&target>0?target/capital:0.025;
+  var lowRiskTrade=capRatio<0.05;
+  var aggressiveTrade=capRatio>0.25;
+
   // ── SIGNAL LOGIC ──
   var bullPoints=0,bearPoints=0,reasons=[],signals=[];
 
@@ -2038,10 +2043,8 @@ function processSignal(valid,capital,target,stopPct,sym){
   // ── DETERMINE ACTION ──
   var action,color,bgColor,borderColor,confidence,dte,isCall;
 
-  // Capital/target context — small target vs large capital = can take weaker signals
-  var capRatio=capital>0?target/capital:0.25; // e.g. $500/$20000 = 2.5%
-  var lowRiskTrade=capRatio<0.05; // target < 5% of capital = low risk, can take weak signals
-  var aggressiveTrade=capRatio>0.25; // target > 25% of capital = need strong signal
+  // Capital/target context (already computed above, kept for clarity)
+  // capRatio, lowRiskTrade, aggressiveTrade defined at top of processSignal
 
   if(bullPoints>=5&&bullPoints>bearPoints*1.5){
     action='BUY CALL';isCall=true;color='#14532d';bgColor='#ffffff';borderColor='#e2e8f0';
