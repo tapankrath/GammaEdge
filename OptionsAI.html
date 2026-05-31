@@ -37,7 +37,9 @@ body{
   font-family:var(--sans);
   -webkit-font-smoothing:antialiased;
   min-height:100dvh;overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:center;
 }
+body>*{width:100%;max-width:430px;}
 button,div{-webkit-tap-highlight-color:transparent}
 button{font-family:var(--sans);touch-action:manipulation;cursor:pointer;
   -webkit-user-select:none;user-select:none;border:none;outline:none;background:none}
@@ -53,6 +55,9 @@ input{outline:none;-webkit-appearance:none}
   background:rgba(255,255,255,.97);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-bottom:1px solid var(--border);
+  width:100%;
+}
+.topbar-inner-wrap{
   max-width:430px;margin:0 auto;
 }
 .tb-inner{
@@ -98,18 +103,19 @@ input{outline:none;-webkit-appearance:none}
 /* MARKET STRIP — scrollable chips */
 .mkt-strip{
   display:flex;gap:8px;
-  padding:0 16px 12px;
+  padding:8px 16px 12px;
   overflow-x:auto;scrollbar-width:none;
+  background:#fff;
 }
 .mkt-strip::-webkit-scrollbar{display:none}
 .mkt-chip{
-  flex-shrink:0;
+  flex:1;
+  min-width:0;
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:12px;
-  padding:9px 13px;
-  display:flex;flex-direction:column;gap:3px;
-  min-width:72px;
+  border-radius:10px;
+  padding:8px 10px;
+  display:flex;flex-direction:column;gap:2px;
   box-shadow:var(--sh);
   transition:transform .12s;
 }
@@ -610,6 +616,7 @@ input{outline:none;-webkit-appearance:none}
 
 <!-- TOPBAR -->
 <div class="topbar">
+<div class="topbar-inner-wrap">
   <div class="tb-inner">
     <div class="logo-wrap">
       <div class="logo-icon">
@@ -634,12 +641,12 @@ input{outline:none;-webkit-appearance:none}
     </div>
   </div>
   <!-- BACK TO GAMMAEDGE -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;gap:8px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px 6px;gap:8px;border-top:1px solid var(--border);">
     <a href="https://tapankrath.github.io/GammaEdge" style="display:inline-flex;align-items:center;gap:5px;background:#0a0f1e;color:#94a3b8;border:1px solid #334155;border-radius:7px;padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.04em;text-decoration:none;white-space:nowrap;transition:all .15s;" onmouseover="this.style.color='#fff';this.style.borderColor='#475569';this.style.background='#1e293b'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='#334155';this.style.background='#0a0f1e'">← GammaEdge</a>
     <div style="display:flex;gap:4px;">
       <a href="portfolioedge.html" target="_blank" style="font-size:9px;font-weight:700;color:#0a0f1e;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap;">PortfolioAI</a>
       <a href="stockai.html" target="_blank" style="font-size:9px;font-weight:700;color:#0e7490;background:#ecfeff;border:1px solid #a5f3fc;border-radius:5px;padding:4px 8px;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap;">StockAI</a>
-      <a href="chartedge.html" target="_blank" style="font-size:9px;font-weight:700;color:#166534;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;padding:4px 8px;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap;">ChartAI</div>
+      <a href="chartedge.html" target="_blank" style="font-size:9px;font-weight:700;color:#166534;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;padding:4px 8px;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap;">ChartAI</a>
     </div>
   </div>
   <!-- MARKET INDICES — DOW, NASDAQ, RUSSELL, VIX -->
@@ -649,7 +656,8 @@ input{outline:none;-webkit-appearance:none}
     <div class="mkt-chip" id="mc-IWM"><div class="mc-sym">RUSSELL</div><div class="mc-load mc-px">···</div></div>
     <div class="mkt-chip" id="mc-VIX"><div class="mc-sym">VIX</div><div class="mc-load mc-px">···</div></div>
   </div>
-</div>
+</div><!-- end topbar-inner-wrap -->
+</div><!-- end topbar -->
 
 <!-- MAIN -->
 <div class="main">
