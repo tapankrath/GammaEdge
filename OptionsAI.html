@@ -679,8 +679,9 @@ input{outline:none;-webkit-appearance:none}
       <a href="chartedge.html" target="_blank" style="font-size:9px;font-weight:700;color:#166534;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;padding:4px 8px;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap;">ChartAI</a>
     </div>
   </div>
-  <!-- MARKET INDICES — DOW, NASDAQ, RUSSELL, VIX -->
+  <!-- MARKET INDICES — S&P, DOW, NASDAQ, RUSSELL, VIX -->
   <div class="mkt-strip">
+    <div class="mkt-chip" id="mc-SPY"><div class="mc-sym">S&amp;P</div><div class="mc-load mc-px">···</div></div>
     <div class="mkt-chip" id="mc-DIA"><div class="mc-sym">DOW</div><div class="mc-load mc-px">···</div></div>
     <div class="mkt-chip" id="mc-QQQ"><div class="mc-sym">NASDAQ</div><div class="mc-load mc-px">···</div></div>
     <div class="mkt-chip" id="mc-IWM"><div class="mc-sym">RUSSELL</div><div class="mc-load mc-px">···</div></div>
@@ -860,6 +861,7 @@ function fetchPrice(ticker, cb){
 
 function fetchMarketStrip(){
   var INDICES=[
+    {sym:'SPY',   label:'S&P',     id:'mc-SPY', vix:false},
     {sym:'DIA',   label:'DOW',     id:'mc-DIA', vix:false},
     {sym:'QQQ',   label:'NASDAQ',  id:'mc-QQQ', vix:false},
     {sym:'IWM',   label:'RUSSELL', id:'mc-IWM', vix:false},
