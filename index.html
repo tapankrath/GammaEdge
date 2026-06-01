@@ -909,21 +909,36 @@ var PROXY_URL=''; // set this after Cloudflare Worker setup
 
 function fetchP(sym){
   var k=sym.toLowerCase();
-  // Try fast proxies first (no API cost), Claude as last resort
-  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d';
+  // Use range=5d to get actual recent bars — previousClose from meta is unreliable
+  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
   var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(url),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
-    'https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=2d'
+    'https://corsproxy.io/?'+encodeURIComponent(url1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
+    'https://corsproxy.io/?'+encodeURIComponent(url2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url2)
   ];
   function tryProxy(i){
     if(i>=proxies.length){tryClaudePrice(sym);return;}
-    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(3000)})
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
-        var p=d.chart.result[0].meta.regularMarketPrice;
-        var pc=d.chart.result[0].meta.chartPreviousClose||d.chart.result[0].meta.previousClose||p;
+        var res=d.chart.result[0];
+        var meta=res.meta;
+        var p=meta.regularMarketPrice;
+        // Best source: regularMarketPreviousClose (today's official prev close)
+        // Fallback: second-to-last close from actual bars
+        var pc=meta.regularMarketPreviousClose||meta.previousClose;
+        if(!pc||isNaN(pc)||(p&&pc&&Math.abs((p-pc)/pc)>0.15)){
+          // >15% suspicious — use actual bar data instead
+          var closes=(res.indicators&&res.indicators.quote&&res.indicators.quote[0].close)||[];
+          closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
+          if(closes.length>=2){
+            pc=closes[closes.length-2]; // yesterday's actual close
+            p=closes[closes.length-1];  // latest bar close
+          }
+        }
         applyPrice(sym,p,pc);
       })
       .catch(function(){tryProxy(i+1);});
@@ -958,8 +973,13 @@ function tryClaudePrice(sym){
 }
 
 function applyPrice(sym,p,pc){
-  if(!p)return;
-  var ch=p-(pc||p),pct=pc?(ch/pc*100):0,k=sym.toLowerCase();
+  if(!p||isNaN(p))return;
+  // Sanity: if computed change > 12% for index ETFs, something is wrong — clamp to 0
+  var ch=p-(pc||p),pct=pc&&!isNaN(pc)?(ch/pc*100):0,k=sym.toLowerCase();
+  if(Math.abs(pct)>12&&(k==='spy'||k==='qqq'||k==='iwm'||k==='dia')){
+    // Bad previousClose — use 0 change, just show price
+    ch=0;pct=0;
+  }
   LIVE[k]=p;LIVE_CHG[k]=pct;
   var pxEl=$('px-'+k);if(pxEl)pxEl.textContent='$'+p.toFixed(2);
   var el=$('pc-'+k);
@@ -1810,9 +1830,15 @@ function go4(){
         var closes=res.indicators.quote[0].close||[];
         var meta=res.meta;
         // Filter nulls
-        closes=closes.filter(function(c){return c!=null;});
+        closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
         if(closes.length<10)throw new Error('too few');
-        applyHistData(closes,meta.regularMarketPrice,meta.chartPreviousClose||meta.previousClose);
+        // Use regularMarketPreviousClose — more accurate than chartPreviousClose
+        var prevClose=meta.regularMarketPreviousClose||meta.previousClose;
+        if(!prevClose||Math.abs((meta.regularMarketPrice-prevClose)/prevClose)>0.15){
+          // Fallback: use second-to-last actual bar
+          prevClose=closes[closes.length-2]||closes[closes.length-1];
+        }
+        applyHistData(closes,meta.regularMarketPrice,prevClose);
       })
       .catch(function(){tryYahooHist(i+1);});
   }
