@@ -811,7 +811,7 @@ function saveKey(){
   st.className='modal-st ok'; st.textContent='✓ Key saved — you\'re ready';
   setTimeout(closeSettings,900);
   fetchMarketStrip();
-  fetchTopMovers();
+  fetchTopMovers(); // re-screen with new key
 }
 
 function showToast(msg){
@@ -891,13 +891,56 @@ function refreshMkt(){
 /* ── TOP MOVERS — fetched live via Claude web search ── */
 function fetchTopMovers(){
   if(!_apiKey) return;
-  // Ask Claude to identify today's actual top options movers
+
   var today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var prompt = 'Today is '+today+'. Search for the top 10 most active options tickers right now — '
-    +'highest options volume, unusual activity, big movers. Include a mix of stocks and ETFs. '
-    +'Do NOT include SPY or QQQ (those are always in the pool). '
-    +'Return ONLY a JSON array of ticker symbols, e.g. ["NVDA","TSLA","AAPL","META","AMD","PLTR","COIN","MSTR","NFLX","MSFT"]. '
-    +'No markdown, no explanation, just the array.';
+
+  // Show loading state in pool header
+  var pills = document.getElementById('poolPills');
+  if(pills) pills.innerHTML = '<span class="pp pp-n" style="animation:blink 1s infinite">⟳ Loading movers…</span>';
+
+  var prompt =
+    'You are an institutional options desk screener. Today is '+today+'.
+
+'
+    +'TASK: Search for and identify the TOP 10 large-cap optionable stocks to watch RIGHT NOW for options trading. '
+    +'Do NOT include SPY or QQQ (always in pool).
+
+'
+    +'SCREENING CRITERIA — a ticker must score well on MOST of these:
+'
+    +'1. OPTIONS LIQUIDITY: High open interest (ideally >50k contracts), tight bid/ask spreads, active weekly/monthly chains
+'
+    +'2. VOLUME SIGNAL: Today's options volume significantly above 30-day average — sweeps, unusual calls/puts, dark pool prints
+'
+    +'3. LARGE CAP: Market cap >$10B — liquid, reportable, institutional grade
+'
+    +'4. PRICE ACTION: Meaningful move today OR clear technical setup (breakout, support test, squeeze)
+'
+    +'5. MACRO ALIGNMENT: Consider Fed rate environment, sector rotation, risk-on/off tone, DXY, yield curve
+'
+    +'6. CATALYST AWARENESS: Earnings within 2 weeks = elevated IV = premium selling or directional plays; '
+       +'FDA dates, product launches, analyst days, index rebalances
+'
+    +'7. IV/RV EDGE: IV rank <40 favors buying debit spreads/calls/puts for low-risk high-reward; '
+       +'IV rank >70 favors selling premium — flag which regime each ticker is in
+'
+    +'8. RISK/REWARD: Prioritize setups where defined-risk options structures offer 2:1+ reward potential
+'
+    +'9. SECTOR DIVERSITY: Aim for mix — tech, healthcare, energy, financials, consumer — not all same sector
+'
+    +'10. MOMENTUM: RSI not extreme (30-70 range ideal for debit spreads), trending with volume confirmation
+
+'
+    +'SEARCH NOW for: top options volume today, unusual options activity, earnings calendar this week, '
+    +'large block trades, high OI tickers, after-hours movers, pre-market gainers/losers.
+
+'
+    +'Return ONLY a valid JSON array of exactly 10 ticker symbols in order of priority (best setup first).
+'
+    +'Format: ["NVDA","TSLA","AAPL","META","AMD","PLTR","MSFT","GOOGL","NFLX","AMZN"]
+'
+    +'No markdown. No explanation. Just the JSON array.';
+
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{
@@ -907,8 +950,8 @@ function fetchTopMovers(){
       'anthropic-dangerous-direct-browser-access':'true'
     },
     body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:120,
+      model:'claude-sonnet-4-5',
+      max_tokens:200,
       tools:[{type:'web_search_20250305',name:'web_search'}],
       messages:[{role:'user',content:prompt}]
     })
@@ -917,22 +960,29 @@ function fetchTopMovers(){
   .then(function(data){
     var txt='';
     (data.content||[]).forEach(function(b){if(b.type==='text')txt+=b.text;});
-    var m=txt.match(/\[[^\]]+\]/);
-    if(!m) return;
+    var m=txt.match(/\[[\s\S]*?\]/);
+    if(!m) throw new Error('no array found');
     var movers=JSON.parse(m[0]);
-    if(!Array.isArray(movers)||movers.length<3) return;
-    // Keep SPY and QQQ at top, then replace rest with live movers
+    if(!Array.isArray(movers)||movers.length<3) throw new Error('too few');
+    // Sanitize — uppercase, letters only, max 6 chars
+    movers=movers.map(function(t){return String(t).toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);})
+                 .filter(function(t){return t.length>0;});
     var base=['SPY','QQQ'];
     var fresh=movers.filter(function(t){return !base.includes(t);}).slice(0,10);
     state.pool=[...base,...fresh];
     renderPool();
-    showToast('Pool updated: live top movers loaded ✓');
-    // Prefetch prices for the new pool
+    showToast('✓ Pool: '+fresh.length+' live screened movers');
+    // Prefetch all prices in parallel
     state.pool.forEach(function(t){
       fetchPrice(t,function(q){if(q){state.prices[t]=q;renderPool();}});
     });
   })
-  .catch(function(e){console.log('Top movers fetch failed:',e);});
+  .catch(function(e){
+    console.log('Top movers fetch failed:',e);
+    // Restore pool meta on error
+    renderPool();
+    showToast('Using default pool — movers fetch failed');
+  });
 }
 
 /* ── POOL ── */
