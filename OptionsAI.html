@@ -199,6 +199,8 @@ input{outline:none;-webkit-appearance:none}
 .pool-hdr{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:10px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
 .pool-hdr-l{display:flex;align-items:center;gap:8px}
 .pool-label{font-size:13px;font-weight:800;color:var(--text);letter-spacing:.02em;text-transform:uppercase}
@@ -229,12 +231,8 @@ input{outline:none;-webkit-appearance:none}
 .pool-chevron:active{background:var(--bg)}
 
 /* ══ TICKER CARDS — the main list ══ */
-.pool-body{
-  overflow:hidden;
-  transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .25s;
-  max-height:0;opacity:0;
-}
-.pool-body.open{max-height:4000px;opacity:1}
+.pool-body{display:none;}
+.pool-body.open{display:block;}
 
 /* Each ticker is a CARD — big tap target, clear hierarchy */
 .pool-grid{display:flex;flex-direction:column;gap:10px}
@@ -576,6 +574,11 @@ input{outline:none;-webkit-appearance:none}
 }
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
+
+/* pool chevron strong */
+.pool-chevron{font-size:14px!important;color:#111!important;width:32px!important;height:32px!important;border:1.5px solid #bbb!important;font-weight:700!important;transition:transform .2s ease!important;}
+/* pool-hdr full-row tap */
+.pool-hdr{cursor:pointer!important;}
 /* ── CONTRAST OVERRIDES ── */
 .dp-sub{font-size:10px!important;color:#444!important;font-weight:600!important}
 .dp-conf-lbl{font-size:10px!important;color:#333!important}
@@ -724,7 +727,7 @@ input{outline:none;-webkit-appearance:none}
   </div>
 
   <!-- POOL HEADER -->
-  <div class="pool-hdr">
+  <div class="pool-hdr" onclick="togglePool()">
     <div class="pool-hdr-l">
       <span class="pool-label">Options Pool</span>
       <div class="pool-pills" id="poolPills">
@@ -732,7 +735,7 @@ input{outline:none;-webkit-appearance:none}
       </div>
     </div>
     <div class="pool-hdr-r">
-      <button class="pool-mover-btn" onclick="fetchTopMovers()" title="Refresh top movers">↻ Movers</button><div class="pool-chevron" id="poolChevron" onclick="togglePool()">▼</div>
+      <button class="pool-mover-btn" onclick="event.stopPropagation();fetchTopMovers()" title="Refresh top movers">↻ Movers</button><div class="pool-chevron" id="poolChevron" onclick="togglePool()">▼</div>
     </div>
   </div>
 
@@ -766,7 +769,14 @@ var POOL = ['SPY','QQQ','NVDA','TSLA','AAPL','META','MSFT','AMZN','AMD','PLTR','
 var state = { pool:[...POOL], data:{}, prices:{}, scanning:{}, dte:'1-5DTE', activeTicker:null, scanningAll:false };
 
 window.addEventListener('DOMContentLoaded', function(){
-  loadKey(); renderPool(); fetchMarketStrip();
+  loadKey();
+  renderPool();
+  // Ensure pool is open after render
+  var pb=document.getElementById('poolBody');
+  var ch=document.getElementById('poolChevron');
+  if(pb){pb.classList.add('open');}
+  if(ch){ch.style.transform='rotate(180deg)';}
+  fetchMarketStrip();
   setInterval(fetchMarketStrip, 60000);
   setInterval(updateClock, 1000); updateClock();
   // Fetch live top movers if API key exists
@@ -989,9 +999,14 @@ function fetchTopMovers(){
 function togglePool(){
   var b=document.getElementById('poolBody');
   var ch=document.getElementById('poolChevron');
-  var open=b.classList.contains('open');
-  b.classList.toggle('open',!open);
-  ch.classList.toggle('rot',open);
+  var isOpen=b.classList.contains('open');
+  if(isOpen){
+    b.classList.remove('open');
+    ch.style.transform='rotate(0deg)';
+  } else {
+    b.classList.add('open');
+    ch.style.transform='rotate(180deg)';
+  }
 }
 
 function renderPool(){
