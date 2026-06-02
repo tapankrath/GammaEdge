@@ -231,8 +231,8 @@ input{outline:none;-webkit-appearance:none}
 .pool-chevron:active{background:var(--bg)}
 
 /* ══ TICKER CARDS — the main list ══ */
-.pool-body{display:none;}
-.pool-body.open{display:block;}
+.pool-body{}
+.pool-body.open{}
 
 /* Each ticker is a CARD — big tap target, clear hierarchy */
 .pool-grid{display:flex;flex-direction:column;gap:10px}
@@ -581,8 +581,8 @@ input{outline:none;-webkit-appearance:none}
 .pool-hdr{cursor:pointer!important;}
 
 /* ══ POOL NUCLEAR OVERRIDE ══ */
-.pool-body { display: none !important; }
-.pool-body.open { display: block !important; }
+.pool-body { display: none; }
+.pool-body.open { display: block; }
 
 .pool-grid {
   display: flex !important;
@@ -960,8 +960,9 @@ input{outline:none;-webkit-appearance:none}
     <span id="scanStatusTxt">Scanning…</span>
   </div>
 
+  <div style="background:#fff;border:1.5px solid #d0d0e0;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
   <!-- POOL HEADER -->
-  <div class="pool-hdr" onclick="togglePool()">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;border-bottom:1px solid #e8e8f0;background:#fff;-webkit-tap-highlight-color:transparent;user-select:none;" onclick="togglePool()">
     <div class="pool-hdr-l">
       <span class="pool-label">Options Pool</span>
       <div class="pool-pills" id="poolPills">
@@ -974,7 +975,7 @@ input{outline:none;-webkit-appearance:none}
   </div>
 
   <!-- POOL BODY — ticker cards -->
-  <div class="pool-body open" id="poolBody">
+  <div id="poolBody" style="display:block;">
     <div class="pool-grid" id="poolList"></div>
 
     <!-- ADD TICKER -->
@@ -986,6 +987,7 @@ input{outline:none;-webkit-appearance:none}
         autocorrect="off" autocapitalize="characters" spellcheck="false"/>
       <button class="add-btn" onclick="addTicker()">+</button>
     </div>
+  </div>
   </div>
 
   <div class="disc">
@@ -1008,7 +1010,7 @@ window.addEventListener('DOMContentLoaded', function(){
   // Ensure pool is open after render
   var pb=document.getElementById('poolBody');
   var ch=document.getElementById('poolChevron');
-  if(pb){pb.classList.add('open');}
+  if(pb){pb.style.cssText="display:block!important";}
   if(ch){ch.style.transform='rotate(180deg)';}
   fetchMarketStrip();
   setInterval(fetchMarketStrip, 60000);
@@ -1233,14 +1235,9 @@ function fetchTopMovers(){
 function togglePool(){
   var b=document.getElementById('poolBody');
   var ch=document.getElementById('poolChevron');
-  var isOpen=b.classList.contains('open');
-  if(isOpen){
-    b.classList.remove('open');
-    ch.style.transform='rotate(0deg)';
-  } else {
-    b.classList.add('open');
-    ch.style.transform='rotate(180deg)';
-  }
+  var isOpen=b.style.display!=='none';
+  b.style.display=isOpen?'none':'block';
+  ch.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
 }
 
 function renderPool(){
@@ -1261,51 +1258,61 @@ function renderPool(){
 
   list.innerHTML=state.pool.map(function(t,i){
     var d=state.data[t], q=state.prices[t], dir=d&&d.direction;
-    var scanning=state.scanning[t], active=state.activeTicker===t;
-    var bCls=dir==='CALL'?'db-call':dir==='PUT'?'db-put':d?'db-neutral':'db-wait';
-    var bLbl=d?(dir||'NEUTRAL'):'···';
-    var rCls='tk-card'+(dir==='CALL'?' call-card':dir==='PUT'?' put-card':'')+(active?' active-card':'');
-    var cCls=dir==='CALL'?'g':dir==='PUT'?'r':'a';
+    var scanning=state.scanning[t];
+    var bLbl=d?(dir||'NEUTRAL'):'---';
     var conf=d?d.confidence:0;
-    var priceStr='—', chgStr='', chgCls='';
+    var priceStr='--', chgStr='', chgColor='#555';
     if(q){
       priceStr='$'+q.price.toFixed(2);
       chgStr=(q.pct>=0?'+':'')+q.pct.toFixed(2)+'%';
-      chgCls=q.pct>=0?'up':'dn';
+      chgColor=q.pct>=0?'#00a020':'#cc0020';
     } else if(d&&d.price){
       priceStr='$'+d.price;
-      if(d.change!==undefined){chgStr=(d.change>=0?'+':'')+d.change+'%';chgCls=d.change>=0?'up':'dn';}
+      if(d.change!==undefined){chgStr=(d.change>=0?'+':'')+d.change+'%';chgColor=d.change>=0?'#00a020':'#cc0020';}
     }
     var isEtf=t==='SPY'||t==='QQQ';
-    return '<div class="'+rCls+'" onclick="rowTap(\''+t+'\',event)" id="row-'+t+'">'
-      +'<div class="tk-main">'
-        +'<div class="tk-left">'
-          +'<div class="tk-rank">#'+(i+1)+'</div>'
-          +'<div class="tk-sym">'+t+'</div>'
-          +(isEtf?'<div class="tk-type">ETF</div>':'')
-        +'</div>'
-        +'<div class="tk-mid">'
-          +'<div class="tk-price-row">'
-            +'<span class="tk-price">'+priceStr+'</span>'
-            +(chgStr?'<span class="tk-chg '+chgCls+'">'+chgStr+'</span>':'')
-          +'</div>'
-          +'<div class="tk-reason">'+(d?d.shortReason:'Tap to scan')+'</div>'
-          +(d?'<div class="tk-conf-row"><div class="tk-conf-bar"><div class="tk-conf-fill '+cCls+'" style="width:'+conf+'%"></div></div><span class="tk-conf-pct">'+conf+'%</span></div>':'')
-        +'</div>'
-        +'<div class="tk-right">'
-          +'<div class="dir-badge '+bCls+'">'+bLbl+'</div>'
-          +(scanning
-            ?'<div class="tk-scanning"><span class="row-spin"></span></div>'
-            :'<button class="tk-scan-btn" onclick="event.stopPropagation();scanOne(\''+t+'\')">SCAN ▶</button>')
-        +'</div>'
-      +'</div>'
-    +'</div>';
+    var borderLeft=dir==='CALL'?'border-left:4px solid #00c853;':dir==='PUT'?'border-left:4px solid #ff1744;':'';
+    var badgeSty=dir==='CALL'?'background:#e8fdf0;color:#006f28;border:1.5px solid #70d490;'
+      :dir==='PUT'?'background:#fff0f2;color:#b00020;border:1.5px solid #f5a0a0;'
+      :d?'background:#fff8e0;color:#7a4500;border:1.5px solid #f5d070;'
+      :'background:#f0f0f8;color:#555;border:1.5px solid #bbb;';
+    var barColor=dir==='CALL'?'#00c853':dir==='PUT'?'#ff1744':'#ff8f00';
+    var isLast=i===state.pool.length-1;
+
+    var html='<div onclick="rowTap(''+t+'',event)" id="row-'+t+'" style="display:block;background:#fff;'+borderLeft+(isLast?'':'border-bottom:1px solid #eee;')+'cursor:pointer;">';
+    html+='<div style="display:flex;align-items:center;padding:13px 14px;gap:12px;">';
+    // left
+    html+='<div style="flex-shrink:0;width:48px;">';
+    html+='<div style="font-size:10px;font-weight:700;color:#888;margin-bottom:3px;">#'+(i+1)+'</div>';
+    html+='<div style="font-family:JetBrains Mono,monospace;font-size:17px;font-weight:700;color:#0a0a0f;">'+t+'</div>';
+    if(isEtf)html+='<span style="font-size:8px;font-weight:700;color:#444;background:#e8e8f5;border:1px solid #bbb;border-radius:3px;padding:1px 5px;display:inline-block;margin-top:3px;">ETF</span>';
+    html+='</div>';
+    // mid
+    html+='<div style="flex:1;min-width:0;">';
+    html+='<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:3px;">';
+    html+='<span style="font-family:JetBrains Mono,monospace;font-size:15px;font-weight:700;color:#0a0a0f;">'+priceStr+'</span>';
+    if(chgStr)html+='<span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:600;color:'+chgColor+';">'+chgStr+'</span>';
+    html+='</div>';
+    html+='<div style="font-size:11px;font-weight:600;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;margin-bottom:'+(d?'5':'0')+'px;">'+(d?d.shortReason:'Tap to analyze')+'</div>';
+    if(d)html+='<div style="display:flex;align-items:center;gap:5px;"><div style="flex:1;height:3px;background:#e0e0e8;border-radius:2px;overflow:hidden;"><div style="height:100%;background:'+barColor+';width:'+conf+'%;border-radius:2px;"></div></div><span style="font-size:9px;font-weight:700;color:#666;">'+conf+'%</span></div>';
+    html+='</div>';
+    // right
+    html+='<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:56px;">';
+    html+='<div style="font-size:9px;font-weight:700;padding:4px 9px;border-radius:5px;letter-spacing:.04em;text-align:center;'+badgeSty+'">'+bLbl+'</div>';
+    if(scanning){
+      html+='<div style="display:flex;align-items:center;justify-content:center;"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #bbd;border-top-color:#3949ab;animation:spin .65s linear infinite;"></div></div>';
+    } else {
+      html+='<button onclick="event.stopPropagation();scanOne(''+t+'')" style="font-size:9px;font-weight:700;color:#fff;background:#3949ab;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap;font-family:JetBrains Mono,monospace;">SCAN</button>';
+    }
+    html+='</div>';
+    html+='</div></div>';
+    return html;
   }).join('');
 }
 
 /* ── ROW TAP ── */
 function rowTap(t,event){
-  if(event&&(event.target.classList.contains('tk-scan-btn')||event.target.classList.contains('pr-scan-btn')))return;
+  if(event&&event.target.tagName==='BUTTON')return;
   if(!state.data[t]){scanOne(t);return;}
   state.activeTicker=t; renderPool(); openDetail(t);
   fetchPrice(t,function(q){
