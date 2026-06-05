@@ -612,7 +612,7 @@ function runAnalysis(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var steps=['Scanning earnings calendar…','Checking macro environment…','Running IV analysis…','Building P&L scenarios…','Finalizing plays…'];
+  var steps=['Searching live earnings calendar…','Filtering out already-reported…','Checking macro environment…','Building P&L scenarios…','Finalizing plays…'];
   var si=0;st.textContent=steps[0];
   var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
 
@@ -642,8 +642,12 @@ function callClaude(key,prompt){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4500,
-      messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:4500,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
   }).then(function(res){
     return res.json().then(function(data){
       if(!res.ok){
@@ -652,9 +656,14 @@ function callClaude(key,prompt){
         if(res.status===429)m='Rate limit — wait and retry';
         throw new Error(m);
       }
-      for(var i=0;i<(data.content||[]).length;i++)
-        if(data.content[i].type==='text')return data.content[i].text;
-      throw new Error('Empty response');
+      // Extract text from content blocks (web_search returns mixed tool_use + text blocks)
+      var blocks=data.content||[];
+      var text='';
+      for(var i=0;i<blocks.length;i++){
+        if(blocks[i].type==='text') text+=blocks[i].text;
+      }
+      if(text) return text;
+      throw new Error('Empty response — try again');
     });
   }).catch(function(e){
     if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error');
@@ -669,18 +678,19 @@ function buildPrompt(){
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
 
-  return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n'
-    +'Return ONLY raw JSON — no markdown, no commentary.\n\n'
-    +'CRITICAL RULE: Only include companies whose earnings are scheduled STRICTLY AFTER today ('+todayFull+'). '
-    +'Any company that has already reported as of today must be EXCLUDED — their options plays are dead. '
-    +'For example: if AVGO, CRM, NVDA, COST, or any other stock already reported this week or earlier, skip them entirely. '
-    +'Double-check every ticker — only future reports qualify.\n\n'
-    +'List TOP 10 high-impact UPCOMING earnings (report date after '+todayFull+') for '+wl+'. '
-    +'Prioritize: (1) mega/large-cap, (2) high options OI/volume, (3) momentum + catalyst history. '
-    +'Recommend CALL, PUT, STRADDLE, or AVOID using: '
-    +'analyst consensus + recent price trend + '
-    +'macro (Fed stance, 10Y yield, VIX, USD, credit spreads, sector rotation). '
-    +'3 scenarios per play. All text fields max 12 words.\n\n'
+  return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n\n'
+    +'STEP 1 — USE WEB SEARCH NOW: Search "earnings calendar '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
+    +'and "upcoming earnings this week site:earningswhispers.com OR site:nasdaq.com OR site:benzinga.com" '
+    +'to get the LIVE, REAL earnings schedule. Do not rely on training data for dates.\n\n'
+    +'STEP 2 — FILTER: From the live search results, keep ONLY companies reporting AFTER today ('+todayFull+'). '
+    +'Any ticker that already reported — ZS, AVGO, CRM, NVDA, COST, or anything else before today — EXCLUDE entirely. '
+    +'Their earnings are priced in, options plays are invalid.\n\n'
+    +'STEP 3 — RANK & ANALYZE: From the verified upcoming list, pick TOP 10 by: '
+    +'(1) mega/large-cap market cap, (2) high options OI/volume, (3) momentum + catalyst history. '
+    +'For each recommend CALL, PUT, STRADDLE, or AVOID using analyst consensus + recent trend + '
+    +'current macro (Fed stance, 10Y yield, VIX, USD, credit spreads, sector rotation). '
+    +'3 P&L scenarios per play. All text fields max 12 words.\n\n'
+    +'Return ONLY raw JSON — no markdown, no commentary, no preamble:\n'
     +'{"week":"'+wl+'",'
     +'"macroSnapshot":"<18 words: current regime>",'
     +'"plays":['
@@ -694,9 +704,8 @@ function buildPrompt(){
     +'{"name":"Bear","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""}'
     +'],"straddleNote":"<12w>"}'
     +']} '
-    +'Fill all 10 plays with real upcoming tickers. '
-    +'Sort by execPriority: 1=best setup (HIGH conf + directional signal), 10=weakest. '
-    +'No truncation. Zero already-reported stocks.';
+    +'All 10 plays must be from your web search results — zero guesses, zero already-reported. '
+    +'Sort by execPriority 1=strongest setup.';
 }
 
 function wkEnd(n){
