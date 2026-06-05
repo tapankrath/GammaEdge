@@ -45,46 +45,47 @@ html,body{scroll-padding-top:190px;}
 
 /* ── HEADER ── */
 .hdr{
-  display:flex;align-items:center;
+  display:flex;flex-direction:column;
   background:#fff;border:2px solid var(--text);
-  border-radius:14px;padding:7px 10px;
+  border-radius:14px;padding:8px 10px 7px;
   box-shadow:3px 3px 0 var(--text);gap:7px;
 }
-.logo{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:7px;}
 .logo-mark{
   width:28px;height:28px;border-radius:7px;
   background:var(--text);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
-/* SVG bar-chart logo in black box with green spark */
 .logo-name{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.mkt-pills{display:flex;gap:4px;flex:1;justify-content:center;min-width:0;overflow:hidden;}
+/* market pills — full width second row */
+.mkt-pills{display:flex;gap:5px;width:100%;}
 .mkt-q{
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;align-items:center;justify-content:center;gap:5px;
   background:var(--bg);border:1.5px solid var(--borderB);
-  border-radius:7px;padding:3px 4px;min-width:0;flex:1;overflow:hidden;
+  border-radius:7px;padding:4px 8px;flex:1;overflow:hidden;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
 .mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
-.mkt-sym{font-family:var(--FM);font-size:8px;font-weight:800;color:var(--sub);
-  letter-spacing:.04em;line-height:1.2;text-align:center;}
-.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);
-  display:block;text-align:center;line-height:1.3;white-space:nowrap;}
-.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;
-  display:block;text-align:center;white-space:nowrap;}
+.mkt-sym{font-family:var(--FM);font-size:10px;font-weight:900;color:var(--sub);
+  letter-spacing:.04em;white-space:nowrap;}
+.mkt-q.up .mkt-sym{color:var(--green);}
+.mkt-q.dn .mkt-sym{color:var(--red);}
+.mkt-px{font-family:var(--FM);font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-chg{font-family:var(--FM);font-size:10px;font-weight:800;white-space:nowrap;}
 .mkt-q.up .mkt-chg{color:var(--green);}
 .mkt-q.dn .mkt-chg{color:var(--red);}
-.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);text-align:center;
+.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
   animation:ldp 1.2s ease-in-out infinite;}
 @keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
-.hdr-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:5px;}
 .live-pill{
   display:inline-flex;align-items:center;gap:3px;
   background:var(--gbg);border:1.5px solid var(--gbd);
-  border-radius:20px;padding:3px 7px;
-  font-size:8px;font-weight:800;color:var(--green);letter-spacing:.08em;
+  border-radius:20px;padding:3px 8px;
+  font-size:9px;font-weight:800;color:var(--green);letter-spacing:.08em;
 }
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
   animation:blink 1.8s ease-in-out infinite;}
@@ -413,17 +414,26 @@ html,body{scroll-padding-top:190px;}
 
   <!-- HEADER (sticky card 1) -->
   <div class="hdr">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-          <rect x="2"  y="12" width="3" height="6" rx="1" fill="white" opacity=".5"/>
-          <rect x="7"  y="8"  width="3" height="10" rx="1" fill="white" opacity=".75"/>
-          <rect x="12" y="4"  width="3" height="14" rx="1" fill="white"/>
-          <circle cx="17" cy="3" r="2.5" fill="#22c55e"/>
-        </svg>
+    <!-- Row 1: logo + controls -->
+    <div class="hdr-top">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <rect x="2"  y="12" width="3" height="6" rx="1" fill="white" opacity=".5"/>
+            <rect x="7"  y="8"  width="3" height="10" rx="1" fill="white" opacity=".75"/>
+            <rect x="12" y="4"  width="3" height="14" rx="1" fill="white"/>
+            <circle cx="17" cy="3" r="2.5" fill="#22c55e"/>
+          </svg>
+        </div>
+        <div class="logo-name">Options<em>AI</em></div>
       </div>
-      <div class="logo-name">Options<em>AI</em></div>
+      <div class="hdr-right">
+        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
+        <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+        <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
+      </div>
     </div>
+    <!-- Row 2: market quotes full width -->
     <div class="mkt-pills">
       <div class="mkt-q" id="mq-spy">
         <span class="mkt-sym">SPY</span>
@@ -437,11 +447,6 @@ html,body{scroll-padding-top:190px;}
         <span class="mkt-sym">DOW</span>
         <span class="mkt-load">···</span>
       </div>
-    </div>
-    <div class="hdr-right">
-      <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
-      <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-      <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
     </div>
   </div>
 
@@ -679,23 +684,25 @@ function buildPrompt(){
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
 
   return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n\n'
-    +'STEP 1 — USE WEB SEARCH NOW: Search "earnings calendar '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
-    +'and "upcoming earnings this week site:earningswhispers.com OR site:nasdaq.com OR site:benzinga.com" '
-    +'to get the LIVE, REAL earnings schedule. Do not rely on training data for dates.\n\n'
-    +'STEP 2 — FILTER: From the live search results, keep ONLY companies reporting AFTER today ('+todayFull+'). '
-    +'Any ticker that already reported — ZS, AVGO, CRM, NVDA, COST, or anything else before today — EXCLUDE entirely. '
-    +'Their earnings are priced in, options plays are invalid.\n\n'
-    +'STEP 3 — RANK & ANALYZE: From the verified upcoming list, pick TOP 10 by: '
-    +'(1) mega/large-cap market cap, (2) high options OI/volume, (3) momentum + catalyst history. '
-    +'For each recommend CALL, PUT, STRADDLE, or AVOID using analyst consensus + recent trend + '
-    +'current macro (Fed stance, 10Y yield, VIX, USD, credit spreads, sector rotation). '
-    +'3 P&L scenarios per play. All text fields max 12 words.\n\n'
-    +'Return ONLY raw JSON — no markdown, no commentary, no preamble:\n'
+    +'STEP 1 — SEARCH LIVE CALENDAR: Use web_search for "earnings calendar week of '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
+    +'from earningswhispers.com, nasdaq.com, or benzinga.com. Get the real schedule — do not use training data.\n\n'
+    +'STEP 2 — FILTER RUTHLESSLY: Keep ONLY companies reporting STRICTLY AFTER '+todayFull+'. '
+    +'Anything already reported = remove immediately. No exceptions.\n\n'
+    +'STEP 3 — PICK ONLY ACTIONABLE PLAYS: From the verified upcoming list, select between 5 and 10 stocks that have '
+    +'a CLEAR, HIGH-CONVICTION options setup (CALL or PUT or STRADDLE). '
+    +'DO NOT include AVOID signals — if a stock has no clear edge, skip it entirely and pick a better one. '
+    +'Prefer: mega/large-cap, high options OI, stocks with momentum or strong analyst consensus. '
+    +'Quality over quantity — 5 great plays beats 10 mediocre ones.\n\n'
+    +'For each play: recommend CALL, PUT, or STRADDLE (never AVOID) with HIGH or MED confidence only. '
+    +'Base on: analyst consensus, recent price trend, earnings beat history, '
+    +'macro (Fed stance, 10Y yield, VIX, sector rotation). '
+    +'3 P&L scenarios. All text max 12 words.\n\n'
+    +'Return ONLY raw JSON — no markdown, no preamble:\n'
     +'{"week":"'+wl+'",'
     +'"macroSnapshot":"<18 words: current regime>",'
     +'"plays":['
     +'{"rank":1,"ticker":"","company":"","reportDate":"","reportTime":"AMC|BMO",'
-    +'"signal":"CALL|PUT|STRADDLE|AVOID","confidence":"HIGH|MED|LOW",'
+    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
     +'"why":"<12w>","earningsNote":"<10w EPS context>",'
     +'"iv":"","ivRank":"","execPriority":1,'
     +'"scenarios":['
@@ -704,8 +711,7 @@ function buildPrompt(){
     +'{"name":"Bear","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""}'
     +'],"straddleNote":"<12w>"}'
     +']} '
-    +'All 10 plays must be from your web search results — zero guesses, zero already-reported. '
-    +'Sort by execPriority 1=strongest setup.';
+    +'Every play must come from web search results. Sort by execPriority: 1=execute first.';
 }
 
 function wkEnd(n){
@@ -729,9 +735,21 @@ function parseResp(raw){
 function renderResults(d){
   var plays=Array.isArray(d.plays)?d.plays:[];
 
+  // Strip any AVOIDs that slipped through
+  plays = plays.filter(function(p){
+    return (p.signal||'').toLowerCase() !== 'avoid';
+  });
+
+  // Sort by execPriority (lower = execute first)
+  plays.sort(function(a,b){
+    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
+    return ap-bp;
+  });
+  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+
   var html='<div class="res-hdr sin">'
     +'<div class="res-title">Earnings Plays</div>'
-    +'<div class="res-badge">'+plays.length+' stocks</div>'
+    +'<div class="res-badge">'+plays.length+' actionable</div>'
     +'</div>';
 
   if(d.macroSnapshot){
@@ -741,13 +759,12 @@ function renderResults(d){
       +'</div>';
   }
 
-  // Sort by execPriority (lower = execute first) — AI verdict ordering
-  plays.sort(function(a,b){
-    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
-    return ap-bp;
-  });
-  // Re-number rank after sort
-  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+  if(!plays.length){
+    html+='<div class="empty"><div class="empty-ico">🔍</div>'
+      +'<div class="empty-txt">No high-conviction plays found for this week.<br/>Try Next Week.</div></div>';
+    var el=document.getElementById('results');
+    el.innerHTML=html; el.classList.add('on'); return;
+  }
 
   html+='<div class="earn-list">';
 
