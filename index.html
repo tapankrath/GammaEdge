@@ -294,13 +294,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <a href="portfolioedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:11px 2px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
     <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:11px 2px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
     <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:11px 2px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
-    <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#4ade80;padding:11px 2px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
+    <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:11px 2px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
     <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:11px;letter-spacing:.02em;line-height:1.25;padding:8px 2px">Alloc<br><span style="font-size:10px;opacity:.85">AI</span></button>
-    <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
+    <button class="tab" id="tab2" onclick="showTab(2)">Planner</button>
+    <button class="tab" id="tab3" onclick="showTab(3)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Backtest</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
   </div>
@@ -440,6 +440,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <b>Step 3 — Repeat (The Wheel):</b> Keep cycling until shares are called away. Net result: income + potential capital gains.
     </div>
 
+    <!-- Ticker input with live fetch -->
+    <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What are you selling the put on?</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="al-c-ticker" value="SPY" maxlength="6"
+          oninput="this.value=this.value.toUpperCase()"
+          onchange="alFetchTicker('c')"
+          style="background:rgba(255,255,255,.08);border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-size:20px;font-weight:900;color:#fff;width:110px;outline:none;letter-spacing:2px;text-transform:uppercase;font-family:inherit"/>
+        <button onclick="alFetchTicker('c')" style="background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">↻ Get Price</button>
+        <div id="al-c-livebadge" style="flex:1;text-align:right">
+          <div style="font-size:10px;color:#94a3b8;font-weight:600">Enter ticker above</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Phase selector -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
       <button id="al-c-phase-put" onclick="alCPhase('put')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#eff6ff;color:#1d4ed8;border:2px solid #1d4ed8">Phase 1: Sell Put</button>
@@ -450,7 +465,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Stock / ETF Price $</label>
-        <input type="number" id="al-c1" value="585" step="1" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#1d4ed8;width:100%;outline:none"/>
+        <input type="number" id="al-c1" value="" placeholder="fetch ↑" step="1" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#1d4ed8;width:100%;outline:none"/>
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
@@ -514,6 +529,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       Best when: you hold a position and want insurance without fully exiting.
     </div>
 
+    <!-- Ticker input with live fetch -->
+    <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What stock / ETF are you hedging?</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="al-m-ticker" value="SPY" maxlength="6"
+          oninput="this.value=this.value.toUpperCase()"
+          onchange="alFetchTicker('m')"
+          style="background:rgba(255,255,255,.08);border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-size:20px;font-weight:900;color:#fff;width:110px;outline:none;letter-spacing:2px;text-transform:uppercase;font-family:inherit"/>
+        <button onclick="alFetchTicker('m')" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">↻ Get Price</button>
+        <div id="al-m-livebadge" style="flex:1;text-align:right">
+          <div style="font-size:10px;color:#94a3b8;font-weight:600">Enter ticker above</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Strategy selector -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
       <button id="al-m-strat-collar" onclick="alMStrat('collar')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#ecfdf5;color:#059669;border:2px solid #059669">Collar</button>
@@ -523,7 +553,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Stock Price $</label>
-        <input type="number" id="al-m1" value="585" step="1" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#059669;width:100%;outline:none"/>
+        <input type="number" id="al-m1" value="" placeholder="fetch ↑" step="1" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#059669;width:100%;outline:none"/>
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
@@ -587,10 +617,19 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <b>Straddle / Strangle:</b> Expect a big move but unsure of direction. Buy both call + put around the same strike (straddle) or wider (strangle).
     </div>
 
-    <!-- Ticker + Direction -->
-    <div style="display:flex;gap:6px;margin-bottom:10px">
-      <button class="tk spy" id="al-a-spy" onclick="alSetTicker('spy')" style="flex:1;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:800;text-align:center;background:#f1f5f9;border:2px solid #e2e8f0;color:#6b7280">SPY</button>
-      <button class="tk qqq on" id="al-a-qqq" onclick="alSetTicker('qqq')" style="flex:1;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:800;text-align:center;background:#fffbeb;color:#b45309;border:2px solid #b45309">QQQ</button>
+    <!-- Ticker input with live fetch -->
+    <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What ticker are you trading options on?</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="al-a-ticker-inp" value="QQQ" maxlength="6"
+          oninput="this.value=this.value.toUpperCase()"
+          onchange="alFetchTicker('a')"
+          style="background:rgba(255,255,255,.08);border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-size:20px;font-weight:900;color:#fff;width:110px;outline:none;letter-spacing:2px;text-transform:uppercase;font-family:inherit"/>
+        <button onclick="alFetchTicker('a')" style="background:#b45309;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">↻ Get Price</button>
+        <div id="al-a-livebadge" style="flex:1;text-align:right">
+          <div style="font-size:10px;color:#94a3b8;font-weight:600">Enter ticker above</div>
+        </div>
+      </div>
     </div>
 
     <div style="display:flex;gap:6px;margin-bottom:10px">
@@ -611,7 +650,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Price $</label>
-        <input type="number" id="al-a1" value="506" step="1" inputmode="decimal" oninput="alGoA()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#b45309;width:100%;outline:none"/>
+        <input type="number" id="al-a1" value="" placeholder="fetch ↑" step="1" inputmode="decimal" oninput="alGoA()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#b45309;width:100%;outline:none"/>
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">
         <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
@@ -1134,8 +1173,8 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  // Tab mapping: 1=Signal(4), 2=AllocAI(7), 3=Plan(6), 4=Backtest(5), 5=Lottery(3)
-  var paneMap={1:4,2:7,3:6,4:5,5:3};
+  // Tab mapping: 1=Signal(4), 2=Planner(6), 3=Allocation(7), 4=Backtest(5), 5=Lottery(3)
+  var paneMap={1:4,2:6,3:7,4:5,5:3};
   for(var i=1;i<=5;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
     var pid=paneMap[i];
@@ -1143,8 +1182,8 @@ function showTab(n){
     if(pel)pel.className='pane'+(i===n?' on':'');
   }
   if(n===1)go4();
-  if(n===2){alSplit();alGoC();alGoM();alGoA();}
-  if(n===3)renderPortfolio();
+  if(n===2)renderPortfolio();
+  if(n===3){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===4){go5();if(!BT_DAYS[0].o)fetchOHLC(T5);}
 }
 
@@ -3943,6 +3982,67 @@ function alInstrBox(color,bgColor,bdColor,html){
   return '<div style="background:'+bgColor+';border:1.5px solid '+bdColor+';border-radius:8px;padding:10px 12px;font-size:11px;color:'+color+';font-weight:600;line-height:1.7">'+html+'</div>';
 }
 
+/* ── TICKER LIVE FETCH for AllocAI cards ── */
+function alFetchTicker(card){
+  var tickerEl=$('al-'+card+'-ticker')||$('al-'+card+'-ticker-inp');
+  if(!tickerEl)return;
+  var sym=(tickerEl.value||'SPY').toUpperCase().trim();
+  if(!sym)return;
+  var badgeEl=$('al-'+card+'-livebadge');
+  if(badgeEl)badgeEl.innerHTML='<div style="font-size:10px;color:#94a3b8;font-weight:600;animation:ldp 1s infinite">Fetching '+sym+'…</div>';
+
+  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
+    'https://api.allorigins.win/get?url='+encodeURIComponent(url1)
+  ];
+
+  function tryNext(i){
+    if(i>=proxies.length){
+      if(badgeEl)badgeEl.innerHTML='<div style="font-size:10px;color:#f87171;font-weight:700">⚠ Could not fetch — enter price manually</div>';
+      return;
+    }
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+      .then(function(r){return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):(raw.contents?JSON.parse(raw.contents):raw);
+        var res=d.chart&&d.chart.result&&d.chart.result[0];
+        if(!res)throw new Error('no result');
+        var meta=res.meta;
+        var price=meta.regularMarketPrice;
+        var closes=(res.indicators&&res.indicators.quote&&res.indicators.quote[0]&&res.indicators.quote[0].close)||[];
+        closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
+        var prevClose=meta.regularMarketPreviousClose||meta.previousClose||(closes.length>=2?closes[closes.length-2]:price);
+        if(!price||isNaN(price))throw new Error('bad price');
+        var chg=price-prevClose;
+        var pct=prevClose?chg/prevClose*100:0;
+        var chgStr=(chg>=0?'+':'')+chg.toFixed(2)+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';
+        var col=chg>=0?'#4ade80':'#f87171';
+
+        // Update live badge
+        if(badgeEl)badgeEl.innerHTML=
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">'+
+          '<div style="font-size:18px;font-weight:900;color:#fff;line-height:1">$'+price.toFixed(2)+'</div>'+
+          '<div style="font-size:10px;font-weight:800;color:'+col+'">'+chgStr+'</div>'+
+          '<div style="font-size:8px;color:#475569;font-weight:600">'+sym+' · Live</div>'+
+          '</div>';
+
+        // Push price into the right input and recalculate
+        if(card==='c'){
+          if($('al-c1')){$('al-c1').value=price.toFixed(2);alGoC();}
+        } else if(card==='m'){
+          if($('al-m1')){$('al-m1').value=price.toFixed(2);alGoM();}
+        } else if(card==='a'){
+          AL_A_TICKER=sym.toLowerCase();
+          if($('al-a1')){$('al-a1').value=price.toFixed(2);alGoA();}
+        }
+      })
+      .catch(function(){tryNext(i+1);});
+  }
+  tryNext(0);
+}
+
 /* ── capital split ── */
 function alSplit(){
   var total=alFv('al-cap')||500000;
@@ -3968,6 +4068,23 @@ function alShow(id){
   if(id==='agg')alGoA();
 }
 
+/* ── TRADE PLAN BOX — auto-recommended exits, no input needed ── */
+function alPlanBox(rows){
+  var html='<div style="background:#0a0f1e;border-radius:10px;padding:11px 13px;margin-bottom:10px">'
+    +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#4ade80;margin-bottom:9px;display:flex;align-items:center;gap:5px">'
+    +'<span style="width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80;display:inline-block"></span>Recommended Trade Plan</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+  rows.forEach(function(r){
+    html+='<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px">'
+      +'<div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">'+r.icon+' '+r.label+'</div>'
+      +'<div style="font-size:14px;font-weight:900;color:'+(r.color||'#fff')+'">'+r.value+'</div>'
+      +(r.sub?'<div style="font-size:9px;color:#64748b;font-weight:600;margin-top:2px">'+r.sub+'</div>':'')
+      +'</div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
 /* ─────────────────────────────────────────────
    CONSERVATIVE: Wheel (Sell Put / Covered Call)
    ───────────────────────────────────────────── */
@@ -3987,7 +4104,8 @@ function alCPhase(ph){
   });
   var lbl=$('al-c-otm-lbl');
   if(lbl)lbl.textContent=ph==='put'?'OTM % (put below spot)':'OTM % (call above spot)';
-  if($('al-c-rec-hdr'))$('al-c-rec-hdr').textContent=ph==='put'?'Sell-Put Sizing':'Covered Call Sizing';
+  var sym_c_hdr=($('al-c-ticker')&&$('al-c-ticker').value)||'SPY';
+  if($('al-c-rec-hdr'))$('al-c-rec-hdr').textContent=(ph==='put'?'Sell '+sym_c_hdr+' Put':'Sell '+sym_c_hdr+' Covered Call')+' — Sizing';
   alGoC();
 }
 
@@ -3995,9 +4113,11 @@ function alGoC(){
   var total=alFv('al-cap')||500000;
   var capital=Math.round(total*0.40);
   var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otmPct=alFv('al-c4')||5;
-  if(!spot||!iv3)return;
-  var isSellPut=AL_C_PHASE==='put';
-
+  if(!spot||!iv3){
+    if($('al-c-stats'))$('al-c-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#6b7280;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
+    return;
+  }
+  var sym_c=($('al-c-ticker')&&$('al-c-ticker').value)||'SPY';
   if(isSellPut){
     // Sell cash-secured put
     var K=spot*(1-otmPct/100);
@@ -4023,12 +4143,19 @@ function alGoC(){
 
     // Entry/Exit instructions
     $('al-c-instructions').innerHTML=alInstrBox('#1e40af','#eff6ff','#93c5fd',
-      '<b>📥 ENTRY:</b> Sell '+contracts+' put contract'+(contracts>1?'s':'')+' at strike $'+K.toFixed(2)+' for $'+premPerShare.toFixed(2)+'/share. Total credit: +$'+alFmt(totalPrem)+'.<br>'+
+      '<b>📥 ENTRY — Sell '+sym_c+' Put:</b> Sell '+contracts+' put contract'+(contracts>1?'s':'')+' at strike $'+K.toFixed(2)+' for $'+premPerShare.toFixed(2)+'/share. Total credit: +$'+alFmt(totalPrem)+'.<br>'+
       '<b>⚠️ RISK:</b> If stock closes below $'+K.toFixed(2)+' at expiry, you are assigned '+contracts*100+' shares at $'+K.toFixed(2)+' (cost basis reduced by premium to $'+(K-premPerShare).toFixed(2)+').<br>'+
       '<b>📤 EXIT (profitable):</b> Let expire worthless (keep full premium). Or buy back at 50–80% profit early to free capital.<br>'+
       '<b>📤 EXIT (assigned):</b> Accept shares and proceed to Phase 2 — Covered Call.<br>'+
       '<b>🎯 TARGET:</b> $'+alFmt(totalPrem)+' premium per cycle. '+dte+'-day cycle.'
     );
+    // Recommended trade plan box
+    $('al-c-instructions').innerHTML+= alPlanBox([
+      {icon:'🎯',label:'Profit Target',value:'+$'+alFmt(totalPrem*0.5),sub:'Buy back at 50% — free capital early',color:'#4ade80'},
+      {icon:'⛔',label:'Max Loss',value:'Assignment at $'+K.toFixed(2),sub:'Cost basis: $'+(K-premPerShare).toFixed(2)+'/share',color:'#f87171'},
+      {icon:'📅',label:'Best Exit Day',value:'Day '+(Math.round(dte*0.5))+' or earlier',sub:'if 50% profit hit before expiry',color:'#fbbf24'},
+      {icon:'🔄',label:'Next Cycle',value:dte+'-day · '+yieldPct.toFixed(1)+'%/cycle',sub:'Annualized: ~'+annYield.toFixed(0)+'%',color:'#94a3b8'}
+    ]);
 
     // P&L table — stock price scenarios at expiry
     var moves=[-15,-10,-5,0,5,10];
@@ -4076,12 +4203,18 @@ function alGoC(){
       alRstat('Downside B/E','$'+(spot-premCC).toFixed(2),'');
 
     $('al-c-instructions').innerHTML=alInstrBox('#166534','#f0fdf4','#86efac',
-      '<b>📥 ENTRY:</b> Sell '+contractsCC+' covered call'+(contractsCC>1?'s':'')+' at strike $'+Kcc.toFixed(2)+' for $'+premCC.toFixed(2)+'/share. Credit: +$'+alFmt(totalPremCC)+'.<br>'+
+      '<b>📥 ENTRY — Sell '+sym_c+' Covered Call:</b> Sell '+contractsCC+' covered call'+(contractsCC>1?'s':'')+' at strike $'+Kcc.toFixed(2)+' for $'+premCC.toFixed(2)+'/share. Credit: +$'+alFmt(totalPremCC)+'.<br>'+
       '<b>📤 EXIT (not assigned):</b> Option expires worthless — keep premium. Sell again next cycle (the Wheel continues).<br>'+
       '<b>📤 EXIT (assigned):</b> Shares called away at $'+Kcc.toFixed(2)+'. Max profit: $'+alFmt(maxGain)+'. Restart wheel by selling puts again.<br>'+
       '<b>⚠️ RISK:</b> Stock drops below cost basis. Premium reduces your effective cost by $'+premCC.toFixed(2)+'/share.<br>'+
       '<b>🎯 TARGET:</b> Collect $'+alFmt(totalPremCC)+' per '+dte+'-day cycle.'
     );
+    $('al-c-instructions').innerHTML+= alPlanBox([
+      {icon:'🎯',label:'Profit Target',value:'Keep $'+alFmt(totalPremCC),sub:'Let expire worthless — full premium',color:'#4ade80'},
+      {icon:'📤',label:'Early Exit',value:'Buy back at 80%+',sub:'When premium decays to $'+alFmt(totalPremCC*0.2),color:'#fbbf24'},
+      {icon:'⛔',label:'If Assigned',value:'Shares called @ $'+Kcc.toFixed(2),sub:'Max gain: $'+alFmt(maxGain)+' total',color:'#86efac'},
+      {icon:'🔄',label:'Next Cycle',value:dte+'-day · '+annYieldCC.toFixed(0)+'% ann.',sub:'Restart wheel — sell puts again',color:'#94a3b8'}
+    ]);
     $('al-c-pltbl').style.display='none';
   }
 }
@@ -4091,7 +4224,6 @@ function alGoC(){
    ───────────────────────────────────────────── */
 var AL_M_STRAT='collar';
 function alMStrat(s){
-  AL_M_STRAT=s;
   ['al-m-strat-collar','al-m-strat-pp'].forEach(function(id){
     var el=$(id);if(!el)return;
     var active=(s==='collar'&&id==='al-m-strat-collar')||(s==='pp'&&id==='al-m-strat-pp');
@@ -4101,18 +4233,20 @@ function alMStrat(s){
   });
   var callField=$('al-m-call-field');
   if(callField)callField.style.display=s==='collar'?'':'none';
-  if($('al-m-rec-hdr'))$('al-m-rec-hdr').textContent=s==='collar'?'Collar Sizing':'Protective Put Sizing';
+  if($('al-m-rec-hdr'))$('al-m-rec-hdr').textContent=s==='collar'?sym_m+' Collar — Sizing':sym_m+' Protective Put — Sizing';
   alGoM();
 }
 
 function alGoM(){
+  var sym_m=($('al-m-ticker')&&$('al-m-ticker').value)||'SPY';
   var total=alFv('al-cap')||500000;
   var capital=Math.round(total*0.40);
   var spot=alFv('al-m1'),iv3=alFv('al-m2')/100,dte=alIv('al-m3')||30;
   var putOtm=alFv('al-m4')||5,callOtm=alFv('al-m5')||5;
-  if(!spot||!iv3)return;
-
-  var shares=Math.floor(capital/spot/100)*100;
+  if(!spot||!iv3){
+    if($('al-m-stats'))$('al-m-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#6b7280;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
+    return;
+  }
   var contracts=Math.max(1,Math.floor(shares/100));
   var T=dte/365;
   var Kp=spot*(1-putOtm/100);
@@ -4147,6 +4281,12 @@ function alGoM(){
       '<b>🔒 CAP:</b> If stock rises above $'+Kc.toFixed(2)+', gains are capped. Call may be assigned.<br>'+
       '<b>📤 EXIT:</b> Close both legs together. Or let expire and re-establish next collar.'
     );
+    $('al-m-instructions').innerHTML+= alPlanBox([
+      {icon:'🎯',label:'Profit Target',value:'+'+(callOtm)+'% move',sub:'Capped upside: $'+alFmt((Kc-spot)*shares+callCredit),color:'#4ade80'},
+      {icon:'🛡️',label:'Protected Down',value:'-'+putOtm+'% max',sub:'Floor at $'+Kp.toFixed(2)+' · put kicks in',color:'#60a5fa'},
+      {icon:'💰',label:'Net Collar Cost',value:(netCost<=0?'Credit +$'+alFmt(Math.abs(netCost)):'Cost $'+alFmt(netCost)),sub:netCost<=0?'Near zero cost hedge':'Debit collar',color:netCost<=0?'#4ade80':'#fbbf24'},
+      {icon:'📅',label:'Roll at',value:'21 DTE',sub:'Re-establish collar when < 3 wks left',color:'#94a3b8'}
+    ]);
 
     // P&L scenario table
     var moves=[-15,-10,-(putOtm),0,callOtm,10,15];
@@ -4199,6 +4339,12 @@ function alGoM(){
       '<b>📤 EXIT (profitable):</b> Let put expire worthless, treat cost as insurance. Or sell put if stock drops sharply (profits from put offset stock loss).<br>'+
       '<b>🎯 WHEN TO USE:</b> You want to hold shares long-term but are uncertain short-term. Earnings, macro events, hedging a large gain.'
     );
+    $('al-m-instructions').innerHTML+= alPlanBox([
+      {icon:'🛡️',label:'Protection Floor',value:'$'+Kp.toFixed(2)+' (-'+putOtm+'%)',sub:'Put activates below this price',color:'#60a5fa'},
+      {icon:'💸',label:'Insurance Cost',value:'$'+alFmt(putCost),sub:(putPrem/spot*100).toFixed(2)+'% of position value',color:'#fbbf24'},
+      {icon:'📤',label:'Exit Put Early',value:'If stock drops fast',sub:'Sell put at 100-200% gain to lock hedge',color:'#4ade80'},
+      {icon:'📅',label:'Roll at',value:'21 DTE',sub:'Roll to new expiry or let expire worthless',color:'#94a3b8'}
+    ]);
 
     var moves2=[-20,-15,-10,-5,0,5,10];
     var sh2='';
@@ -4252,7 +4398,8 @@ function alSetDir(d){
     el.style.background=on?'#fffbeb':'#f1f5f9';
     el.style.color=on?'#b45309':'#6b7280';
     el.style.border=on?'2px solid #b45309':'2px solid #e2e8f0';
-    el.querySelector('.dname').style.color=on?'#b45309':'#6b7280';
+    var lbl=el.querySelector('div:last-child');
+    if(lbl)lbl.style.color=on?'#b45309':'#6b7280';
   });
   var otmRow=$('al-a-otm-row');
   if(otmRow)otmRow.style.display=(d==='call'||d==='put'||d==='strangle')?'block':'none';
@@ -4269,11 +4416,15 @@ function alSetAOtm(btn,v){
 }
 
 function alGoA(){
+  var sym_a=(($('al-a-ticker-inp')&&$('al-a-ticker-inp').value)||AL_A_TICKER||'QQQ').toUpperCase();
+  AL_A_TICKER=sym_a.toLowerCase();
   var total=alFv('al-cap')||500000;
   var capital=Math.round(total*0.20);
   var spot=alFv('al-a1'),iv3=alFv('al-a2')/100,dte=alIv('al-a3')||7;
-  if(!spot||!iv3)return;
-  var T=dte/365;
+  if(!spot||!iv3){
+    if($('al-a-stats'))$('al-a-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#6b7280;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
+    return;
+  }
 
   var cp,Kc,Kp,label,instrHtml;
 
@@ -4284,7 +4435,7 @@ function alGoA(){
     var totalCost=cp*contracts;
     var bePct=(cp/100/spot*100);
 
-    $('al-a-rec-hdr').textContent='ATM Straddle Sizing';
+    $('al-a-rec-hdr').textContent=sym_a+' ATM Straddle';
     $('al-a-stats').innerHTML=
       alRstat('Setup','Buy Call + Put @ $'+spot.toFixed(0),'#b45309')+
       alRstat('Premium/Contract','$'+cp.toFixed(0),'')+
@@ -4295,7 +4446,7 @@ function alGoA(){
       alRstat('B/E Price Down','$'+(spot*(1-bePct/100)).toFixed(2),'#b91c1c')+
       alRstat('Max Loss','-$'+alFmt(totalCost),'#b91c1c');
 
-    instrHtml='<b>📥 ENTRY:</b> Buy '+contracts+' straddle'+(contracts>1?'s':'')+' on '+AL_A_TICKER.toUpperCase()+' (1 ATM call + 1 ATM put at $'+spot.toFixed(0)+' strike).<br>'+
+    instrHtml='<b>📥 ENTRY:</b> Buy '+contracts+' straddle'+(contracts>1?'s':'')+' on '+sym_a+' (1 ATM call + 1 ATM put at $'+spot.toFixed(0)+' strike).<br>'+
       'Cost: $'+alFmt(totalCost)+' total. Break-even if stock moves ±'+bePct.toFixed(2)+'% by expiry.<br>'+
       '<b>📤 EXIT (target 50–100% profit):</b> When total premium doubles, close both legs. Do NOT hold to expiry if move materializes early.<br>'+
       '<b>📤 EXIT (stop loss):</b> Close at 50% premium loss (pay back $'+alFmt(totalCost*0.5)+' to buy back). Prevents theta decay from destroying value.<br>'+
@@ -4328,7 +4479,7 @@ function alGoA(){
     var beUp=(Kc+sg.cost-spot)/spot*100;
     var beDn=(spot-Kp+sg.cost)/spot*100;
 
-    $('al-a-rec-hdr').textContent='Strangle Sizing (40Δ)';
+    $('al-a-rec-hdr').textContent=sym_a+' Strangle (40Δ)';
     $('al-a-stats').innerHTML=
       alRstat('Call Strike','$'+Kc.toFixed(2),'#15803d')+
       alRstat('Put Strike','$'+Kp.toFixed(2),'#b91c1c')+
@@ -4371,7 +4522,7 @@ function alGoA(){
     var totalCostD=cp*contractsD;
     var bePctD=AL_A_OTM+(cp/100/spot*100);
 
-    $('al-a-rec-hdr').textContent=(isCall?'Call':'Put')+' Sizing (+'+AL_A_OTM+'% OTM)';
+    $('al-a-rec-hdr').textContent=sym_a+' '+(isCall?'Call':'Put')+' +'+AL_A_OTM+'% OTM';
     $('al-a-stats').innerHTML=
       alRstat((isCall?'Call':'Put')+' Strike','$'+Kdir.toFixed(2),isCall?'#15803d':'#b91c1c')+
       alRstat('Premium/Contract','$'+cp.toFixed(0),'')+
@@ -4382,7 +4533,7 @@ function alGoA(){
       alRstat('Max Profit','Unlimited'+(isCall?'  🚀':'  ↓'),isCall?'#15803d':'#b91c1c')+
       alRstat('Max Loss','-$'+alFmt(totalCostD),'#b91c1c');
 
-    instrHtml='<b>📥 ENTRY:</b> Buy '+contractsD+' '+AL_A_TICKER.toUpperCase()+' '+(isCall?'call':'put')+(contractsD>1?'s':'')+' at strike $'+Kdir.toFixed(2)+'.<br>'+
+    instrHtml='<b>📥 ENTRY:</b> Buy '+contractsD+' '+sym_a+' '+(isCall?'call':'put')+(contractsD>1?'s':'')+' at strike $'+Kdir.toFixed(2)+'.<br>'+
       'Cost: $'+alFmt(totalCostD)+'. Stock must move '+(isCall?'above':'below')+' $'+(isCall?spot+cp/100:spot-cp/100).toFixed(2)+' by expiry to profit.<br>'+
       '<b>📤 EXIT (profit):</b> Sell when position is +50–100%. Lock in gains — don\'t get greedy near expiry.<br>'+
       '<b>📤 EXIT (stop):</b> Cut loss at 50% premium loss. Exit if thesis is wrong — time decay accelerates near expiry.<br>'+
@@ -4409,14 +4560,46 @@ function alGoA(){
 
   // Show instructions
   if($('al-a-instructions'))$('al-a-instructions').innerHTML=alInstrBox('#78350f','#fffbeb','#fcd34d',instrHtml||'');
-}
+
+  // Recommended Trade Plan — auto-derived, no input needed
+  var planRows=[];
+  if(AL_A_DIR==='straddle'){
+    var tgtDol=totalCost; // 100% profit = double premium
+    var stopDol=totalCost*0.5;
+    planRows=[
+      {icon:'🎯',label:'Profit Target',value:'+$'+alFmt(tgtDol),sub:'100% gain — premium doubles',color:'#4ade80'},
+      {icon:'⛔',label:'Stop Loss',value:'-$'+alFmt(stopDol),sub:'Exit at 50% premium loss',color:'#f87171'},
+      {icon:'📅',label:'Exit Window',value:'Day 1–'+Math.min(3,dte),sub:'Exit fast when move happens',color:'#fbbf24'},
+      {icon:'⚡',label:'Break-Even',value:'±'+bePct.toFixed(2)+'% move',sub:'Up to $'+(spot*(1+bePct/100)).toFixed(0)+' or down to $'+(spot*(1-bePct/100)).toFixed(0),color:'#94a3b8'}
+    ];
+  } else if(AL_A_DIR==='strangle'){
+    var tgtDol2=totalCost2;
+    var stopDol2=totalCost2*0.5;
+    planRows=[
+      {icon:'🎯',label:'Profit Target',value:'+$'+alFmt(tgtDol2),sub:'100% gain — strangle doubles',color:'#4ade80'},
+      {icon:'⛔',label:'Stop Loss',value:'-$'+alFmt(stopDol2),sub:'Exit at 50% premium loss',color:'#f87171'},
+      {icon:'📅',label:'Exit Window',value:'Day 1–'+Math.min(3,dte),sub:'Close as soon as move shows',color:'#fbbf24'},
+      {icon:'🌀',label:'Strikes',value:'$'+Kc.toFixed(0)+' / $'+Kp.toFixed(0),sub:'Call / Put · 40Δ each leg',color:'#94a3b8'}
+    ];
+  } else {
+    var tgtDolD=totalCostD;
+    var stopDolD=totalCostD*0.5;
+    planRows=[
+      {icon:'🎯',label:'Profit Target',value:'+$'+alFmt(tgtDolD),sub:'100% gain — option doubles',color:'#4ade80'},
+      {icon:'⛔',label:'Stop Loss',value:'-$'+alFmt(stopDolD),sub:'Cut at 50% of premium paid',color:'#f87171'},
+      {icon:'📅',label:'Hold Max',value:dte+' days',sub:'Never hold to expiry — theta kills',color:'#fbbf24'},
+      {icon:'📍',label:'Strike / B/E',value:'$'+Kdir.toFixed(0)+' / $'+(isCall?spot+cp/100:spot-cp/100).toFixed(0),sub:'OTM '+AL_A_OTM+'% · needs '+bePctD.toFixed(1)+'% move',color:'#94a3b8'}
+    ];
+  }
+  if($('al-a-instructions')&&planRows.length)$('al-a-instructions').innerHTML+=alPlanBox(planRows);
+} // end alGoA
 
 /* ── ALLOCAI TRADE LOG ── */
 function alPrefillLog(bucket,type){
   if($('al-lg-bucket'))$('al-lg-bucket').value=bucket;
   var typeMap={wheel:'sell-put',collar:'collar','options':'straddle'};
   if($('al-lg-type'))$('al-lg-type').value=typeMap[type]||type;
-  if($('al-lg-ticker'))$('al-lg-ticker').value=bucket==='Aggressive'?AL_A_TICKER.toUpperCase():'SPY';
+  if($('al-lg-ticker'))$('al-lg-ticker').value=bucket==='Aggressive'?sym_a:'SPY';
   // Pre-fill entry cost
   try{
     if(bucket==='Conservative'){
@@ -4587,6 +4770,7 @@ go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
 $('pane2').className='pane';
+$('pane6').className='pane';
 $('pane7').className='pane';
 $('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
