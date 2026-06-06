@@ -248,6 +248,32 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .bt-tbl tr:last-child td{border-bottom:none}
 .bt-tbl tr.bt-sum td{background:#f8fafc;border-top:2px solid var(--border);font-weight:800}
 .bt-pos{color:var(--green);font-weight:800}.bt-neg{color:var(--red);font-weight:800}.bt-zero{color:var(--muted)}
+
+/* ── UNIFIED COMPARE TABLE ── */
+.cmp-wrap{background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cmp-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cmp-tbl{width:100%;border-collapse:collapse;min-width:560px;font-size:10px}
+.cmp-tbl th{background:#0f172a;color:#fff;padding:7px 4px;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;text-align:center}
+.cmp-tbl th.day-hd{text-align:left;padding-left:8px;min-width:90px;font-size:9px;color:#64748b}
+.cmp-tbl th.dte-hd{font-size:10px;font-weight:900;padding:8px 6px}
+.cmp-tbl th.sd-hd{background:#0d2010;color:#4ade80;border-left:2px solid #1a3a20}
+.cmp-tbl th.on-hd{background:#12102a;color:#a5b4fc;border-left:2px solid #1e1a40}
+.cmp-tbl th.sub-sd{background:#1a2a1a;font-size:8px;padding:5px 4px;border-left:1px solid #243424}
+.cmp-tbl th.sub-on{background:#1a1830;font-size:8px;padding:5px 4px;border-left:1px solid #2a2440}
+.cmp-tbl td{padding:6px 4px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;white-space:nowrap}
+.cmp-tbl td:first-child{text-align:left;padding-left:8px;background:rgba(0,0,0,.02)}
+.cmp-tbl tr:nth-child(even) td{background:#fafbfc}
+.cmp-tbl tr:nth-child(even) td:first-child{background:rgba(0,0,0,.03)}
+.cmp-tbl tr.cmp-sum td{background:#f1f5f9!important;border-top:2px solid var(--border);font-weight:800}
+.cmp-tbl .sd-cell{border-left:1px solid #e8f5e9}
+.cmp-tbl .on-cell{border-left:1px solid #ede9fe}
+.cmp-tbl .dte-sep{border-left:3px solid #e2e8f0}
+/* winner highlight */
+.cmp-win-sd{background:#f0fdf4!important}
+.cmp-win-on{background:#f5f3ff!important}
+.cmp-lbl{display:inline-block;font-size:8px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:2px;vertical-align:middle}
+.cmp-lbl.w{background:#15803d;color:#fff}
+.cmp-lbl.d{background:#6d28d9;color:#fff}
 </style>
 </head>
 <body>
@@ -273,9 +299,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
     <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em">Strdl/<br>Strngl</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em;line-height:1.3">Straddle<br>Strangle</button>
     <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
-    <button class="tab" id="tab4" onclick="showTab(4)">Bktest</button>
+    <button class="tab" id="tab4" onclick="showTab(4)">Backtest</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
   </div>
 
@@ -620,78 +646,61 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <!-- RESULTS: TABLE VIEW -->
+  <!-- RESULTS: VISUAL CARD VIEW -->
   <div id="b-summary" style="display:none">
 
-    <!-- SAME DAY SECTION -->
-    <div id="b-section-sameday">
-      <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow-x:auto">
-        <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Buy Open · Hold to EOD · All 4 DTEs</div>
-        <table class="bt-tbl" id="b-main-tbl">
-          <thead>
-            <tr>
-              <th rowspan="2" style="text-align:left;min-width:100px;vertical-align:bottom;padding-left:6px">Day / Range</th>
-              <th colspan="2" style="border-bottom:2px solid #4ade80">0-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #60a5fa">1-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #fbbf24">5-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #f87171">8-DTE</th>
-            </tr>
-            <tr>
-              <th style="background:#1a2a1a;color:#4ade80">Best</th><th style="background:#1a2a1a;color:#86efac">EOD</th>
-              <th style="background:#1a2060;color:#93c5fd">Best</th><th style="background:#1a2060;color:#bfdbfe">EOD</th>
-              <th style="background:#2a1f0a;color:#fcd34d">Best</th><th style="background:#2a1f0a;color:#fde68a">EOD</th>
-              <th style="background:#2a1010;color:#fca5a5">Best</th><th style="background:#2a1010;color:#fecaca">EOD</th>
-            </tr>
-          </thead>
-          <tbody id="b-main-body"></tbody>
-        </table>
+    <!-- DTE SLIDER -->
+    <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.12em">DTE Filter</div>
+        <div style="font-size:18px;font-weight:900;color:var(--text)" id="b-dte-display">0-DTE</div>
       </div>
-      <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow-x:auto">
-        <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Premium Paid · Contracts · B/E %</div>
+      <input type="range" id="b-dte-slider" min="0" max="3" value="0" step="1"
+        style="width:100%;height:8px;margin-bottom:8px;cursor:pointer"
+        oninput="onDteSlider(this.value)"/>
+      <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#94a3b8">
+        <span>0-DTE</span><span>1-DTE</span><span>5-DTE</span><span>8-DTE</span>
+      </div>
+      <div style="margin-top:10px;font-size:11px;font-weight:600;color:#374151;background:#f8fafc;border-radius:7px;padding:6px 10px;line-height:1.5" id="b-dte-note"></div>
+    </div>
+
+    <!-- LEGEND -->
+    <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#15803d"><div style="width:12px;height:12px;background:#22c55e;border-radius:3px;border:2px solid #15803d"></div>Same Day Best</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#166534"><div style="width:12px;height:12px;background:#15803d;border-radius:3px"></div>Same Day EOD</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#6d28d9"><div style="width:12px;height:12px;background:#7c3aed;border-radius:3px;border:2px solid #4c1d95"></div>Overnight Best</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#4c1d95"><div style="width:12px;height:12px;background:#6d28d9;border-radius:3px"></div>Overnight EOD</div>
+    </div>
+
+    <!-- DAY CARDS -->
+    <!-- WEEKLY SUMMARY CARD -->
+    <div id="b-week-summary" style="margin-bottom:8px"></div>
+
+    <div id="b-day-cards"></div>
+
+    <!-- COST TABLE (collapsible) -->
+    <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden">
+      <button onclick="toggleCostTbl()" style="width:100%;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:transparent;text-align:left">
+        <span style="font-size:9px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.15em">Premium · Contracts · B/E %</span>
+        <span id="b-cost-toggle-ico" style="font-size:11px;color:#64748b">▾ Show</span>
+      </button>
+      <div id="b-cost-wrap" style="display:none;overflow-x:auto;padding:0 8px 10px">
         <table class="bt-tbl" id="b-cost-tbl">
-          <thead><tr><th style="text-align:left">Day / Open</th><th>0-DTE</th><th>1-DTE</th><th>5-DTE</th><th>8-DTE</th></tr></thead>
+          <thead><tr>
+            <th style="text-align:left">Day</th>
+            <th colspan="2" style="background:#0d2010;color:#4ade80">Same Day</th>
+            <th colspan="2" style="background:#12102a;color:#a5b4fc">Overnight</th>
+          </tr><tr>
+            <th style="text-align:left;background:#1e293b;font-size:8px" id="b-cost-dte-lbl">0-DTE</th>
+            <th style="background:#1a2a1a;color:#4ade80">Prem</th><th style="background:#1a2a1a;color:#86efac">B/E</th>
+            <th style="background:#1a1830;color:#a5b4fc">Prem</th><th style="background:#1a1830;color:#c4b5fd">B/E</th>
+          </tr></thead>
           <tbody id="b-cost-body"></tbody>
         </table>
       </div>
-      <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Weekly Totals by DTE</div>
-      <div id="b-agg-grid"></div>
     </div>
 
-    <!-- OVERNIGHT SECTION -->
-    <div id="b-section-overnight" style="display:none">
-      <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow-x:auto">
-        <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Buy ~3:55pm · Hold to Next Day EOD · All 4 DTEs</div>
-        <table class="bt-tbl" id="b-on-tbl">
-          <thead>
-            <tr>
-              <th rowspan="2" style="text-align:left;min-width:105px;vertical-align:bottom;padding-left:6px">Entry → Exit</th>
-              <th colspan="2" style="border-bottom:2px solid #4ade80">0-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #60a5fa">1-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #fbbf24">5-DTE</th>
-              <th colspan="2" style="border-bottom:2px solid #f87171">8-DTE</th>
-            </tr>
-            <tr>
-              <th style="background:#1a2a1a;color:#4ade80">Best</th><th style="background:#1a2a1a;color:#86efac">EOD</th>
-              <th style="background:#1a2060;color:#93c5fd">Best</th><th style="background:#1a2060;color:#bfdbfe">EOD</th>
-              <th style="background:#2a1f0a;color:#fcd34d">Best</th><th style="background:#2a1f0a;color:#fde68a">EOD</th>
-              <th style="background:#2a1010;color:#fca5a5">Best</th><th style="background:#2a1010;color:#fecaca">EOD</th>
-            </tr>
-          </thead>
-          <tbody id="b-on-body"></tbody>
-        </table>
-      </div>
-      <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow-x:auto">
-        <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Overnight Premium · Contracts · B/E %</div>
-        <table class="bt-tbl" id="b-on-cost-tbl">
-          <thead><tr><th style="text-align:left">Entry / Close</th><th>0-DTE</th><th>1-DTE</th><th>5-DTE</th><th>8-DTE</th></tr></thead>
-          <tbody id="b-on-cost-body"></tbody>
-        </table>
-      </div>
-      <div style="font-size:9px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">Overnight Weekly Totals by DTE</div>
-      <div id="b-on-agg-grid"></div>
-    </div>
-
-    <div class="note" id="b-mode-note">📈 Buy open · Best = intraday extreme · EOD = close · ATM strike = open price · ~25% IV crush · Not financial advice</div>
+    <div class="note" id="b-mode-note">📊 Same Day = Buy Open, hold to EOD · Overnight = Buy ~3:55pm, exit next day EOD · Best = intraday peak · Slide DTE to compare</div>
   </div>
 </div>
 
@@ -2432,8 +2441,8 @@ function fetchOHLC(ticker){
   var didTimeout=false;
   var timer=setTimeout(function(){
     didTimeout=true;
-    $('b-fetch-status').textContent='Auto-fetch timed out — enter data manually (Edit ▾)';
-    $('b-fetch-status').style.color='var(--red)';
+    $('b-fetch-status').innerHTML='⏱ Auto-fetch timed out (free API limit). <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
+    $('b-fetch-status').style.color='var(--amber)';
   },10000);
 
   fetch(url)
@@ -2443,7 +2452,7 @@ function fetchOHLC(ticker){
       clearTimeout(timer);
       var ts=data['Time Series (Daily)'];
       if(!ts){
-        $('b-fetch-status').textContent='No data returned — enter manually (Edit ▾)';
+        $('b-fetch-status').innerHTML='⚠ No data returned — Alpha Vantage limit hit or key invalid. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
         $('b-fetch-status').style.color='var(--red)';
         return;
       }
@@ -2468,7 +2477,7 @@ function fetchOHLC(ticker){
     .catch(function(){
       if(didTimeout)return;
       clearTimeout(timer);
-      $('b-fetch-status').textContent='Fetch failed — enter data manually (Edit ▾)';
+      $('b-fetch-status').innerHTML='❌ Fetch failed. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter data manually';
       $('b-fetch-status').style.color='var(--red)';
     });
 }
@@ -2673,95 +2682,18 @@ function go5(){
   var capital=fv('b-capital'), iv3=fv('b-iv')/100;
   if(iv3<=0) return;
   var DTES=[0,1,5,8];
-
-  // Collect valid days
   var valid=[];
   BT_DAYS.forEach(function(d){
     var o=parseFloat(d.o),h=parseFloat(d.h),l=parseFloat(d.l),c=parseFloat(d.c);
     if(o>0&&h>0&&l>0&&c>0&&h>=o&&l<=o) valid.push({label:d.label,o:o,h:h,l:l,c:c});
   });
-
   if(valid.length===0){$('b-summary').style.display='none';return;}
   $('b-summary').style.display='block';
-
-  /* helper: compact P&L string */
-  function fc(v){
-    if(Math.abs(v)<0.5) return '<span class="bt-zero">—</span>';
-    var a=Math.abs(v),s=a>=1000?'$'+(a/1000).toFixed(1)+'K':'$'+a.toFixed(0);
-    return '<span class="'+(v>0?'bt-pos':'bt-neg')+'">'+(v>=0?'+':'-')+s+'</span>';
-  }
-  function be(clears){return clears
-    ?'<span style="color:#14532d;font-weight:900;font-size:11px">✓</span>'
-    :'<span style="color:#b91c1c;font-weight:900;font-size:11px">✗</span>';}
-
-  /* ── SAME DAY ── */
-  var sdRows='', sdCost='', sdAgg='';
   var sdResults=valid.map(function(d){
     var byDTE={};
     DTES.forEach(function(dte){byDTE[dte]=btSim(d.o,d.h,d.l,d.c,iv3,capital,dte);});
     return{day:d,byDTE:byDTE};
   });
-
-  sdResults.forEach(function(r){
-    var d=r.day;
-    var up=((d.h-d.o)/d.o*100).toFixed(1), dn=((d.o-d.l)/d.o*100).toFixed(1);
-    var eod=((d.c-d.o)/d.o*100), es=eod>=0?'+':'';
-    sdRows+='<tr>';
-    sdRows+='<td><b>'+d.label+'</b><div style="font-size:8px;color:#64748b;margin-top:1px">↑'+up+'% ↓'+dn+'% EOD'+es+eod.toFixed(1)+'%</div></td>';
-    DTES.forEach(function(dte){
-      var s=r.byDTE[dte];
-      sdRows+='<td>'+fc(s.pnlBest)+' '+be(s.beClears)+'</td>';
-      sdRows+='<td>'+fc(s.pnlEOD)+'</td>';
-    });
-    sdRows+='</tr>';
-    sdCost+='<tr><td><b>'+d.label+'</b><div style="font-size:8px;color:#64748b">Open $'+d.o+'</div></td>';
-    DTES.forEach(function(dte){
-      var s=r.byDTE[dte];
-      sdCost+='<td><b>$'+s.cost.toFixed(0)+'</b><div style="font-size:8px;color:#64748b">×'+s.contracts+'c</div>'
-        +'<div style="font-size:8px;color:#b45309">B/E ±'+s.bePct.toFixed(2)+'%</div></td>';
-    });
-    sdCost+='</tr>';
-  });
-  // Totals
-  sdRows+='<tr class="bt-sum"><td>TOTAL</td>';
-  DTES.forEach(function(dte){
-    var tB=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
-    var tE=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0);
-    sdRows+='<td>'+fc(tB)+'</td><td>'+fc(tE)+'</td>';
-  });
-  sdRows+='</tr>';
-  $('b-main-body').innerHTML=sdRows;
-  $('b-cost-body').innerHTML=sdCost;
-
-  // Agg cards for same day
-  DTES.forEach(function(dte){
-    var tB=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
-    var tE=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0);
-    var tC=sdResults.reduce(function(a,r){return a+r.byDTE[dte].totalCost;},0);
-    var wB=sdResults.filter(function(r){return r.byDTE[dte].pnlBest>0;}).length;
-    var wE=sdResults.filter(function(r){return r.byDTE[dte].pnlEOD>0;}).length;
-    var n=sdResults.length;
-    var avgBe=sdResults.reduce(function(a,r){return a+r.byDTE[dte].bePct;},0)/n;
-    var bClr=dte===0?'#15803d':dte===1?'#1d4ed8':dte===5?'#b45309':'#b91c1c';
-    sdAgg+='<div style="background:var(--p1);border:1.5px solid '+bClr+';border-radius:10px;padding:10px 12px;margin-bottom:7px">';
-    sdAgg+='<div style="font-size:9px;font-weight:900;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">'+dte+'-DTE</div>';
-    sdAgg+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
-    sdAgg+=sbox('Best Total',fp(tB),tB>=0?'green':'red');
-    sdAgg+=sbox('EOD Total',fp(tE),tE>=0?'green':'red');
-    sdAgg+=sbox('Premium','$'+fmt(tC),'amber');
-    sdAgg+=sbox('Win (Best)',wB+'/'+n,'blue');
-    sdAgg+=sbox('Win (EOD)',wE+'/'+n,'blue');
-    sdAgg+=sbox('Avg B/E','±'+avgBe.toFixed(2)+'%','amber');
-    sdAgg+='</div></div>';
-  });
-  $('b-agg-grid').innerHTML=sdAgg;
-
-  /* ── OVERNIGHT ── */
-  if(valid.length<2){
-    $('b-section-overnight').style.display='none';
-    return;
-  }
-  var onRows='', onCost='', onAgg='';
   var onResults=[];
   for(var i=0;i<valid.length-1;i++){
     var en=valid[i],ex=valid[i+1];
@@ -2769,69 +2701,200 @@ function go5(){
     DTES.forEach(function(dte){byDTE[dte]=btSimOvernight(en.c,ex.o,ex.h,ex.l,ex.c,iv3,capital,dte);});
     onResults.push({entry:en,exit:ex,byDTE:byDTE});
   }
-  onResults.forEach(function(r){
-    var up=((r.exit.h-r.exit.o)/r.exit.o*100).toFixed(1), dn=((r.exit.o-r.exit.l)/r.exit.o*100).toFixed(1);
-    onRows+='<tr>';
-    onRows+='<td><b>'+r.entry.label+'→'+r.exit.label+'</b><div style="font-size:8px;color:#64748b;margin-top:1px">Entry $'+r.entry.c+' ↑'+up+'% ↓'+dn+'%</div></td>';
-    DTES.forEach(function(dte){
-      var s=r.byDTE[dte];
-      onRows+='<td>'+fc(s.pnlBest)+' '+be(s.beClears)+'</td>';
-      onRows+='<td>'+fc(s.pnlEOD)+'</td>';
-    });
-    onRows+='</tr>';
-    onCost+='<tr><td><b>'+r.entry.label+'→'+r.exit.label+'</b><div style="font-size:8px;color:#64748b">Entry $'+r.entry.c+'</div></td>';
-    DTES.forEach(function(dte){
-      var s=r.byDTE[dte];
-      onCost+='<td><b>$'+s.cost.toFixed(0)+'</b><div style="font-size:8px;color:#64748b">×'+s.contracts+'c</div>'
-        +'<div style="font-size:8px;color:#b45309">B/E ±'+s.bePct.toFixed(2)+'%</div></td>';
-    });
-    onCost+='</tr>';
-  });
-  onRows+='<tr class="bt-sum"><td>TOTAL</td>';
-  DTES.forEach(function(dte){
-    var tB=onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
-    var tE=onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0);
-    onRows+='<td>'+fc(tB)+'</td><td>'+fc(tE)+'</td>';
-  });
-  onRows+='</tr>';
-  $('b-on-body').innerHTML=onRows;
-  $('b-on-cost-body').innerHTML=onCost;
-
-  DTES.forEach(function(dte){
-    var tB=onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
-    var tE=onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0);
-    var tC=onResults.reduce(function(a,r){return a+r.byDTE[dte].totalCost;},0);
-    var wB=onResults.filter(function(r){return r.byDTE[dte].pnlBest>0;}).length;
-    var wE=onResults.filter(function(r){return r.byDTE[dte].pnlEOD>0;}).length;
-    var n=onResults.length;
-    var avgBe=onResults.reduce(function(a,r){return a+r.byDTE[dte].bePct;},0)/n;
-    var bClr=dte===0?'#15803d':dte===1?'#1d4ed8':dte===5?'#b45309':'#b91c1c';
-    onAgg+='<div style="background:var(--p1);border:1.5px solid '+bClr+';border-radius:10px;padding:10px 12px;margin-bottom:7px">';
-    onAgg+='<div style="font-size:9px;font-weight:900;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">'+dte+'-DTE</div>';
-    onAgg+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
-    onAgg+=sbox('Best Total',fp(tB),tB>=0?'green':'red');
-    onAgg+=sbox('EOD Total',fp(tE),tE>=0?'green':'red');
-    onAgg+=sbox('Premium','$'+fmt(tC),'amber');
-    onAgg+=sbox('Win (Best)',wB+'/'+n,'blue');
-    onAgg+=sbox('Win (EOD)',wE+'/'+n,'blue');
-    onAgg+=sbox('Avg B/E','±'+avgBe.toFixed(2)+'%','amber');
-    onAgg+='</div></div>';
-  });
-  $('b-on-agg-grid').innerHTML=onAgg;
+  window._btSD=sdResults;
+  window._btON=onResults;
+  renderVisual(CMP_DTE,sdResults,onResults);
 }
 
-/* setBtMode: toggle which section is visible (called by tab buttons) */
+/* ── DTE SLIDER ── */
+var CMP_DTE=0;
+var DTE_MAP=[0,1,5,8];
+var DTE_NOTES={
+  0:'0-DTE: Expires today. Cheapest (~0.7% spot). Explosive gamma — flat day = total loss. Pure intraday.',
+  1:'1-DTE: Expires tomorrow. Slightly pricier. Can hold overnight if today\'s move is small.',
+  5:'5-DTE: 5 days left at open. More forgiving. EOD captures only part of the move.',
+  8:'8-DTE: 8 days left. Most expensive (~1.8% spot). One-day EOD exit is a small slice of move.'
+};
+function onDteSlider(v){
+  CMP_DTE=DTE_MAP[parseInt(v)];
+  $('b-dte-display').textContent=CMP_DTE+'-DTE';
+  var n=$('b-dte-note'); if(n) n.textContent=DTE_NOTES[CMP_DTE]||'';
+  if(window._btSD) renderVisual(CMP_DTE,window._btSD,window._btON);
+}
+function toggleCostTbl(){
+  var w=$('b-cost-wrap'),i=$('b-cost-toggle-ico');
+  var h=w.style.display==='none';
+  w.style.display=h?'block':'none';
+  i.textContent=h?'▴ Hide':'▾ Show';
+}
+
+/* ── VISUAL BAR CARD RENDER ── */
+function renderVisual(dte,sdResults,onResults){
+  $('b-dte-display').textContent=dte+'-DTE';
+  var n=$('b-dte-note'); if(n) n.textContent=DTE_NOTES[dte]||'';
+  var cl=$('b-cost-dte-lbl'); if(cl) cl.textContent=dte+'-DTE';
+  var maxVal=0;
+  sdResults.forEach(function(r){var s=r.byDTE[dte];maxVal=Math.max(maxVal,Math.abs(s.pnlBest),Math.abs(s.pnlEOD));});
+  onResults.forEach(function(r){var s=r.byDTE[dte];maxVal=Math.max(maxVal,Math.abs(s.pnlBest),Math.abs(s.pnlEOD));});
+  if(maxVal===0) maxVal=1;
+  function pct(v){return Math.min(100,Math.abs(v)/maxVal*100).toFixed(1)+'%';}
+  function fc(v){
+    if(Math.abs(v)<0.5) return '—';
+    var a=Math.abs(v),s=a>=1000?'$'+(a/1000).toFixed(1)+'K':'$'+a.toFixed(0);
+    return (v>=0?'+':'-')+s;
+  }
+  function bar(v,color){
+    var w=pct(v),pos=v>0.5,neg=v<-0.5;
+    return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">'
+      +'<div style="width:68px;height:14px;background:#f1f5f9;border-radius:3px;overflow:hidden;flex-shrink:0">'
+        +'<div style="height:100%;width:'+w+';background:'+color+';border-radius:3px;transition:width .3s"></div>'
+      +'</div>'
+      +'<span style="font-size:11px;font-weight:800;color:'+(pos?color:neg?'#b91c1c':'#94a3b8')+'">'+fc(v)+'</span>'
+      +'</div>';
+  }
+  var html='';
+  sdResults.forEach(function(r,i){
+    var d=r.day,sd=r.byDTE[dte];
+    var on=i<onResults.length?onResults[i].byDTE[dte]:null;
+    var eodPct=((d.c-d.o)/d.o*100);
+    var upPct=((d.h-d.o)/d.o*100).toFixed(1),dnPct=((d.o-d.l)/d.o*100).toFixed(1);
+    var sdScore=(sd.pnlBest>0?1:0)+(sd.pnlEOD>0?1:0);
+    var onScore=on?((on.pnlBest>0?1:0)+(on.pnlEOD>0?1:0)):0;
+    var wb=sdScore>onScore?'border-left:4px solid #15803d':onScore>sdScore?'border-left:4px solid #6d28d9':'border-left:4px solid #e2e8f0';
+    html+='<div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;'+wb+';padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    html+='<div><span style="font-size:15px;font-weight:900;color:var(--text)">'+d.label+'</span>'
+      +'<span style="font-size:10px;color:#64748b;margin-left:8px">Open $'+d.o+'</span></div>';
+    html+='<div style="display:flex;gap:4px">'
+      +'<span style="font-size:9px;font-weight:800;color:#15803d;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;padding:2px 5px">↑'+upPct+'%</span>'
+      +'<span style="font-size:9px;font-weight:800;color:#b91c1c;background:#fef2f2;border:1px solid #fca5a5;border-radius:4px;padding:2px 5px">↓'+dnPct+'%</span>'
+      +'<span style="font-size:9px;font-weight:800;color:'+(eodPct>=0?'#15803d':'#b91c1c')+';background:'+(eodPct>=0?'#f0fdf4':'#fef2f2')+';border-radius:4px;padding:2px 5px">EOD '+(eodPct>=0?'+':'')+eodPct.toFixed(1)+'%</span>'
+      +'</div></div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+    // ── SAME DAY column ──
+    html+='<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:9px">';
+    html+='<div style="font-size:9px;font-weight:900;color:#15803d;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Same Day</div>';
+    // Bought / Sold row
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;background:#dcfce7;border-radius:6px;padding:5px 6px;margin-bottom:7px">';
+    html+='<div><div style="font-size:8px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.05em">Bought</div>'
+        +'<div style="font-size:13px;font-weight:900;color:#14532d">$'+sd.entryPrem.toFixed(2)+'</div>'
+        +'<div style="font-size:8px;color:#166534">spot $'+sd.entrySpot.toFixed(2)+'</div></div>';
+    html+='<div style="text-align:right"><div style="font-size:8px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.05em">Sold EOD</div>'
+        +'<div style="font-size:13px;font-weight:900;color:'+(sd.exitEodPrem>=sd.entryPrem?'#15803d':'#b91c1c')+'">$'+Math.max(0,sd.exitEodPrem).toFixed(2)+'</div>'
+        +'<div style="font-size:8px;color:#166534">spot $'+sd.exitEodSpot.toFixed(2)+'</div></div>';
+    html+='</div>';
+    html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px">Best '+(sd.beClears?'✓':'✗')+' @ $'+sd.bestSpotPx.toFixed(2)+'</div>';
+    html+=bar(sd.pnlBest,'#22c55e');
+    html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px;margin-top:4px">EOD P&amp;L</div>';
+    html+=bar(sd.pnlEOD,'#15803d');
+    html+='</div>';
+    // ── OVERNIGHT column ──
+    if(on){
+      html+='<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:9px;padding:9px">';
+      html+='<div style="font-size:9px;font-weight:900;color:#6d28d9;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Overnight</div>';
+      // Bought / Sold row
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;background:#ede9fe;border-radius:6px;padding:5px 6px;margin-bottom:7px">';
+      html+='<div><div style="font-size:8px;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.05em">Bought</div>'
+          +'<div style="font-size:13px;font-weight:900;color:#4c1d95">$'+on.entryPrem.toFixed(2)+'</div>'
+          +'<div style="font-size:8px;color:#6d28d9">spot $'+on.entrySpot.toFixed(2)+'</div></div>';
+      html+='<div style="text-align:right"><div style="font-size:8px;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.05em">Sold EOD</div>'
+          +'<div style="font-size:13px;font-weight:900;color:'+(on.exitEodPrem>=on.entryPrem?'#15803d':'#b91c1c')+'">$'+Math.max(0,on.exitEodPrem).toFixed(2)+'</div>'
+          +'<div style="font-size:8px;color:#6d28d9">spot $'+on.exitEodSpot.toFixed(2)+'</div></div>';
+      html+='</div>';
+      html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px">Best '+(on.beClears?'✓':'✗')+' @ $'+on.bestSpotPx.toFixed(2)+'</div>';
+      html+=bar(on.pnlBest,'#7c3aed');
+      html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px;margin-top:4px">EOD P&amp;L</div>';
+      html+=bar(on.pnlEOD,'#6d28d9');
+      html+='</div>';
+    } else {
+      html+='<div style="background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:9px;display:flex;align-items:center;justify-content:center">'
+        +'<span style="font-size:10px;color:#94a3b8;font-weight:600;text-align:center">No prior<br/>close for<br/>Overnight</span></div>';
+    }
+    html+='</div>';
+    if(on){
+      var wl=sdScore>onScore?'▲ Same Day wins':onScore>sdScore?'▲ Overnight wins':'Tie';
+      var wc=sdScore>onScore?'#15803d':onScore>sdScore?'#6d28d9':'#94a3b8';
+      html+='<div style="margin-top:8px;text-align:right;font-size:10px;font-weight:900;color:'+wc+'">'+wl+'</div>';
+    }
+    html+='</div>';
+  });
+  $('b-day-cards').innerHTML=html;
+  renderWeekSummary(dte,sdResults,onResults);
+  renderCostTable(dte,sdResults,onResults);
+}
+
+function renderWeekSummary(dte,sdResults,onResults){
+  function fc(v){if(Math.abs(v)<0.5)return '—';var a=Math.abs(v),s=a>=1000?'$'+(a/1000).toFixed(1)+'K':'$'+a.toFixed(0);return (v>=0?'+':'-')+s;}
+  var sdTB=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
+  var sdTE=sdResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0);
+  var sdWB=sdResults.filter(function(r){return r.byDTE[dte].pnlBest>0;}).length;
+  var sdWE=sdResults.filter(function(r){return r.byDTE[dte].pnlEOD>0;}).length;
+  var n=sdResults.length;
+  var onTB=onResults.length?onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0):null;
+  var onTE=onResults.length?onResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD;},0):null;
+  var onWB=onResults.filter(function(r){return r.byDTE[dte].pnlBest>0;}).length;
+  var onWE=onResults.filter(function(r){return r.byDTE[dte].pnlEOD>0;}).length;
+  var no=onResults.length;
+  var html='<div style="background:#0f172a;border-radius:12px;padding:12px 14px;margin-bottom:8px">';
+  html+='<div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Week Total — '+dte+'-DTE</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  html+='<div style="background:#0d1f0d;border:2px solid #16a34a;border-radius:9px;padding:10px">';
+  html+='<div style="font-size:9px;font-weight:900;color:#22c55e;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Same Day</div>';
+  html+=wsum('Best',fc(sdTB),sdTB>=0?'#4ade80':'#f87171');
+  html+=wsum('EOD',fc(sdTE),sdTE>=0?'#4ade80':'#f87171');
+  html+=wsum('Win B',sdWB+'/'+n,'#93c5fd');
+  html+=wsum('Win E',sdWE+'/'+n,'#93c5fd');
+  html+='</div>';
+  if(no>0){
+    html+='<div style="background:#1a103a;border:2px solid #7c3aed;border-radius:9px;padding:10px">';
+    html+='<div style="font-size:9px;font-weight:900;color:#8b5cf6;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Overnight</div>';
+    html+=wsum('Best',fc(onTB),onTB>=0?'#4ade80':'#f87171');
+    html+=wsum('EOD',fc(onTE),onTE>=0?'#4ade80':'#f87171');
+    html+=wsum('Win B',onWB+'/'+no,'#93c5fd');
+    html+=wsum('Win E',onWE+'/'+no,'#93c5fd');
+    html+='</div>';
+  } else {
+    html+='<div style="background:#1a103a;border:2px solid #7c3aed;border-radius:9px;padding:10px;display:flex;align-items:center;justify-content:center">'
+      +'<span style="color:#6d28d9;font-size:10px;font-weight:700;text-align:center">Need 2+<br/>days for<br/>Overnight</span></div>';
+  }
+  html+='</div>';
+  if(onTB!==null){
+    var sds=(sdTB>0?1:0)+(sdTE>0?1:0),ons=(onTB>0?1:0)+(onTE>0?1:0);
+    var wl=sds>ons?'Same Day wins the week':ons>sds?'Overnight wins the week':'Week is a tie';
+    var wc=sds>ons?'#22c55e':ons>sds?'#7c3aed':'#94a3b8';
+    html+='<div style="margin-top:10px;text-align:center;font-size:13px;font-weight:900;color:'+wc+'">'+wl+'</div>';
+  }
+  html+='</div>';
+  $('b-week-summary').innerHTML=html;
+}
+function wsum(lbl,val,color){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+    +'<span style="font-size:9px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">'+lbl+'</span>'
+    +'<span style="font-size:13px;font-weight:900;color:'+color+'">'+val+'</span></div>';
+}
+function renderCostTable(dte,sdResults,onResults){
+  var b='';
+  sdResults.forEach(function(r,i){
+    var d=r.day,sd=r.byDTE[dte],on=i<onResults.length?onResults[i].byDTE[dte]:null;
+    b+='<tr><td><b>'+d.label+'</b><div style="font-size:8px;color:#64748b">$'+d.o+'</div></td>';
+    b+='<td style="background:#f0fdf4"><b>$'+sd.cost.toFixed(0)+'</b> ×'+sd.contracts+'c</td>';
+    b+='<td style="background:#f0fdf4"><span style="color:#b45309;font-size:9px">±'+sd.bePct.toFixed(2)+'%</span></td>';
+    if(on){
+      b+='<td style="background:#f5f3ff"><b>$'+on.cost.toFixed(0)+'</b> ×'+on.contracts+'c</td>';
+      b+='<td style="background:#f5f3ff"><span style="color:#b45309;font-size:9px">±'+on.bePct.toFixed(2)+'%</span></td>';
+    } else b+='<td colspan="2" style="color:#94a3b8;font-size:9px">—</td>';
+    b+='</tr>';
+  });
+  $('b-cost-body').innerHTML=b;
+}
+
+/* setBtMode + setCmpDTE: kept for backward compat */
 function setBtMode(m){
   BT_MODE=m;
   $('bt-mode-open').className='tab'+(m==='open'?' on':'');
   $('bt-mode-overnight').className='tab'+(m==='overnight'?' on':'');
-  $('b-section-sameday').style.display=m==='open'?'block':'none';
-  $('b-section-overnight').style.display=m==='overnight'?'block':'none';
-  var note=$('b-mode-note');
-  if(note) note.innerHTML=m==='open'
-    ?'📈 Buy open · Best = intraday extreme · EOD = hold to close · ATM = open · Not financial advice'
-    :'🌙 Buy ~3:55pm at close · Exit next day EOD · ATM = entry close · Not financial advice';
 }
+function setCmpDTE(btn,v){CMP_DTE=v>=0?v:0;if(window._btSD)renderVisual(CMP_DTE,window._btSD,window._btON);}
 
 /* btSim — now accepts explicit dte parameter */
 function btSim(openPx,high,low,close,iv3,capital,dte){
@@ -2874,12 +2937,19 @@ function btSim(openPx,high,low,close,iv3,capital,dte){
   var pnlEOD=pnlAt(eodMove,remAtEOD,ivCrushEOD);
   var costPerShare=cost/100;
   var bePct=isAtm?costPerShare/openPx*100:Math.min((Kc+costPerShare-openPx)/openPx*100,(openPx-(Kp-costPerShare))/openPx*100);
+  // Compute exit premium values for display
+  var bestSpotPx=bestDir==='UP'?high:low;
+  var exitBestPrem=(pnlBest/contracts+cost)/100; // value per share at best exit
+  var exitEodPrem=(pnlEOD/contracts+cost)/100;   // value per share at EOD exit
   return{cost:cost,contracts:contracts,totalCost:totalCost,
     upMove:upMove,dnMove:dnMove,eodMove:eodMove,eodAbs:eodAbs,
     bestMove:bestMove,bestDir:bestDir,
     pnlBest:pnlBest,pnlEOD:pnlEOD,
     bePct:bePct,beClears:bestMove>=bePct,eodClears:eodAbs>=bePct,
-    strike:Math.round(openPx),Kc:Kc,Kp:Kp};
+    strike:Math.round(openPx),Kc:Kc,Kp:Kp,
+    entrySpot:openPx,entryPrem:costPerShare,
+    bestSpotPx:bestSpotPx,exitBestPrem:exitBestPrem,
+    exitEodSpot:close,exitEodPrem:exitEodPrem};
 }
 
 /* btSimOvernight — accepts explicit dte */
@@ -2925,12 +2995,17 @@ function btSimOvernight(entryClose,nextOpen,nextHigh,nextLow,nextClose,iv3,capit
   var pnlEOD=pnlAt(nextClose,remAtEOD,ivCrushEOD);
   var costPerShare=cost/100;
   var bePct=isAtm?costPerShare/K*100:Math.min((Kc+costPerShare-pivot)/pivot*100,(pivot-(Kp-costPerShare))/pivot*100);
+  var exitBestPrem=(pnlBest/contracts+cost)/100;
+  var exitEodPrem=(pnlEOD/contracts+cost)/100;
   return{cost:cost,contracts:contracts,totalCost:totalCost,
     upMove:upMove,dnMove:dnMove,eodMove:eodMove,eodAbs:eodAbs,
     bestMove:bestMove,bestDir:bestDir,
     pnlBest:pnlBest,pnlEOD:pnlEOD,
     bePct:bePct,beClears:bestMove>=bePct,eodClears:eodAbs>=bePct,
-    entryClose:entryClose,strike:K,Kc:Kc,Kp:Kp};
+    entryClose:entryClose,strike:K,Kc:Kc,Kp:Kp,
+    entrySpot:entryClose,entryPrem:costPerShare,
+    bestSpotPx:bestSpot,exitBestPrem:exitBestPrem,
+    exitEodSpot:nextClose,exitEodPrem:exitEodPrem};
 }
 
 
