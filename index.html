@@ -4444,13 +4444,19 @@ function alGoA(){
   }
 
   var cp,Kc,Kp,label,instrHtml;
+  var T=dte/365;
+  // Hoisted so plan box can reference regardless of which branch ran
+  var totalCost=0,totalCost2=0,totalCostD=0;
+  var bePct=0,beUp=0,beDn=0;
+  var contracts=0,contracts2=0,contractsD=0;
+  var Kdir=spot,isCall=false,bePctD=0;
 
   if(AL_A_DIR==='straddle'){
     var cost=prem(spot,dte,iv3);
     cp=cost*100;Kc=spot;Kp=spot;label='ATM Straddle';
-    var contracts=Math.max(1,Math.floor(capital/cp));
-    var totalCost=cp*contracts;
-    var bePct=(cp/100/spot*100);
+    contracts=Math.max(1,Math.floor(capital/cp));
+    totalCost=cp*contracts;
+    bePct=(cp/100/spot*100);
 
     $('al-a-rec-hdr').textContent=sym_a+' ATM Straddle';
     $('al-a-stats').innerHTML=
@@ -4491,10 +4497,10 @@ function alGoA(){
   } else if(AL_A_DIR==='strangle'){
     var sg=strangleAtDelta(spot,T,iv3,0.40);
     cp=sg.cost*100;Kc=sg.Kc;Kp=sg.Kp;label='Strangle 40Δ';
-    var contracts2=Math.max(1,Math.floor(capital/cp));
-    var totalCost2=cp*contracts2;
-    var beUp=(Kc+sg.cost-spot)/spot*100;
-    var beDn=(spot-Kp+sg.cost)/spot*100;
+    contracts2=Math.max(1,Math.floor(capital/cp));
+    totalCost2=cp*contracts2;
+    beUp=(Kc+sg.cost-spot)/spot*100;
+    beDn=(spot-Kp+sg.cost)/spot*100;
 
     $('al-a-rec-hdr').textContent=sym_a+' Strangle (40Δ)';
     $('al-a-stats').innerHTML=
@@ -4531,13 +4537,13 @@ function alGoA(){
 
   } else {
     // Directional call or put
-    var isCall=AL_A_DIR==='call';
-    var Kdir=isCall?spot*(1+AL_A_OTM/100):spot*(1-AL_A_OTM/100);
+    isCall=AL_A_DIR==='call';
+    Kdir=isCall?spot*(1+AL_A_OTM/100):spot*(1-AL_A_OTM/100);
     cp=(isCall?bsC(spot,Kdir,T,iv3):bsP(spot,Kdir,T,iv3))*100;
     if(cp<=0)return;
-    var contractsD=Math.max(1,Math.floor(capital/cp));
-    var totalCostD=cp*contractsD;
-    var bePctD=AL_A_OTM+(cp/100/spot*100);
+    contractsD=Math.max(1,Math.floor(capital/cp));
+    totalCostD=cp*contractsD;
+    bePctD=AL_A_OTM+(cp/100/spot*100);
 
     $('al-a-rec-hdr').textContent=sym_a+' '+(isCall?'Call':'Put')+' +'+AL_A_OTM+'% OTM';
     $('al-a-stats').innerHTML=
