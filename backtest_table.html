@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GammaEdge · Backtest Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f1f5f9;--p1:#fff;--p2:#f8fafc;--border:#e2e8f0;--borderB:#cbd5e1;
+  --text:#0a0f1e;--sub:#374151;--muted:#64748b;
+  --green:#15803d;--gbg:#f0fdf4;--gbd:#86efac;
+  --red:#b91c1c;--rbg:#fef2f2;--rbd:#fca5a5;
+  --amber:#b45309;--abg:#fffbeb;--abd:#fcd34d;
+  --blue:#1d4ed8;--bbg:#eff6ff;--bbd:#93c5fd;
+  --F:'Inter',-apple-system,sans-serif;--FM:'Inter',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--F);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font-family:var(--F);cursor:pointer;border:none;outline:none;background:none;touch-action:manipulation}
+input{font-family:var(--F);outline:none;-webkit-appearance:none}
+.app{max-width:520px;margin:0 auto;padding:12px 10px 60px}
+
+/* HEADER */
+.hdr{background:var(--text);border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:36px;height:36px;background:linear-gradient(135deg,#1d4ed8,#15803d);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.hdr-title{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.hdr-sub{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
+.back-btn{font-size:11px;font-weight:700;color:#94a3b8;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:6px 12px;text-decoration:none;display:flex;align-items:center;gap:4px}
+
+/* CARD */
+.card{background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-bottom:10px}
+
+/* TICKER TOGGLE */
+.tk-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.tk{padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:800;color:var(--muted);transition:all .12s;text-align:center}
+.tk.spy.on{background:var(--bbg);border-color:var(--bbd);color:var(--blue)}
+.tk.qqq.on{background:#faf5ff;border-color:#c4b5fd;color:#6d28d9}
+
+/* CONTROLS */
+.ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ctrl-label{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
+.ctrl-inp{width:100%;background:var(--p2);border:1.5px solid var(--borderB);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text)}
+.ctrl-inp:focus{border-color:var(--blue)}
+
+/* DELTA TOGGLE */
+.delta-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px}
+.delta-btn{padding:8px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;transition:all .12s}
+.delta-btn.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* STATUS */
+.fetch-status{font-size:11px;font-weight:600;padding:8px 11px;background:var(--bbg);border:1px solid var(--bbd);border-radius:7px;color:var(--blue);margin-bottom:10px}
+
+/* OHLC EDIT */
+.ohlc-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.edit-btn{font-size:10px;font-weight:700;color:var(--blue);background:var(--bbg);border:1px solid var(--bbd);border-radius:6px;padding:4px 10px}
+.ohlc-grid{display:grid;grid-template-columns:.9fr 1fr 1fr 1fr 1fr;gap:4px;margin-bottom:5px;padding:0 2px}
+.ohlc-hd{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.ohlc-inp{background:var(--p2);border:1.5px solid var(--border);border-radius:6px;padding:7px 4px;font-size:12px;font-weight:700;text-align:center;width:100%}
+.add-day-btn{width:100%;margin-top:7px;padding:8px;background:var(--bbg);border:1.5px dashed var(--bbd);border-radius:8px;color:var(--blue);font-size:12px;font-weight:700;text-align:center}
+
+/* ── MAIN TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px}
+.bt-table{width:100%;border-collapse:collapse;font-size:11px}
+.bt-table th{background:var(--text);color:#fff;padding:7px 8px;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;text-align:center}
+.bt-table th:first-child{text-align:left;border-radius:8px 0 0 0;min-width:52px}
+.bt-table th:last-child{border-radius:0 8px 0 0}
+.bt-table td{padding:8px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;white-space:nowrap}
+.bt-table td:first-child{text-align:left;font-weight:700;color:var(--text);font-size:12px}
+.bt-table tr:last-child td{border-bottom:none}
+.bt-table tr:hover td{background:#f8fafc}
+
+/* DTE group headers */
+.dte-hdr{background:#0f172a;color:#94a3b8;font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 8px;text-align:center}
+.dte-hdr-row td{padding:0}
+.dte-label{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 8px;background:#0f172a;color:#94a3b8;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+
+/* P&L cells */
+.pnl-pos{color:var(--green);font-weight:800}
+.pnl-neg{color:var(--red);font-weight:800}
+.pnl-zero{color:var(--muted);font-weight:600}
+.be-pass{background:#dcfce7;color:#14532d;font-size:8px;font-weight:800;padding:2px 5px;border-radius:3px}
+.be-fail{background:#fef2f2;color:#b91c1c;font-size:8px;font-weight:800;padding:2px 5px;border-radius:3px}
+
+/* cost chip */
+.cost-chip{font-size:9px;color:var(--muted);font-weight:600}
+
+/* SUMMARY ROW */
+.sum-row td{background:#f8fafc;border-top:2px solid var(--border);font-weight:800;padding:10px 8px}
+.sum-row td:first-child{color:var(--text)}
+
+/* AGG CARDS */
+.agg-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.agg-cell{background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.agg-lbl{font-size:8px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.agg-val{font-size:18px;font-weight:900;line-height:1}
+.agg-val.g{color:var(--green)}.agg-val.r{color:var(--red)}.agg-val.b{color:var(--blue)}.agg-val.a{color:var(--amber)}
+
+/* DTE TAB selector for agg */
+.dte-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+.dte-tab{padding:7px 4px;border:1.5px solid var(--border);border-radius:7px;font-size:10px;font-weight:700;color:var(--muted);text-align:center;transition:all .12s}
+.dte-tab.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+.note{font-size:9px;color:var(--muted);text-align:center;line-height:1.6;margin-top:10px;padding:0 4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">📊</div>
+    <div>
+      <div class="hdr-title">Backtest Table</div>
+      <div class="hdr-sub">All 4 DTEs · Day by Day · $P&amp;L</div>
+    </div>
+  </div>
+  <a href="index.html" class="back-btn">← GammaEdge</a>
+</div>
+
+<!-- CONFIG CARD -->
+<div class="card">
+  <div class="card-title">Setup</div>
+
+  <!-- Ticker -->
+  <div class="tk-row">
+    <button class="tk spy" id="tk-spy" onclick="setTicker('spy')">SPY</button>
+    <button class="tk qqq on" id="tk-qqq" onclick="setTicker('qqq')">QQQ</button>
+  </div>
+
+  <!-- Capital + IV -->
+  <div class="ctrl-grid">
+    <div>
+      <div class="ctrl-label">Capital ($)</div>
+      <input class="ctrl-inp" type="number" id="cfg-capital" value="20000" step="1000" inputmode="decimal" oninput="recalc()"/>
+    </div>
+    <div>
+      <div class="ctrl-label">IV % (est.)</div>
+      <input class="ctrl-inp" type="number" id="cfg-iv" value="21" step="0.5" inputmode="decimal" oninput="recalc()"/>
+    </div>
+  </div>
+
+  <!-- Delta -->
+  <div class="ctrl-label">Strategy</div>
+  <div class="delta-row">
+    <button class="delta-btn" id="delta-40" onclick="setDelta(40)">Strangle 40Δ</button>
+    <button class="delta-btn" id="delta-45" onclick="setDelta(45)">Strangle 45Δ</button>
+    <button class="delta-btn on" id="delta-50" onclick="setDelta(50)">Straddle ATM</button>
+  </div>
+</div>
+
+<!-- OHLC CARD -->
+<div class="card" id="ohlc-card">
+  <div class="ohlc-hdr">
+    <div class="card-title" style="margin-bottom:0">Daily OHLC Data</div>
+    <button class="edit-btn" onclick="toggleEdit()" id="edit-btn">Edit ▾</button>
+  </div>
+  <div id="fetch-status" class="fetch-status">Fetching data…</div>
+  <div id="ohlc-inputs" style="display:none">
+    <div class="ohlc-grid" style="margin-bottom:6px">
+      <span class="ohlc-hd" style="color:var(--muted)">Day</span>
+      <span class="ohlc-hd" style="color:var(--text);text-align:center">Open</span>
+      <span class="ohlc-hd" style="color:var(--green);text-align:center">High</span>
+      <span class="ohlc-hd" style="color:var(--red);text-align:center">Low</span>
+      <span class="ohlc-hd" style="color:var(--text);text-align:center">Close</span>
+    </div>
+    <div id="day-rows"></div>
+    <button class="add-day-btn" onclick="addDay()">+ Add Day</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results" style="display:none">
+
+  <!-- THE TABLE — all 4 DTEs side by side -->
+  <div class="card" style="padding:12px 8px">
+    <div class="card-title">Buy Open · Hold to EOD · $<span id="tbl-capital-lbl">20,000</span> Capital</div>
+    <div class="tbl-wrap">
+      <table class="bt-table" id="main-table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th colspan="2">0-DTE</th>
+            <th colspan="2">1-DTE</th>
+            <th colspan="2">5-DTE</th>
+            <th colspan="2">8-DTE</th>
+          </tr>
+          <tr style="background:#1e293b">
+            <td style="padding:4px 8px;font-size:8px;font-weight:700;color:#64748b;text-align:left">OHLC range</td>
+            <td class="dte-label">Best</td><td class="dte-label">EOD</td>
+            <td class="dte-label">Best</td><td class="dte-label">EOD</td>
+            <td class="dte-label">Best</td><td class="dte-label">EOD</td>
+            <td class="dte-label">Best</td><td class="dte-label">EOD</td>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COST TABLE -->
+  <div class="card" style="padding:12px 8px">
+    <div class="card-title">Premium Paid Per Day (per contract · contracts bought)</div>
+    <div class="tbl-wrap">
+      <table class="bt-table" id="cost-table">
+        <thead>
+          <tr>
+            <th>Day / Open</th>
+            <th>0-DTE</th>
+            <th>1-DTE</th>
+            <th>5-DTE</th>
+            <th>8-DTE</th>
+          </tr>
+        </thead>
+        <tbody id="cost-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AGGREGATE per DTE -->
+  <div class="card">
+    <div class="card-title">Weekly Totals by DTE</div>
+    <div id="agg-section"></div>
+  </div>
+
+  <div class="note">
+    Best = exit at intraday extreme · EOD = hold to close · ATM strike = open price<br/>
+    ~25% IV crush intraday · Not financial advice
+  </div>
+</div>
+
+</div><!-- /app -->
+<script>
+/* ── CONFIG ── */
+var TICKER='qqq', DELTA=50, DTES=[0,1,5,8];
+var CAPITAL=20000, IV=0.21;
+var AV_KEY='SBJ9BETAMVAZQM9D';
+var DEFS={spy:{iv:18},qqq:{iv:21}};
+var DAYS=[
+  {label:'Mon',o:'',h:'',l:'',c:''},
+  {label:'Tue',o:'',h:'',l:'',c:''},
+  {label:'Wed',o:'',h:'',l:'',c:''},
+  {label:'Thu',o:'',h:'',l:'',c:''},
+  {label:'Fri',o:'',h:'',l:'',c:''}
+];
+
+/* ── MATH (identical to index.html) ── */
+function erf(x){var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911,s=x<0?-1:1;x=Math.abs(x);var t=1/(1+p*x);return s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));}
+function Ncdf(x){return 0.5*(1+erf(x/Math.sqrt(2)));}
+function bsC(S,K,T,v){if(T<=0)return Math.max(S-K,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return S*Ncdf(d1)-K*Ncdf(d1-v*Math.sqrt(T));}
+function bsP(S,K,T,v){if(T<=0)return Math.max(K-S,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return K*Ncdf(-(d1-v*Math.sqrt(T)))-S*Ncdf(-d1);}
+function prem(s,d,v){return s*v*Math.sqrt(d/365)*.8;}
+function callput(s,k,r,v,c){if(r<=0)return c?Math.max(s-k,0):Math.max(k-s,0);var T=Math.max(r,.01)/365,st=v*Math.sqrt(T)||.01,m=(s-k)/(s*st),atm=s*st*.4;return(c?Math.max(s-k,0):Math.max(k-s,0))+atm*Math.exp(-.5*m*m);}
+function crush(h,d){if(h<=0||h>=d)return 0;return .25*(1-(h-1)/Math.max(d-1,1));}
+function deltaCall(S,K,T,v){if(T<=0||v<=0)return S>K?1:S<K?0:0.5;var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return Ncdf(d1);}
+function otmPctFromDelta(S,T,v,tgt){if(tgt>=0.499)return 0;var lo=0,hi=15,mid;for(var i=0;i<25;i++){mid=(lo+hi)/2;var K=S*(1+mid/100);var d=deltaCall(S,K,T,v);if(d>tgt)lo=mid;else hi=mid;}return mid;}
+function strangleAtDelta(S,T,v,tgt){var otmPct=otmPctFromDelta(S,T,v,tgt);var Kc=S*(1+otmPct/100),Kp=S*(1-otmPct/100);var cost=bsC(S,Kc,T,v)+bsP(S,Kp,T,v);return{Kc:Kc,Kp:Kp,otmPct:otmPct,cost:cost};}
+
+/* ── SIMULATION (matches index.html btSim exactly) ── */
+function btSim(openPx,high,low,close,iv3,capital,dte){
+  var dteForCost=Math.max(dte,0.1);
+  var isAtm=DELTA===50;
+  var Kc,Kp,cost;
+  if(isAtm){
+    Kc=openPx;Kp=openPx;
+    cost=prem(openPx,dteForCost,iv3)*100;
+  } else {
+    var sg=strangleAtDelta(openPx,dteForCost/365,iv3,DELTA/100);
+    if(dte>=5){Kc=Math.round(sg.Kc);Kp=Math.round(sg.Kp);}
+    else{Kc=sg.Kc;Kp=sg.Kp;}
+    cost=(bsC(openPx,Kc,dteForCost/365,iv3)+bsP(openPx,Kp,dteForCost/365,iv3))*100;
+  }
+  var contracts=capital>0&&cost>0?Math.max(1,Math.floor(capital/cost)):1;
+  var totalCost=cost*contracts;
+  var upMove=(high-openPx)/openPx*100;
+  var dnMove=(openPx-low)/openPx*100;
+  var eodMove=(close-openPx)/openPx*100;
+  var eodAbs=Math.abs(eodMove);
+  var bestMove=Math.max(upMove,dnMove);
+  var bestDir=upMove>=dnMove?'UP':'DOWN';
+  var remAtBest=dte===0?0.05:dte===1?0.4:dte-0.4;
+  var remAtEOD=dte===0?0:dte-1;
+  var ivCrushIntra=dte===0?0.35:dte===1?0.20:0.10;
+  var ivCrushEOD=dte===0?1.0:dte===1?0.25:0.15;
+
+  function pnlAt(movePct,remDays,ivCrush){
+    var np=openPx*(1+movePct/100);
+    var eiv=iv3*(1-ivCrush);
+    var rem=Math.max(remDays,0);
+    var val;
+    if(rem<0.01){val=(Math.max(np-Kc,0)+Math.max(Kp-np,0))*100;}
+    else if(isAtm){val=(callput(np,Kc,rem,eiv,true)+callput(np,Kp,rem,eiv,false))*100;}
+    else{val=(bsC(np,Kc,rem/365,eiv)+bsP(np,Kp,rem/365,eiv))*100;}
+    return(val-cost)*contracts;
+  }
+
+  var pnlBest=pnlAt(bestDir==='UP'?bestMove:-dnMove,remAtBest,ivCrushIntra);
+  var pnlEOD=pnlAt(eodMove,remAtEOD,ivCrushEOD);
+  var costPerShare=cost/100;
+  var bePct=isAtm?costPerShare/openPx*100:Math.min((Kc+costPerShare-openPx)/openPx*100,(openPx-(Kp-costPerShare))/openPx*100);
+
+  return{cost:cost,contracts:contracts,totalCost:totalCost,
+    upMove:upMove,dnMove:dnMove,eodMove:eodMove,eodAbs:eodAbs,
+    bestMove:bestMove,bestDir:bestDir,
+    pnlBest:pnlBest,pnlEOD:pnlEOD,
+    bePct:bePct,beClears:bestMove>=bePct,eodClears:eodAbs>=bePct};
+}
+
+/* ── HELPERS ── */
+function $(i){return document.getElementById(i);}
+function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fp(v){return(v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
+function pnlCell(v){
+  if(Math.abs(v)<0.5) return '<span class="pnl-zero">—</span>';
+  var cls=v>0?'pnl-pos':'pnl-neg';
+  return '<span class="'+cls+'">'+fp(v)+'</span>';
+}
+function beTag(clears){return clears?'<span class="be-pass">✓</span>':'<span class="be-fail">✗</span>';}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',function(){
+  $('cfg-capital').value=CAPITAL;
+  $('cfg-iv').value=IV*100;
+  fetchOHLC();
+});
+
+/* ── TICKER ── */
+function setTicker(t){
+  TICKER=t;
+  ['spy','qqq'].forEach(function(x){
+    $('tk-'+x).className='tk '+x+(t===x?' on':'');
+  });
+  $('cfg-iv').value=DEFS[t].iv;
+  IV=DEFS[t].iv/100;
+  fetchOHLC();
+}
+
+/* ── DELTA ── */
+function setDelta(d){
+  DELTA=d;
+  [40,45,50].forEach(function(x){
+    $('delta-'+x).className='delta-btn'+(d===x?' on':'');
+  });
+  recalc();
+}
+
+/* ── TOGGLE EDIT ── */
+function toggleEdit(){
+  var inp=$('ohlc-inputs');
+  var btn=$('edit-btn');
+  var hidden=inp.style.display==='none';
+  inp.style.display=hidden?'block':'none';
+  btn.textContent=hidden?'Hide ▴':'Edit ▾';
+}
+
+/* ── FETCH OHLC ── */
+function fetchOHLC(){
+  var sym=TICKER.toUpperCase();
+  $('fetch-status').textContent='Fetching '+sym+' last 5 days…';
+  $('fetch-status').style.color='var(--blue)';
+  var url='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol='+sym+'&outputsize=compact&apikey='+AV_KEY;
+  var timer=setTimeout(function(){
+    $('fetch-status').textContent='Fetch timed out — enter data manually (Edit ▾)';
+    $('fetch-status').style.color='var(--amber)';
+  },10000);
+  fetch(url)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      clearTimeout(timer);
+      var ts=data['Time Series (Daily)'];
+      if(!ts){$('fetch-status').textContent='No data — enter manually (Edit ▾)';$('fetch-status').style.color='var(--red)';return;}
+      var dates=Object.keys(ts).sort().slice(-5);
+      DAYS=[];
+      dates.forEach(function(dt){
+        var r=ts[dt];
+        var dow=new Date(dt+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'});
+        DAYS.push({label:dow+' '+dt.slice(5),o:parseFloat(r['1. open']).toFixed(2),h:parseFloat(r['2. high']).toFixed(2),l:parseFloat(r['3. low']).toFixed(2),c:parseFloat(r['4. close']).toFixed(2)});
+      });
+      $('fetch-status').textContent='✓ '+sym+' — last 5 trading days loaded';
+      $('fetch-status').style.color='var(--green)';
+      renderDayInputs();
+      recalc();
+    })
+    .catch(function(){
+      clearTimeout(timer);
+      $('fetch-status').textContent='Fetch failed — enter manually (Edit ▾)';
+      $('fetch-status').style.color='var(--red)';
+    });
+}
+
+/* ── DAY INPUTS ── */
+function renderDayInputs(){
+  var sh='';
+  DAYS.forEach(function(d,i){
+    sh+='<div class="ohlc-grid" style="margin-bottom:5px;align-items:center">';
+    sh+='<span style="font-size:11px;font-weight:700;color:var(--text)">'+d.label+'</span>';
+    ['o','h','l','c'].forEach(function(f,fi){
+      var col=fi===0?'var(--text)':fi===1?'var(--green)':fi===2?'var(--red)':'var(--text)';
+      sh+='<input class="ohlc-inp" type="number" step="0.01" inputmode="decimal" value="'+d[f]+'" '
+         +'style="color:'+col+'" '
+         +'oninput="setDay('+i+',\''+f+'\',this.value)" placeholder="0"/>';
+    });
+    sh+='</div>';
+  });
+  $('day-rows').innerHTML=sh;
+}
+
+function setDay(i,f,v){DAYS[i][f]=v;recalc();}
+function addDay(){
+  var labels=['Mon','Tue','Wed','Thu','Fri','Day '+(DAYS.length+1)];
+  DAYS.push({label:labels[DAYS.length]||('D'+(DAYS.length+1)),o:'',h:'',l:'',c:''});
+  renderDayInputs();
+}
+
+/* ── RECALC ── */
+function recalc(){
+  CAPITAL=parseFloat($('cfg-capital').value)||20000;
+  IV=parseFloat($('cfg-iv').value)/100||0.21;
+
+  // Collect valid days
+  var valid=DAYS.filter(function(d){
+    var o=parseFloat(d.o),h=parseFloat(d.h),l=parseFloat(d.l),c=parseFloat(d.c);
+    return o>0&&h>0&&l>0&&c>0&&h>=o&&l<=o;
+  }).map(function(d){
+    return{label:d.label,o:parseFloat(d.o),h:parseFloat(d.h),l:parseFloat(d.l),c:parseFloat(d.c)};
+  });
+
+  if(valid.length===0){$('results').style.display='none';return;}
+  $('results').style.display='block';
+  $('tbl-capital-lbl').textContent=fmt(CAPITAL);
+
+  // Run sim for all days × all DTEs
+  var allResults=valid.map(function(day){
+    var byDTE={};
+    DTES.forEach(function(dte){
+      byDTE[dte]=btSim(day.o,day.h,day.l,day.c,IV,CAPITAL,dte);
+    });
+    return{day:day,byDTE:byDTE};
+  });
+
+  renderMainTable(allResults, valid);
+  renderCostTable(allResults, valid);
+  renderAgg(allResults);
+}
+
+/* ── MAIN P&L TABLE ── */
+function renderMainTable(allResults, valid){
+  var body='';
+
+  allResults.forEach(function(r){
+    var d=r.day;
+    var upPct=((d.h-d.o)/d.o*100).toFixed(1);
+    var dnPct=((d.o-d.l)/d.o*100).toFixed(1);
+    var eodPct=((d.c-d.o)/d.o*100);
+    var eodSign=eodPct>=0?'+':'';
+    var rangeTxt='↑'+upPct+'% ↓'+dnPct+'% EOD'+eodSign+eodPct.toFixed(1)+'%';
+
+    body+='<tr>';
+    body+='<td><div style="font-size:12px;font-weight:800;color:var(--text)">'+d.label+'</div>'
+        +'<div style="font-size:9px;color:var(--muted);margin-top:1px">'+rangeTxt+'</div></td>';
+
+    DTES.forEach(function(dte){
+      var s=r.byDTE[dte];
+      // Best exit
+      body+='<td>'+pnlCell(s.pnlBest)+'<br/>'+beTag(s.beClears)+'</td>';
+      // EOD
+      var eodClr=s.pnlEOD>0?'#14532d':s.pnlEOD<-50?'#b91c1c':'var(--muted)';
+      body+='<td style="color:'+eodClr+'">'+pnlCell(s.pnlEOD)+'</td>';
+    });
+
+    body+='</tr>';
+  });
+
+  // TOTALS ROW
+  body+='<tr class="sum-row">';
+  body+='<td>WEEK TOTAL</td>';
+  DTES.forEach(function(dte){
+    var totBest=allResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
+    var totEOD =allResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD; },0);
+    body+='<td>'+pnlCell(totBest)+'</td>';
+    body+='<td>'+pnlCell(totEOD)+'</td>';
+  });
+  body+='</tr>';
+
+  $('tbl-body').innerHTML=body;
+}
+
+/* ── COST TABLE ── */
+function renderCostTable(allResults, valid){
+  var body='';
+  allResults.forEach(function(r){
+    var d=r.day;
+    body+='<tr>';
+    body+='<td><div style="font-weight:800">'+d.label+'</div><div style="font-size:9px;color:var(--muted)">Open $'+d.o+'</div></td>';
+    DTES.forEach(function(dte){
+      var s=r.byDTE[dte];
+      body+='<td>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--text)">$'+s.cost.toFixed(0)+'/c</div>'
+        +'<div class="cost-chip">×'+s.contracts+'c = $'+fmt(s.totalCost)+'</div>'
+        +'<div style="font-size:8px;color:var(--amber);margin-top:1px">B/E ±'+s.bePct.toFixed(2)+'%</div>'
+        +'</td>';
+    });
+    body+='</tr>';
+  });
+  $('cost-body').innerHTML=body;
+}
+
+/* ── AGG SUMMARY ── */
+function renderAgg(allResults){
+  var rows='';
+  DTES.forEach(function(dte){
+    var totBest =allResults.reduce(function(a,r){return a+r.byDTE[dte].pnlBest;},0);
+    var totEOD  =allResults.reduce(function(a,r){return a+r.byDTE[dte].pnlEOD; },0);
+    var totCost =allResults.reduce(function(a,r){return a+r.byDTE[dte].totalCost;},0);
+    var winBest =allResults.filter(function(r){return r.byDTE[dte].pnlBest>0;}).length;
+    var winEOD  =allResults.filter(function(r){return r.byDTE[dte].pnlEOD>0;}).length;
+    var n=allResults.length;
+    var avgBePct=allResults.reduce(function(a,r){return a+r.byDTE[dte].bePct;},0)/n;
+
+    var bestClr=totBest>=0?'var(--green)':'var(--red)';
+    var eodClr =totEOD >=0?'var(--green)':'var(--red)';
+
+    rows+=''
+      +'<div style="background:#f8fafc;border:2px solid '+(dte===0?'var(--blue)':dte===1?'var(--green)':dte===5?'var(--amber)':'var(--red)')+';border-radius:10px;padding:12px;margin-bottom:8px">'
+      +'<div style="font-size:10px;font-weight:900;color:var(--text);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">'+dte+'-DTE</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">'
+
+      +'<div><div class="agg-lbl">Best Exit Total</div>'
+      +'<div class="agg-val" style="color:'+bestClr+'">'+fp(totBest)+'</div></div>'
+
+      +'<div><div class="agg-lbl">EOD Total</div>'
+      +'<div class="agg-val" style="color:'+eodClr+'">'+fp(totEOD)+'</div></div>'
+
+      +'<div><div class="agg-lbl">Premium Spent</div>'
+      +'<div class="agg-val a">$'+fmt(totCost)+'</div></div>'
+
+      +'<div><div class="agg-lbl">Win Days (Best)</div>'
+      +'<div class="agg-val b">'+winBest+'/'+n+'</div></div>'
+
+      +'<div><div class="agg-lbl">Win Days (EOD)</div>'
+      +'<div class="agg-val b">'+winEOD+'/'+n+'</div></div>'
+
+      +'<div><div class="agg-lbl">Avg B/E Needed</div>'
+      +'<div class="agg-val" style="color:var(--amber)">±'+avgBePct.toFixed(2)+'%</div></div>'
+
+      +'</div></div>';
+  });
+  $('agg-section').innerHTML=rows;
+}
+</script>
+</body>
+</html>
