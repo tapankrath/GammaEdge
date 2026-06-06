@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OptionsAI"/>
+<meta name="application-name" content="OptionsAI"/>
+<meta name="theme-color" content="#ffffff"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>OptionsAI</title>
+<style>
+/* ── RESET & TOKENS ── */
+:root{
+  --bg:#f8f9fa;
+  --p1:#ffffff;
+  --border:#e5e7eb;
+  --borderB:#d1d5db;
+  --text:#09101f;
+  --dim:#111827;
+  --sub:#6b7280;
+  --muted:#9ca3af;
+  --green:#16a34a;
+  --gbg:#f0fdf4;
+  --gbd:#86efac;
+  --red:#dc2626;
+  --rbg:#fef2f2;
+  --rbd:#fca5a5;
+  --F:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --FM:'SF Mono','Fira Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--F);
+  font-size:14px;-webkit-font-smoothing:antialiased;min-height:100dvh;}
+button{font-family:var(--F);touch-action:manipulation;cursor:pointer;
+  -webkit-user-select:none;user-select:none;border:none;outline:none;}
+input{outline:none;-webkit-appearance:none;appearance:none;font-family:var(--F);}
+.sticky-top{position:sticky;top:0;z-index:50;background:var(--bg);max-width:480px;margin:0 auto;padding:10px 12px 0;}
+.app{max-width:480px;margin:0 auto;padding:8px 12px 72px;}
+html,body{scroll-padding-top:190px;}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;flex-direction:column;
+  background:#fff;border:2px solid var(--text);
+  border-radius:14px;padding:8px 10px 7px;
+  box-shadow:3px 3px 0 var(--text);gap:7px;
+}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:7px;}
+.logo-mark{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-name{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
+.logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+/* market pills — full width second row */
+.mkt-pills{display:flex;gap:5px;width:100%;}
+.mkt-q{
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  background:var(--bg);border:1.5px solid var(--borderB);
+  border-radius:7px;padding:4px 5px;flex:1;overflow:hidden;min-width:0;
+}
+.mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
+.mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
+.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:var(--sub);
+  letter-spacing:.02em;white-space:nowrap;}
+.mkt-q.up .mkt-sym{color:var(--green);}
+.mkt-q.dn .mkt-sym{color:var(--red);}
+.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;white-space:nowrap;}
+.mkt-q.up .mkt-chg{color:var(--green);}
+.mkt-q.dn .mkt-chg{color:var(--red);}
+.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
+  animation:ldp 1.2s ease-in-out infinite;}
+@keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
+.hdr-right{display:flex;align-items:center;gap:5px;}
+.live-pill{
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--gbg);border:1.5px solid var(--gbd);
+  border-radius:20px;padding:3px 8px;
+  font-size:9px;font-weight:800;color:var(--green);letter-spacing:.08em;
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.btn-gear{
+  width:28px;height:28px;border-radius:7px;font-size:13px;
+  background:#fff;border:1.5px solid var(--borderB);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.btn-gear:active{background:var(--bg);}
+.gear-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;
+  border-radius:50%;background:var(--green);border:1.5px solid #fff;display:none;}
+.gear-dot.set{display:block;}
+
+/* ── SETTINGS MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal-sheet{width:100%;max-width:480px;background:#fff;
+  border-radius:20px 20px 0 0;padding:0 0 46px;
+  border-top:2px solid var(--text);
+  animation:shUp .22s cubic-bezier(.4,0,.2,1);}
+@keyframes shUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:40px;height:4px;background:var(--borderB);border-radius:2px;margin:12px auto 16px;}
+.sh-title{font-size:17px;font-weight:900;padding:0 18px 14px;
+  border-bottom:1px solid var(--border);color:var(--text);}
+.sh-body{padding:14px 18px;}
+.sh-lbl{font-size:10px;font-weight:800;color:var(--sub);letter-spacing:.16em;
+  text-transform:uppercase;margin-bottom:7px;}
+.sh-row{display:flex;gap:7px;}
+.sh-inp{flex:1;background:var(--bg);border:1.5px solid var(--borderB);
+  border-radius:9px;padding:11px 13px;font-size:13px;font-weight:600;
+  color:var(--text);font-family:var(--FM);}
+.sh-inp:focus{border-color:var(--text);}
+.sh-inp::placeholder{color:var(--muted);font-family:var(--F);font-weight:400;}
+.sh-eye{background:var(--bg);border:1.5px solid var(--borderB);border-radius:9px;
+  padding:11px 13px;font-size:16px;color:var(--sub);}
+.sh-note{font-size:11px;color:var(--sub);margin-top:7px;line-height:1.6;}
+.sh-note a{color:var(--text);text-decoration:underline;font-weight:700;}
+.sh-status{display:flex;align-items:center;gap:7px;margin-top:11px;
+  padding:9px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid;}
+.sh-status.saved{background:var(--gbg);border-color:var(--gbd);color:var(--green);}
+.sh-status.empty{background:var(--rbg);border-color:var(--rbd);color:var(--red);}
+.btn-save{width:100%;margin-top:13px;padding:14px;
+  background:var(--text);color:#fff;border-radius:10px;
+  font-size:15px;font-weight:900;transition:opacity .15s;}
+.btn-save:active{opacity:.8;}
+.btn-cancel{width:100%;margin-top:7px;padding:10px;
+  background:transparent;color:var(--sub);font-size:13px;font-weight:700;}
+
+/* ── WEEK CARD ── */
+.week-card{background:#fff;border:2px solid var(--text);border-radius:12px;
+  padding:9px 12px;margin-top:8px;box-shadow:3px 3px 0 var(--text);}
+.card-lbl{font-size:9px;font-weight:800;color:var(--sub);letter-spacing:.16em;
+  text-transform:uppercase;margin-bottom:7px;}
+.week-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.wbtn{padding:10px 4px;text-align:center;background:var(--bg);
+  border:1.5px solid var(--borderB);border-radius:8px;
+  font-size:13px;font-weight:700;color:var(--sub);transition:all .1s;}
+.wbtn.on{background:var(--text);color:#fff;border-color:var(--text);}
+.wbtn:active{opacity:.8;}
+.macro-note{display:flex;align-items:center;gap:6px;
+  background:var(--gbg);border:1.5px solid var(--gbd);
+  border-radius:7px;padding:7px 10px;margin-top:9px;
+  font-size:11px;font-weight:700;color:var(--green);}
+.macro-note::before{content:'✦';font-size:10px;}
+
+/* ── RUN BUTTON ── */
+.btn-run{
+  width:100%;padding:15px;
+  background:var(--text);color:#fff;
+  border-radius:12px;font-size:16px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:opacity .15s,transform .1s;
+  box-shadow:3px 3px 0 var(--green);
+  letter-spacing:-.2px;
+}
+.btn-run:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--green);}
+.btn-run:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--green);}
+.btn-spin{width:16px;height:16px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;
+  animation:spin .7s linear infinite;display:none;flex-shrink:0;}
+.btn-run.loading .btn-spin{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── STATUS ── */
+.status-bar{display:none;align-items:center;gap:8px;
+  background:var(--gbg);border:1.5px solid var(--gbd);
+  border-radius:8px;padding:10px 13px;margin-top:8px;
+  font-size:12px;color:var(--green);font-weight:700;}
+.status-bar.on{display:flex;}
+.s-spin{width:12px;height:12px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--gbd);border-top-color:var(--green);
+  animation:spin .8s linear infinite;}
+
+/* ── NO KEY ── */
+.no-key{display:none;align-items:center;gap:8px;
+  background:#fffbeb;border:1.5px solid #fde68a;
+  border-radius:8px;padding:9px 12px;margin-bottom:10px;
+  font-size:12px;color:#92400e;font-weight:700;cursor:pointer;}
+.no-key.show{display:flex;}
+
+/* ── ERROR ── */
+.err-box{display:none;margin-top:8px;background:var(--rbg);
+  border:1.5px solid var(--rbd);border-radius:8px;
+  padding:11px 13px;font-size:12px;color:var(--red);font-weight:700;line-height:1.6;}
+
+/* ── RESULTS ── */
+.results{display:none;margin-top:10px;}
+.results.on{display:block;}
+
+/* results header */
+.res-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.res-title{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.4px;}
+.res-badge{font-family:var(--FM);font-size:10px;font-weight:700;
+  padding:4px 10px;border-radius:20px;
+  background:var(--text);color:#fff;letter-spacing:.04em;}
+
+/* macro strip */
+.macro-strip{background:#fff;border:1.5px solid var(--border);
+  border-left:4px solid var(--text);
+  border-radius:0 8px 8px 0;
+  padding:9px 12px;margin-bottom:10px;}
+.macro-strip-lbl{font-size:9px;font-weight:800;color:var(--sub);
+  letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px;}
+.macro-strip-txt{font-size:12px;color:var(--dim);line-height:1.55;font-weight:600;}
+
+/* ── EARN ROW (collapsed) ── */
+.earn-list{display:flex;flex-direction:column;gap:0;}
+
+.earn-row{
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:0;
+  overflow:hidden;
+  cursor:pointer;
+  transition:border-color .12s;
+}
+.earn-row:first-child{border-radius:10px 10px 0 0;}
+.earn-row:last-child{border-radius:0 0 10px 10px;}
+.earn-row:not(:last-child){border-bottom:none;}
+.earn-row.open{border-color:var(--text);border-radius:10px!important;
+  margin:4px 0;box-shadow:3px 3px 0 var(--text);}
+
+/* collapsed row header */
+.er-head{
+  display:flex;align-items:center;gap:0;
+  padding:11px 13px;
+  -webkit-tap-highlight-color:transparent;
+}
+.er-rank{
+  width:22px;height:22px;border-radius:5px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--FM);font-size:11px;font-weight:800;
+  background:var(--bg);border:1.5px solid var(--borderB);color:var(--sub);
+  margin-right:10px;
+}
+.er-rank.top{background:var(--text);color:#fff;border-color:var(--text);}
+.er-ticker{font-family:var(--FM);font-size:17px;font-weight:900;color:var(--text);
+  letter-spacing:-.3px;min-width:58px;}
+.er-company{font-size:11px;color:var(--sub);font-weight:600;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 8px;}
+.er-meta{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.er-date{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--sub);}
+.er-when{font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;
+  letter-spacing:.04em;text-transform:uppercase;}
+.er-when.bmo{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
+.er-when.amc{background:var(--bg);color:var(--sub);border:1px solid var(--borderB);}
+
+/* signal chip in row */
+.er-signal{
+  flex-shrink:0;font-family:var(--FM);font-size:10px;font-weight:900;
+  padding:3px 8px;border-radius:5px;letter-spacing:.04em;
+  margin-left:6px;
+}
+.er-signal.call{background:var(--gbg);color:var(--green);border:1.5px solid var(--gbd);}
+.er-signal.put{background:var(--rbg);color:var(--red);border:1.5px solid var(--rbd);}
+.er-signal.straddle{background:#fff;color:var(--text);border:1.5px solid var(--text);}
+.er-signal.avoid{background:var(--bg);color:var(--sub);border:1.5px solid var(--borderB);}
+
+/* chevron */
+.er-chev{
+  flex-shrink:0;width:20px;height:20px;margin-left:6px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:transform .2s;
+}
+.earn-row.open .er-chev{transform:rotate(180deg);}
+
+/* ── EXPANDED BODY ── */
+.er-body{
+  display:none;
+  border-top:1.5px solid var(--border);
+  padding:13px;
+  animation:fadeUp .2s cubic-bezier(.4,0,.2,1) both;
+}
+.earn-row.open .er-body{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* verdict big */
+.er-verdict{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.er-sig-big{font-size:22px;font-weight:900;letter-spacing:-.5px;}
+.er-sig-big.call{color:var(--green);}
+.er-sig-big.put{color:var(--red);}
+.er-sig-big.straddle{color:var(--text);}
+.er-sig-big.avoid{color:var(--sub);}
+.er-conf{font-family:var(--FM);font-size:11px;font-weight:800;
+  padding:5px 11px;border-radius:6px;border:1.5px solid var(--text);}
+
+/* why text */
+.er-why{font-size:13px;color:var(--dim);line-height:1.55;font-weight:600;margin-bottom:9px;}
+
+/* earnings note */
+.er-earn{
+  display:flex;align-items:flex-start;gap:7px;
+  background:#fffbeb;border:1.5px solid #fde68a;
+  border-radius:7px;padding:8px 10px;margin-bottom:10px;
+  font-size:12px;color:#92400e;font-weight:700;line-height:1.45;
+}
+
+/* IV bar */
+.iv-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.iv-lbl{font-family:var(--FM);font-size:10px;font-weight:800;color:var(--sub);white-space:nowrap;}
+.iv-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.iv-fill{height:100%;border-radius:3px;background:var(--text);}
+.iv-rank{font-family:var(--FM);font-size:11px;font-weight:800;color:var(--text);}
+
+/* P&L table */
+.pl-wrap{border:1.5px solid var(--text);border-radius:9px;overflow:hidden;}
+.pl-hdr{display:grid;grid-template-columns:.9fr 1fr .6fr .7fr .65fr;
+  background:var(--text);padding:0;}
+.phd{padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.07em;text-align:center;color:rgba(255,255,255,.6);font-family:var(--FM);}
+.phd:first-child{text-align:left;padding-left:10px;color:rgba(255,255,255,.4);}
+.pl-row{display:grid;grid-template-columns:.9fr 1fr .6fr .7fr .65fr;
+  border-top:1px solid var(--border);min-height:46px;}
+.pl-row:nth-child(even){background:#fafafa;}
+.pl-row.best-row{background:var(--gbg)!important;border-left:3px solid var(--green);}
+.pl-row.best-row.bear-best{background:var(--rbg)!important;border-left-color:var(--red);}
+.pc-sc{padding:8px 5px 8px 11px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+.pc-scname{font-size:12px;font-weight:800;color:var(--text);}
+.pc-move{font-family:var(--FM);font-size:11px;font-weight:700;}
+.pc-move.up{color:var(--green);} .pc-move.dn{color:var(--red);}  .pc-move.fl{color:var(--sub);}
+.pc-cell{padding:8px 4px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+  border-left:1px solid var(--border);}
+.pc-strat{font-size:11px;font-weight:800;color:var(--text);text-align:center;line-height:1.3;}
+.pc-exp{font-size:10px;color:var(--sub);text-align:center;font-weight:600;}
+.pc-val{font-family:var(--FM);font-size:12px;font-weight:800;text-align:center;}
+.pc-val.pos{color:var(--green);} .pc-val.neg{color:var(--red);} .pc-val.sub{color:var(--sub);}
+.pc-sub{font-size:9px;color:var(--sub);text-align:center;font-weight:600;}
+
+/* straddle note */
+.pl-note{padding:8px 11px;font-size:11px;color:var(--dim);
+  line-height:1.55;border-top:1px solid var(--border);
+  background:#fafafa;font-weight:600;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;}
+.empty-ico{font-size:52px;opacity:.2;line-height:1;}
+.empty-txt{font-size:14px;color:var(--sub);line-height:1.7;font-weight:600;}
+
+/* ── DISC ── */
+.disc{background:var(--rbg);border:1.5px solid var(--rbd);border-radius:8px;
+  padding:10px 12px;margin-top:10px;font-size:11px;color:var(--red);
+  line-height:1.6;font-weight:700;}
+
+/* animations */
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sin{animation:slideIn .28s cubic-bezier(.4,0,.2,1) both;}
+.sin:nth-child(2){animation-delay:.04s}.sin:nth-child(3){animation-delay:.08s}
+.sin:nth-child(4){animation-delay:.12s}.sin:nth-child(5){animation-delay:.16s}
+.sin:nth-child(6){animation-delay:.20s}.sin:nth-child(7){animation-delay:.24s}
+.sin:nth-child(8){animation-delay:.28s}.sin:nth-child(9){animation-delay:.32s}
+.sin:nth-child(10){animation-delay:.36s}
+
+/* toast */
+#toast{position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--text);color:#fff;
+  padding:10px 22px;border-radius:28px;
+  font-size:13px;font-weight:700;z-index:300;
+  white-space:nowrap;opacity:0;
+  transition:opacity .2s,transform .2s;pointer-events:none;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);}
+
+/* ── BACK TO GAMMAEDGE ── */
+.btn-back{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--text);color:#fff;
+  border:none;border-radius:7px;padding:5px 10px;
+  font-size:11px;font-weight:800;letter-spacing:.03em;
+  text-decoration:none;white-space:nowrap;
+  transition:opacity .15s;
+}
+.btn-back:active{opacity:.75;}
+.btn-back svg{width:12px;height:12px;stroke:#fff;stroke-width:2.5;
+  stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal" onclick="modalBg(event)">
+    <div class="modal-sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">⚙️ API Settings</div>
+      <div class="sh-body">
+        <div class="sh-lbl">Anthropic API Key</div>
+        <div class="sh-row">
+          <input class="sh-inp" id="modalKey" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+          <button class="sh-eye" id="eyeBtn" onclick="toggleEye()">👁</button>
+        </div>
+        <div class="sh-note">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+        <div class="sh-status" id="shStatus"></div>
+        <button class="btn-save" onclick="saveKey()">Save Key</button>
+        <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ══ STICKY TOP ══ -->
+<div class="sticky-top">
+
+  <!-- HEADER (sticky card 1) -->
+  <div class="hdr">
+    <!-- Row 1: logo + controls -->
+    <div class="hdr-top">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <rect x="2"  y="12" width="3" height="6" rx="1" fill="white" opacity=".5"/>
+            <rect x="7"  y="8"  width="3" height="10" rx="1" fill="white" opacity=".75"/>
+            <rect x="12" y="4"  width="3" height="14" rx="1" fill="white"/>
+            <circle cx="17" cy="3" r="2.5" fill="#22c55e"/>
+          </svg>
+        </div>
+        <div class="logo-name">Options<em>AI</em></div>
+      </div>
+      <div class="hdr-right">
+        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
+        <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+        <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
+      </div>
+    </div>
+    <!-- Row 2: market quotes full width -->
+    <div class="mkt-pills">
+      <div class="mkt-q" id="mq-spy">
+        <span class="mkt-sym">S&amp;P</span>
+        <span class="mkt-load">···</span>
+      </div>
+      <div class="mkt-q" id="mq-qqq">
+        <span class="mkt-sym">NAS</span>
+        <span class="mkt-load">···</span>
+      </div>
+      <div class="mkt-q" id="mq-dia">
+        <span class="mkt-sym">DOW</span>
+        <span class="mkt-load">···</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NO KEY -->
+  <div class="no-key" id="noKey" onclick="openSettings()">
+    ⚠️ No API key — tap to add
+  </div>
+
+  <!-- WEEK SELECTOR (sticky card 2) -->
+  <div class="week-card">
+    <div class="card-lbl">Earnings Week</div>
+    <div class="week-btns">
+      <button class="wbtn on" data-w="this" onclick="setWeek(this,'this')">This Week</button>
+      <button class="wbtn" data-w="next" onclick="setWeek(this,'next')">Next Week</button>
+      <button class="wbtn" data-w="week3" onclick="setWeek(this,'week3')">Week After</button>
+    </div>
+    <div class="macro-note">Fed · CPI · VIX · Yields · Sector flows — all factored in</div>
+  </div>
+
+</div><!-- /sticky-top -->
+
+<div class="app">
+
+  <!-- RUN -->
+  <button class="btn-run" id="runBtn" onclick="runAnalysis()">
+    <div class="btn-spin"></div>
+    <span id="runTxt">⚡ Get Top 10 Earnings Plays</span>
+  </button>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">
+    <div class="s-spin"></div>
+    <span id="statusTxt">Connecting to Claude AI…</span>
+  </div>
+
+  <!-- ERROR -->
+  <div class="err-box" id="errBox"></div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+
+  <!-- EMPTY -->
+  <div class="empty" id="emptyState">
+    <div class="empty-ico">🎯</div>
+    <div class="empty-txt">
+      Select a week and tap<br/><strong>Get Top 10 Earnings Plays</strong><br/>
+      Each row collapses — tap to expand<br/>for strategy + full P&amp;L scenarios.
+    </div>
+  </div>
+
+
+</div><!-- /app -->
+
+<div id="toast"></div>
+<script>
+var selWeek='this';
+var analysisLog=[];
+try{analysisLog=JSON.parse(localStorage.getItem('oai2_log')||'[]');}catch(e){analysisLog=[];}
+if(!Array.isArray(analysisLog))analysisLog=[];
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',function(){
+  updateGear(); checkKey();
+  fetchQuotes(); setInterval(fetchQuotes,60000);
+});
+
+// ── LIVE QUOTES ──
+function fetchQuotes(){
+  var syms=[['SPY','S&P'],['QQQ','NAS'],['DIA','DOW']];
+  syms.forEach(function(pair){
+    var ticker=pair[0],label=pair[1];
+    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=5d';
+    var proxies=[
+      'https://corsproxy.io/?'+encodeURIComponent(url),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+    ];
+    function tryNext(i){
+      if(i>=proxies.length){
+        // No fallback with stale numbers — just show dashes
+        var el=document.getElementById(ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase());
+        if(el)el.innerHTML='<span class="mkt-sym">'+label+'</span><span class="mkt-load">—</span>';
+        return;
+      }
+      fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+        .then(function(r){if(!r.ok)throw 0;return r.json();})
+        .then(function(raw){
+          var d=typeof raw==='string'?JSON.parse(raw):raw;
+          var res=d.chart.result[0];
+          var meta=res.meta;
+          var price=meta.regularMarketPrice;
+          // Use regularMarketPreviousClose — the correct field
+          var prev=meta.regularMarketPreviousClose||meta.previousClose;
+          // If >12% change, use actual bar data (stale previousClose guard)
+          if(!prev||Math.abs((price-prev)/prev)>0.12){
+            var closes=(res.indicators.quote[0].close||[]).filter(function(c){return c!=null;});
+            if(closes.length>=2){prev=closes[closes.length-2];price=closes[closes.length-1]||price;}
+          }
+          var pct=prev?((price-prev)/prev*100):0;
+          renderQ(ticker,label,price,pct);
+        })
+        .catch(function(){tryNext(i+1);});
+    }
+    tryNext(0);
+  });
+}
+function renderQ(ticker,label,price,pct){
+  var elId=ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase();
+  var el=document.getElementById(elId);
+  if(!el)return;
+  var up=pct>=0;
+  el.className='mkt-q '+(up?'up':'dn');
+  el.innerHTML='<span class="mkt-sym">'+label+'</span>'
+    +'<span class="mkt-px">'+price.toFixed(2)+'</span>'
+    +'<span class="mkt-chg">'+(up?'+':'')+pct.toFixed(2)+'%</span>';
+}
+
+// ── SETTINGS ──
+function openSettings(){
+  var inp=document.getElementById('modalKey');
+  inp.value=localStorage.getItem('oai2_key')||'';
+  updShStatus(inp.value);
+  document.getElementById('settingsModal').classList.add('open');
+  setTimeout(function(){inp.focus();},280);
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+function modalBg(e){if(e.target===document.getElementById('settingsModal'))closeSettings();}
+function toggleEye(){
+  var i=document.getElementById('modalKey'),b=document.getElementById('eyeBtn');
+  i.type=i.type==='password'?'text':'password';
+  b.textContent=i.type==='password'?'👁':'🙈';
+}
+function updShStatus(k){
+  var el=document.getElementById('shStatus');
+  if(k&&k.indexOf('sk-')===0){el.className='sh-status saved';el.innerHTML='✓ Key saved';}
+  else if(k){el.className='sh-status empty';el.innerHTML='⚠ Should start with sk-ant-';}
+  else{el.className='sh-status empty';el.innerHTML='⚠ No key set';}
+}
+function saveKey(){
+  var k=document.getElementById('modalKey').value.trim();
+  try{localStorage.setItem('oai2_key',k);}catch(e){}
+  updateGear();updShStatus(k);checkKey();
+  toast('✓ Key saved');
+  setTimeout(closeSettings,600);
+}
+function updateGear(){
+  var k=localStorage.getItem('oai2_key')||'';
+  document.getElementById('gearDot').className=k?'gear-dot set':'gear-dot';
+}
+function checkKey(){
+  var k=localStorage.getItem('oai2_key')||'';
+  document.getElementById('noKey').className=k?'no-key':'no-key show';
+}
+
+// ── UTILS ──
+function toast(msg,dur){
+  dur=dur||2400;
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(function(){el.style.opacity='0';el.style.transform='translateX(-50%) translateY(8px)';},dur);
+}
+function showErr(msg){var b=document.getElementById('errBox');b.innerHTML='❌ '+msg;b.style.display='block';}
+function clearErr(){document.getElementById('errBox').style.display='none';}
+function setWeek(el,w){
+  selWeek=w;
+  document.querySelectorAll('.wbtn').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+}
+
+// ── COLLAPSE/EXPAND ──
+function toggleRow(el){
+  var wasOpen=el.classList.contains('open');
+  // close all
+  document.querySelectorAll('.earn-row.open').forEach(function(r){r.classList.remove('open');});
+  if(!wasOpen) el.classList.add('open');
+}
+
+// ── MAIN ──
+function runAnalysis(){
+  var apiKey=localStorage.getItem('oai2_key')||'';
+  clearErr();
+  if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
+
+  var btn=document.getElementById('runBtn'),lbl=document.getElementById('runTxt');
+  btn.disabled=true;btn.classList.add('loading');lbl.textContent='Analyzing…';
+  var sb=document.getElementById('statusBar'),st=document.getElementById('statusTxt');
+  sb.classList.add('on');
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('results').classList.remove('on');
+
+  var steps=['Searching live earnings calendar…','Filtering out already-reported…','Checking macro environment…','Building P&L scenarios…','Finalizing plays…'];
+  var si=0;st.textContent=steps[0];
+  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
+
+  callClaude(apiKey,buildPrompt())
+    .then(function(raw){
+      clearInterval(stimer);sb.classList.remove('on');
+      var parsed=parseResp(raw);
+      renderResults(parsed);
+    })
+    .catch(function(err){
+      clearInterval(stimer);sb.classList.remove('on');
+      showErr(err.message||'Failed — check API key in ⚙️');
+      document.getElementById('emptyState').style.display='';
+    })
+    .finally(function(){
+      btn.disabled=false;btn.classList.remove('loading');
+      lbl.textContent='⚡ Get Top 10 Earnings Plays';
+    });
+}
+
+function callClaude(key,prompt){
+  return fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:4500,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
+  }).then(function(res){
+    return res.json().then(function(data){
+      if(!res.ok){
+        var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+        if(res.status===401)m='Invalid API key — tap ⚙️ to update';
+        if(res.status===429)m='Rate limit — wait and retry';
+        throw new Error(m);
+      }
+      // Extract text from content blocks (web_search returns mixed tool_use + text blocks)
+      var blocks=data.content||[];
+      var text='';
+      for(var i=0;i<blocks.length;i++){
+        if(blocks[i].type==='text') text+=blocks[i].text;
+      }
+      if(text) return text;
+      throw new Error('Empty response — try again');
+    });
+  }).catch(function(e){
+    if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error');
+    throw e;
+  });
+}
+
+// ── PROMPT ──
+function buildPrompt(){
+  var today=new Date();
+  var todayFull=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
+    :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
+
+  return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n\n'
+    +'STEP 1 — SEARCH LIVE CALENDAR: Use web_search for "earnings calendar week of '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
+    +'from earningswhispers.com, nasdaq.com, or benzinga.com. Get the real schedule — do not use training data.\n\n'
+    +'STEP 2 — FILTER RUTHLESSLY: Keep ONLY companies reporting STRICTLY AFTER '+todayFull+'. '
+    +'Anything already reported = remove immediately. No exceptions.\n\n'
+    +'STEP 3 — PICK ONLY ACTIONABLE PLAYS: From the verified upcoming list, select between 5 and 10 stocks that have '
+    +'a CLEAR, HIGH-CONVICTION options setup (CALL or PUT or STRADDLE). '
+    +'DO NOT include AVOID signals — if a stock has no clear edge, skip it entirely and pick a better one. '
+    +'Prefer: mega/large-cap, high options OI, stocks with momentum or strong analyst consensus. '
+    +'Quality over quantity — 5 great plays beats 10 mediocre ones.\n\n'
+    +'For each play: recommend CALL, PUT, or STRADDLE (never AVOID) with HIGH or MED confidence only. '
+    +'Base on: analyst consensus, recent price trend, earnings beat history, '
+    +'macro (Fed stance, 10Y yield, VIX, sector rotation). '
+    +'3 P&L scenarios. All text max 12 words.\n\n'
+    +'Return ONLY raw JSON — no markdown, no preamble:\n'
+    +'{"week":"'+wl+'",'
+    +'"macroSnapshot":"<18 words: current regime>",'
+    +'"plays":['
+    +'{"rank":1,"ticker":"","company":"","reportDate":"","reportTime":"AMC|BMO",'
+    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
+    +'"why":"<12w>","earningsNote":"<10w EPS context>",'
+    +'"iv":"","ivRank":"","execPriority":1,'
+    +'"scenarios":['
+    +'{"name":"Bull","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""},'
+    +'{"name":"Base","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""},'
+    +'{"name":"Bear","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""}'
+    +'],"straddleNote":"<12w>"}'
+    +']} '
+    +'Every play must come from web search results. Sort by execPriority: 1=execute first.';
+}
+
+function wkEnd(n){
+  var d=new Date(),day=d.getDay();
+  var toFri=(5-day+7)%7||(day===5?7:0);
+  d.setDate(d.getDate()+toFri+(n*7));
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+// ── PARSE ──
+function parseResp(raw){
+  // Strip markdown fences
+  var clean=raw.replace(/```json[\s\S]*?```/g,function(m){return m.replace(/```json/,'').replace(/```/,'');})
+               .replace(/```/g,'').trim();
+  // Try to find JSON object with "plays" key — scan for { after any preamble text
+  var best=null;
+  var idx=0;
+  while(idx<clean.length){
+    var s=clean.indexOf('{',idx);
+    if(s===-1)break;
+    // Find matching closing brace
+    var depth=0,e=-1;
+    for(var i=s;i<clean.length;i++){
+      if(clean[i]==='{')depth++;
+      else if(clean[i]==='}'){depth--;if(depth===0){e=i;break;}}
+    }
+    if(e===-1)break;
+    var chunk=clean.slice(s,e+1);
+    try{
+      var obj=JSON.parse(chunk);
+      if(obj.plays&&Array.isArray(obj.plays)&&obj.plays.length>0){best=obj;break;}
+    }catch(err){}
+    idx=s+1;
+  }
+  if(!best)throw new Error('No plays in response — retry');
+  return best;
+}
+
+// ── RENDER ──
+function renderResults(d){
+  var plays=Array.isArray(d.plays)?d.plays:[];
+
+  // Strip any AVOIDs that slipped through
+  plays = plays.filter(function(p){
+    return (p.signal||'').toLowerCase() !== 'avoid';
+  });
+
+  // Sort by execPriority (lower = execute first)
+  plays.sort(function(a,b){
+    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
+    return ap-bp;
+  });
+  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+
+  var html='<div class="res-hdr sin">'
+    +'<div class="res-title">Earnings Plays</div>'
+    +'<div class="res-badge">'+plays.length+' actionable</div>'
+    +'</div>';
+
+  if(d.macroSnapshot){
+    html+='<div class="macro-strip sin">'
+      +'<div class="macro-strip-lbl">Macro Backdrop</div>'
+      +'<div class="macro-strip-txt">'+esc(d.macroSnapshot)+'</div>'
+      +'</div>';
+  }
+
+  if(!plays.length){
+    html+='<div class="empty"><div class="empty-ico">🔍</div>'
+      +'<div class="empty-txt">No high-conviction plays found for this week.<br/>Try Next Week.</div></div>';
+    var el=document.getElementById('results');
+    el.innerHTML=html; el.classList.add('on'); return;
+  }
+
+  html+='<div class="earn-list">';
+
+  for(var i=0;i<plays.length;i++){
+    var p=plays[i];
+    var sig=(p.signal||'').toLowerCase();
+    var sigCls=sig==='call'?'call':sig==='put'?'put':sig==='straddle'||sig==='strangle'?'straddle':'avoid';
+    var sigTxt=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':sig==='strangle'?'◇ STRANGLE':'— AVOID';
+    var sigBig=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':sig==='strangle'?'◇ STRANGLE':'— AVOID';
+    var isTop=i<3;
+    var dispRank=p._displayRank||p.rank||i+1;
+    var rtCls=(p.reportTime||'').toUpperCase()==='BMO'?'bmo':'amc';
+    var rtTxt=(p.reportTime||'').toUpperCase()==='BMO'?'BMO':'AMC';
+    var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
+
+    // P&L rows
+    var scens=Array.isArray(p.scenarios)?p.scenarios:[];
+    var plRows='';
+    for(var j=0;j<scens.length;j++){
+      var sc=scens[j];
+      var md=(sc.move||'').charAt(0)==='-'?'dn':(sc.move||'').charAt(0)==='+'?'up':'fl';
+      var bestRow=(sig==='call'&&j===0)||(sig==='put'&&j===2)||(sigCls==='straddle'&&j===0);
+      var bearBest=sig==='put'&&j===2;
+      var gc=(sc.maxGain||'').charAt(0)==='-'?'neg':'pos';
+      plRows+='<div class="pl-row'+(bestRow?' best-row'+(bearBest?' bear-best':''):'')+'">'
+        +'<div class="pc-sc"><span class="pc-scname">'+esc(sc.name||'')+'</span>'
+          +'<span class="pc-move '+md+'">'+esc(sc.move||'')+'</span></div>'
+        +'<div class="pc-cell"><span class="pc-strat">'+esc(sc.strategy||'')+'</span>'
+          +'<span class="pc-exp">'+esc(sc.expiry||'')+'</span></div>'
+        +'<div class="pc-cell"><span class="pc-val '+gc+'">'+esc(sc.maxGain||'—')+'</span>'
+          +'<span class="pc-sub">max</span></div>'
+        +'<div class="pc-cell"><span class="pc-val sub">'+esc(sc.prob||'—')+'</span>'
+          +'<span class="pc-sub">prob</span></div>'
+        +'</div>';
+    }
+
+    html+='<div class="earn-row sin" onclick="toggleRow(this)">'
+      // collapsed header
+      +'<div class="er-head">'
+        +'<div class="er-rank'+(isTop?' top':'')+'">'+dispRank+'</div>'
+        +'<div class="er-ticker">'+esc(p.ticker||'')+'</div>'
+        +'<div class="er-company">'+esc(p.company||'')+'</div>'
+        +'<div class="er-meta">'
+          +'<span class="er-date">'+esc(p.reportDate||'')+'</span>'
+          +'<span class="er-when '+rtCls+'">'+rtTxt+'</span>'
+          +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
+        +'</div>'
+        +'<div class="er-chev">'
+          +'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l4 4 4-4"/></svg>'
+        +'</div>'
+      +'</div>'
+      // expanded body
+      +'<div class="er-body">'
+        +'<div class="er-verdict '+sigCls+'">'
+          +'<div class="er-sig-big '+sigCls+'">'+sigBig+'</div>'
+          +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+            +'<div class="er-conf">'+esc(p.confidence||'')+'</div>'
+            +(p.execPriority?'<div style="font-size:9px;font-weight:800;color:var(--sub);font-family:var(--FM);letter-spacing:.06em;">#'+p.execPriority+' PRIORITY</div>':'')
+          +'</div>'
+        +'</div>'
+        +(p.why?'<div class="er-why">'+esc(p.why)+'</div>':'')
+        +(p.earningsNote?'<div class="er-earn">📅 '+esc(p.earningsNote)+'</div>':'')
+        +'<div class="iv-row">'
+          +'<span class="iv-lbl">IV '+esc(p.iv||'—')+'</span>'
+          +'<div class="iv-track"><div class="iv-fill" style="width:'+Math.min(ivNum,100)+'%"></div></div>'
+          +'<span class="iv-rank">'+esc(p.ivRank||'')+'</span>'
+        +'</div>'
+        +'<div class="pl-wrap">'
+          +'<div class="pl-hdr">'
+            +'<div class="phd">Scenario</div>'
+            +'<div class="phd">Strategy</div>'
+            +'<div class="phd">DTE</div>'
+            +'<div class="phd">Max Gain</div>'
+            +'<div class="phd">Prob</div>'
+          +'</div>'
+          +plRows
+          +(p.straddleNote?'<div class="pl-note">💡 '+esc(p.straddleNote)+'</div>':'')
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }
+
+  html+='</div>'; // earn-list
+
+  var el=document.getElementById('results');
+  el.innerHTML=html;
+  el.classList.add('on');
+  setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'});},60);
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"]/g,function(c){
+    return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+</script>
+</body>
+</html>
