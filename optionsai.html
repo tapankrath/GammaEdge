@@ -61,20 +61,21 @@ html,body{scroll-padding-top:190px;}
 .logo-name{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 /* market pills — full width second row */
-.mkt-pills{display:flex;gap:5px;width:100%;}
+.mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
-  display:flex;align-items:center;justify-content:center;gap:5px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
   background:var(--bg);border:1.5px solid var(--borderB);
-  border-radius:7px;padding:4px 8px;flex:1;overflow:hidden;
+  border-radius:7px;padding:5px 4px;flex:1;overflow:hidden;min-width:0;
+  white-space:nowrap;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
 .mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
-.mkt-sym{font-family:var(--FM);font-size:10px;font-weight:900;color:var(--sub);
-  letter-spacing:.04em;white-space:nowrap;}
+.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:var(--sub);
+  letter-spacing:.02em;white-space:nowrap;}
 .mkt-q.up .mkt-sym{color:var(--green);}
 .mkt-q.dn .mkt-sym{color:var(--red);}
-.mkt-px{font-family:var(--FM);font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;}
-.mkt-chg{font-family:var(--FM);font-size:10px;font-weight:800;white-space:nowrap;}
+.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;white-space:nowrap;}
 .mkt-q.up .mkt-chg{color:var(--green);}
 .mkt-q.dn .mkt-chg{color:var(--red);}
 .mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
@@ -436,11 +437,11 @@ html,body{scroll-padding-top:190px;}
     <!-- Row 2: market quotes full width -->
     <div class="mkt-pills">
       <div class="mkt-q" id="mq-spy">
-        <span class="mkt-sym">SPY</span>
+        <span class="mkt-sym">S&amp;P</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-qqq">
-        <span class="mkt-sym">QQQ</span>
+        <span class="mkt-sym">NAS</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-dia">
@@ -515,25 +516,45 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── LIVE QUOTES ──
 function fetchQuotes(){
-  // SPY and QQQ direct; DIA = Dow ETF proxy for DOW
-  var syms=[['SPY','SPY'],['QQQ','QQQ'],['DIA','DOW']];
+  var syms=[['SPY','S&P'],['QQQ','NAS'],['DIA','DOW']];
   syms.forEach(function(pair){
     var ticker=pair[0],label=pair[1];
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var m=JSON.parse(d.contents).chart.result[0].meta;
-        renderQ(ticker,label,m.regularMarketPrice,(m.regularMarketPrice-(m.chartPreviousClose||m.previousClose))/(m.chartPreviousClose||m.previousClose)*100);
-      }).catch(function(){
-        var fb={'SPY':[582.30,.41],'QQQ':[499.60,.63],'DIA':[432.80,.18]};
-        renderQ(ticker,label,fb[ticker][0],fb[ticker][1]);
-      });
+    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=5d';
+    var proxies=[
+      'https://corsproxy.io/?'+encodeURIComponent(url),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+    ];
+    function tryNext(i){
+      if(i>=proxies.length){
+        // No fallback with stale numbers — just show dashes
+        var el=document.getElementById(ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase());
+        if(el)el.innerHTML='<span class="mkt-sym">'+label+'</span><span class="mkt-load">—</span>';
+        return;
+      }
+      fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+        .then(function(r){if(!r.ok)throw 0;return r.json();})
+        .then(function(raw){
+          var d=typeof raw==='string'?JSON.parse(raw):raw;
+          var res=d.chart.result[0];
+          var meta=res.meta;
+          var price=meta.regularMarketPrice;
+          // Use regularMarketPreviousClose — the correct field
+          var prev=meta.regularMarketPreviousClose||meta.previousClose;
+          // If >12% change, use actual bar data (stale previousClose guard)
+          if(!prev||Math.abs((price-prev)/prev)>0.12){
+            var closes=(res.indicators.quote[0].close||[]).filter(function(c){return c!=null;});
+            if(closes.length>=2){prev=closes[closes.length-2];price=closes[closes.length-1]||price;}
+          }
+          var pct=prev?((price-prev)/prev*100):0;
+          renderQ(ticker,label,price,pct);
+        })
+        .catch(function(){tryNext(i+1);});
+    }
+    tryNext(0);
   });
 }
 function renderQ(ticker,label,price,pct){
-  // DOW uses DIA element id
-  var elId=label==='DOW'?'mq-dia':'mq-'+ticker.toLowerCase();
+  var elId=ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase();
   var el=document.getElementById(elId);
   if(!el)return;
   var up=pct>=0;
@@ -624,7 +645,13 @@ function runAnalysis(){
   callClaude(apiKey,buildPrompt())
     .then(function(raw){
       clearInterval(stimer);sb.classList.remove('on');
-      var parsed=parseResp(raw);
+      var parsed;
+      try{parsed=parseResp(raw);}
+      catch(pe){
+        // Show first 120 chars of raw so user can see what Claude returned
+        var preview=raw.replace(/[\r\n]+/g,' ').trim().slice(0,120);
+        throw new Error('Parse failed — Claude returned: '+preview+'…');
+      }
       renderResults(parsed);
     })
     .catch(function(err){
@@ -723,12 +750,31 @@ function wkEnd(n){
 
 // ── PARSE ──
 function parseResp(raw){
-  var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-  var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
-  if(s>-1&&e>-1)clean=clean.slice(s,e+1);
-  var parsed=JSON.parse(clean);
-  if(!parsed.plays||!parsed.plays.length)throw new Error('No plays returned — try again');
-  return parsed;
+  // Strip markdown fences
+  var clean=raw.replace(/```json[\s\S]*?```/g,function(m){return m.replace(/```json/,'').replace(/```/,'');})
+               .replace(/```/g,'').trim();
+  // Try to find JSON object with "plays" key — scan for { after any preamble text
+  var best=null;
+  var idx=0;
+  while(idx<clean.length){
+    var s=clean.indexOf('{',idx);
+    if(s===-1)break;
+    // Find matching closing brace
+    var depth=0,e=-1;
+    for(var i=s;i<clean.length;i++){
+      if(clean[i]==='{')depth++;
+      else if(clean[i]==='}'){depth--;if(depth===0){e=i;break;}}
+    }
+    if(e===-1)break;
+    var chunk=clean.slice(s,e+1);
+    try{
+      var obj=JSON.parse(chunk);
+      if(obj.plays&&Array.isArray(obj.plays)&&obj.plays.length>0){best=obj;break;}
+    }catch(err){}
+    idx=s+1;
+  }
+  if(!best)throw new Error('No plays in response — retry');
+  return best;
 }
 
 // ── RENDER ──
