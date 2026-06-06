@@ -504,7 +504,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
       Wheel income compounds over time. Target 2–4% monthly premium on capital deployed.
     </div>
-    <button onclick="alPrefillLog('Conservative','wheel')" style="width:100%;background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
+      <button onclick="alPrefillLog('Conservative','wheel')" style="background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="openOptionStrat('c')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
+      </button>
+    </div>
   </div>
 </div>
 
@@ -593,7 +598,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
       Collar: near-zero net cost hedge. Protective Put: full upside kept, pay premium for floor.
     </div>
-    <button onclick="alPrefillLog('Moderate','collar')" style="width:100%;background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
+      <button onclick="alPrefillLog('Moderate','collar')" style="background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="openOptionStrat('m')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
+      </button>
+    </div>
   </div>
 </div>
 
@@ -692,7 +702,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
       Exit straddle/strangle at 50–100% profit or when move materializes. Never hold to expiry — theta kills value fast.
     </div>
-    <button onclick="alPrefillLog('Aggressive','options')" style="width:100%;background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
+      <button onclick="alPrefillLog('Aggressive','options')" style="background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="openOptionStrat('a')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4118,6 +4133,7 @@ function alGoC(){
     return;
   }
   var sym_c=($('al-c-ticker')&&$('al-c-ticker').value)||'SPY';
+  var isSellPut=AL_C_PHASE==='put';
   if(isSellPut){
     // Sell cash-secured put
     var K=spot*(1-otmPct/100);
@@ -4594,6 +4610,50 @@ function alGoA(){
   }
   if($('al-a-instructions')&&planRows.length)$('al-a-instructions').innerHTML+=alPlanBox(planRows);
 } // end alGoA
+
+/* ── OPTIONSTRAT DEEP LINK ── */
+function openOptionStrat(card){
+  var stratMap={
+    'sell-put':'short-put','covered-call':'covered-call',
+    'collar':'collar','protective-put':'long-put',
+    'call':'long-call','put':'long-put',
+    'straddle':'long-straddle','strangle':'long-strangle'
+  };
+  var ticker,strat,strike,exp,baseUrl='https://optionstrat.com/build/';
+  if(card==='c'){
+    ticker=($('al-c-ticker')&&$('al-c-ticker').value)||'SPY';
+    strat=AL_C_PHASE==='put'?'short-put':'covered-call';
+    var spot=alFv('al-c1'),otm=alFv('al-c4')||5,dte=alIv('al-c3')||30;
+    strike=AL_C_PHASE==='put'?(spot*(1-otm/100)).toFixed(0):(spot*(1+otm/100)).toFixed(0);
+    exp=alExpDate(dte);
+  } else if(card==='m'){
+    ticker=($('al-m-ticker')&&$('al-m-ticker').value)||'SPY';
+    strat=AL_M_STRAT==='collar'?'collar':'long-put';
+    var spotM=alFv('al-m1'),otmM=alFv('al-m4')||5,dteM=alIv('al-m3')||30;
+    strike=(spotM*(1-otmM/100)).toFixed(0);
+    exp=alExpDate(dteM);
+  } else {
+    ticker=(($('al-a-ticker-inp')&&$('al-a-ticker-inp').value)||'QQQ').toUpperCase();
+    var dirMap={call:'long-call',put:'long-put',straddle:'long-straddle',strangle:'long-strangle'};
+    strat=dirMap[AL_A_DIR]||'long-straddle';
+    var spotA=alFv('al-a1'),dteA=alIv('al-a3')||7,otmA=alFv('al-a4')||0;
+    strike=spotA.toFixed(0);
+    exp=alExpDate(dteA);
+  }
+  // Build URL — OptionStrat accepts /build/strategy/TICKER and pre-fills
+  var url=baseUrl+strat+'/'+ticker;
+  // Try to open native app first, fall back to web
+  window.open(url,'_blank');
+}
+
+function alExpDate(dte){
+  var d=new Date();
+  d.setDate(d.getDate()+(dte||30));
+  var yy=String(d.getFullYear()).slice(2);
+  var mm=String(d.getMonth()+1).padStart(2,'0');
+  var dd=String(d.getDate()).padStart(2,'0');
+  return yy+mm+dd;
+}
 
 /* ── ALLOCAI TRADE LOG ── */
 function alPrefillLog(bucket,type){
