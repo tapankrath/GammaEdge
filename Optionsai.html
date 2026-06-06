@@ -61,11 +61,12 @@ html,body{scroll-padding-top:190px;}
 .logo-name{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 /* market pills — full width second row */
-.mkt-pills{display:flex;gap:5px;width:100%;}
+.mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
-  display:flex;align-items:center;justify-content:center;gap:3px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
   background:var(--bg);border:1.5px solid var(--borderB);
-  border-radius:7px;padding:4px 5px;flex:1;overflow:hidden;min-width:0;
+  border-radius:7px;padding:5px 4px;flex:1;overflow:hidden;min-width:0;
+  white-space:nowrap;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
 .mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
@@ -644,7 +645,13 @@ function runAnalysis(){
   callClaude(apiKey,buildPrompt())
     .then(function(raw){
       clearInterval(stimer);sb.classList.remove('on');
-      var parsed=parseResp(raw);
+      var parsed;
+      try{parsed=parseResp(raw);}
+      catch(pe){
+        // Show first 120 chars of raw so user can see what Claude returned
+        var preview=raw.replace(/[\r\n]+/g,' ').trim().slice(0,120);
+        throw new Error('Parse failed — Claude returned: '+preview+'…');
+      }
       renderResults(parsed);
     })
     .catch(function(err){
