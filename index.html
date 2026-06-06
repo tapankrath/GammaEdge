@@ -4247,6 +4247,7 @@ function alGoM(){
     if($('al-m-stats'))$('al-m-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#6b7280;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
     return;
   }
+  var shares=Math.floor(capital/spot/100)*100;
   var contracts=Math.max(1,Math.floor(shares/100));
   var T=dte/365;
   var Kp=spot*(1-putOtm/100);
