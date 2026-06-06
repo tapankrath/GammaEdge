@@ -299,7 +299,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
     <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em;line-height:1.3">Straddle<br>Strangle</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em;line-height:1.3">Alloc<br>AI</button>
     <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Backtest</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
@@ -387,7 +387,352 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div class="note" id="c-note">Mid of each range · tap row to select · 25% IV crush D1 fading to 0 at expiry</div>
 </div>
 
-<!-- TAB 2: RECOMMEND -->
+<!-- TAB 2: ALLOCAI -->
+<div class="pane" id="pane7" style="padding-top:8px">
+
+<!-- ── CAPITAL CARD ── -->
+<div style="background:#fff;border:2px solid #0a0f1e;border-radius:14px;padding:12px;box-shadow:3px 3px 0 #0a0f1e;margin-bottom:10px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.14em;white-space:nowrap">Total Capital</span>
+    <div style="flex:1;background:#f1f5f9;border:2px solid #0a0f1e;border-radius:9px;padding:8px 12px;display:flex;align-items:center;gap:4px">
+      <span style="font-size:18px;font-weight:900;color:#0a0f1e">$</span>
+      <input type="number" id="al-cap" value="500000" step="10000" inputmode="decimal" oninput="alSplit()" style="background:transparent;border:none;width:100%;font-size:18px;font-weight:900;color:#0a0f1e;outline:none;-webkit-appearance:none;-moz-appearance:textfield"/>
+    </div>
+  </div>
+  <!-- Bucket tiles — click to switch card -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+    <div id="al-bkt-cons" onclick="alShow('cons')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #1d4ed8;background:#eff6ff;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1d4ed8;margin-bottom:3px">Conservative</div>
+      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-cons-amt">$200K</div>
+      <div style="font-size:9px;color:#6b7280;font-weight:700;margin-top:2px">40% · Wheel</div>
+    </div>
+    <div id="al-bkt-mod" onclick="alShow('mod')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #059669;background:#ecfdf5;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#059669;margin-bottom:3px">Moderate</div>
+      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-mod-amt">$200K</div>
+      <div style="font-size:9px;color:#6b7280;font-weight:700;margin-top:2px">40% · Hedge</div>
+    </div>
+    <div id="al-bkt-agg" onclick="alShow('agg')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #b45309;background:#fffbeb;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#b45309;margin-bottom:3px">Aggressive</div>
+      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-agg-amt">$100K</div>
+      <div style="font-size:9px;color:#6b7280;font-weight:700;margin-top:2px">20% · Options</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONSERVATIVE CARD: Wheel (Sell Put → Covered Call) ── -->
+<div id="al-sec-cons" style="background:#fff;border:1.5px solid #93c5fd;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:block">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
+    <div style="width:34px;height:34px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🛡️</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Conservative — Wheel Strategy</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#1d4ed8;margin-top:1px">Sell Put → Covered Call → Repeat</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:16px;font-weight:900" id="al-cons-cap-disp">$200,000</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280">40% of capital</div>
+    </div>
+  </div>
+  <div style="padding:14px">
+    <!-- Strategy explainer -->
+    <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 12px;font-size:11px;color:#1d4ed8;font-weight:700;margin-bottom:12px;line-height:1.6">
+      <b>Step 1 — Sell a Cash-Secured Put:</b> Collect premium. If assigned, you buy shares at the strike. If not assigned, keep premium and repeat.<br>
+      <b>Step 2 — If Assigned, Sell a Covered Call:</b> Sell a call against your shares at or above cost basis. Collect more premium.<br>
+      <b>Step 3 — Repeat (The Wheel):</b> Keep cycling until shares are called away. Net result: income + potential capital gains.
+    </div>
+
+    <!-- Phase selector -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      <button id="al-c-phase-put" onclick="alCPhase('put')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#eff6ff;color:#1d4ed8;border:2px solid #1d4ed8">Phase 1: Sell Put</button>
+      <button id="al-c-phase-cc" onclick="alCPhase('cc')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#f1f5f9;color:#6b7280;border:2px solid #e2e8f0">Phase 2: Covered Call</button>
+    </div>
+
+    <!-- Inputs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Stock / ETF Price $</label>
+        <input type="number" id="al-c1" value="585" step="1" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#1d4ed8;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
+        <input type="number" id="al-c2" value="18" step="1" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">DTE</label>
+        <input type="number" id="al-c3" value="30" step="1" min="1" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px" id="al-c-otm-field">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em" id="al-c-otm-lbl">OTM % (put below spot)</label>
+        <input type="number" id="al-c4" value="5" step="1" min="1" max="20" inputmode="decimal" oninput="alGoC()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;margin-bottom:8px" id="al-c-rec-hdr">Sell-Put Sizing</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="al-c-stats"></div>
+    </div>
+
+    <!-- Entry / Exit instructions -->
+    <div id="al-c-instructions" style="margin-bottom:10px"></div>
+
+    <!-- P&L Table -->
+    <div id="al-c-pltbl" style="display:none;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;background:#0a0f1e">
+        <div style="padding:8px 10px;font-size:9px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,.4)">Scenario</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D7</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D14</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">Expiry</div>
+      </div>
+      <div id="al-c-plrows"></div>
+    </div>
+
+    <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
+      Wheel income compounds over time. Target 2–4% monthly premium on capital deployed.
+    </div>
+    <button onclick="alPrefillLog('Conservative','wheel')" style="width:100%;background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+  </div>
+</div>
+
+<!-- ── MODERATE CARD: Hedged Portfolio (Collar / Protective Put) ── -->
+<div id="al-sec-mod" style="background:#fff;border:1.5px solid #6ee7b7;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:none">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
+    <div style="width:34px;height:34px;border-radius:9px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🔒</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Moderate — Hedged Position</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#059669;margin-top:1px">Collar · Protective Put · Hedging</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:16px;font-weight:900" id="al-mod-cap-disp">$200,000</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280">40% of capital</div>
+    </div>
+  </div>
+  <div style="padding:14px">
+    <!-- Strategy explainer -->
+    <div style="background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:8px;padding:10px 12px;font-size:11px;color:#059669;font-weight:700;margin-bottom:12px;line-height:1.6">
+      <b>Collar:</b> Own stock → Buy protective put (downside floor) + Sell covered call (cap upside, fund the put). Near zero net cost hedge.<br>
+      <b>Protective Put:</b> Own stock → Buy put below spot. Full upside kept; put activates if stock drops below strike.<br>
+      Best when: you hold a position and want insurance without fully exiting.
+    </div>
+
+    <!-- Strategy selector -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      <button id="al-m-strat-collar" onclick="alMStrat('collar')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#ecfdf5;color:#059669;border:2px solid #059669">Collar</button>
+      <button id="al-m-strat-pp" onclick="alMStrat('pp')" style="padding:9px;border-radius:8px;font-size:12px;font-weight:800;background:#f1f5f9;color:#6b7280;border:2px solid #e2e8f0">Protective Put</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Stock Price $</label>
+        <input type="number" id="al-m1" value="585" step="1" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#059669;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
+        <input type="number" id="al-m2" value="18" step="1" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">DTE</label>
+        <input type="number" id="al-m3" value="30" step="1" min="1" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Put OTM % (floor)</label>
+        <input type="number" id="al-m4" value="5" step="1" min="1" max="20" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px" id="al-m-call-field">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Call OTM % (cap)</label>
+        <input type="number" id="al-m5" value="5" step="1" min="1" max="20" inputmode="decimal" oninput="alGoM()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+    </div>
+
+    <div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;margin-bottom:8px" id="al-m-rec-hdr">Collar Sizing</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="al-m-stats"></div>
+    </div>
+
+    <div id="al-m-instructions" style="margin-bottom:10px"></div>
+
+    <div id="al-m-pltbl" style="display:none;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;background:#0a0f1e">
+        <div style="padding:8px 10px;font-size:9px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,.4)">Move</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D7</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D14</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">Expiry</div>
+      </div>
+      <div id="al-m-plrows"></div>
+    </div>
+
+    <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
+      Collar: near-zero net cost hedge. Protective Put: full upside kept, pay premium for floor.
+    </div>
+    <button onclick="alPrefillLog('Moderate','collar')" style="width:100%;background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+  </div>
+</div>
+
+<!-- ── AGGRESSIVE CARD: Directional Calls / Puts / Straddle ── -->
+<div id="al-sec-agg" style="background:#fff;border:1.5px solid #fcd34d;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:none">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
+    <div style="width:34px;height:34px;border-radius:9px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">⚡</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Aggressive — Directional / Volatility</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#b45309;margin-top:1px">Calls · Puts · Straddle / Strangle</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:16px;font-weight:900" id="al-agg-cap-disp">$100,000</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280">20% of capital</div>
+    </div>
+  </div>
+  <div style="padding:14px">
+    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#b45309;font-weight:700;margin-bottom:12px;line-height:1.6">
+      <b>Calls:</b> Bullish bet. Buy OTM calls if you expect a strong upward move.<br>
+      <b>Puts:</b> Bearish bet. Buy OTM puts if you expect a drop or hedge a long position.<br>
+      <b>Straddle / Strangle:</b> Expect a big move but unsure of direction. Buy both call + put around the same strike (straddle) or wider (strangle).
+    </div>
+
+    <!-- Ticker + Direction -->
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="tk spy" id="al-a-spy" onclick="alSetTicker('spy')" style="flex:1;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:800;text-align:center;background:#f1f5f9;border:2px solid #e2e8f0;color:#6b7280">SPY</button>
+      <button class="tk qqq on" id="al-a-qqq" onclick="alSetTicker('qqq')" style="flex:1;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:800;text-align:center;background:#fffbeb;color:#b45309;border:2px solid #b45309">QQQ</button>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <div id="al-ad-call" onclick="alSetDir('call')" style="flex:1;border:2px solid #e2e8f0;border-radius:9px;padding:7px 4px;text-align:center;background:#f1f5f9;cursor:pointer">
+        <div style="font-size:16px;margin-bottom:2px">🚀</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280">Call</div>
+      </div>
+      <div id="al-ad-put" onclick="alSetDir('put')" style="flex:1;border:2px solid #e2e8f0;border-radius:9px;padding:7px 4px;text-align:center;background:#f1f5f9;cursor:pointer">
+        <div style="font-size:16px;margin-bottom:2px">💥</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280">Put</div>
+      </div>
+      <div id="al-ad-straddle" onclick="alSetDir('straddle')" style="flex:1;border:2px solid #b45309;border-radius:9px;padding:7px 4px;text-align:center;background:#fffbeb;cursor:pointer">
+        <div style="font-size:16px;margin-bottom:2px">⚡</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#b45309">Straddle</div>
+      </div>
+      <div id="al-ad-strangle" onclick="alSetDir('strangle')" style="flex:1;border:2px solid #e2e8f0;border-radius:9px;padding:7px 4px;text-align:center;background:#f1f5f9;cursor:pointer">
+        <div style="font-size:16px;margin-bottom:2px">🌀</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280">Strangle</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Price $</label>
+        <input type="number" id="al-a1" value="506" step="1" inputmode="decimal" oninput="alGoA()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#b45309;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">IV %</label>
+        <input type="number" id="al-a2" value="21" step="1" inputmode="decimal" oninput="alGoA()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">DTE</label>
+        <input type="number" id="al-a3" value="7" step="1" min="1" inputmode="decimal" oninput="alGoA()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:16px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+      </div>
+    </div>
+    <!-- OTM for directional -->
+    <div id="al-a-otm-row" style="margin-bottom:10px;display:none">
+      <div style="display:flex;gap:5px;align-items:center">
+        <span style="font-size:9px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap">OTM %</span>
+        <button class="otmbtn" onclick="alSetAOtm(this,1)" style="flex:1;padding:6px 4px;border-radius:7px;font-size:12px;font-weight:800;text-align:center;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#374151">+1%</button>
+        <button class="otmbtn on" onclick="alSetAOtm(this,2)" style="flex:1;padding:6px 4px;border-radius:7px;font-size:12px;font-weight:800;text-align:center;background:#fffbeb;color:#b45309;border:1.5px solid #fcd34d">+2%</button>
+        <button class="otmbtn" onclick="alSetAOtm(this,3)" style="flex:1;padding:6px 4px;border-radius:7px;font-size:12px;font-weight:800;text-align:center;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#374151">+3%</button>
+        <button class="otmbtn" onclick="alSetAOtm(this,5)" style="flex:1;padding:6px 4px;border-radius:7px;font-size:12px;font-weight:800;text-align:center;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#374151">+5%</button>
+      </div>
+    </div>
+
+    <div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;margin-bottom:8px" id="al-a-rec-hdr">Sizing</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="al-a-stats"></div>
+    </div>
+
+    <div id="al-a-instructions" style="margin-bottom:10px"></div>
+
+    <div id="al-a-pltbl" style="display:none;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;background:#0a0f1e">
+        <div style="padding:8px 10px;font-size:9px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,.4)">Move</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D1</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">D2–3</div>
+        <div style="padding:8px 4px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.7)">Expiry</div>
+      </div>
+      <div id="al-a-plrows"></div>
+    </div>
+
+    <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:10px;line-height:1.5;font-weight:600;background:#f1f5f9;border-radius:6px;padding:6px 9px">
+      Exit straddle/strangle at 50–100% profit or when move materializes. Never hold to expiry — theta kills value fast.
+    </div>
+    <button onclick="alPrefillLog('Aggressive','options')" style="width:100%;background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+  </div>
+</div>
+
+<!-- ── TRADE LOG ── -->
+<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#0f172a">
+    <div style="font-size:14px;font-weight:900;color:#fff">📋 AllocAI Trade Log</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="alExportLog()" style="padding:6px 12px;border-radius:7px;font-size:11px;font-weight:800;background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;cursor:pointer">⬇ Export</button>
+      <button onclick="alClearLog()" style="padding:6px 12px;border-radius:7px;font-size:11px;font-weight:800;background:#fef2f2;color:#b91c1c;border:1.5px solid #fca5a5;cursor:pointer">Clear</button>
+    </div>
+  </div>
+  <div style="padding:12px 14px">
+    <!-- Summary -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px">
+      <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:9px;padding:10px;text-align:center">
+        <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#6b7280;margin-bottom:4px">Trades</div>
+        <div style="font-size:16px;font-weight:900;color:#0a0f1e" id="al-ls-count">0</div>
+      </div>
+      <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:9px;padding:10px;text-align:center">
+        <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#6b7280;margin-bottom:4px">Total P&L</div>
+        <div style="font-size:16px;font-weight:900;color:#0a0f1e" id="al-ls-pnl">$0</div>
+      </div>
+      <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:9px;padding:10px;text-align:center">
+        <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#6b7280;margin-bottom:4px">Win Rate</div>
+        <div style="font-size:16px;font-weight:900;color:#0a0f1e" id="al-ls-wr">—</div>
+      </div>
+    </div>
+    <!-- Add Trade -->
+    <div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Add Trade</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Ticker</label>
+          <input type="text" id="al-lg-ticker" value="QQQ" style="text-transform:uppercase;background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:14px;font-weight:700;color:#0a0f1e;width:100%;outline:none" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Strategy</label>
+          <select id="al-lg-type" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;color:#0a0f1e;width:100%;outline:none;font-family:inherit">
+            <option value="sell-put">Sell Put (Wheel)</option>
+            <option value="covered-call">Covered Call</option>
+            <option value="collar">Collar</option>
+            <option value="protective-put">Protective Put</option>
+            <option value="call">Buy Call</option>
+            <option value="put">Buy Put</option>
+            <option value="straddle">Straddle</option>
+            <option value="strangle">Strangle</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Bucket</label>
+          <select id="al-lg-bucket" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;color:#0a0f1e;width:100%;outline:none;font-family:inherit">
+            <option value="Conservative">Conservative</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Aggressive">Aggressive</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Entry Cost $</label>
+          <input type="number" id="al-lg-entry" value="" placeholder="Total paid/received" inputmode="decimal" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:14px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Exit / P&L $</label>
+          <input type="number" id="al-lg-exit" value="" placeholder="Leave blank if open" inputmode="decimal" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:14px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Notes</label>
+          <input type="text" id="al-lg-notes" value="" placeholder="e.g. 30 DTE, 5% OTM" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;color:#0a0f1e;width:100%;outline:none"/>
+        </div>
+      </div>
+      <button onclick="alAddLog()" style="width:100%;margin-top:8px;background:#0a0f1e;color:#fff;border-radius:9px;padding:12px;font-size:14px;font-weight:800;border:none;cursor:pointer">+ Add to Log</button>
+    </div>
+    <div id="al-log-list"></div>
+  </div>
+</div>
+
+</div><!-- end pane7 AllocAI -->
+
+<!-- OLD STRADDLE PANE (kept for go2() compatibility, hidden) -->
 <div class="pane" id="pane2" style="padding-top:8px">
 
   <!-- Delta selector -->
@@ -789,13 +1134,16 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  var paneMap={1:4,2:2,3:6,4:5,5:3};
+  // Tab mapping: 1=Signal(4), 2=AllocAI(7), 3=Plan(6), 4=Backtest(5), 5=Lottery(3)
+  var paneMap={1:4,2:7,3:6,4:5,5:3};
   for(var i=1;i<=5;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
-    $('pane'+paneMap[i])&&($('pane'+paneMap[i]).className='pane'+(i===n?' on':''));
+    var pid=paneMap[i];
+    var pel=$('pane'+pid);
+    if(pel)pel.className='pane'+(i===n?' on':'');
   }
   if(n===1)go4();
-  if(n===2){go2();}
+  if(n===2){alSplit();alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
   if(n===4){go5();if(!BT_DAYS[0].o)fetchOHLC(T5);}
 }
@@ -3554,6 +3902,619 @@ function startStripe(){
 })();
 
 
+/* ══════════════════════════════════════════════════════
+   ALLOCAI — 3-Bucket Capital Strategy
+   ══════════════════════════════════════════════════════ */
+var AL_LOG_KEY='allocai_log_v1';
+var alLog=[];
+var AL_C_PHASE='put'; // 'put' or 'cc'
+var AL_M_STRAT='collar'; // 'collar' or 'pp'
+var AL_A_DIR='straddle'; // 'call','put','straddle','strangle'
+var AL_A_TICKER='qqq';
+var AL_A_OTM=2;
+try{alLog=JSON.parse(localStorage.getItem(AL_LOG_KEY)||'[]');}catch(e){alLog=[];}
+if(!Array.isArray(alLog))alLog=[];
+
+/* ── helpers ── */
+function alFmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function alFmtK(n){return n>=1000000?'$'+(n/1000000).toFixed(2)+'M':n>=1000?'$'+(n/1000).toFixed(0)+'K':'$'+alFmt(n);}
+function alFp(v){return(v>=0?'+':'-')+'$'+alFmt(Math.abs(v));}
+function alFv(id){var el=$(id);return el?parseFloat(el.value)||0:0;}
+function alIv(id){var el=$(id);return el?parseInt(el.value)||0:0;}
+function alRstat(lbl,val,col){
+  var c=col||'#0a0f1e';
+  return '<div style="background:#fff;padding:8px;border-radius:7px;border:1px solid #e2e8f0"><div style="font-size:8px;color:#374151;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:2px">'+lbl+'</div><div style="font-size:14px;font-weight:800;color:'+c+'">'+val+'</div></div>';
+}
+function alCellStyle(dol){
+  if(dol>0)return 'background:#15803d;color:#fff';
+  return 'background:#b91c1c;color:#fff';
+}
+function alInstrBox(color,bgColor,bdColor,html){
+  return '<div style="background:'+bgColor+';border:1.5px solid '+bdColor+';border-radius:8px;padding:10px 12px;font-size:11px;color:'+color+';font-weight:600;line-height:1.7">'+html+'</div>';
+}
+
+/* ── capital split ── */
+function alSplit(){
+  var total=alFv('al-cap')||500000;
+  var cons=Math.round(total*0.40),mod=Math.round(total*0.40),agg=Math.round(total*0.20);
+  $('al-cons-amt')&&($('al-cons-amt').textContent=alFmtK(cons));
+  $('al-mod-amt')&&($('al-mod-amt').textContent=alFmtK(mod));
+  $('al-agg-amt')&&($('al-agg-amt').textContent=alFmtK(agg));
+  $('al-cons-cap-disp')&&($('al-cons-cap-disp').textContent=alFmtK(cons));
+  $('al-mod-cap-disp')&&($('al-mod-cap-disp').textContent=alFmtK(mod));
+  $('al-agg-cap-disp')&&($('al-agg-cap-disp').textContent=alFmtK(agg));
+}
+
+/* ── section show/hide ── */
+function alShow(id){
+  ['cons','mod','agg'].forEach(function(s){
+    var sec=$('al-sec-'+s);
+    var bkt=$('al-bkt-'+s);
+    if(sec)sec.style.display=s===id?'block':'none';
+    if(bkt)bkt.style.boxShadow=s===id?'0 0 0 3px #0a0f1e':'none';
+  });
+  if(id==='cons')alGoC();
+  if(id==='mod')alGoM();
+  if(id==='agg')alGoA();
+}
+
+/* ─────────────────────────────────────────────
+   CONSERVATIVE: Wheel (Sell Put / Covered Call)
+   ───────────────────────────────────────────── */
+function alCPhase(ph){
+  AL_C_PHASE=ph;
+  var activeSty='background:#eff6ff;color:#1d4ed8;border:2px solid #1d4ed8';
+  var inactSty='background:#f1f5f9;color:#6b7280;border:2px solid #e2e8f0';
+  $('al-c-phase-put').style.cssText=$('al-c-phase-put').style.cssText.replace(/background[^;]+;|color[^;]+;|border[^;]+;/g,'');
+  ['al-c-phase-put','al-c-phase-cc'].forEach(function(id){
+    var el=$(id);
+    if(!el)return;
+    var isPut=id==='al-c-phase-put';
+    var active=(ph==='put'&&isPut)||(ph==='cc'&&!isPut);
+    el.style.background=active?'#eff6ff':'#f1f5f9';
+    el.style.color=active?'#1d4ed8':'#6b7280';
+    el.style.border=active?'2px solid #1d4ed8':'2px solid #e2e8f0';
+  });
+  var lbl=$('al-c-otm-lbl');
+  if(lbl)lbl.textContent=ph==='put'?'OTM % (put below spot)':'OTM % (call above spot)';
+  if($('al-c-rec-hdr'))$('al-c-rec-hdr').textContent=ph==='put'?'Sell-Put Sizing':'Covered Call Sizing';
+  alGoC();
+}
+
+function alGoC(){
+  var total=alFv('al-cap')||500000;
+  var capital=Math.round(total*0.40);
+  var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otmPct=alFv('al-c4')||5;
+  if(!spot||!iv3)return;
+  var isSellPut=AL_C_PHASE==='put';
+
+  if(isSellPut){
+    // Sell cash-secured put
+    var K=spot*(1-otmPct/100);
+    var T=dte/365;
+    var premPerShare=bsP(spot,K,T,iv3);
+    var premPerContract=premPerShare*100;
+    var contracts=Math.max(1,Math.floor(capital/(K*100))); // CSP requires K*100 per contract
+    var totalPrem=premPerContract*contracts;
+    var capitalUsed=K*100*contracts;
+    var yieldPct=(premPerShare/K)*100;
+    var annYield=yieldPct*(365/dte);
+    var bePct=otmPct-yieldPct; // net downside cushion
+
+    $('al-c-stats').innerHTML=
+      alRstat('Put Strike','$'+K.toFixed(2),'#1d4ed8')+
+      alRstat('Premium/Share','$'+premPerShare.toFixed(2),'#15803d')+
+      alRstat('Contracts',contracts+'c','')+
+      alRstat('Total Premium Collected','$'+alFmt(totalPrem),'#15803d')+
+      alRstat('Capital Required','$'+alFmt(capitalUsed),'#b45309')+
+      alRstat('Yield / Cycle',yieldPct.toFixed(2)+'%','#1d4ed8')+
+      alRstat('Annualized Yield',annYield.toFixed(1)+'%','#059669')+
+      alRstat('B/E Cushion',bePct.toFixed(2)+'% below spot','');
+
+    // Entry/Exit instructions
+    $('al-c-instructions').innerHTML=alInstrBox('#1e40af','#eff6ff','#93c5fd',
+      '<b>📥 ENTRY:</b> Sell '+contracts+' put contract'+(contracts>1?'s':'')+' at strike $'+K.toFixed(2)+' for $'+premPerShare.toFixed(2)+'/share. Total credit: +$'+alFmt(totalPrem)+'.<br>'+
+      '<b>⚠️ RISK:</b> If stock closes below $'+K.toFixed(2)+' at expiry, you are assigned '+contracts*100+' shares at $'+K.toFixed(2)+' (cost basis reduced by premium to $'+(K-premPerShare).toFixed(2)+').<br>'+
+      '<b>📤 EXIT (profitable):</b> Let expire worthless (keep full premium). Or buy back at 50–80% profit early to free capital.<br>'+
+      '<b>📤 EXIT (assigned):</b> Accept shares and proceed to Phase 2 — Covered Call.<br>'+
+      '<b>🎯 TARGET:</b> $'+alFmt(totalPrem)+' premium per cycle. '+dte+'-day cycle.'
+    );
+
+    // P&L table — stock price scenarios at expiry
+    var moves=[-15,-10,-5,0,5,10];
+    var sh='';
+    moves.forEach(function(mv){
+      var ns=spot*(1+mv/100);
+      // Put value at expiry
+      var putVal=Math.max(K-ns,0)*100*contracts;
+      var netPL=totalPrem-putVal; // we sold the put, so P&L = premium - put value
+      var d7v=Math.max(K-(spot*(1+mv/100)),0),d7put=bsP(spot*(1+mv/100),K,Math.max(dte-7,0)/365,iv3)*100*contracts;
+      var net7=totalPrem-d7put;
+      var d14put=bsP(spot*(1+mv/100),K,Math.max(dte-14,0)/365,iv3)*100*contracts;
+      var net14=totalPrem-d14put;
+      sh+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0'+(mv%2===0?';background:#fafafa':'')+'">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;flex-direction:column;justify-content:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">'+(mv>=0?'+':'')+mv+'%</span>'+
+          '<span style="font-size:8px;color:#6b7280;font-weight:600">$'+ns.toFixed(0)+'</span>'+
+        '</div>'+
+        [net7,net14,netPL].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-c-plrows').innerHTML=sh;
+    $('al-c-pltbl').style.display='block';
+
+  } else {
+    // Covered Call
+    var Kcc=spot*(1+otmPct/100);
+    var T2=dte/365;
+    var premCC=bsC(spot,Kcc,T2,iv3);
+    var premCCContract=premCC*100;
+    var sharesOwned=Math.floor(capital/spot/100)*100;
+    var contractsCC=Math.max(1,Math.floor(sharesOwned/100));
+    var totalPremCC=premCCContract*contractsCC;
+    var annYieldCC=(premCC/spot)*(365/dte)*100;
+    var maxGain=(Kcc-spot)*sharesOwned+totalPremCC;
+
+    $('al-c-stats').innerHTML=
+      alRstat('Call Strike','$'+Kcc.toFixed(2),'#1d4ed8')+
+      alRstat('Premium/Share','$'+premCC.toFixed(2),'#15803d')+
+      alRstat('Contracts',contractsCC+'c','')+
+      alRstat('Total Premium Collected','$'+alFmt(totalPremCC),'#15803d')+
+      alRstat('Annualized Yield',annYieldCC.toFixed(1)+'%','#059669')+
+      alRstat('Max Gain (if called away)','$'+alFmt(maxGain),'#15803d')+
+      alRstat('Shares Held',sharesOwned+' shares','')+
+      alRstat('Downside B/E','$'+(spot-premCC).toFixed(2),'');
+
+    $('al-c-instructions').innerHTML=alInstrBox('#166534','#f0fdf4','#86efac',
+      '<b>📥 ENTRY:</b> Sell '+contractsCC+' covered call'+(contractsCC>1?'s':'')+' at strike $'+Kcc.toFixed(2)+' for $'+premCC.toFixed(2)+'/share. Credit: +$'+alFmt(totalPremCC)+'.<br>'+
+      '<b>📤 EXIT (not assigned):</b> Option expires worthless — keep premium. Sell again next cycle (the Wheel continues).<br>'+
+      '<b>📤 EXIT (assigned):</b> Shares called away at $'+Kcc.toFixed(2)+'. Max profit: $'+alFmt(maxGain)+'. Restart wheel by selling puts again.<br>'+
+      '<b>⚠️ RISK:</b> Stock drops below cost basis. Premium reduces your effective cost by $'+premCC.toFixed(2)+'/share.<br>'+
+      '<b>🎯 TARGET:</b> Collect $'+alFmt(totalPremCC)+' per '+dte+'-day cycle.'
+    );
+    $('al-c-pltbl').style.display='none';
+  }
+}
+
+/* ─────────────────────────────────────────────
+   MODERATE: Collar / Protective Put
+   ───────────────────────────────────────────── */
+var AL_M_STRAT='collar';
+function alMStrat(s){
+  AL_M_STRAT=s;
+  ['al-m-strat-collar','al-m-strat-pp'].forEach(function(id){
+    var el=$(id);if(!el)return;
+    var active=(s==='collar'&&id==='al-m-strat-collar')||(s==='pp'&&id==='al-m-strat-pp');
+    el.style.background=active?'#ecfdf5':'#f1f5f9';
+    el.style.color=active?'#059669':'#6b7280';
+    el.style.border=active?'2px solid #059669':'2px solid #e2e8f0';
+  });
+  var callField=$('al-m-call-field');
+  if(callField)callField.style.display=s==='collar'?'':'none';
+  if($('al-m-rec-hdr'))$('al-m-rec-hdr').textContent=s==='collar'?'Collar Sizing':'Protective Put Sizing';
+  alGoM();
+}
+
+function alGoM(){
+  var total=alFv('al-cap')||500000;
+  var capital=Math.round(total*0.40);
+  var spot=alFv('al-m1'),iv3=alFv('al-m2')/100,dte=alIv('al-m3')||30;
+  var putOtm=alFv('al-m4')||5,callOtm=alFv('al-m5')||5;
+  if(!spot||!iv3)return;
+
+  var shares=Math.floor(capital/spot/100)*100;
+  var contracts=Math.max(1,Math.floor(shares/100));
+  var T=dte/365;
+  var Kp=spot*(1-putOtm/100);
+  var putPrem=bsP(spot,Kp,T,iv3);
+  var putCost=putPrem*100*contracts;
+
+  if(AL_M_STRAT==='collar'){
+    var Kc=spot*(1+callOtm/100);
+    var callPrem=bsC(spot,Kc,T,iv3);
+    var callCredit=callPrem*100*contracts;
+    var netCost=putCost-callCredit;
+    var netPerShare=putPrem-callPrem;
+    var floorPct=putOtm;
+    var capPct=callOtm;
+
+    $('al-m-stats').innerHTML=
+      alRstat('Put Strike (Floor)','$'+Kp.toFixed(2),'#b91c1c')+
+      alRstat('Call Strike (Cap)','$'+Kc.toFixed(2),'#15803d')+
+      alRstat('Put Cost','$'+alFmt(putCost),'#b91c1c')+
+      alRstat('Call Credit','+$'+alFmt(callCredit),'#15803d')+
+      alRstat('Net Cost',(netCost>=0?'$':'-$')+alFmt(Math.abs(netCost)),netCost>0?'#b45309':'#15803d')+
+      alRstat('Protected Range','$'+Kp.toFixed(0)+'–$'+Kc.toFixed(0),'')+
+      alRstat('Downside Floor','-'+floorPct+'% max loss','#b91c1c')+
+      alRstat('Upside Cap','+'+capPct+'% max gain','#059669');
+
+    $('al-m-instructions').innerHTML=alInstrBox('#064e3b','#ecfdf5','#6ee7b7',
+      '<b>📥 ENTRY:</b> You own '+shares+' shares of stock at ~$'+spot.toFixed(2)+' ($'+alFmt(shares*spot)+' position).<br>'+
+      'Buy '+contracts+' put'+(contracts>1?'s':'')+' at $'+Kp.toFixed(2)+' — cost: $'+alFmt(putCost)+'.<br>'+
+      'Sell '+contracts+' call'+(contracts>1?'s':'')+' at $'+Kc.toFixed(2)+' — credit: +$'+alFmt(callCredit)+'.<br>'+
+      '<b>Net collar cost: '+(netCost>=0?'$'+alFmt(netCost):'-$'+alFmt(Math.abs(netCost)))+(netCost<=0?' (you receive a credit!)':'')+'</b><br>'+
+      '<b>⚠️ RISK:</b> If stock drops below $'+Kp.toFixed(2)+', your put protects you — max loss is '+putOtm+'% on the position.<br>'+
+      '<b>🔒 CAP:</b> If stock rises above $'+Kc.toFixed(2)+', gains are capped. Call may be assigned.<br>'+
+      '<b>📤 EXIT:</b> Close both legs together. Or let expire and re-establish next collar.'
+    );
+
+    // P&L scenario table
+    var moves=[-15,-10,-(putOtm),0,callOtm,10,15];
+    var sh='';
+    moves.forEach(function(mv){
+      var ns=spot*(1+mv/100);
+      // Net stock P&L + collar offset at expiry
+      var stockPL=(ns-spot)*shares;
+      var putPayoff=Math.max(Kp-ns,0)*100*contracts;
+      var callPayoff=-Math.max(ns-Kc,0)*100*contracts;
+      var netPL=stockPL+putPayoff+callPayoff-putCost+callCredit;
+
+      var rem7=Math.max(dte-7,0),rem14=Math.max(dte-14,0);
+      var ns7=spot*(1+mv/100);
+      var putPay7=(rem7>0?bsP(ns7,Kp,rem7/365,iv3):Math.max(Kp-ns7,0))*100*contracts;
+      var callPay7=-(rem7>0?bsC(ns7,Kc,rem7/365,iv3):Math.max(ns7-Kc,0))*100*contracts;
+      var net7=(ns7-spot)*shares+putPay7+callPay7-putCost+callCredit;
+
+      var putPay14=(rem14>0?bsP(ns7,Kp,rem14/365,iv3):Math.max(Kp-ns7,0))*100*contracts;
+      var callPay14=-(rem14>0?bsC(ns7,Kc,rem14/365,iv3):Math.max(ns7-Kc,0))*100*contracts;
+      var net14=(ns7-spot)*shares+putPay14+callPay14-putCost+callCredit;
+
+      sh+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;flex-direction:column;justify-content:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">'+(mv>=0?'+':'')+mv.toFixed(1)+'%</span>'+
+          '<span style="font-size:8px;color:#6b7280;font-weight:600">$'+ns.toFixed(0)+'</span>'+
+        '</div>'+
+        [net7,net14,netPL].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-m-plrows').innerHTML=sh;
+    $('al-m-pltbl').style.display='block';
+
+  } else {
+    // Protective Put
+    $('al-m-stats').innerHTML=
+      alRstat('Put Strike','$'+Kp.toFixed(2),'#b91c1c')+
+      alRstat('Put Cost/Share','$'+putPrem.toFixed(2),'#b45309')+
+      alRstat('Contracts',contracts+'c','')+
+      alRstat('Total Premium Paid','$'+alFmt(putCost),'#b91c1c')+
+      alRstat('Cost as % of Position',(putPrem/spot*100).toFixed(2)+'%','#b45309')+
+      alRstat('Max Loss from Spot','-'+putOtm+'% + premium','#b91c1c')+
+      alRstat('Shares Protected',shares+' shares','')+
+      alRstat('Effective Floor','$'+(Kp-putPrem).toFixed(2),'');
+
+    $('al-m-instructions').innerHTML=alInstrBox('#1e3a8a','#eff6ff','#93c5fd',
+      '<b>📥 ENTRY:</b> Buy '+contracts+' protective put'+(contracts>1?'s':'')+' at $'+Kp.toFixed(2)+'.<br>'+
+      'Cost: $'+alFmt(putCost)+' total. You keep full upside on your '+shares+' shares.<br>'+
+      '<b>🛡️ PROTECTION:</b> If stock falls below $'+Kp.toFixed(2)+', your put pays out. Effective max loss = '+putOtm+'% + premium cost.<br>'+
+      '<b>📤 EXIT (profitable):</b> Let put expire worthless, treat cost as insurance. Or sell put if stock drops sharply (profits from put offset stock loss).<br>'+
+      '<b>🎯 WHEN TO USE:</b> You want to hold shares long-term but are uncertain short-term. Earnings, macro events, hedging a large gain.'
+    );
+
+    var moves2=[-20,-15,-10,-5,0,5,10];
+    var sh2='';
+    moves2.forEach(function(mv){
+      var ns=spot*(1+mv/100);
+      var putPayoffExp=Math.max(Kp-ns,0)*100*contracts-putCost;
+      var netPL=(ns-spot)*shares+putPayoffExp;
+      var rem7=Math.max(dte-7,0),rem14=Math.max(dte-14,0);
+      var p7=(rem7>0?bsP(ns,Kp,rem7/365,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
+      var p14=(rem14>0?bsP(ns,Kp,rem14/365,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
+      var net7=(ns-spot)*shares+p7;
+      var net14=(ns-spot)*shares+p14;
+      sh2+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;flex-direction:column;justify-content:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">'+(mv>=0?'+':'')+mv+'%</span>'+
+          '<span style="font-size:8px;color:#6b7280;font-weight:600">$'+ns.toFixed(0)+'</span>'+
+        '</div>'+
+        [net7,net14,netPL].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-m-plrows').innerHTML=sh2;
+    $('al-m-pltbl').style.display='block';
+  }
+}
+
+/* ─────────────────────────────────────────────
+   AGGRESSIVE: Calls / Puts / Straddle / Strangle
+   ───────────────────────────────────────────── */
+function alSetTicker(t){
+  AL_A_TICKER=t;
+  ['spy','qqq'].forEach(function(x){
+    var el=$('al-a-'+x);if(!el)return;
+    var on=t===x;
+    el.style.background=on?(x==='qqq'?'#fffbeb':'#f5f3ff'):'#f1f5f9';
+    el.style.color=on?(x==='qqq'?'#b45309':'#6d28d9'):'#6b7280';
+    el.style.border=on?('2px solid '+(x==='qqq'?'#b45309':'#6d28d9')):'2px solid #e2e8f0';
+  });
+  var defs={spy:{spot:585,iv:18},qqq:{spot:506,iv:21}};
+  var d=defs[t];
+  if($('al-a1'))$('al-a1').value=d.spot;
+  if($('al-a2'))$('al-a2').value=d.iv;
+  alGoA();
+}
+
+function alSetDir(d){
+  AL_A_DIR=d;
+  var dirs=['call','put','straddle','strangle'];
+  dirs.forEach(function(x){
+    var el=$('al-ad-'+x);if(!el)return;
+    var on=d===x;
+    el.style.background=on?'#fffbeb':'#f1f5f9';
+    el.style.color=on?'#b45309':'#6b7280';
+    el.style.border=on?'2px solid #b45309':'2px solid #e2e8f0';
+    el.querySelector('.dname').style.color=on?'#b45309':'#6b7280';
+  });
+  var otmRow=$('al-a-otm-row');
+  if(otmRow)otmRow.style.display=(d==='call'||d==='put'||d==='strangle')?'block':'none';
+  alGoA();
+}
+
+function alSetAOtm(btn,v){
+  AL_A_OTM=v;
+  document.querySelectorAll('#al-a-otm-row .otmbtn').forEach(function(b){
+    b.style.background='#f1f5f9';b.style.color='#374151';b.style.border='1.5px solid #e2e8f0';
+  });
+  btn.style.background='#fffbeb';btn.style.color='#b45309';btn.style.border='1.5px solid #fcd34d';
+  alGoA();
+}
+
+function alGoA(){
+  var total=alFv('al-cap')||500000;
+  var capital=Math.round(total*0.20);
+  var spot=alFv('al-a1'),iv3=alFv('al-a2')/100,dte=alIv('al-a3')||7;
+  if(!spot||!iv3)return;
+  var T=dte/365;
+
+  var cp,Kc,Kp,label,instrHtml;
+
+  if(AL_A_DIR==='straddle'){
+    var cost=prem(spot,dte,iv3);
+    cp=cost*100;Kc=spot;Kp=spot;label='ATM Straddle';
+    var contracts=Math.max(1,Math.floor(capital/cp));
+    var totalCost=cp*contracts;
+    var bePct=(cp/100/spot*100);
+
+    $('al-a-rec-hdr').textContent='ATM Straddle Sizing';
+    $('al-a-stats').innerHTML=
+      alRstat('Setup','Buy Call + Put @ $'+spot.toFixed(0),'#b45309')+
+      alRstat('Premium/Contract','$'+cp.toFixed(0),'')+
+      alRstat('Contracts',contracts+'c','')+
+      alRstat('Total Cost','$'+alFmt(totalCost),'#b91c1c')+
+      alRstat('B/E (each direction)','±'+bePct.toFixed(2)+'%','#b45309')+
+      alRstat('B/E Price Up','$'+(spot*(1+bePct/100)).toFixed(2),'#15803d')+
+      alRstat('B/E Price Down','$'+(spot*(1-bePct/100)).toFixed(2),'#b91c1c')+
+      alRstat('Max Loss','-$'+alFmt(totalCost),'#b91c1c');
+
+    instrHtml='<b>📥 ENTRY:</b> Buy '+contracts+' straddle'+(contracts>1?'s':'')+' on '+AL_A_TICKER.toUpperCase()+' (1 ATM call + 1 ATM put at $'+spot.toFixed(0)+' strike).<br>'+
+      'Cost: $'+alFmt(totalCost)+' total. Break-even if stock moves ±'+bePct.toFixed(2)+'% by expiry.<br>'+
+      '<b>📤 EXIT (target 50–100% profit):</b> When total premium doubles, close both legs. Do NOT hold to expiry if move materializes early.<br>'+
+      '<b>📤 EXIT (stop loss):</b> Close at 50% premium loss (pay back $'+alFmt(totalCost*0.5)+' to buy back). Prevents theta decay from destroying value.<br>'+
+      '<b>⏰ BEST TIMING:</b> Enter before known catalyst (FOMC, earnings, macro data). Exit within 1–3 days of move. Short DTE (3–7) maximizes leverage but has faster decay.<br>'+
+      '<b>⚠️ RISK:</b> Max loss = $'+alFmt(totalCost)+' if stock stays flat. Theta erodes value daily — time is your enemy if the market doesn\'t move.';
+
+    // P&L timeline table
+    var moves=[0.5,1,1.5,2,3,5];
+    var sh='';
+    moves.forEach(function(mv){
+      var r1=atmExit(spot,iv3,dte,mv,1);
+      var r2=atmExit(spot,iv3,dte,mv,Math.min(Math.ceil(dte*0.4),dte));
+      var rE=atmExit(spot,iv3,dte,mv,dte);
+      var d1=r1.dol*contracts,d2=r2.dol*contracts,dE=rE.dol*contracts;
+      sh+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;align-items:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">±'+mv+'%</span>'+
+        '</div>'+
+        [d1,d2,dE].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-a-plrows').innerHTML=sh;
+    $('al-a-pltbl').style.display='block';
+
+  } else if(AL_A_DIR==='strangle'){
+    var sg=strangleAtDelta(spot,T,iv3,0.40);
+    cp=sg.cost*100;Kc=sg.Kc;Kp=sg.Kp;label='Strangle 40Δ';
+    var contracts2=Math.max(1,Math.floor(capital/cp));
+    var totalCost2=cp*contracts2;
+    var beUp=(Kc+sg.cost-spot)/spot*100;
+    var beDn=(spot-Kp+sg.cost)/spot*100;
+
+    $('al-a-rec-hdr').textContent='Strangle Sizing (40Δ)';
+    $('al-a-stats').innerHTML=
+      alRstat('Call Strike','$'+Kc.toFixed(2),'#15803d')+
+      alRstat('Put Strike','$'+Kp.toFixed(2),'#b91c1c')+
+      alRstat('Cost/Contract','$'+cp.toFixed(0),'')+
+      alRstat('Contracts',contracts2+'c','')+
+      alRstat('Total Cost','$'+alFmt(totalCost2),'#b91c1c')+
+      alRstat('B/E Up','$'+(Kc+sg.cost).toFixed(2)+' (+'+beUp.toFixed(1)+'%)','#15803d')+
+      alRstat('B/E Down','$'+(Kp-sg.cost).toFixed(2)+' (-'+beDn.toFixed(1)+'%)','#b91c1c')+
+      alRstat('Max Loss','-$'+alFmt(totalCost2),'#b91c1c');
+
+    instrHtml='<b>📥 ENTRY:</b> Buy '+contracts2+' strangle'+(contracts2>1?'s':'')+' — call at $'+Kc.toFixed(2)+' + put at $'+Kp.toFixed(2)+'.<br>'+
+      'Cost: $'+alFmt(totalCost2)+'. Cheaper than straddle, needs larger move to profit.<br>'+
+      '<b>📤 EXIT:</b> Close both legs at 50–100% profit target. Stop at 50% total loss.<br>'+
+      '<b>⏰ TIMING:</b> Works best ahead of big macro events. Wider strikes = cheaper but needs bigger move.';
+
+    var moves3=[1,2,3,5,8,12];
+    var sh3='';
+    moves3.forEach(function(mv){
+      var r1=strangleExit(spot,iv3,dte,0.40,mv,1);
+      var r2=strangleExit(spot,iv3,dte,0.40,mv,Math.min(Math.ceil(dte*0.4),dte));
+      var rE=strangleExit(spot,iv3,dte,0.40,mv,dte);
+      var d1=r1.dol*contracts2,d2=r2.dol*contracts2,dE=rE.dol*contracts2;
+      sh3+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;align-items:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">±'+mv+'%</span>'+
+        '</div>'+
+        [d1,d2,dE].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-a-plrows').innerHTML=sh3;
+    $('al-a-pltbl').style.display='block';
+
+  } else {
+    // Directional call or put
+    var isCall=AL_A_DIR==='call';
+    var Kdir=isCall?spot*(1+AL_A_OTM/100):spot*(1-AL_A_OTM/100);
+    cp=(isCall?bsC(spot,Kdir,T,iv3):bsP(spot,Kdir,T,iv3))*100;
+    if(cp<=0)return;
+    var contractsD=Math.max(1,Math.floor(capital/cp));
+    var totalCostD=cp*contractsD;
+    var bePctD=AL_A_OTM+(cp/100/spot*100);
+
+    $('al-a-rec-hdr').textContent=(isCall?'Call':'Put')+' Sizing (+'+AL_A_OTM+'% OTM)';
+    $('al-a-stats').innerHTML=
+      alRstat((isCall?'Call':'Put')+' Strike','$'+Kdir.toFixed(2),isCall?'#15803d':'#b91c1c')+
+      alRstat('Premium/Contract','$'+cp.toFixed(0),'')+
+      alRstat('Contracts',contractsD+'c','')+
+      alRstat('Total Cost','$'+alFmt(totalCostD),'#b91c1c')+
+      alRstat('B/E at Expiry','$'+(isCall?spot+cp/100:spot-cp/100).toFixed(2),'')+
+      alRstat('B/E Move Required','±'+bePctD.toFixed(2)+'%','#b45309')+
+      alRstat('Max Profit','Unlimited'+(isCall?'  🚀':'  ↓'),isCall?'#15803d':'#b91c1c')+
+      alRstat('Max Loss','-$'+alFmt(totalCostD),'#b91c1c');
+
+    instrHtml='<b>📥 ENTRY:</b> Buy '+contractsD+' '+AL_A_TICKER.toUpperCase()+' '+(isCall?'call':'put')+(contractsD>1?'s':'')+' at strike $'+Kdir.toFixed(2)+'.<br>'+
+      'Cost: $'+alFmt(totalCostD)+'. Stock must move '+(isCall?'above':'below')+' $'+(isCall?spot+cp/100:spot-cp/100).toFixed(2)+' by expiry to profit.<br>'+
+      '<b>📤 EXIT (profit):</b> Sell when position is +50–100%. Lock in gains — don\'t get greedy near expiry.<br>'+
+      '<b>📤 EXIT (stop):</b> Cut loss at 50% premium loss. Exit if thesis is wrong — time decay accelerates near expiry.<br>'+
+      '<b>⏰ TIMING:</b> Use with Signal tab confirmation. '+(isCall?'BUY CALL signal + bullish momentum.':'BUY PUT signal + bearish momentum.')+' 5–14 DTE for best leverage/theta balance.<br>'+
+      '<b>⚠️ RISK:</b> 100% loss possible if stock doesn\'t move past break-even. Never risk more than 20% of aggressive bucket on a single trade.';
+
+    var movesD=isCall?[1,2,3,5,8,12]:[-1,-2,-3,-5,-8,-12];
+    var shD='';
+    movesD.forEach(function(mv){
+      var r1=otmExit(spot,AL_A_OTM,dte,iv3,mv,1,isCall);
+      var r2=otmExit(spot,AL_A_OTM,dte,iv3,mv,Math.min(Math.ceil(dte*0.4),dte),isCall);
+      var rE=otmExit(spot,AL_A_OTM,dte,iv3,mv,dte,isCall);
+      var d1=r1.dol*contractsD,d2=r2.dol*contractsD,dE=rE.dol*contractsD;
+      shD+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
+        '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;align-items:center">'+
+          '<span style="font-size:12px;font-weight:800;color:#0a0f1e">'+(mv>0?'+':'')+mv+'%</span>'+
+        '</div>'+
+        [d1,d2,dE].map(function(g){return '<div style="padding:6px 3px;display:flex;align-items:center;justify-content:center;border-left:1px solid #e2e8f0;min-height:44px"><span style="font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px;'+alCellStyle(g)+'">'+alFp(g)+'</span></div>';}).join('')+
+        '</div>';
+    });
+    $('al-a-plrows').innerHTML=shD;
+    $('al-a-pltbl').style.display='block';
+  }
+
+  // Show instructions
+  if($('al-a-instructions'))$('al-a-instructions').innerHTML=alInstrBox('#78350f','#fffbeb','#fcd34d',instrHtml||'');
+}
+
+/* ── ALLOCAI TRADE LOG ── */
+function alPrefillLog(bucket,type){
+  if($('al-lg-bucket'))$('al-lg-bucket').value=bucket;
+  var typeMap={wheel:'sell-put',collar:'collar','options':'straddle'};
+  if($('al-lg-type'))$('al-lg-type').value=typeMap[type]||type;
+  if($('al-lg-ticker'))$('al-lg-ticker').value=bucket==='Aggressive'?AL_A_TICKER.toUpperCase():'SPY';
+  // Pre-fill entry cost
+  try{
+    if(bucket==='Conservative'){
+      var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otm=alFv('al-c4')||5;
+      var K=AL_C_PHASE==='put'?spot*(1-otm/100):spot*(1+otm/100);
+      var prem2=AL_C_PHASE==='put'?bsP(spot,K,dte/365,iv3):bsC(spot,K,dte/365,iv3);
+      var capital2=Math.round((alFv('al-cap')||500000)*0.40);
+      var contracts=(AL_C_PHASE==='put'?Math.max(1,Math.floor(capital2/(K*100))):Math.max(1,Math.floor(capital2/spot/100)));
+      if($('al-lg-entry'))$('al-lg-entry').value=(prem2*100*contracts).toFixed(0);
+    }
+  }catch(e){}
+  if($('al-lg-exit'))$('al-lg-exit').value='';
+  if($('al-lg-notes'))$('al-lg-notes').value='';
+  document.querySelector('#pane7 .log-section, [id="al-log-list"]')&&document.getElementById('al-log-list').scrollIntoView({behavior:'smooth',block:'start'});
+  alToast('Log pre-filled');
+}
+
+function alAddLog(){
+  var ticker=(($('al-lg-ticker')&&$('al-lg-ticker').value)||'').toUpperCase().trim();
+  var type=$('al-lg-type')?$('al-lg-type').value:'';
+  var bucket=$('al-lg-bucket')?$('al-lg-bucket').value:'';
+  var entry=parseFloat(($('al-lg-entry')&&$('al-lg-entry').value)||0)||0;
+  var exitVal=($('al-lg-exit')&&$('al-lg-exit').value)||'';
+  var notes=($('al-lg-notes')&&$('al-lg-notes').value)||'';
+  if(!ticker||entry<=0){alToast('Enter ticker + entry cost');return;}
+  var pnl=exitVal!==''?(parseFloat(exitVal)-entry):null;
+  var date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  alLog.unshift({id:Date.now(),ticker:ticker,type:type,bucket:bucket,entry:entry,exit:exitVal!==''?parseFloat(exitVal):null,pnl:pnl,notes:notes,date:date});
+  alSaveLog();alRenderLog();alToast('✓ Trade logged');
+  if($('al-lg-ticker'))$('al-lg-ticker').value='';
+  if($('al-lg-entry'))$('al-lg-entry').value='';
+  if($('al-lg-exit'))$('al-lg-exit').value='';
+  if($('al-lg-notes'))$('al-lg-notes').value='';
+}
+
+function alDeleteEntry(id){
+  alLog=alLog.filter(function(e){return e.id!==id;});
+  alSaveLog();alRenderLog();
+}
+
+function alSaveLog(){
+  try{localStorage.setItem(AL_LOG_KEY,JSON.stringify(alLog));}catch(e){}
+}
+
+function alRenderLog(){
+  var closed=alLog.filter(function(e){return e.pnl!==null;});
+  var totalPnl=closed.reduce(function(s,e){return s+(e.pnl||0);},0);
+  var wins=closed.filter(function(e){return e.pnl>0;}).length;
+  var wr=closed.length>0?Math.round(wins/closed.length*100)+'%':'—';
+  if($('al-ls-count'))$('al-ls-count').textContent=alLog.length;
+  if($('al-ls-pnl')){$('al-ls-pnl').textContent=(totalPnl>=0?'+':'')+'$'+alFmt(Math.abs(totalPnl));$('al-ls-pnl').style.color=totalPnl>0?'#15803d':totalPnl<0?'#b91c1c':'#0a0f1e';}
+  if($('al-ls-wr'))$('al-ls-wr').textContent=wr;
+  if(!alLog.length){if($('al-log-list'))$('al-log-list').innerHTML='<div style="text-align:center;padding:24px;color:#94a3b8;font-size:12px;font-weight:600">No trades logged yet.<br>Use a strategy card above and tap "+ Log This Trade"</div>';return;}
+  var typeLabels={'sell-put':'Sell Put','covered-call':'Covered Call','collar':'Collar','protective-put':'Protective Put','call':'Buy Call','put':'Buy Put','straddle':'Straddle','strangle':'Strangle'};
+  var bktColors={Conservative:'#1d4ed8',Moderate:'#059669',Aggressive:'#b45309'};
+  var html='';
+  alLog.forEach(function(e){
+    var isOpen=e.pnl===null;
+    var pnlStr=isOpen?'OPEN':alFp(e.pnl);
+    var pnlColor=isOpen?'#b45309':e.pnl>0?'#15803d':'#b91c1c';
+    var bc=bktColors[e.bucket]||'#6b7280';
+    html+='<div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:9px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">';
+    html+='<div style="flex:1;min-width:0">';
+    html+='<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:4px;background:'+bc+'22;color:'+bc+'">'+e.bucket+' · '+(typeLabels[e.type]||e.type)+'</span>';
+    html+='<div style="font-size:14px;font-weight:900;color:#0a0f1e">'+e.ticker+'</div>';
+    html+='<div style="font-size:10px;color:#6b7280;font-weight:600;line-height:1.5">Entry: $'+alFmt(e.entry)+(e.exit!==null?' · Exit: $'+alFmt(e.exit):' · Open')+(e.notes?' · '+e.notes:'')+'</div>';
+    html+='</div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">';
+    html+='<div style="font-size:16px;font-weight:900;color:'+pnlColor+'">'+pnlStr+'</div>';
+    html+='<div style="font-size:9px;color:#6b7280;font-weight:600">'+e.date+'</div>';
+    html+='<button onclick="alDeleteEntry('+e.id+')" style="background:transparent;border:none;color:#94a3b8;font-size:14px;padding:2px 4px;cursor:pointer">✕</button>';
+    html+='</div>';
+    html+='</div>';
+  });
+  if($('al-log-list'))$('al-log-list').innerHTML=html;
+}
+
+function alExportLog(){
+  if(!alLog.length){alToast('No trades to export');return;}
+  var rows=['Date,Bucket,Ticker,Strategy,Entry $,Exit $,P&L $,Notes'];
+  alLog.forEach(function(e){
+    rows.push([e.date,e.bucket,e.ticker,e.type,e.entry,e.exit!==null?e.exit:'',e.pnl!==null?e.pnl.toFixed(0):'OPEN','"'+(e.notes||'')+'"'].join(','));
+  });
+  var blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='AllocAI_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
+  alToast('✓ CSV downloaded');
+}
+
+function alClearLog(){
+  if(!confirm('Clear all AllocAI trade log entries?'))return;
+  alLog=[];alSaveLog();alRenderLog();alToast('Log cleared');
+}
+
+function alToast(msg){
+  var existing=document.getElementById('al-toast');
+  if(!existing){existing=document.createElement('div');existing.id='al-toast';existing.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);background:#0a0f1e;color:#fff;padding:10px 22px;border-radius:28px;font-size:13px;font-weight:700;z-index:300;white-space:nowrap;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)';document.body.appendChild(existing);}
+  existing.textContent=msg;
+  existing.style.opacity='1';existing.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(function(){existing.style.opacity='0';existing.style.transform='translateX(-50%) translateY(8px)';},2400);
+}
+
+/* ─── init AllocAI ─── */
+alSplit();
+alGoC();
+alRenderLog();
+/* ══════════════════════════════════════════════════════ */
+
 /* ── STRADDLE TAB MODE ── */
 /* ── Strdl/Strngl delta selector ── */
 var STDL_DELTA=50; // 40 | 45 | 50 — 50 = ATM straddle (default, original behavior)
@@ -3615,6 +4576,8 @@ window.onerror=function(msg,src,line,col,err){
 go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
+$('pane2').className='pane';
+$('pane7').className='pane';
 $('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
 setTimeout(function(){go4();},800);
