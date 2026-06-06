@@ -703,7 +703,7 @@ function callClaude(key,prompt){
             toolResults.push({
               type:'tool_result',
               tool_use_id:blocks[j].id,
-              content:'Search executed. Please synthesize the results and return the final JSON.'
+              content:'Search executed. Now return ONLY the raw JSON object — no preamble, no explanation, no markdown. Start with { and end with }.'
             });
           }
         }
@@ -747,7 +747,7 @@ function buildPrompt(){
     +'CRITICAL for exitAt field: Give a specific profit-take trigger — e.g. "+80% on premium" or "+150% if gap >5%" or "50% of max profit". '
     +'This is NOT the max theoretical gain — it is the REALISTIC early exit target the trader should actually take. '
     +'Consider: pre-earnings IV crush, gap-and-run risk, theta decay. Be specific and actionable.\n\n'
-    +'Return ONLY raw JSON — no markdown, no preamble:\n'
+    +'CRITICAL OUTPUT RULE: Your entire response must be ONLY a valid JSON object. No words before it, no words after it, no markdown fences, no "Based on", no explanations. Begin your response with { and end with }.\n'
     +'{"week":"'+wl+'",'
     +'"macroSnapshot":"<18 words: current regime>",'
     +'"plays":['
@@ -773,11 +773,28 @@ function wkEnd(n){
 
 // ── PARSE ──
 function parseResp(raw){
-  var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-  var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
-  if(s>-1&&e>-1)clean=clean.slice(s,e+1);
-  var parsed=JSON.parse(clean);
-  if(!parsed.plays||!parsed.plays.length)throw new Error('No plays returned — try again');
+  // Strip markdown fences
+  var clean=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+
+  // Find the outermost balanced { ... } block
+  var start=-1,depth=0,end=-1;
+  for(var i=0;i<clean.length;i++){
+    if(clean[i]==='{'){
+      if(depth===0)start=i;
+      depth++;
+    } else if(clean[i]==='}'){
+      depth--;
+      if(depth===0&&start>-1){end=i;break;}
+    }
+  }
+  if(start===-1||end===-1) throw new Error('No JSON found in response — try again');
+  var jsonStr=clean.slice(start,end+1);
+
+  var parsed;
+  try{ parsed=JSON.parse(jsonStr); }
+  catch(e){ throw new Error('JSON parse failed: '+e.message.slice(0,60)); }
+
+  if(!parsed.plays||!parsed.plays.length) throw new Error('No plays returned — try again');
   return parsed;
 }
 
