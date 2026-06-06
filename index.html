@@ -299,7 +299,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
     <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px;letter-spacing:.02em;line-height:1.3">Alloc<br>AI</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:11px;letter-spacing:.02em;line-height:1.25;padding:8px 2px">Alloc<br><span style="font-size:10px;opacity:.85">AI</span></button>
     <button class="tab" id="tab3" onclick="showTab(3)">Plan</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Backtest</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
@@ -2776,68 +2776,82 @@ function setT5(t){
 
 function fetchOHLC(ticker){
   var sym=ticker.toUpperCase();
-  $('b-fetch-status').textContent='Fetching '+sym+' data...';
+  $('b-fetch-status').innerHTML='<span style="opacity:.6">⏳</span> Fetching '+sym+' data…';
   $('b-fetch-status').style.color='var(--blue)';
   $('b-fetch-status').style.background='var(--bbg)';
   $('b-fetch-status').style.borderColor='var(--bbd)';
 
-  // Try Yahoo Finance first (free, no key, via allorigins proxy)
   var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d';
-  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl);
+  // Try multiple proxies in order
+  var proxies=[
+    'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl),
+    'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
+    'https://api.allorigins.win/get?url='+encodeURIComponent('https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d')
+  ];
+  var proxyIdx=0;
 
-  var didTimeout=false;
-  var timer=setTimeout(function(){
-    didTimeout=true;
-    tryAlphaVantage(sym);
-  },8000);
-
-  fetch(proxy)
-    .then(function(r){return r.json();})
-    .then(function(wrapper){
-      if(didTimeout)return;
-      clearTimeout(timer);
-      var data=JSON.parse(wrapper.contents);
-      var result=data.chart&&data.chart.result&&data.chart.result[0];
-      if(!result) throw new Error('no result');
-      var timestamps=result.timestamp;
-      var q=result.indicators.quote[0];
-      // Get last 5 trading days
-      var days=[];
-      for(var i=0;i<timestamps.length;i++){
-        var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
-        if(o&&h&&l&&c&&h>=o&&l<=o){
-          var dt=new Date(timestamps[i]*1000);
-          var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
-          var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
-          days.push({label:dow+' '+mmdd,o:o.toFixed(2),h:h.toFixed(2),l:l.toFixed(2),c:c.toFixed(2)});
+  function tryProxy(){
+    if(proxyIdx>=proxies.length){tryAlphaVantage(sym);return;}
+    var proxy=proxies[proxyIdx++];
+    var didTimeout=false;
+    var timer=setTimeout(function(){didTimeout=true;tryProxy();},7000);
+    fetch(proxy)
+      .then(function(r){return r.json();})
+      .then(function(wrapper){
+        if(didTimeout)return;
+        clearTimeout(timer);
+        var raw=wrapper.contents||wrapper;
+        var data=typeof raw==='string'?JSON.parse(raw):raw;
+        var result=data.chart&&data.chart.result&&data.chart.result[0];
+        if(!result)throw new Error('no result');
+        var timestamps=result.timestamp;
+        var q=result.indicators.quote[0];
+        var days=[];
+        for(var i=0;i<timestamps.length;i++){
+          var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
+          if(o&&h&&l&&c&&h>=o&&l<=o){
+            var dt=new Date(timestamps[i]*1000);
+            var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
+            var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
+            days.push({label:dow+' '+mmdd,o:o.toFixed(2),h:h.toFixed(2),l:l.toFixed(2),c:c.toFixed(2)});
+          }
         }
-      }
-      days=days.slice(-5);
-      if(!days.length) throw new Error('no days');
-      BT_DAYS=days;
-      $('b-fetch-status').textContent='✓ '+sym+' — last '+days.length+' trading days loaded (Yahoo Finance)';
-      $('b-fetch-status').style.color='var(--green)';
-      renderDayInputs();
-      go5();
-    })
-    .catch(function(){
-      if(didTimeout)return;
-      clearTimeout(timer);
-      tryAlphaVantage(sym);
-    });
+        days=days.slice(-5);
+        if(!days.length)throw new Error('no days');
+        BT_DAYS=days;
+        $('b-fetch-status').innerHTML='✓ '+sym+' — last '+days.length+' days loaded';
+        $('b-fetch-status').style.color='var(--green)';
+        $('b-fetch-status').style.background='var(--gbg)';
+        $('b-fetch-status').style.borderColor='var(--gbd)';
+        renderDayInputs();go5();
+      })
+      .catch(function(){if(didTimeout)return;clearTimeout(timer);tryProxy();});
+  }
+  tryProxy();
 }
 
 function tryAlphaVantage(sym){
-  $('b-fetch-status').textContent='Trying Alpha Vantage...';
+  $('b-fetch-status').innerHTML='<span style="opacity:.6">⏳</span> Trying backup source…';
   $('b-fetch-status').style.color='var(--blue)';
+  $('b-fetch-status').style.background='var(--bbg)';
+  $('b-fetch-status').style.borderColor='var(--bbd)';
   var url='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol='+sym+'&outputsize=compact&apikey='+AV_KEY;
   var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+
+  function showError(msg,icon){
+    $('b-fetch-status').innerHTML=
+      '<span style="margin-right:4px">'+icon+'</span>'+msg+
+      ' <button onclick="fetchOHLC(T5)" style="display:inline-flex;align-items:center;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;margin-left:6px;vertical-align:middle">↻ Retry</button>'+
+      ' <span style="color:var(--sub);font-size:10px;margin-left:4px">or tap <b>Edit ▾</b> to enter manually</span>';
+    $('b-fetch-status').style.color='var(--amber)';
+    $('b-fetch-status').style.background='var(--abg)';
+    $('b-fetch-status').style.borderColor='var(--abd)';
+  }
 
   var didTimeout=false;
   var timer=setTimeout(function(){
     didTimeout=true;
-    $('b-fetch-status').innerHTML='⏱ Fetch timed out. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
-    $('b-fetch-status').style.color='var(--amber)';
+    showError('Data fetch timed out.','⏱');
   },10000);
 
   fetch(proxy)
@@ -2847,11 +2861,7 @@ function tryAlphaVantage(sym){
       clearTimeout(timer);
       var data=JSON.parse(wrapper.contents);
       var ts=data['Time Series (Daily)'];
-      if(!ts){
-        $('b-fetch-status').innerHTML='⚠ Auto-fetch unavailable. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap <b>Edit ▾</b> to enter OHLC manually';
-        $('b-fetch-status').style.color='var(--red)';
-        return;
-      }
+      if(!ts){showError('Auto-fetch unavailable.','⚠');return;}
       var dates=Object.keys(ts).sort().slice(-5);
       BT_DAYS=[];
       dates.forEach(function(dt){
@@ -2865,16 +2875,16 @@ function tryAlphaVantage(sym){
           c:parseFloat(r['4. close']).toFixed(2)
         });
       });
-      $('b-fetch-status').textContent='✓ '+sym+' — last 5 trading days loaded (Alpha Vantage)';
+      $('b-fetch-status').innerHTML='✓ '+sym+' — last 5 days loaded';
       $('b-fetch-status').style.color='var(--green)';
-      renderDayInputs();
-      go5();
+      $('b-fetch-status').style.background='var(--gbg)';
+      $('b-fetch-status').style.borderColor='var(--gbd)';
+      renderDayInputs();go5();
     })
     .catch(function(){
       if(didTimeout)return;
       clearTimeout(timer);
-      $('b-fetch-status').innerHTML='❌ Both data sources failed. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap <b>Edit ▾</b> to enter manually';
-      $('b-fetch-status').style.color='var(--red)';
+      showError('Both sources failed.','❌');
     });
 }
 
