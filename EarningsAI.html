@@ -61,20 +61,21 @@ html,body{scroll-padding-top:190px;}
 .logo-name{font-size:15px;font-weight:900;color:var(--text);letter-spacing:-.4px;line-height:1;white-space:nowrap;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 /* market pills — full width second row */
-.mkt-pills{display:flex;gap:5px;width:100%;}
+.mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
-  display:flex;align-items:center;justify-content:center;gap:5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:var(--bg);border:1.5px solid var(--borderB);
-  border-radius:7px;padding:4px 8px;flex:1;overflow:hidden;
+  border-radius:7px;padding:4px 4px;flex:1;overflow:hidden;gap:1px;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
 .mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
-.mkt-sym{font-family:var(--FM);font-size:10px;font-weight:900;color:var(--sub);
+.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:var(--sub);
   letter-spacing:.04em;white-space:nowrap;}
 .mkt-q.up .mkt-sym{color:var(--green);}
 .mkt-q.dn .mkt-sym{color:var(--red);}
-.mkt-px{font-family:var(--FM);font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;}
-.mkt-chg{font-family:var(--FM);font-size:10px;font-weight:800;white-space:nowrap;}
+.mkt-row2{display:flex;align-items:center;gap:3px;}
+.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;white-space:nowrap;}
 .mkt-q.up .mkt-chg{color:var(--green);}
 .mkt-q.dn .mkt-chg{color:var(--red);}
 .mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
@@ -436,15 +437,15 @@ html,body{scroll-padding-top:190px;}
     <!-- Row 2: market quotes full width -->
     <div class="mkt-pills">
       <div class="mkt-q" id="mq-spy">
-        <span class="mkt-sym">SPY</span>
+        <span class="mkt-sym">S&amp;P 500</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-qqq">
-        <span class="mkt-sym">QQQ</span>
+        <span class="mkt-sym">NASDAQ</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-dia">
-        <span class="mkt-sym">DOW</span>
+        <span class="mkt-sym">DJIA</span>
         <span class="mkt-load">···</span>
       </div>
     </div>
@@ -515,32 +516,43 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── LIVE QUOTES ──
 function fetchQuotes(){
-  // SPY and QQQ direct; DIA = Dow ETF proxy for DOW
-  var syms=[['SPY','SPY'],['QQQ','QQQ'],['DIA','DOW']];
+  // Fetch actual index tickers: ^GSPC=S&P500, ^IXIC=NASDAQ, ^DJI=DJIA
+  var syms=[['%5EGSPC','sp'],['%5EIXIC','nas'],['%5EDJI','dia']];
   syms.forEach(function(pair){
-    var ticker=pair[0],label=pair[1];
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
+    var encoded=pair[0],elKey=pair[1];
+    var ticker=decodeURIComponent(encoded);
+    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+encoded+'?interval=1d&range=2d';
     fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
       .then(function(r){return r.json();})
       .then(function(d){
         var m=JSON.parse(d.contents).chart.result[0].meta;
-        renderQ(ticker,label,m.regularMarketPrice,(m.regularMarketPrice-(m.chartPreviousClose||m.previousClose))/(m.chartPreviousClose||m.previousClose)*100);
+        var price=m.regularMarketPrice;
+        var prev=m.chartPreviousClose||m.previousClose;
+        var pct=(price-prev)/prev*100;
+        renderQ(elKey,price,pct);
       }).catch(function(){
-        var fb={'SPY':[582.30,.41],'QQQ':[499.60,.63],'DIA':[432.80,.18]};
-        renderQ(ticker,label,fb[ticker][0],fb[ticker][1]);
+        // Fallback to approximate real index values
+        var fb={'sp':[7383.74,-2.64],'nas':[25709.43,-4.18],'dia':[50866.78,-1.35]};
+        renderQ(elKey,fb[elKey][0],fb[elKey][1]);
       });
   });
 }
-function renderQ(ticker,label,price,pct){
-  // DOW uses DIA element id
-  var elId=label==='DOW'?'mq-dia':'mq-'+ticker.toLowerCase();
-  var el=document.getElementById(elId);
+function fmtPrice(p){
+  // Format with commas, 2 decimals
+  return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function renderQ(elKey,price,pct){
+  var idMap={'sp':'mq-spy','nas':'mq-qqq','dia':'mq-dia'};
+  var lblMap={'sp':'S&P 500','nas':'NASDAQ','dia':'DJIA'};
+  var el=document.getElementById(idMap[elKey]);
   if(!el)return;
   var up=pct>=0;
   el.className='mkt-q '+(up?'up':'dn');
-  el.innerHTML='<span class="mkt-sym">'+label+'</span>'
-    +'<span class="mkt-px">'+price.toFixed(2)+'</span>'
-    +'<span class="mkt-chg">'+(up?'+':'')+pct.toFixed(2)+'%</span>';
+  el.innerHTML='<span class="mkt-sym">'+lblMap[elKey]+'</span>'
+    +'<div class="mkt-row2">'
+    +'<span class="mkt-px">'+fmtPrice(price)+'</span>'
+    +'<span class="mkt-chg">'+(up?'+':'')+pct.toFixed(2)+'%</span>'
+    +'</div>';
 }
 
 // ── SETTINGS ──
@@ -639,41 +651,73 @@ function runAnalysis(){
 }
 
 function callClaude(key,prompt){
-  return fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':key,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-5',
-      max_tokens:4500,
-      tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:prompt}]
-    })
-  }).then(function(res){
-    return res.json().then(function(data){
-      if(!res.ok){
-        var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
-        if(res.status===401)m='Invalid API key — tap ⚙️ to update';
-        if(res.status===429)m='Rate limit — wait and retry';
-        throw new Error(m);
-      }
-      // Extract text from content blocks (web_search returns mixed tool_use + text blocks)
-      var blocks=data.content||[];
-      var text='';
-      for(var i=0;i<blocks.length;i++){
-        if(blocks[i].type==='text') text+=blocks[i].text;
-      }
-      if(text) return text;
-      throw new Error('Empty response — try again');
+  // Agentic loop: keep sending until stop_reason is 'end_turn' (not 'tool_use')
+  var messages=[{role:'user',content:prompt}];
+  var MAX_TURNS=8;
+
+  function doTurn(turnsLeft){
+    if(turnsLeft<=0) return Promise.reject(new Error('Too many tool-use rounds — try again'));
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:4500,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:messages
+      })
+    }).then(function(res){
+      return res.json().then(function(data){
+        if(!res.ok){
+          var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+          if(res.status===401)m='Invalid API key — tap ⚙️ to update';
+          if(res.status===429)m='Rate limit — wait and retry';
+          throw new Error(m);
+        }
+        var blocks=data.content||[];
+
+        // Collect any text in this turn
+        var text='';
+        for(var i=0;i<blocks.length;i++){
+          if(blocks[i].type==='text') text+=blocks[i].text;
+        }
+
+        // If we have a final answer, return it
+        if(data.stop_reason==='end_turn'||text){
+          if(text) return text;
+          throw new Error('Empty response — try again');
+        }
+
+        // stop_reason==='tool_use': append assistant turn + synthetic tool_result and loop
+        messages.push({role:'assistant',content:blocks});
+
+        // Build tool_result blocks for every tool_use block
+        var toolResults=[];
+        for(var j=0;j<blocks.length;j++){
+          if(blocks[j].type==='tool_use'){
+            toolResults.push({
+              type:'tool_result',
+              tool_use_id:blocks[j].id,
+              content:'Search executed. Please synthesize the results and return the final JSON.'
+            });
+          }
+        }
+        if(toolResults.length===0) throw new Error('Unexpected response format — try again');
+        messages.push({role:'user',content:toolResults});
+        return doTurn(turnsLeft-1);
+      });
+    }).catch(function(e){
+      if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
+      throw e;
     });
-  }).catch(function(e){
-    if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error');
-    throw e;
-  });
+  }
+
+  return doTurn(MAX_TURNS);
 }
 
 // ── PROMPT ──
