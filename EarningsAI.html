@@ -46,9 +46,11 @@ html,body{scroll-padding-top:190px;}
 /* ── HEADER ── */
 .hdr{
   display:flex;flex-direction:column;
-  background:#fff;border:2px solid var(--text);
-  border-radius:14px;padding:7px 10px 6px;
-  box-shadow:3px 3px 0 var(--text);gap:6px;
+  background:linear-gradient(160deg,#09101f 0%,#0f1e35 100%);
+  border:1.5px solid #1e3a5f;
+  border-radius:14px;padding:8px 12px 8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.22),0 0 0 1px rgba(94,234,212,.07);
+  gap:7px;
 }
 .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .logo{display:flex;align-items:center;gap:6px;flex-shrink:0;}
@@ -58,27 +60,26 @@ html,body{scroll-padding-top:190px;}
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
-.logo-name{font-size:15px;font-weight:900;color:var(--text);letter-spacing:-.4px;line-height:1;white-space:nowrap;}
+.logo-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.4px;line-height:1;white-space:nowrap;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 /* market pills — full width second row */
 .mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--bg);border:1.5px solid var(--borderB);
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
   border-radius:7px;padding:4px 4px;flex:1;overflow:hidden;gap:1px;
 }
-.mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
-.mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
-.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:var(--sub);
+.mkt-q.up{border-color:rgba(134,239,172,.4);background:rgba(22,163,74,.12);}
+.mkt-q.dn{border-color:rgba(252,165,165,.3);background:rgba(185,28,28,.1);}
+.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:rgba(255,255,255,.55);
   letter-spacing:.04em;white-space:nowrap;}
-.mkt-q.up .mkt-sym{color:var(--green);}
-.mkt-q.dn .mkt-sym{color:var(--red);}
-.mkt-row2{display:flex;align-items:center;gap:3px;}
-.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-q.up .mkt-sym{color:#4ade80;}
+.mkt-q.dn .mkt-sym{color:#f87171;}
+.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:#fff;white-space:nowrap;}
 .mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;white-space:nowrap;}
-.mkt-q.up .mkt-chg{color:var(--green);}
-.mkt-q.dn .mkt-chg{color:var(--red);}
-.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
+.mkt-q.up .mkt-chg{color:#4ade80;}
+.mkt-q.dn .mkt-chg{color:#f87171;}
+.mkt-load{font-family:var(--FM);font-size:9px;color:rgba(255,255,255,.3);
   animation:ldp 1.2s ease-in-out infinite;}
 @keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
 .hdr-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
@@ -376,15 +377,16 @@ html,body{scroll-padding-top:190px;}
 
 /* ── BACK TO GAMMAEDGE ── */
 .btn-back{
-  display:inline-flex;align-items:center;gap:3px;
-  background:var(--text);color:#fff;
-  border:none;border-radius:7px;padding:4px 8px;
-  font-size:10px;font-weight:800;letter-spacing:.02em;
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;
+  border:1.5px solid #334155;border-radius:8px;padding:5px 10px;
+  font-size:11px;font-weight:800;letter-spacing:.03em;
   text-decoration:none;white-space:nowrap;
-  transition:opacity .15s;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+  transition:all .15s;flex-shrink:0;
 }
-.btn-back:active{opacity:.75;}
-.btn-back svg{width:10px;height:10px;stroke:#fff;stroke-width:2.5;
+.btn-back:active{opacity:.85;}
+.btn-back svg{width:10px;height:10px;stroke:#94a3b8;stroke-width:2.5;
   stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 </style>
 </head>
@@ -413,6 +415,16 @@ html,body{scroll-padding-top:190px;}
 <!-- ══ STICKY TOP ══ -->
 <div class="sticky-top">
 
+  <!-- Suite nav bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;padding:2px 2px 0;">
+    <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="font-size:8px;font-weight:800;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase">Earnings Intelligence</span>
+      <span style="width:4px;height:4px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;display:inline-block"></span>
+      <span style="font-size:8px;font-weight:800;color:#22c55e;letter-spacing:.06em;text-transform:uppercase">Suite</span>
+    </div>
+  </div>
+
   <!-- HEADER (sticky card 1) -->
   <div class="hdr">
     <!-- Row 1: logo + controls -->
@@ -429,7 +441,6 @@ html,body{scroll-padding-top:190px;}
         <div class="logo-name">Earnings<em>AI</em></div>
       </div>
       <div class="hdr-right">
-        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
         <div class="live-pill"><div class="live-dot"></div>LIVE</div>
         <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
       </div>
