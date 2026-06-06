@@ -244,7 +244,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .bt-tbl{width:100%;border-collapse:collapse;font-size:10px;min-width:480px}
 .bt-tbl th{background:var(--text);color:#fff;padding:6px 5px;font-size:8px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;text-align:center}
 .bt-tbl td{padding:6px 5px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;white-space:nowrap;font-size:10px}
-.bt-tbl td:first-child{text-align:left}
+.bt-tbl td:first-child{text-align:left;padding-left:6px;min-width:100px}
 .bt-tbl tr:last-child td{border-bottom:none}
 .bt-tbl tr.bt-sum td{background:#f8fafc;border-top:2px solid var(--border);font-weight:800}
 .bt-pos{color:var(--green);font-weight:800}.bt-neg{color:var(--red);font-weight:800}.bt-zero{color:var(--muted)}
@@ -630,7 +630,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <table class="bt-tbl" id="b-main-tbl">
           <thead>
             <tr>
-              <th rowspan="2" style="text-align:left;min-width:85px;vertical-align:bottom">Day / Range</th>
+              <th rowspan="2" style="text-align:left;min-width:100px;vertical-align:bottom;padding-left:6px">Day / Range</th>
               <th colspan="2" style="border-bottom:2px solid #4ade80">0-DTE</th>
               <th colspan="2" style="border-bottom:2px solid #60a5fa">1-DTE</th>
               <th colspan="2" style="border-bottom:2px solid #fbbf24">5-DTE</th>
@@ -664,7 +664,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <table class="bt-tbl" id="b-on-tbl">
           <thead>
             <tr>
-              <th rowspan="2" style="text-align:left;min-width:95px;vertical-align:bottom">Entry → Exit</th>
+              <th rowspan="2" style="text-align:left;min-width:105px;vertical-align:bottom;padding-left:6px">Entry → Exit</th>
               <th colspan="2" style="border-bottom:2px solid #4ade80">0-DTE</th>
               <th colspan="2" style="border-bottom:2px solid #60a5fa">1-DTE</th>
               <th colspan="2" style="border-bottom:2px solid #fbbf24">5-DTE</th>
@@ -2374,18 +2374,14 @@ function setBtDelta(d){
   go5();
 }
 function refreshBtModeTitle(){
+  var el=$('bt-mode-title');
+  if(!el) return; // element removed in new table UI
   var pkg=btPkgLbl();
-  $('bt-mode-title').textContent=BT_MODE==='open'
+  el.textContent=BT_MODE==='open'
     ?'If I bought '+pkg+' at open each day...'
     :'If I bought '+pkg+' ~3:55pm prior day, closed next EOD...';
 }
-function setBtMode(m){
-  BT_MODE=m;
-  $('bt-mode-open').className='tab'+(m==='open'?' on':'');
-  $('bt-mode-overnight').className='tab'+(m==='overnight'?' on':'');
-  refreshBtModeTitle();
-  go5();
-}
+/* setBtMode replaced by new version below go5 */
 var BT_DAYS=[
   {label:'Mon',o:'',h:'',l:'',c:''},
   {label:'Tue',o:'',h:'',l:'',c:''},
@@ -2405,7 +2401,8 @@ function setBtDTE(btn,v){
   BT_DTE=v;
   document.querySelectorAll('#b-dte-btns .otmbtn').forEach(function(b){b.className='otmbtn';});
   btn.className='otmbtn on';
-  $('b-dte-note').textContent=BT_DTE_NOTES[v]||'';
+  var dteNote=$('b-dte-note');
+  if(dteNote) dteNote.textContent=BT_DTE_NOTES[v]||'';
   go5();
 }
 
