@@ -2368,7 +2368,7 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
 }  // end renderSetupGrid
 
 /* ── TAB 5: BACKTEST ── */
-var AV_KEY='SBJ9BETAMVAZQM9D';
+var AV_KEY='9EFXB0AURE601M2C';
 var T5='qqq',BT_DTE=0,BT_MODE='open',BT_DELTA=50;
 function btDeltaFrac(){return BT_DELTA/100;}
 function btPkgLbl(){return BT_DELTA===50?'ATM straddle':BT_DELTA+'Δ strangle';}
@@ -2435,24 +2435,77 @@ function fetchOHLC(ticker){
   var sym=ticker.toUpperCase();
   $('b-fetch-status').textContent='Fetching '+sym+' data...';
   $('b-fetch-status').style.color='var(--blue)';
-  var url='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol='+sym+'&outputsize=compact&apikey='+AV_KEY;
+  $('b-fetch-status').style.background='var(--bbg)';
+  $('b-fetch-status').style.borderColor='var(--bbd)';
 
-  // 10 second timeout
+  // Try Yahoo Finance first (free, no key, via allorigins proxy)
+  var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d';
+  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl);
+
   var didTimeout=false;
   var timer=setTimeout(function(){
     didTimeout=true;
-    $('b-fetch-status').innerHTML='⏱ Auto-fetch timed out (free API limit). <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
+    tryAlphaVantage(sym);
+  },8000);
+
+  fetch(proxy)
+    .then(function(r){return r.json();})
+    .then(function(wrapper){
+      if(didTimeout)return;
+      clearTimeout(timer);
+      var data=JSON.parse(wrapper.contents);
+      var result=data.chart&&data.chart.result&&data.chart.result[0];
+      if(!result) throw new Error('no result');
+      var timestamps=result.timestamp;
+      var q=result.indicators.quote[0];
+      // Get last 5 trading days
+      var days=[];
+      for(var i=0;i<timestamps.length;i++){
+        var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
+        if(o&&h&&l&&c&&h>=o&&l<=o){
+          var dt=new Date(timestamps[i]*1000);
+          var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
+          var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
+          days.push({label:dow+' '+mmdd,o:o.toFixed(2),h:h.toFixed(2),l:l.toFixed(2),c:c.toFixed(2)});
+        }
+      }
+      days=days.slice(-5);
+      if(!days.length) throw new Error('no days');
+      BT_DAYS=days;
+      $('b-fetch-status').textContent='✓ '+sym+' — last '+days.length+' trading days loaded (Yahoo Finance)';
+      $('b-fetch-status').style.color='var(--green)';
+      renderDayInputs();
+      go5();
+    })
+    .catch(function(){
+      if(didTimeout)return;
+      clearTimeout(timer);
+      tryAlphaVantage(sym);
+    });
+}
+
+function tryAlphaVantage(sym){
+  $('b-fetch-status').textContent='Trying Alpha Vantage...';
+  $('b-fetch-status').style.color='var(--blue)';
+  var url='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol='+sym+'&outputsize=compact&apikey='+AV_KEY;
+  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+
+  var didTimeout=false;
+  var timer=setTimeout(function(){
+    didTimeout=true;
+    $('b-fetch-status').innerHTML='⏱ Fetch timed out. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
     $('b-fetch-status').style.color='var(--amber)';
   },10000);
 
-  fetch(url)
+  fetch(proxy)
     .then(function(r){return r.json();})
-    .then(function(data){
+    .then(function(wrapper){
       if(didTimeout)return;
       clearTimeout(timer);
+      var data=JSON.parse(wrapper.contents);
       var ts=data['Time Series (Daily)'];
       if(!ts){
-        $('b-fetch-status').innerHTML='⚠ No data returned — Alpha Vantage limit hit or key invalid. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter manually';
+        $('b-fetch-status').innerHTML='⚠ Auto-fetch unavailable. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap <b>Edit ▾</b> to enter OHLC manually';
         $('b-fetch-status').style.color='var(--red)';
         return;
       }
@@ -2469,7 +2522,7 @@ function fetchOHLC(ticker){
           c:parseFloat(r['4. close']).toFixed(2)
         });
       });
-      $('b-fetch-status').textContent='✓ '+sym+' — last 5 trading days loaded';
+      $('b-fetch-status').textContent='✓ '+sym+' — last 5 trading days loaded (Alpha Vantage)';
       $('b-fetch-status').style.color='var(--green)';
       renderDayInputs();
       go5();
@@ -2477,7 +2530,7 @@ function fetchOHLC(ticker){
     .catch(function(){
       if(didTimeout)return;
       clearTimeout(timer);
-      $('b-fetch-status').innerHTML='❌ Fetch failed. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap Edit ▾ to enter data manually';
+      $('b-fetch-status').innerHTML='❌ Both data sources failed. <button onclick="fetchOHLC(T5)" style="background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px">Retry</button> or tap <b>Edit ▾</b> to enter manually';
       $('b-fetch-status').style.color='var(--red)';
     });
 }
