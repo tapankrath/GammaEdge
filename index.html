@@ -857,17 +857,18 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <!-- TAB 3: SPIKE/CRASH -->
 <div class="pane" id="pane3" style="padding-top:8px">
   <div class="card">
-    <!-- Ticker row: SPY · QQQ · custom input -->
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:nowrap">
-      <button class="tk spy" id="t3-spy" onclick="setT3('spy')" style="padding:5px 10px;font-size:12px;flex-shrink:0">SPY</button>
-      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="padding:5px 10px;font-size:12px;flex-shrink:0">QQQ</button>
-      <!-- Custom ticker -->
-      <input type="text" id="s-custom-tk" maxlength="6" placeholder="RKLB…" oninput="this.value=this.value.toUpperCase()" style="width:62px;background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:5px 7px;font-size:13px;font-weight:800;color:var(--text);text-transform:uppercase;text-align:center;flex-shrink:0"/>
-      <button onclick="lotteryFetchCustom()" style="background:#0f172a;color:#fff;border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;flex-shrink:0">Load</button>
-      <!-- Direction -->
-      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">🚀</div><div class="dname" style="font-size:9px">Spike</div></div>
-      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">💥</div><div class="dname" style="font-size:9px">Crash</div></div>
-      <div class="dbtn both" id="sd-both" onclick="setSdir('both')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">⚡</div><div class="dname" style="font-size:9px">Either</div></div>
+    <!-- Row 1: Tickers + custom input -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
+      <button class="tk spy" id="t3-spy" onclick="setT3('spy')" style="flex:1;padding:9px 4px;font-size:13px">SPY</button>
+      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="flex:1;padding:9px 4px;font-size:13px">QQQ</button>
+      <input type="text" id="s-custom-tk" maxlength="6" placeholder="TICKER" oninput="this.value=this.value.toUpperCase()" style="flex:1.2;min-width:0;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 6px;font-size:13px;font-weight:800;color:var(--text);text-transform:uppercase;text-align:center"/>
+      <button onclick="lotteryFetchCustom()" style="flex:0.8;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:9px 6px;font-size:12px;font-weight:800">Load</button>
+    </div>
+    <!-- Row 2: Direction buttons -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')"><div class="dico">🚀</div><div class="dname">Spike</div></div>
+      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')"><div class="dico">💥</div><div class="dname">Crash</div></div>
+      <div class="dbtn both" id="sd-both" onclick="setSdir('both')"><div class="dico">⚡</div><div class="dname">Either</div></div>
     </div>
     <!-- Custom ticker status line -->
     <div id="s-custom-status" style="display:none;font-size:10px;font-weight:700;padding:5px 10px;border-radius:6px;margin-bottom:8px;background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)"></div>
@@ -1994,16 +1995,13 @@ function go3(){
   if(SDIR==='dn'||SDIR==='both'){
     th+='<div class="tkt-leg"><div><span class="tkt-action put">BUY PUT</span><div class="tkt-strike">$'+Kp+' Strike</div><div class="tkt-detail">'+OTM+'% below $'+spot.toFixed(0)+'</div></div><div style="text-align:right"><div style="font-size:8px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ask ~</div><div class="tkt-prem">$'+pPrem+'/share</div><div class="tkt-prem-sub">$'+(parseFloat(pPrem)*100).toFixed(0)+'/contract</div></div></div>';
   }
-  // Profit target banner (above footer)
   th+='</div>';
-  th+='<div style="background:linear-gradient(90deg,#f5f3ff,#eff6ff);border:1px solid var(--pbd);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
-     +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--purple)">Profit Target</div>'
-     +'<div style="display:flex;gap:12px;align-items:center">'
-     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">%</div><div style="font-size:14px;font-weight:900;color:var(--purple)">+'+tgtPct+'%</div></div>'
-     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">$</div><div style="font-size:14px;font-weight:900;color:var(--purple)">+$'+fmt(tgtDol)+'</div></div>'
-     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">Needs</div><div style="font-size:13px;font-weight:900;color:var(--green)">'+tgtInfo+'</div></div>'
-     +'</div></div>';
-  th+='<div class="tkt-footer"><div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">500%+ needs</div><div class="tkt-fi-val" style="color:var(--green)">'+(need500?'+'+need500+'%':'—')+'</div></div></div>';
+  th+='<div class="tkt-footer" style="flex-wrap:wrap;gap:6px">'
+    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div>'
+    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div>'
+    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div>'
+    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Tgt +$'+fmt(tgtDol)+'</div><div class="tkt-fi-val" style="color:var(--purple)">'+(needTgt?'+'+needTgt+'% D'+needTgtDay:'—')+'</div></div>'
+    +'</div>';
   $('s-ticket').innerHTML=th;
   // Day slabs based on DTE
   var holdDays;
