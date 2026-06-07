@@ -1032,10 +1032,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="b-capital" value="20000" step="100" inputmode="decimal" oninput="go5()"/></div>
         <div class="field"><label class="flbl">IV % (est)</label><input type="number" id="b-iv" value="21" step="1" inputmode="decimal" oninput="go5()"/></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px">
-        <button id="bt-delta-40" onclick="setBtDelta(40)" class="tab" style="font-size:11px;padding:8px">Strangle 40Δ</button>
-        <button id="bt-delta-45" onclick="setBtDelta(45)" class="tab" style="font-size:11px;padding:8px">Strangle 45Δ</button>
-        <button id="bt-delta-50" onclick="setBtDelta(50)" class="tab on" style="font-size:11px;padding:8px">Straddle ATM</button>
+      <div style="background:var(--gbg);border:1px solid var(--gbd);border-radius:10px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:6px">
+        <span style="font-size:14px">◆</span> ATM Straddle (50Δ)
       </div>
     </div>
   </div>
@@ -3047,17 +3045,8 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
 var AV_KEY='9EFXB0AURE601M2C';
 var T5='qqq',BT_DTE=0,BT_MODE='open',BT_DELTA=50;
 function btDeltaFrac(){return BT_DELTA/100;}
-function btPkgLbl(){return BT_DELTA===50?'ATM straddle':BT_DELTA+'Δ strangle';}
-function setBtDelta(d){
-  BT_DELTA=d;
-  [40,45,50].forEach(function(x){
-    var el=$('bt-delta-'+x);
-    if(el)el.className='tab'+(d===x?' on':'');
-  });
-  // Refresh title to reflect new delta
-  refreshBtModeTitle();
-  go5();
-}
+function btPkgLbl(){return 'ATM straddle';}
+function setBtDelta(d){BT_DELTA=50;refreshBtModeTitle();go5();}
 function refreshBtModeTitle(){
   var el=$('bt-mode-title');
   if(!el) return; // element removed in new table UI
