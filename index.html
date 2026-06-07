@@ -200,6 +200,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .rrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:10px 10px;border-top:1px solid var(--border);align-items:center}
 .rrow:nth-child(even){background:#fafafa}
 .rrow.mega{background:var(--pikbg)}
+.rrow.tgt{background:var(--pbg)}
 .rrow .mlbl{font-size:13px;font-weight:800;color:var(--text)}
 .rrow.mega .mlbl{color:var(--pink)}
 .rrow span{text-align:center;font-size:12px;font-weight:700}
@@ -856,14 +857,20 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <!-- TAB 3: SPIKE/CRASH -->
 <div class="pane" id="pane3" style="padding-top:8px">
   <div class="card">
-    <!-- Ticker + direction on one compact row -->
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:nowrap">
-      <button class="tk spy" id="t3-spy" onclick="setT3('spy')" style="padding:5px 12px;font-size:12px;flex-shrink:0">SPY</button>
-      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="padding:5px 12px;font-size:12px;flex-shrink:0">QQQ</button>
-      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">🚀</div><div class="dname" style="font-size:9px">Spike</div></div>
-      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">💥</div><div class="dname" style="font-size:9px">Crash</div></div>
-      <div class="dbtn both" id="sd-both" onclick="setSdir('both')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:14px;margin-bottom:1px">⚡</div><div class="dname" style="font-size:9px">Either</div></div>
+    <!-- Ticker row: SPY · QQQ · custom input -->
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:nowrap">
+      <button class="tk spy" id="t3-spy" onclick="setT3('spy')" style="padding:5px 10px;font-size:12px;flex-shrink:0">SPY</button>
+      <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="padding:5px 10px;font-size:12px;flex-shrink:0">QQQ</button>
+      <!-- Custom ticker -->
+      <input type="text" id="s-custom-tk" maxlength="6" placeholder="RKLB…" oninput="this.value=this.value.toUpperCase()" style="width:62px;background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:5px 7px;font-size:13px;font-weight:800;color:var(--text);text-transform:uppercase;text-align:center;flex-shrink:0"/>
+      <button onclick="lotteryFetchCustom()" style="background:#0f172a;color:#fff;border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;flex-shrink:0">Load</button>
+      <!-- Direction -->
+      <div class="dbtn up on" id="sd-up" onclick="setSdir('up')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">🚀</div><div class="dname" style="font-size:9px">Spike</div></div>
+      <div class="dbtn dn" id="sd-dn" onclick="setSdir('dn')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">💥</div><div class="dname" style="font-size:9px">Crash</div></div>
+      <div class="dbtn both" id="sd-both" onclick="setSdir('both')" style="flex:1;padding:5px 2px;border-radius:7px;min-width:0"><div class="dico" style="font-size:13px;margin-bottom:1px">⚡</div><div class="dname" style="font-size:9px">Either</div></div>
     </div>
+    <!-- Custom ticker status line -->
+    <div id="s-custom-status" style="display:none;font-size:10px;font-weight:700;padding:5px 10px;border-radius:6px;margin-bottom:8px;background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)"></div>
     <!-- OTM strip + inputs -->
     <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
       <span style="font-size:9px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;flex-shrink:0">OTM %</span>
@@ -872,11 +879,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="otmbtn" onclick="setOtm(this,3)" style="flex:1;padding:5px 2px">+3%</button>
       <button class="otmbtn" onclick="setOtm(this,5)" style="flex:1;padding:5px 2px">+5%</button>
     </div>
-    <div class="grid2">
+    <!-- Main inputs: 2x3 grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
       <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="706" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">IV %</label><input type="number" id="s2" value="21" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">DTE</label><input type="number" id="s3" value="7" step="1" min="1" inputmode="decimal" oninput="go3()"/></div>
-      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="20000" step="100" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="20000" step="100" inputmode="decimal" oninput="lotteryTgtPctChange();go3()"/></div>
+      <div class="field" style="--accent:var(--purple)"><label class="flbl" style="color:var(--purple)">Profit Tgt %</label><input type="number" id="s-tgt-pct" value="100" step="25" min="10" inputmode="decimal" oninput="lotteryTgtPctChange();go3()" style="color:var(--purple)"/></div>
+      <div class="field" style="--accent:var(--purple)"><label class="flbl" style="color:var(--purple)">Profit Tgt $</label><input type="number" id="s-tgt-dol" value="500" step="100" min="0" inputmode="decimal" oninput="lotteryTgtDolChange()" style="color:var(--purple)"/></div>
     </div>
   </div>
 
@@ -1814,10 +1824,118 @@ function dstat(lbl,val,clr){
 
 
 /* ── TAB 3 ── */
+/* ── LOTTERY CUSTOM TICKER ── */
+var T3_CUSTOM=''; // empty = using SPY/QQQ
 function setT3(t){
-  T3=t;
+  T3=t;T3_CUSTOM='';
   ['spy','qqq'].forEach(function(x){$('t3-'+x).className='tk '+x+(t===x?' on':'');});
+  // Clear custom input highlight
+  var ci=$('s-custom-tk');if(ci){ci.style.borderColor='var(--border)';}
+  var cs=$('s-custom-status');if(cs){cs.style.display='none';}
   var d=DEFS[t];$('s1').value=(LIVE[t]>0?LIVE[t]:d.spot).toFixed(2);$('s2').value=d.iv;
+  // Sync profit target $ from %
+  lotteryTgtPctChange();
+  go3();
+}
+
+function lotteryFetchCustom(){
+  var ci=$('s-custom-tk');
+  var sym=(ci&&ci.value.trim().toUpperCase())||'';
+  if(!sym){ci&&(ci.focus());return;}
+  var cs=$('s-custom-status');
+  if(cs){cs.style.display='block';cs.textContent='Fetching '+sym+'…';cs.style.background='var(--bbg)';cs.style.color='var(--blue)';cs.style.borderColor='var(--bbd)';}
+  // Deactivate SPY/QQQ buttons
+  ['spy','qqq'].forEach(function(x){$('t3-'+x).className='tk '+x;});
+  ci.style.borderColor='var(--pink)';
+  T3_CUSTOM=sym;T3=sym.toLowerCase();
+
+  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
+    'https://corsproxy.io/?'+encodeURIComponent(url2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url2)
+  ];
+  function tryP(i){
+    if(i>=proxies.length){
+      // Try Claude fallback
+      var ak=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+      if(ak&&ak.indexOf('sk-')===0){
+        if(cs){cs.textContent='Using AI lookup for '+sym+'…';}
+        fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:80,
+            tools:[{type:'web_search_20250305',name:'web_search'}],
+            messages:[{role:'user',content:'Current price and previous close of '+sym+' stock? Reply ONLY JSON: {"c":123.45,"pc":122.10,"iv":25}'}]})
+        }).then(function(r){return r.json();}).then(function(data){
+          var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+          var m=text.match(/\{"c":\s*[\d.]+/);
+          if(!m){lotteryCustomFail(sym);return;}
+          var full=text.slice(text.indexOf(m[0]));
+          var d=JSON.parse(full.slice(0,full.indexOf('}')+1));
+          lotteryApplyCustom(sym,d.c,d.pc,d.iv||25);
+        }).catch(function(){lotteryCustomFail(sym);});
+      } else {
+        lotteryCustomFail(sym);
+      }
+      return;
+    }
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var res=d.chart.result[0];var meta=res.meta;
+        var p=meta.regularMarketPrice;
+        var pc=meta.regularMarketPreviousClose||meta.previousClose;
+        if(!pc||isNaN(pc)){
+          var closes=(res.indicators&&res.indicators.quote&&res.indicators.quote[0].close)||[];
+          closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
+          if(closes.length>=2){pc=closes[closes.length-2];p=p||closes[closes.length-1];}
+        }
+        // Estimate IV from recent vol if available, else default 35%
+        var iv_est=meta.regularMarketVolume?30:35;
+        lotteryApplyCustom(sym,p,pc,iv_est);
+      })
+      .catch(function(){tryP(i+1);});
+  }
+  tryP(0);
+}
+
+function lotteryApplyCustom(sym,p,pc,iv_est){
+  if(!p||isNaN(p)){lotteryCustomFail(sym);return;}
+  var ch=p-(pc||p),pct=pc&&!isNaN(pc)?(ch/pc*100):0;
+  var k=sym.toLowerCase();
+  LIVE[k]=p;LIVE_CHG[k]=pct;
+  $('s1').value=p.toFixed(2);
+  if(iv_est>0)$('s2').value=iv_est;
+  var cs=$('s-custom-status');
+  if(cs){
+    var s=ch>=0?'+':'';
+    cs.style.display='block';
+    cs.style.background='var(--gbg)';cs.style.color='var(--green)';cs.style.borderColor='var(--gbd)';
+    cs.textContent='✓ '+sym+' $'+p.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
+  }
+  lotteryTgtPctChange();
+  go3();
+}
+
+function lotteryCustomFail(sym){
+  var cs=$('s-custom-status');
+  if(cs){cs.style.display='block';cs.style.background='var(--rbg)';cs.style.color='var(--red)';cs.style.borderColor='var(--rbd)';cs.textContent='⚠ Could not fetch '+sym+' — enter price manually';}
+}
+
+/* Profit target helpers */
+function lotteryTgtPctChange(){
+  var capital=fv('s4'),pct=fv('s-tgt-pct')||100;
+  var dol=Math.round(capital*pct/100/50)*50;
+  var el=$('s-tgt-dol');if(el)el.value=dol;
+}
+function lotteryTgtDolChange(){
+  var capital=fv('s4'),dol=fv('s-tgt-dol')||0;
+  var pct=capital>0?Math.round(dol/capital*100):0;
+  var el=$('s-tgt-pct');if(el)el.value=pct;
   go3();
 }
 function setSdir(d){
@@ -1834,8 +1952,11 @@ function setOtm(btn,v){
 function retCls(r){return r<0?'c0':r<50?'c1':r<150?'c2':r<400?'c3':r<800?'c4':'c5';}
 function go3(){
   var spot=fv('s1'),iv3=fv('s2')/100,dte=iv('s3')||7,capital=fv('s4');
+  var tgtPct=fv('s-tgt-pct')||100;
+  var tgtDol=fv('s-tgt-dol')||capital*tgtPct/100;
   if(spot<=0||iv3<=0)return;
   var isCall=SDIR==='up',isBoth=SDIR==='both';
+  var tkLabel=T3_CUSTOM||T3.toUpperCase();
   // Cost per contract
   var cp;
   if(isBoth){cp=otmBoth(spot,OTM,dte,iv3,0,0).costPer;}
@@ -1853,15 +1974,36 @@ function go3(){
     var r=isBoth?otmBoth(spot,OTM,dte,iv3,mv,1):otmExit(spot,OTM,dte,iv3,isCall?mv:-mv,1,isCall);
     if(r.ret>=500){need500=mv;break;}
   }
+  // Find move needed to hit profit target $
+  var needTgt=null,needTgtDay=null;
+  outer: for(var d3=1;d3<=Math.min(dte,3);d3++){
+    for(var mv2=1;mv2<=50;mv2++){
+      var rt=isBoth?otmBoth(spot,OTM,dte,iv3,mv2,d3):otmExit(spot,OTM,dte,iv3,isCall?mv2:-mv2,d3,isCall);
+      if(rt.ret*contracts*cp/100>=tgtDol){needTgt=mv2;needTgtDay=d3;break outer;}
+    }
+  }
+  // Profit target info string
+  var tgtInfo=needTgt
+    ?'+'+needTgt+'% by D'+needTgtDay
+    :'—';
   // Build ticket
-  var th='<div class="tkt-lbl">Order Ticket · '+T3.toUpperCase()+' · '+dte+' DTE · '+OTM+'% OTM</div><div class="tkt-legs">';
+  var th='<div class="tkt-lbl">Order Ticket · '+tkLabel+' · '+dte+' DTE · '+OTM+'% OTM</div><div class="tkt-legs">';
   if(SDIR==='up'||SDIR==='both'){
     th+='<div class="tkt-leg"><div><span class="tkt-action call">BUY CALL</span><div class="tkt-strike">$'+Kc+' Strike</div><div class="tkt-detail">'+OTM+'% above $'+spot.toFixed(0)+'</div></div><div style="text-align:right"><div style="font-size:8px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ask ~</div><div class="tkt-prem">$'+cPrem+'/share</div><div class="tkt-prem-sub">$'+(parseFloat(cPrem)*100).toFixed(0)+'/contract</div></div></div>';
   }
   if(SDIR==='dn'||SDIR==='both'){
     th+='<div class="tkt-leg"><div><span class="tkt-action put">BUY PUT</span><div class="tkt-strike">$'+Kp+' Strike</div><div class="tkt-detail">'+OTM+'% below $'+spot.toFixed(0)+'</div></div><div style="text-align:right"><div style="font-size:8px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ask ~</div><div class="tkt-prem">$'+pPrem+'/share</div><div class="tkt-prem-sub">$'+(parseFloat(pPrem)*100).toFixed(0)+'/contract</div></div></div>';
   }
-  th+='</div><div class="tkt-footer"><div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">500%+ needs</div><div class="tkt-fi-val" style="color:var(--green)">'+(need500?'+'+need500+'%':'—')+'</div></div></div>';
+  // Profit target banner (above footer)
+  th+='</div>';
+  th+='<div style="background:linear-gradient(90deg,#f5f3ff,#eff6ff);border:1px solid var(--pbd);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+     +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--purple)">Profit Target</div>'
+     +'<div style="display:flex;gap:12px;align-items:center">'
+     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">%</div><div style="font-size:14px;font-weight:900;color:var(--purple)">+'+tgtPct+'%</div></div>'
+     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">$</div><div style="font-size:14px;font-weight:900;color:var(--purple)">+$'+fmt(tgtDol)+'</div></div>'
+     +'<div style="text-align:center"><div style="font-size:9px;color:#6d28d9;font-weight:700">Needs</div><div style="font-size:13px;font-weight:900;color:var(--green)">'+tgtInfo+'</div></div>'
+     +'</div></div>';
+  th+='<div class="tkt-footer"><div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div><div class="tkt-fi"><div class="tkt-fi-lbl">500%+ needs</div><div class="tkt-fi-val" style="color:var(--green)">'+(need500?'+'+need500+'%':'—')+'</div></div></div>';
   $('s-ticket').innerHTML=th;
   // Day slabs based on DTE
   var holdDays;
@@ -1907,8 +2049,16 @@ function go3(){
     function get(h){return isBoth?otmBoth(spot,OTM,dte,iv3,mv,h):otmExit(spot,OTM,dte,iv3,amv,h,isCall);}
     var cells=holdDays.map(function(d){return get(d);});
     var isMega=cells.some(function(c){return c.ret>=500;});
-    var rc='rrow'+(isMega?' mega':'');
-    function cell(r){return '<span class="'+retCls(r.ret)+'">'+(r.ret>=0?'+':'')+Math.round(r.ret)+'%</span>';}
+    // Check if any cell hits profit target
+    var hitsTgt=cells.some(function(c){return c.ret*contracts*cp/100>=tgtDol&&tgtDol>0;});
+    var rc='rrow'+(isMega?' mega':hitsTgt?' tgt':'');
+    function cell(r){
+      var dolPnl=r.ret*contracts*cp/100;
+      var hitT=tgtDol>0&&dolPnl>=tgtDol;
+      var cls=retCls(r.ret);
+      var extra=hitT?' title="Hits $'+fmt(tgtDol)+' target"':'';
+      return '<span class="'+cls+'"'+(hitT?' style="outline:2px solid var(--purple);outline-offset:1px;border-radius:2px"':'')+extra+'>'+(r.ret>=0?'+':'')+Math.round(r.ret)+'%</span>';
+    }
     sh+='<div class="'+rc+'" style="grid-template-columns:'+colW+'"><span class="mlbl">'+(SDIR==='dn'?'-':'+')+mv+'%</span>';
     cells.forEach(function(c){sh+=cell(c);});
     sh+='</div>';
