@@ -300,9 +300,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
     <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)">Planner</button>
+    <button class="tab" id="tab2" onclick="showTab(2)">Backtest</button>
     <button class="tab" id="tab3" onclick="showTab(3)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
-    <button class="tab" id="tab4" onclick="showTab(4)">Backtest</button>
+    <button class="tab" id="tab4" onclick="showTab(4)">Planner</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
   </div>
 
@@ -1106,6 +1106,26 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
 
     <div class="note" id="b-mode-note">📊 Same Day = Buy Open, hold to EOD · Overnight = Buy ~3:55pm, exit next day EOD · Best = intraday peak · Slide DTE to compare</div>
+
+    <!-- HISTORICAL SUMMARY PANEL -->
+    <div style="background:#0f172a;border-radius:14px;overflow:hidden;margin-top:10px;margin-bottom:8px" id="bt-hist-wrap">
+      <div style="padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:-.02em">Historical Summary</div>
+          <div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-top:1px">Straddle performance across time periods</div>
+        </div>
+        <div style="display:flex;gap:5px" id="bt-period-tabs">
+          <button onclick="setBtPeriod(14)" id="btp-14" class="tab on" style="font-size:10px;padding:5px 9px;border-radius:7px;background:#1d4ed8;color:#fff;border:none;cursor:pointer;font-weight:800">14d</button>
+          <button onclick="setBtPeriod(21)" id="btp-21" class="tab" style="font-size:10px;padding:5px 9px;border-radius:7px;background:rgba(255,255,255,.08);color:#94a3b8;border:none;cursor:pointer;font-weight:800">21d</button>
+          <button onclick="setBtPeriod(30)" id="btp-30" class="tab" style="font-size:10px;padding:5px 9px;border-radius:7px;background:rgba(255,255,255,.08);color:#94a3b8;border:none;cursor:pointer;font-weight:800">30d</button>
+          <button onclick="setBtPeriod(45)" id="btp-45" class="tab" style="font-size:10px;padding:5px 9px;border-radius:7px;background:rgba(255,255,255,.08);color:#94a3b8;border:none;cursor:pointer;font-weight:800">45d</button>
+        </div>
+      </div>
+      <div id="bt-hist-body" style="padding:0 14px 14px">
+        <div style="text-align:center;padding:20px;color:#475569;font-size:11px;font-weight:600">Fetch data above to see historical summary</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1142,26 +1162,32 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div class="card" style="padding:0;overflow:hidden">
     <div style="background:#0f172a;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:16px;font-weight:900;color:#ffffff;letter-spacing:-.01em">Portfolio</div>
-      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em">Add · Export · Import</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="pmExport()" style="background:transparent;color:#4ade80;border:1px solid #166534;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;cursor:pointer">⬇ Export</button>
+        <button onclick="pmImportPaste()" style="background:transparent;color:#93c5fd;border:1px solid #1e3a8a;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;cursor:pointer">📋 Import</button>
+      </div>
     </div>
     <div style="padding:14px 16px">
     <!-- Dual signal cards - auto computed for both tickers -->
     <div id="pm-dual-signals" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+
+    <!-- Collapsible custom trade form -->
+    <button onclick="pmToggleForm()" id="pm-form-toggle" style="width:100%;background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:11px;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:0">
+      <span id="pm-form-toggle-ico">＋</span> Add Custom Trade
+    </button>
+    <div id="pm-form-wrap" style="display:none;margin-top:8px">
     <div class="grid2">
       <div class="field full"><label class="flbl">Ticker</label><input type="text" id="pm-ticker" value="QQQ" style="text-transform:uppercase;background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box" oninput="this.value=this.value.toUpperCase()"/></div>
-      <div class="field"><label class="flbl">Type</label><select id="pm-type" onchange="pmTypeChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:700;color:var(--text);width:100%"><option value="call">Call</option><option value="put">Put</option><option value="straddle">Straddle</option><option value="stock">Stock</option></select></div>
+      <div class="field"><label class="flbl">Type</label><select id="pm-type" onchange="pmSliderChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:700;color:var(--text);width:100%"><option value="call">Call</option><option value="put">Put</option><option value="straddle">Straddle</option><option value="stock">Stock</option></select></div>
       <div class="field"><label class="flbl">Confidence</label><select id="pm-conf" onchange="pmSliderChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:700;color:var(--text);width:100%"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
       <div class="field" id="pm-field-strike"><label class="flbl">Strike $</label><input type="number" id="pm-strike" value="" placeholder="ATM" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
       <div class="field" id="pm-field-dte"><label class="flbl">DTE</label><input type="number" id="pm-dte" value="7" min="1" max="60" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
       <div class="field"><label class="flbl">Entry Price $</label><input type="number" id="pm-entry" value="" placeholder="per share/contract" inputmode="decimal" oninput="pmSliderChange()" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
       <div class="field"><label class="flbl">Qty (contracts / shares)</label><input type="number" id="pm-qty" value="" placeholder="suggested above ↑" inputmode="decimal" style="background:var(--p1);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--text);width:100%;box-sizing:border-box"/></div>
     </div>
-    <!-- Portfolio actions -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
-      <button onclick="pmAddPosition()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">+ Add</button>
-      <button onclick="pmExport()" style="background:#166534;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">⬇ Export</button>
-      <button onclick="pmImportPaste()" style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;width:100%">📋 Import</button>
-    </div>
+    <button onclick="pmAddPosition()" style="width:100%;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;margin-top:10px">+ Add to Portfolio</button>
+    </div><!-- end form-wrap -->
+
     </div><!-- end padding -->
   </div>
   <div id="pm-open-wrap" style="display:none">
@@ -1199,8 +1225,8 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  // Tab mapping: 1=Signal(4), 2=Planner(6), 3=Allocation(7), 4=Backtest(5), 5=Lottery(3)
-  var paneMap={1:4,2:6,3:7,4:5,5:3};
+  // Tab mapping: 1=Signal(4), 2=Backtest(5), 3=Allocation(7), 4=Planner(6), 5=Lottery(3)
+  var paneMap={1:4,2:5,3:7,4:6,5:3};
   for(var i=1;i<=5;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
     var pid=paneMap[i];
@@ -1208,9 +1234,9 @@ function showTab(n){
     if(pel)pel.className='pane'+(i===n?' on':'');
   }
   if(n===1)go4();
-  if(n===2)renderPortfolio();
+  if(n===2){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===3){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
-  if(n===4){go5();if(!BT_DAYS[0].o)fetchOHLC(T5);}
+  if(n===4)renderPortfolio();
 }
 
 /* ── MATH ── */
@@ -3004,6 +3030,7 @@ function refreshBtModeTitle(){
     :'If I bought '+pkg+' ~3:55pm prior day, closed next EOD...';
 }
 /* setBtMode replaced by new version below go5 */
+var BT_ALL_DAYS=[]; // full history from fetch (up to 60 days)
 var BT_DAYS=[
   {label:'Mon',o:'',h:'',l:'',c:''},
   {label:'Tue',o:'',h:'',l:'',c:''},
@@ -3044,61 +3071,111 @@ function setT5(t){
   fetchOHLC(t);
 }
 
-function fetchOHLC(ticker){
+function fetchOHLC(ticker,shortFallback){
   var sym=ticker.toUpperCase();
-  $('b-fetch-status').innerHTML='<span style="opacity:.6">⏳</span> Fetching '+sym+' data…';
-  $('b-fetch-status').style.color='var(--blue)';
-  $('b-fetch-status').style.background='var(--bbg)';
-  $('b-fetch-status').style.borderColor='var(--bbd)';
+  var statusEl=$('b-fetch-status');
+  var range=shortFallback?'10d':'60d';
+  statusEl.innerHTML='⏳ Fetching '+sym+' '+(shortFallback?'recent data':'60-day history')+'…';
+  statusEl.style.color='var(--blue)';
+  statusEl.style.background='var(--bbg)';
+  statusEl.style.borderColor='var(--bbd)';
 
-  var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d';
-  // Try multiple proxies in order
+  // Build proxy list — try direct first (works on some mobile browsers), then CORS proxies
+  var yhUrl1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range='+range;
+  var yhUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range='+range;
   var proxies=[
-    'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl),
-    'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
-    'https://api.allorigins.win/get?url='+encodeURIComponent('https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d')
+    yhUrl1,  // direct attempt first
+    'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl1),
+    'https://corsproxy.io/?'+encodeURIComponent(yhUrl1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl1),
+    'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl2),
+    'https://corsproxy.io/?'+encodeURIComponent(yhUrl2)
   ];
   var proxyIdx=0;
+  var TIMEOUT=12000; // 12s — generous for 60d payload over proxy
+
+  function parseYahooData(data){
+    var result=data.chart&&data.chart.result&&data.chart.result[0];
+    if(!result)throw new Error('no result');
+    var timestamps=result.timestamp;
+    var q=result.indicators.quote[0];
+    var allDays=[];
+    for(var i=0;i<timestamps.length;i++){
+      var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
+      if(o&&h&&l&&c&&h>0&&l>0){
+        var dt=new Date(timestamps[i]*1000);
+        var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
+        var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
+        allDays.push({label:dow+' '+mmdd,o:parseFloat(o),h:parseFloat(h),l:parseFloat(l),c:parseFloat(c)});
+      }
+    }
+    return allDays;
+  }
+
+  function onSuccess(allDays){
+    BT_ALL_DAYS=allDays;
+    BT_DAYS=allDays.slice(-5).map(function(d){return{label:d.label,o:d.o.toFixed(2),h:d.h.toFixed(2),l:d.l.toFixed(2),c:d.c.toFixed(2)};});
+    var sumMsg=allDays.length>=10?' · historical summary ready':'';
+    statusEl.innerHTML='✓ '+sym+' — '+allDays.length+' days loaded'+sumMsg;
+    statusEl.style.color='var(--green)';
+    statusEl.style.background='var(--gbg)';
+    statusEl.style.borderColor='var(--gbd)';
+    renderDayInputs();go5();renderBtSummary();
+  }
+
+  function showError(){
+    // If we haven't tried short fallback yet, retry with 10d range
+    if(!shortFallback){
+      statusEl.innerHTML='⚠ Full history unavailable — loading recent 5 days…';
+      statusEl.style.color='var(--amber)';
+      statusEl.style.background='var(--abg)';
+      statusEl.style.borderColor='var(--abd)';
+      setTimeout(function(){fetchOHLC(ticker,true);},400);
+      return;
+    }
+    statusEl.innerHTML='⏱ Data fetch timed out.'
+      +' <button onclick="fetchOHLC(T5)" style="display:inline-flex;align-items:center;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;margin-left:6px;vertical-align:middle">↻ Retry</button>'
+      +' <span style="color:var(--sub);font-size:10px;margin-left:4px">or tap <b>Edit ▾</b> to enter manually</span>';
+    statusEl.style.color='var(--amber)';
+    statusEl.style.background='var(--abg)';
+    statusEl.style.borderColor='var(--abd)';
+  }
 
   function tryProxy(){
     if(proxyIdx>=proxies.length){tryAlphaVantage(sym);return;}
-    var proxy=proxies[proxyIdx++];
-    var didTimeout=false;
-    var timer=setTimeout(function(){didTimeout=true;tryProxy();},7000);
-    fetch(proxy)
-      .then(function(r){return r.json();})
-      .then(function(wrapper){
-        if(didTimeout)return;
-        clearTimeout(timer);
-        var raw=wrapper.contents||wrapper;
-        var data=typeof raw==='string'?JSON.parse(raw):raw;
-        var result=data.chart&&data.chart.result&&data.chart.result[0];
-        if(!result)throw new Error('no result');
-        var timestamps=result.timestamp;
-        var q=result.indicators.quote[0];
-        var days=[];
-        for(var i=0;i<timestamps.length;i++){
-          var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
-          if(o&&h&&l&&c&&h>=o&&l<=o){
-            var dt=new Date(timestamps[i]*1000);
-            var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
-            var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
-            days.push({label:dow+' '+mmdd,o:o.toFixed(2),h:h.toFixed(2),l:l.toFixed(2),c:c.toFixed(2)});
-          }
-        }
-        days=days.slice(-5);
-        if(!days.length)throw new Error('no days');
-        BT_DAYS=days;
-        $('b-fetch-status').innerHTML='✓ '+sym+' — last '+days.length+' days loaded';
-        $('b-fetch-status').style.color='var(--green)';
-        $('b-fetch-status').style.background='var(--gbg)';
-        $('b-fetch-status').style.borderColor='var(--gbd)';
-        renderDayInputs();go5();
+    var url=proxies[proxyIdx++];
+    var isDirect=proxyIdx===1; // first attempt is direct
+    var controller=typeof AbortController!=='undefined'?new AbortController():null;
+    var timer=setTimeout(function(){
+      if(controller)controller.abort();
+      tryProxy();
+    },TIMEOUT);
+
+    fetch(url,controller?{signal:controller.signal,cache:'no-store'}:{cache:'no-store'})
+      .then(function(r){
+        if(!r.ok)throw new Error('http '+r.status);
+        return r.json();
       })
-      .catch(function(){if(didTimeout)return;clearTimeout(timer);tryProxy();});
+      .then(function(wrapper){
+        clearTimeout(timer);
+        // Handle both direct response and allorigins wrapper
+        var data;
+        if(wrapper.chart){data=wrapper;}
+        else if(wrapper.contents){data=typeof wrapper.contents==='string'?JSON.parse(wrapper.contents):wrapper.contents;}
+        else{data=wrapper;}
+        var allDays=parseYahooData(data);
+        if(!allDays.length)throw new Error('no days');
+        onSuccess(allDays);
+      })
+      .catch(function(e){
+        clearTimeout(timer);
+        if(e&&e.name==='AbortError')return; // already moved on
+        tryProxy();
+      });
   }
   tryProxy();
 }
+
 
 function tryAlphaVantage(sym){
   $('b-fetch-status').innerHTML='<span style="opacity:.6">⏳</span> Trying backup source…';
@@ -3145,11 +3222,12 @@ function tryAlphaVantage(sym){
           c:parseFloat(r['4. close']).toFixed(2)
         });
       });
-      $('b-fetch-status').innerHTML='✓ '+sym+' — last 5 days loaded';
+      BT_ALL_DAYS=BT_DAYS.map(function(d){return{label:d.label,o:parseFloat(d.o),h:parseFloat(d.h),l:parseFloat(d.l),c:parseFloat(d.c)};});
+      $('b-fetch-status').innerHTML='\u2713 '+sym+' \u2014 last 5 days loaded (limited \u2014 enter ticker above for full history)';
       $('b-fetch-status').style.color='var(--green)';
       $('b-fetch-status').style.background='var(--gbg)';
       $('b-fetch-status').style.borderColor='var(--gbd)';
-      renderDayInputs();go5();
+      renderDayInputs();go5();renderBtSummary();
     })
     .catch(function(){
       if(didTimeout)return;
@@ -3543,6 +3621,243 @@ function renderWeekSummary(dte,sdResults,onResults){
   html+='</div>';
   $('b-week-summary').innerHTML=html;
 }
+/* ══ HISTORICAL BACKTEST SUMMARY ══════════════════════════════ */
+var BT_PERIOD=14;
+
+function setBtPeriod(p){
+  BT_PERIOD=p;
+  [14,21,30,45].forEach(function(x){
+    var el=$('btp-'+x);if(!el)return;
+    var on=x===p;
+    el.style.background=on?'#1d4ed8':'rgba(255,255,255,.08)';
+    el.style.color=on?'#fff':'#94a3b8';
+  });
+  renderBtSummary();
+}
+
+function renderBtSummary(){
+  var wrap=$('bt-hist-wrap');
+  var body=$('bt-hist-body');
+  if(!wrap||!body)return;
+
+  var days=BT_ALL_DAYS;
+  if(!days||days.length<5){
+    body.innerHTML='<div style="text-align:center;padding:20px;color:#475569;font-size:11px;font-weight:600">Fetch data above to see historical summary</div>';
+    return;
+  }
+
+  var iv3=fv('b-iv')/100||0.21;
+  var capital=fv('b-capital')||20000;
+  var slice=days.slice(-BT_PERIOD);
+  if(slice.length<2){
+    body.innerHTML='<div style="text-align:center;padding:20px;color:#475569;font-size:11px;font-weight:600">Not enough data for '+BT_PERIOD+'-day window.</div>';
+    return;
+  }
+
+  var DTES=[0,1,5,8];
+  var dteLabels={0:'0-DTE',1:'1-DTE',5:'5-DTE',8:'8-DTE'};
+
+  function calcStats(pnls,days,labels){
+    var wins=0,losses=0,totalPnl=0,bestPnl=-Infinity,worstPnl=Infinity;
+    var bestDay='',worstDay='',avgUp=0,avgDn=0;
+    pnls.forEach(function(item){
+      var pnl=item.pnl;
+      totalPnl+=pnl;
+      if(pnl>0)wins++;else losses++;
+      if(pnl>bestPnl){bestPnl=pnl;bestDay=item.label;}
+      if(pnl<worstPnl){worstPnl=pnl;worstDay=item.label;}
+      avgUp+=item.upMove||0;
+      avgDn+=item.dnMove||0;
+    });
+    var n=pnls.length||1;
+    return{n:pnls.length,wins:wins,losses:losses,
+      winRate:Math.round(wins/n*100),
+      totalPnl:totalPnl,avgPnl:totalPnl/n,
+      bestPnl:bestPnl===- Infinity?0:bestPnl,
+      worstPnl:worstPnl===Infinity?0:worstPnl,
+      bestDay:bestDay,worstDay:worstDay,
+      avgUp:(avgUp/n).toFixed(1),avgDn:(avgDn/n).toFixed(1)};
+  }
+
+  // Build results for each DTE — same day AND overnight
+  var sdResults={}, onResults={};
+  DTES.forEach(function(dte){
+    var sdPnls=[], onPnls=[];
+    slice.forEach(function(d,i){
+      var o=parseFloat(d.o),h=parseFloat(d.h),l=parseFloat(d.l),c=parseFloat(d.c);
+      if(!o||!h||!l||!c)return;
+      var r=btSim(o,h,l,c,iv3,capital,dte);
+      sdPnls.push({pnl:r.pnlEOD,label:d.label,upMove:r.upMove,dnMove:r.dnMove});
+      // Overnight: entry at this close, exit next open→EOD
+      if(i<slice.length-1){
+        var nx=slice[i+1];
+        var no=parseFloat(nx.o),nh=parseFloat(nx.h),nl=parseFloat(nx.l),nc=parseFloat(nx.c);
+        if(no&&nh&&nl&&nc){
+          var ron=btSimOvernight(c,no,nh,nl,nc,iv3,capital,dte);
+          onPnls.push({pnl:ron.pnlEOD,label:d.label+'\u2192'+nx.label,upMove:ron.upMove||0,dnMove:ron.dnMove||0});
+        }
+      }
+    });
+    sdResults[dte]=calcStats(sdPnls);
+    onResults[dte]=calcStats(onPnls);
+  });
+
+  function fc(v){
+    if(Math.abs(v)<0.5)return '$0';
+    var a=Math.abs(v);
+    var s=a>=1000?'$'+(a/1000).toFixed(1)+'K':'$'+a.toFixed(0);
+    return (v>=0?'+':'-')+s;
+  }
+  function col(v){return v>=0?'#4ade80':'#f87171';}
+  function wrCol(wr){return wr>=55?'#4ade80':wr>=45?'#fbbf24':'#f87171';}
+
+  var html='';
+
+  // Mode label
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-bottom:12px">';
+  html+='<div style="background:#166534;padding:6px;text-align:center;font-size:9px;font-weight:900;color:#4ade80;text-transform:uppercase;letter-spacing:.1em">&#9679; Same Day (buy open \u2192 sell EOD)</div>';
+  html+='<div style="background:#4c1d95;padding:6px;text-align:center;font-size:9px;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em">&#9679; Overnight (buy close \u2192 sell next EOD)</div>';
+  html+='</div>';
+
+  // Top strip — 4 DTE tiles, each showing SD vs ON win rate
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">';
+  DTES.forEach(function(dte){
+    var sd=sdResults[dte], on=onResults[dte];
+    html+='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 5px;text-align:center">';
+    html+='<div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:.08em;margin-bottom:7px">'+dteLabels[dte]+'</div>';
+    // SD
+    html+='<div style="background:rgba(22,101,52,.3);border-radius:6px;padding:5px 3px;margin-bottom:4px">';
+    html+='<div style="font-size:16px;font-weight:900;color:'+wrCol(sd.winRate)+'">'+sd.winRate+'%</div>';
+    html+='<div style="font-size:8px;color:#4ade80;font-weight:700">SD</div>';
+    html+='<div style="font-size:10px;font-weight:800;color:'+col(sd.avgPnl)+'">'+fc(sd.avgPnl)+'</div>';
+    html+='</div>';
+    // ON
+    html+='<div style="background:rgba(76,29,149,.3);border-radius:6px;padding:5px 3px">';
+    html+='<div style="font-size:16px;font-weight:900;color:'+wrCol(on.winRate)+'">'+on.winRate+'%</div>';
+    html+='<div style="font-size:8px;color:#a78bfa;font-weight:700">ON</div>';
+    html+='<div style="font-size:10px;font-weight:800;color:'+col(on.avgPnl)+'">'+fc(on.avgPnl)+'</div>';
+    html+='</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Detail grid — 2 columns per DTE: SD left, ON right
+  html+='<div style="display:flex;flex-direction:column;gap:8px">';
+  DTES.forEach(function(dte){
+    var sd=sdResults[dte], on=onResults[dte];
+    html+='<div style="border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden">';
+    // header
+    html+='<div style="background:rgba(255,255,255,.05);padding:7px 10px;font-size:10px;font-weight:900;color:#e2e8f0;border-bottom:1px solid rgba(255,255,255,.06)">'+dteLabels[dte]+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr">';
+    // SD column
+    html+='<div style="padding:10px;border-right:1px solid rgba(255,255,255,.06)">';
+    html+='<div style="font-size:8px;font-weight:900;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Same Day</div>';
+    html+=bsRow('Total P&L',fc(sd.totalPnl),col(sd.totalPnl));
+    html+=bsRow('Avg/day',fc(sd.avgPnl),col(sd.avgPnl));
+    html+=bsRow('Win/Loss',sd.wins+'/'+sd.losses,'#93c5fd');
+    html+=bsRow('Best',fc(sd.bestPnl)+' '+sd.bestDay,'#4ade80');
+    html+=bsRow('Worst',fc(sd.worstPnl)+' '+sd.worstDay,'#f87171');
+    html+=bsRow('Avg move','+'+sd.avgUp+'%/-'+sd.avgDn+'%','#fbbf24');
+    html+='</div>';
+    // ON column
+    html+='<div style="padding:10px">';
+    html+='<div style="font-size:8px;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Overnight</div>';
+    html+=bsRow('Total P&L',fc(on.totalPnl),col(on.totalPnl));
+    html+=bsRow('Avg/day',fc(on.avgPnl),col(on.avgPnl));
+    html+=bsRow('Win/Loss',on.wins+'/'+on.losses,'#93c5fd');
+    html+=bsRow('Best',fc(on.bestPnl)+' '+on.bestDay,'#4ade80');
+    html+=bsRow('Worst',fc(on.worstPnl)+' '+on.worstDay,'#f87171');
+    html+=bsRow('Avg move','+'+on.avgUp+'%/-'+on.avgDn+'%','#fbbf24');
+    html+='</div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  // Verdict — best overall combo
+  var bestDte=DTES[0], bestMode='Same Day', bestWr=0;
+  DTES.forEach(function(dte){
+    if(sdResults[dte].winRate>bestWr){bestWr=sdResults[dte].winRate;bestDte=dte;bestMode='Same Day';}
+    if(onResults[dte].winRate>bestWr){bestWr=onResults[dte].winRate;bestDte=dte;bestMode='Overnight';}
+  });
+  var bestR=bestMode==='Same Day'?sdResults[bestDte]:onResults[bestDte];
+  var btTicker=T5.toUpperCase();
+  var avgCost=bestR.avgPnl; // used for entry hint
+  html+='<div style="margin-top:10px;background:rgba(29,78,216,.15);border:1px solid rgba(29,78,216,.3);border-radius:8px;padding:10px 12px">';
+  html+='<div style="font-size:9px;font-weight:800;color:#93c5fd;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">\u2728 Best combo \u2014 last '+BT_PERIOD+' days</div>';
+  html+='<div style="font-size:13px;font-weight:900;color:#fff;margin-bottom:10px">'+dteLabels[bestDte]+' '+bestMode+' \u2014 '+bestWr+'% win rate \u00b7 avg '+fc(bestR.avgPnl)+'/day</div>';
+  html+='<button onclick="btSendToPlanner('+bestDte+',\''+bestMode+'\',\''+btTicker+'\','+bestWr+','+bestR.avgPnl.toFixed(0)+')" '
+    +'style="width:100%;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">'
+    +'<span style="font-size:15px">\u2192</span> Send this setup to Planner</button>';
+  html+='</div>';
+
+  body.innerHTML=html;
+}
+
+/* ── BACKTEST → PLANNER BRIDGE ── */
+function btSendToPlanner(dte,mode,ticker,winRate,avgPnl){
+  // Switch to Planner tab (now tab 4)
+  showTab(4);
+
+  // Pre-fill fields
+  setTimeout(function(){
+    if($('pm-ticker'))$('pm-ticker').value=ticker;
+    if($('pm-type')){
+      $('pm-type').value='straddle';
+      var evt=document.createEvent('Event');evt.initEvent('change',true,true);
+      $('pm-type').dispatchEvent(evt);
+    }
+    if($('pm-dte'))$('pm-dte').value=dte;
+    if($('pm-conf'))$('pm-conf').value=winRate>=65?'high':winRate>=50?'medium':'low';
+    // Auto-open the form so user can see pre-filled fields
+    pmToggleForm(true);
+
+    // Show a banner at the top of planner
+    var banner=$('pm-bt-banner');
+    if(!banner){
+      banner=document.createElement('div');
+      banner.id='pm-bt-banner';
+      var setupCard=$('pm-setup-card');
+      if(setupCard&&setupCard.parentNode)setupCard.parentNode.insertBefore(banner,setupCard);
+    }
+    var modeIcon=mode==='Same Day'?'\u2600\ufe0f':'\ud83c\udf19';
+    banner.innerHTML='<div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:12px;padding:12px 14px;margin-bottom:10px">'
+      +'<div style="font-size:9px;font-weight:800;color:#93c5fd;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">\u2199 From Backtest \u2014 '+BT_PERIOD+'-day analysis</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">'
+      +'<div style="background:rgba(255,255,255,.1);border-radius:7px;padding:7px;text-align:center">'
+        +'<div style="font-size:8px;color:#93c5fd;font-weight:700;text-transform:uppercase;margin-bottom:2px">Ticker</div>'
+        +'<div style="font-size:15px;font-weight:900;color:#fff">'+ticker+'</div></div>'
+      +'<div style="background:rgba(255,255,255,.1);border-radius:7px;padding:7px;text-align:center">'
+        +'<div style="font-size:8px;color:#93c5fd;font-weight:700;text-transform:uppercase;margin-bottom:2px">Setup</div>'
+        +'<div style="font-size:12px;font-weight:900;color:#fff">'+dte+'-DTE</div>'
+        +'<div style="font-size:9px;color:#93c5fd;font-weight:700">'+mode+'</div></div>'
+      +'<div style="background:rgba(255,255,255,.1);border-radius:7px;padding:7px;text-align:center">'
+        +'<div style="font-size:8px;color:#93c5fd;font-weight:700;text-transform:uppercase;margin-bottom:2px">Win Rate</div>'
+        +'<div style="font-size:15px;font-weight:900;color:'+(winRate>=55?'#4ade80':winRate>=45?'#fbbf24':'#f87171')+'">'+winRate+'%</div></div>'
+      +'<div style="background:rgba(255,255,255,.1);border-radius:7px;padding:7px;text-align:center">'
+        +'<div style="font-size:8px;color:#93c5fd;font-weight:700;text-transform:uppercase;margin-bottom:2px">Avg/day</div>'
+        +'<div style="font-size:13px;font-weight:900;color:'+(avgPnl>=0?'#4ade80':'#f87171')+'">'+(avgPnl>=0?'+':'')+Math.round(avgPnl/1000*10)/10+'K</div></div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:#bfdbfe;font-weight:600;line-height:1.5">'
+        +'Fields pre-filled below. Adjust entry price and qty, then tap <b style=\"color:#fff\">+ Add</b> to log the trade.'
+      +'</div>'
+      +'</div>';
+
+    // Scroll banner into view
+    banner.scrollIntoView({behavior:'smooth',block:'start'});
+    renderPortfolio();
+  },150);
+}
+
+
+
+function bsRow(lbl,val,color){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.05)">'
+    +'<span style="font-size:8px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.08em">'+lbl+'</span>'
+    +'<span style="font-size:10px;font-weight:800;color:'+color+'">'+val+'</span>'
+    +'</div>';
+}
+/* ════════════════════════════════════════════════════════════ */
+
 function wsum(lbl,val,color){
   return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
     +'<span style="font-size:9px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">'+lbl+'</span>'
@@ -3692,7 +4007,19 @@ function pmSave(s){try{localStorage.setItem(PM_KEY,JSON.stringify(s));}catch(e){
 function pmLoadHistory(){try{return JSON.parse(localStorage.getItem(PM_HIST_KEY))||[];}catch(e){return[];}}
 function pmSaveHistory(h){try{localStorage.setItem(PM_HIST_KEY,JSON.stringify(h));}catch(e){}}
 function pmDefault(){return{capital:10000,target:1000,stoploss:30,period:'weekly',startDate:new Date().toISOString().slice(0,10),positions:[],closed:[]};}
-function pmSavePlan(){var s=pmLoad();s.capital=parseFloat($('pm-capital').value)||10000;s.target=parseFloat($('pm-target').value)||1000;s.stoploss=parseFloat($('pm-stoploss').value)||30;s.period=$('pm-period').value;pmSave(s);renderPortfolio();}
+function pmToggleForm(forceOpen){
+  var wrap=$('pm-form-wrap');
+  var ico=$('pm-form-toggle-ico');
+  var btn=$('pm-form-toggle');
+  if(!wrap)return;
+  var open=forceOpen!==undefined?forceOpen:(wrap.style.display==='none');
+  wrap.style.display=open?'block':'none';
+  if(ico)ico.textContent=open?'✕':'＋';
+  if(btn)btn.style.color=open?'var(--text)':'var(--sub)';
+}
+
+function pmSavePlan(){
+var s=pmLoad();s.capital=parseFloat($('pm-capital').value)||10000;s.target=parseFloat($('pm-target').value)||1000;s.stoploss=parseFloat($('pm-stoploss').value)||30;s.period=$('pm-period').value;pmSave(s);renderPortfolio();}
 function pmSliderChange(){
   var s=pmLoad();
   var pct=parseInt($('pm-risk-slider').value)||20;
@@ -3817,10 +4144,12 @@ function pmPrefill(tk,action){
   var spot=LIVE[tk]>0?LIVE[tk]:DEFS[tk].spot;
   $('pm-strike').value=Math.round(spot/5)*5;
   $('pm-dte').value=8;
-  pmTypeChange();pmSliderChange();
-  // Scroll to entry field
+  var typeEvt=document.createEvent('Event');typeEvt.initEvent('change',true,true);
+  if($('pm-type'))$('pm-type').dispatchEvent(typeEvt);
+  pmSliderChange();
+  pmToggleForm(true);
   var ef=$('pm-entry');
-  if(ef)ef.focus();
+  if(ef){ef.focus();ef.scrollIntoView({behavior:'smooth',block:'center'});}
 }
 
 function pmApplySignal(){pmPrefill(T4,$('g-sig-action')?$('g-sig-action').textContent:'');}
@@ -5053,6 +5382,7 @@ go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
 $('pane2').className='pane';
+$('pane5').className='pane';
 $('pane6').className='pane';
 $('pane7').className='pane';
 $('pane4').className='pane on';
