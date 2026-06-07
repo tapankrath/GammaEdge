@@ -1844,46 +1844,37 @@ function lotteryFetchCustom(){
   var sym=(ci&&ci.value.trim().toUpperCase())||'';
   if(!sym){ci&&(ci.focus());return;}
   var cs=$('s-custom-status');
-  if(cs){cs.style.display='block';cs.textContent='Fetching '+sym+'…';cs.style.background='var(--bbg)';cs.style.color='var(--blue)';cs.style.borderColor='var(--bbd)';}
-  // Deactivate SPY/QQQ buttons
+  function status(msg,type){
+    if(!cs)return;
+    cs.style.display='block';
+    var styles={
+      loading:{bg:'var(--bbg)',color:'var(--blue)',border:'var(--bbd)'},
+      ok:{bg:'var(--gbg)',color:'var(--green)',border:'var(--gbd)'},
+      warn:{bg:'var(--abg)',color:'var(--amber)',border:'var(--abd)'},
+      err:{bg:'var(--rbg)',color:'var(--red)',border:'var(--rbd)'}
+    };
+    var s=styles[type]||styles.loading;
+    cs.style.background=s.bg;cs.style.color=s.color;cs.style.borderColor=s.border;
+    cs.textContent=msg;
+  }
+  status('Fetching '+sym+' price…','loading');
   ['spy','qqq'].forEach(function(x){$('t3-'+x).className='tk '+x;});
   ci.style.borderColor='var(--pink)';
   T3_CUSTOM=sym;T3=sym.toLowerCase();
 
-  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
-  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
-  var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(url1),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
-    'https://corsproxy.io/?'+encodeURIComponent(url2),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url2)
+  /* ── Step 1: fetch price via chart endpoint ── */
+  var chartUrl1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var chartUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  var chartProxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(chartUrl1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(chartUrl1),
+    'https://corsproxy.io/?'+encodeURIComponent(chartUrl2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(chartUrl2)
   ];
-  function tryP(i){
-    if(i>=proxies.length){
-      // Try Claude fallback
-      var ak=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
-      if(ak&&ak.indexOf('sk-')===0){
-        if(cs){cs.textContent='Using AI lookup for '+sym+'…';}
-        fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:80,
-            tools:[{type:'web_search_20250305',name:'web_search'}],
-            messages:[{role:'user',content:'Current price and previous close of '+sym+' stock? Reply ONLY JSON: {"c":123.45,"pc":122.10,"iv":25}'}]})
-        }).then(function(r){return r.json();}).then(function(data){
-          var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-          var m=text.match(/\{"c":\s*[\d.]+/);
-          if(!m){lotteryCustomFail(sym);return;}
-          var full=text.slice(text.indexOf(m[0]));
-          var d=JSON.parse(full.slice(0,full.indexOf('}')+1));
-          lotteryApplyCustom(sym,d.c,d.pc,d.iv||25);
-        }).catch(function(){lotteryCustomFail(sym);});
-      } else {
-        lotteryCustomFail(sym);
-      }
-      return;
-    }
-    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+
+  function tryChart(i){
+    if(i>=chartProxies.length){lotteryCustomFail(sym,'price');return;}
+    fetch(chartProxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -1895,36 +1886,113 @@ function lotteryFetchCustom(){
           closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
           if(closes.length>=2){pc=closes[closes.length-2];p=p||closes[closes.length-1];}
         }
-        // Estimate IV from recent vol if available, else default 35%
-        var iv_est=meta.regularMarketVolume?30:35;
-        lotteryApplyCustom(sym,p,pc,iv_est);
+        if(!p||isNaN(p)){tryChart(i+1);return;}
+        // Apply price immediately so user sees it
+        var ch=p-(pc||p),pct=pc&&!isNaN(pc)?(ch/pc*100):0;
+        var k=sym.toLowerCase();
+        LIVE[k]=p;LIVE_CHG[k]=pct;
+        $('s1').value=p.toFixed(2);
+        var s=ch>=0?'+':'';
+        status('✓ '+sym+' $'+p.toFixed(2)+' ('+s+pct.toFixed(2)+'%) · Fetching IV…','loading');
+        // Step 2: fetch real IV from options chain
+        fetchLotteryIV(sym,p,pc);
       })
-      .catch(function(){tryP(i+1);});
+      .catch(function(){tryChart(i+1);});
   }
-  tryP(0);
+  tryChart(0);
 }
 
-function lotteryApplyCustom(sym,p,pc,iv_est){
-  if(!p||isNaN(p)){lotteryCustomFail(sym);return;}
+/* ── Step 2: fetch ATM IV from Yahoo options endpoint ── */
+function fetchLotteryIV(sym,p,pc){
+  var cs=$('s-custom-status');
+  function status(msg,type){
+    if(!cs)return;
+    cs.style.display='block';
+    var styles={ok:{bg:'var(--gbg)',color:'var(--green)',border:'var(--gbd)'},warn:{bg:'var(--abg)',color:'var(--amber)',border:'var(--abd)'},loading:{bg:'var(--bbg)',color:'var(--blue)',border:'var(--bbd)'}};
+    var s=styles[type]||styles.ok;cs.style.background=s.bg;cs.style.color=s.color;cs.style.borderColor=s.border;cs.textContent=msg;
+  }
+  var optUrl1='https://query1.finance.yahoo.com/v7/finance/options/'+sym;
+  var optUrl2='https://query2.finance.yahoo.com/v7/finance/options/'+sym;
+  var optProxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(optUrl1),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(optUrl1),
+    'https://corsproxy.io/?'+encodeURIComponent(optUrl2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(optUrl2)
+  ];
+  function tryOpt(i){
+    if(i>=optProxies.length){
+      // IV fetch failed — use historical vol estimate from price series, show warning
+      var hv=lotteryHistVol(sym)||50;
+      lotteryApplyCustom(sym,p,pc,hv,true);
+      return;
+    }
+    fetch(optProxies[i],{cache:'no-store',signal:AbortSignal.timeout(7000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var res=d.optionChain&&d.optionChain.result&&d.optionChain.result[0];
+        if(!res)throw 0;
+        // Find ATM strike — closest call to current price
+        var calls=(res.options&&res.options[0]&&res.options[0].calls)||[];
+        var puts=(res.options&&res.options[0]&&res.options[0].puts)||[];
+        if(!calls.length&&!puts.length)throw 0;
+        // Pick closest-to-ATM option from calls+puts combined
+        var allOpts=calls.concat(puts);
+        var best=null,bestDist=Infinity;
+        allOpts.forEach(function(o){
+          if(!o.impliedVolatility||isNaN(o.impliedVolatility))return;
+          var dist=Math.abs((o.strike||0)-p);
+          if(dist<bestDist){bestDist=dist;best=o;}
+        });
+        if(!best||!best.impliedVolatility){throw 0;}
+        var iv=Math.round(best.impliedVolatility*100); // Yahoo returns as decimal (e.g. 1.04 = 104%)
+        // Sanity: cap at 500%, floor at 5%
+        iv=Math.max(5,Math.min(500,iv));
+        lotteryApplyCustom(sym,p,pc,iv,false);
+      })
+      .catch(function(){tryOpt(i+1);});
+  }
+  tryOpt(0);
+}
+
+/* Rough historical vol estimate from stored LIVE data as fallback */
+function lotteryHistVol(sym){
+  // If we have recent CHG data use it; otherwise return null
+  var chg=LIVE_CHG[sym.toLowerCase()];
+  if(chg===undefined)return null;
+  // Single-day move → rough annualized: abs(chg) * sqrt(252) * 10 (very rough)
+  return Math.round(Math.abs(chg)*Math.sqrt(252)*2);
+}
+
+function lotteryApplyCustom(sym,p,pc,iv_real,isEstimated){
+  if(!p||isNaN(p)){lotteryCustomFail(sym,'price');return;}
   var ch=p-(pc||p),pct=pc&&!isNaN(pc)?(ch/pc*100):0;
   var k=sym.toLowerCase();
   LIVE[k]=p;LIVE_CHG[k]=pct;
   $('s1').value=p.toFixed(2);
-  if(iv_est>0)$('s2').value=iv_est;
+  if(iv_real>0)$('s2').value=iv_real;
   var cs=$('s-custom-status');
   if(cs){
     var s=ch>=0?'+':'';
     cs.style.display='block';
-    cs.style.background='var(--gbg)';cs.style.color='var(--green)';cs.style.borderColor='var(--gbd)';
-    cs.textContent='✓ '+sym+' $'+p.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
+    if(isEstimated){
+      cs.style.background='var(--abg)';cs.style.color='var(--amber)';cs.style.borderColor='var(--abd)';
+      cs.textContent='✓ '+sym+' $'+p.toFixed(2)+' ('+s+pct.toFixed(2)+'%) · IV ~'+iv_real+'% est — verify manually';
+    } else {
+      cs.style.background='var(--gbg)';cs.style.color='var(--green)';cs.style.borderColor='var(--gbd)';
+      cs.textContent='✓ '+sym+' $'+p.toFixed(2)+' ('+s+pct.toFixed(2)+'%) · IV '+iv_real+'% live';
+    }
   }
   lotteryTgtPctChange();
   go3();
 }
 
-function lotteryCustomFail(sym){
+function lotteryCustomFail(sym,what){
   var cs=$('s-custom-status');
-  if(cs){cs.style.display='block';cs.style.background='var(--rbg)';cs.style.color='var(--red)';cs.style.borderColor='var(--rbd)';cs.textContent='⚠ Could not fetch '+sym+' — enter price manually';}
+  var msg=what==='price'
+    ?'⚠ Could not fetch '+sym+' price — enter manually'
+    :'⚠ IV fetch failed for '+sym+' — verify IV % above';
+  if(cs){cs.style.display='block';cs.style.background='var(--rbg)';cs.style.color='var(--red)';cs.style.borderColor='var(--rbd)';cs.textContent=msg;}
 }
 
 /* Profit target helpers */
