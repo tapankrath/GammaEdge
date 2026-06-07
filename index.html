@@ -339,7 +339,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="tk qqq on" id="t1-qqq" onclick="setT1('qqq')">QQQ</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="c1" value="706" step="1" inputmode="decimal" oninput="go1()"/></div>
+      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="c1" value="705" step="1" inputmode="decimal" oninput="go1()"/></div>
       <div class="field fa"><label class="flbl">Cost $</label><input type="number" id="c2" value="17" step="0.25" inputmode="decimal" oninput="go1()"/></div>
       <div class="field"><label class="flbl">IV %</label><input type="number" id="c3" value="21" step="1" inputmode="decimal" oninput="go1()"/></div>
     </div>
@@ -808,7 +808,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <!-- SIZE IT inputs -->
     <div id="st-size-inputs">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="field fa"><label class="flbl">Price $</label><input type="number" id="r1" value="706" step="1" inputmode="decimal" oninput="go2()"/></div>
+        <div class="field fa"><label class="flbl">Price $</label><input type="number" id="r1" value="705" step="1" inputmode="decimal" oninput="go2()"/></div>
         <div class="field"><label class="flbl">IV %</label><input type="number" id="r2" value="21" step="1" inputmode="decimal" oninput="go2()"/></div>
         <div class="field fg"><label class="flbl">Profit Target $</label><input type="number" id="r4" value="500" step="50" inputmode="decimal" oninput="go2()"/></div>
       </div>
@@ -882,7 +882,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <!-- Main inputs: 2x3 grid -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="706" step="1" inputmode="decimal" oninput="go3()"/></div>
+      <div class="field fa"><label class="flbl">Price $</label><input type="number" id="s1" value="705" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">IV %</label><input type="number" id="s2" value="21" step="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field"><label class="flbl">DTE</label><input type="number" id="s3" value="7" step="1" min="1" inputmode="decimal" oninput="go3()"/></div>
       <div class="field fg"><label class="flbl">Capital $</label><input type="number" id="s4" value="20000" step="100" inputmode="decimal" oninput="lotteryTgtPctChange();go3()"/></div>
@@ -1070,6 +1070,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <!-- RESULTS WRAPPER -->
   <div id="b-summary" style="display:none">
 
+    <!-- ── MODEL ESTIMATE DISCLAIMER ── -->
+    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:9px;padding:8px 12px;margin-bottom:8px;font-size:10px;font-weight:700;color:#713f12;line-height:1.5">⚠️ <b>Model estimates only</b> — premiums computed via Black-Scholes from the IV% you enter. Not live bid/ask. Use for relative comparison (0-DTE vs 5-DTE behavior) not exact dollar sizing.</div>
+
     <!-- ── DTE FILTER (always visible when results shown) ── -->
     <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1250,7 +1253,7 @@ var PM_KEY='gammaedge_portfolio';
 var PM_HIST_KEY='gammaedge_history';
 var LIVE={spy:0,qqq:0},LIVE_CHG={};
 var T1='qqq',T2='qqq',T3='qqq',T4='qqq',SDIR='up',OTM=2,SEL=0;
-var DEFS={spy:{spot:555,cost:7,iv:18},qqq:{spot:706,cost:17,iv:21}};
+var DEFS={spy:{spot:588,cost:8,iv:17},qqq:{spot:705,cost:12,iv:20}};
 var DTES=[2,5,8,10,14,21,30];
 var SCENS=[{k:'drift',lo:.2,mid:.35,hi:.5},{k:'momentum',lo:.5,mid:.75,hi:1},{k:'explosive',lo:1,mid:1.5,hi:2}];
 
@@ -1279,31 +1282,39 @@ function erf(x){var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.45315202
 function Ncdf(x){return 0.5*(1+erf(x/Math.sqrt(2)));}
 function bsC(S,K,T,v){if(T<=0)return Math.max(S-K,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return S*Ncdf(d1)-K*Ncdf(d1-v*Math.sqrt(T));}
 function bsP(S,K,T,v){if(T<=0)return Math.max(K-S,0);var d1=(Math.log(S/K)+0.5*v*v*T)/(v*Math.sqrt(T));return K*Ncdf(-(d1-v*Math.sqrt(T)))-S*Ncdf(-d1);}
-function prem(s,d,v){return s*v*Math.sqrt(d/365)*.8;}
+function prem(s,d,v){return s*v*Math.sqrt(d/252)*0.7979;}// ATM straddle per-share: S*σ*sqrt(T)*sqrt(2/π), T in trading days
 function crush(h,d){if(h<=0||h>=d)return 0;return .25*(1-(h-1)/Math.max(d-1,1));}
 function callput(s,k,r,v,c){
+  // r = remaining trading days; use real BS pricing
   if(r<=0)return c?Math.max(s-k,0):Math.max(k-s,0);
-  var T=Math.max(r,.01)/365,st=v*Math.sqrt(T)||.01,m=(s-k)/(s*st),atm=s*st*.4;
-  return (c?Math.max(s-k,0):Math.max(k-s,0))+atm*Math.exp(-.5*m*m);
+  var T=Math.max(r,0.01)/252;
+  return c?bsC(s,k,T,v):bsP(s,k,T,v);
 }
 function atmExit(s,v,d,mv,h){
-  var cost=prem(s,d,v),np=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
-  var val=h>=d?Math.max(np-s,0)+Math.max(s-np,0):callput(np,s,rem,eiv,true)+callput(np,s,rem,eiv,false);
+  // d, h, rem all in trading days; T in years via /252
+  var T=d/252;
+  var cost=bsC(s,s,T,v)+bsP(s,s,T,v); // ATM straddle per-share cost
+  var np=s*(1+mv/100);
+  var rem=Math.max(d-h,0);
+  var eiv=Math.max(v*(1-crush(h,d)),0.01);
+  var val=rem<0.01
+    ?(Math.max(np-s,0)+Math.max(s-np,0))
+    :(bsC(np,s,rem/252,eiv)+bsP(np,s,rem/252,eiv));
   var dol=(val-cost)*100;
   return{dol:dol,pct:cost>0?dol/(cost*100)*100:0,cost:cost};
 }
 function otmExit(s,otmPct,d,v,mv,h,isCall){
-  var K=isCall?s*(1+otmPct/100):s*(1-otmPct/100),T=d/365;
+  var K=isCall?s*(1+otmPct/100):s*(1-otmPct/100),T=d/252;
   var costPer=(isCall?bsC(s,K,T,v):bsP(s,K,T,v))*100;
   var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
-  var val=rem>0?(isCall?bsC(ns,K,rem/365,eiv):bsP(ns,K,rem/365,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
+  var val=rem>0?(isCall?bsC(ns,K,rem/252,eiv):bsP(ns,K,rem/252,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
   return{dol:val-costPer,ret:costPer>0?(val-costPer)/costPer*100:0,costPer:costPer};
 }
 function otmBoth(s,otmPct,d,v,mv,h){
-  var Kc=s*(1+otmPct/100),Kp=s*(1-otmPct/100),T=d/365;
+  var Kc=s*(1+otmPct/100),Kp=s*(1-otmPct/100),T=d/252;
   var cp=(bsC(s,Kc,T,v)+bsP(s,Kp,T,v))*100;
   var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
-  var val=rem>0?(bsC(ns,Kc,rem/365,eiv)+bsP(ns,Kp,rem/365,eiv))*100:(Math.max(ns-Kc,0)+Math.max(Kp-ns,0))*100;
+  var val=rem>0?(bsC(ns,Kc,rem/252,eiv)+bsP(ns,Kp,rem/252,eiv))*100:(Math.max(ns-Kc,0)+Math.max(Kp-ns,0))*100;
   return{dol:val-cp,ret:cp>0?(val-cp)/cp*100:0,costPer:cp};
 }
 
@@ -1340,12 +1351,12 @@ function strangleAtDelta(S,T,v,targetDelta){
    When targetDelta=0.50 (otmPct=0), this is exactly atmExit's math.
    Returns {dol, pct, cost} where cost is per-share (multiply by 100 for contract). */
 function strangleExit(s,v,d,targetDelta,mv,h){
-  var T=d/365;
+  var T=d/252;
   var sg=strangleAtDelta(s,T,v,targetDelta);
   var Kc=sg.Kc,Kp=sg.Kp,costPerShare=sg.cost;
   var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
   var val=rem>0
-    ?(bsC(ns,Kc,rem/365,eiv)+bsP(ns,Kp,rem/365,eiv))
+    ?(bsC(ns,Kc,rem/252,eiv)+bsP(ns,Kp,rem/252,eiv))
     :(Math.max(ns-Kc,0)+Math.max(Kp-ns,0));
   var dol=(val-costPerShare)*100;
   return{dol:dol,pct:costPerShare>0?dol/(costPerShare*100)*100:0,cost:costPerShare,Kc:Kc,Kp:Kp,otmPct:sg.otmPct};
@@ -1596,7 +1607,7 @@ function go1(){
   // Strike info string for OTM strangle
   var strikeInfo='';
   if(deltaTrack){
-    var sgInfo=strangleAtDelta(spot,dte/365,iv3,stdlDeltaFrac());
+    var sgInfo=strangleAtDelta(spot,dte/252,iv3,stdlDeltaFrac());
     strikeInfo=' · Strikes $'+sgInfo.Kp.toFixed(2)+'/$'+sgInfo.Kc.toFixed(2);
   }
   $('c-info').innerHTML='<b>'+T1.toUpperCase()+' '+pkgLbl+'</b>'+strikeInfo+' · $'+costIn.toFixed(2)+'/share · <b>$'+costPer.toFixed(0)+'/package</b> · Cost is <b>'+costPctOfSpot.toFixed(2)+'% of spot</b> → <span style="color:'+valAssess.color+';font-weight:700">'+valAssess.label+'</span> ('+valAssess.note+')';
@@ -1609,7 +1620,7 @@ function go1(){
   $('c-tgt').className='si-val '+(hit?'pos':'neg');
   // B/E — different formula for OTM strangle (asymmetric around strikes, not spot)
   if(deltaTrack){
-    var sg=strangleAtDelta(spot,dte/365,iv3,stdlDeltaFrac());
+    var sg=strangleAtDelta(spot,dte/252,iv3,stdlDeltaFrac());
     var be=strangleBE(spot,sg.Kc,sg.Kp,costIn);
     $('c-be').textContent='+'+be.bePctUp.toFixed(2)+'% / -'+be.bePctDn.toFixed(2)+'%';
   } else {
@@ -1670,18 +1681,18 @@ function _stdlExit(s,v,d,mv,h){
 }
 function _stdlCostPerContract(s,d,v){
   // Per-contract cost for the chosen delta strangle (both legs)
-  var sg=strangleAtDelta(s,d/365,v,stdlDeltaFrac());
+  var sg=strangleAtDelta(s,d/252,v,stdlDeltaFrac());
   return sg.cost*100;
 }
 /* Track-It variant: P&L computed from delta-implied strikes but against
    the user's actual paid cost (per share). Returns {dol, pct, Kc, Kp, beUp, beDn}. */
 function _stdlTrackExit(s,v,d,mv,h,paidCostPerShare){
-  var T=d/365;
+  var T=d/252;
   var sg=strangleAtDelta(s,T,v,stdlDeltaFrac());
   var Kc=sg.Kc,Kp=sg.Kp;
   var ns=s*(1+mv/100),rem=Math.max(d-h,0),eiv=v*(1-crush(h,d));
   var val=rem>0
-    ?(bsC(ns,Kc,rem/365,eiv)+bsP(ns,Kp,rem/365,eiv))
+    ?(bsC(ns,Kc,rem/252,eiv)+bsP(ns,Kp,rem/252,eiv))
     :(Math.max(ns-Kc,0)+Math.max(Kp-ns,0));
   var dol=(val-paidCostPerShare)*100;
   return{
@@ -1818,7 +1829,7 @@ function go2(){
     var bestCostPct=bestCP/spot*100;
     var bestVal=straddleValue(bestDTE,bestCostPct);
     // Strike info for chosen delta
-    var bestSg=strangleAtDelta(spot,bestDTE/365,iv3,stdlDeltaFrac());
+    var bestSg=strangleAtDelta(spot,bestDTE/252,iv3,stdlDeltaFrac());
     // Expected move cone
     renderMoveCone(spot,bestCP,moveLo,moveHi,bestContracts,target);
     var titleLbl=STDL_DELTA===50?'ATM Straddle':STDL_DELTA+'Δ Strangle';
@@ -2096,8 +2107,8 @@ function go3(){
   var totalRisk=cp*contracts;
   // Strike prices
   var Kc=(spot*(1+OTM/100)).toFixed(2),Kp=(spot*(1-OTM/100)).toFixed(2);
-  var cPrem=(bsC(spot,parseFloat(Kc),dte/365,iv3)).toFixed(2);
-  var pPrem=(bsP(spot,parseFloat(Kp),dte/365,iv3)).toFixed(2);
+  var cPrem=(bsC(spot,parseFloat(Kc),dte/252,iv3)).toFixed(2);
+  var pPrem=(bsP(spot,parseFloat(Kp),dte/252,iv3)).toFixed(2);
   // Find what move gives 500%
   var need500=null;
   for(var mv=1;mv<=50;mv++){
@@ -2331,7 +2342,7 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})
   })
   .then(function(r){return r.json();})
   .then(function(data){
@@ -2645,7 +2656,7 @@ function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,targetPct
       var remDays=Math.max(dte-d,0); // days remaining — bsC divides by 365 internally
       var eiv=iv3*(1-crush(d,dte));
       var ns=spot*(1+amv/100);
-      var exitVal=remDays>0?(isCall?bsC(ns,K,remDays/365,eiv):bsP(ns,K,remDays/365,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
+      var exitVal=remDays>0?(isCall?bsC(ns,K,remDays/252,eiv):bsP(ns,K,remDays/252,eiv))*100:(isCall?Math.max(ns-K,0):Math.max(K-ns,0))*100;
       var dol=(exitVal-costPer)*contracts;
       var pct=costPer>0?(exitVal-costPer)/costPer*100:0;
       var c=cat(dol,costPer*contracts,stopPct);
@@ -2900,7 +2911,7 @@ function processSignal(valid,capital,target,stopPct,sym){
   var sg=$('g-setup-grid');
   if(isCall!==null&&dte){
     var capital=fv('g1'),stopPct=fv('g3');
-    var T=dte/365;
+    var T=dte/252;
     var K=Math.round(spot/5)*5;
 
     // Show immediately with BS estimate badge
@@ -2996,7 +3007,7 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
     var remDays=Math.max(dte-dd,0);
     var eiv=iv3*(1-crush(dd,dte));
     var ns=spot*(1+(isCall?1:-1)*SCENS[2].mid/100);
-    var exitVal=(isCall?bsC(ns,K,remDays/365,eiv):bsP(ns,K,remDays/365,eiv))*100;
+    var exitVal=(isCall?bsC(ns,K,remDays/252,eiv):bsP(ns,K,remDays/252,eiv))*100;
     var pnlDD=(exitVal-costPer);
     if(pnlDD>bp){bp=pnlDD;bd=dd;}
   }
@@ -3020,7 +3031,7 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
   // Straddle/strangle context strip
   var ctxEl=$('g-stdl-context');
   if(ctxEl){
-    var T2=dte/365;
+    var T2=dte/252;
     var ctxRows='';
     [50,45,40].forEach(function(d){
       var sgl=strangleAtDelta(spot,T2,iv3,d/100);
@@ -3142,13 +3153,14 @@ function fetchOHLC(ticker){
   var past=new Date(today-65*864e5);
   var d1=past.toISOString().slice(0,10).replace(/-/g,'');
   var stooqUrl='https://stooq.com/q/d/l/?s='+sym.toLowerCase()+'.us&d1='+d1+'&d2='+d2+'&i=d';
-  var ab1=makeAbort(9000,function(){tryFinnhub();});
+  var ab1=makeAbort(5000,function(){tryFinnhub();});
   fetch(stooqUrl,ab1.signal?{signal:ab1.signal}:{})
     .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text();})
     .then(function(csv){
       ab1.clear();
       var lines=csv.trim().split('\n');
-      if(lines.length<3||csv.indexOf('No data')===-1&&lines[0].indexOf('Close')===-1)throw new Error('bad csv');
+      if(lines.length<3)throw new Error('stooq too few lines');
+      if(lines[0].indexOf('Close')===-1&&lines[0].indexOf('Open')===-1)throw new Error('stooq bad header');
       var days=[];
       lines.slice(1).forEach(function(line){
         var p=line.split(',');
@@ -3170,7 +3182,7 @@ function fetchOHLC(ticker){
     var toTs=Math.floor(Date.now()/1000);
     var fromTs=toTs-75*86400; // 75 trading days back
     var fhUrl='https://finnhub.io/api/v1/stock/candle?symbol='+sym+'&resolution=D&from='+fromTs+'&to='+toTs+'&token='+FK;
-    var ab=makeAbort(9000,function(){tryYahoo();});
+    var ab=makeAbort(5000,function(){tryYahoo();});
     fetch(fhUrl,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
       .then(function(r){return r.json();})
       .then(function(d){
@@ -3207,7 +3219,7 @@ function fetchOHLC(ticker){
     function tryNext(){
       if(idx>=proxies.length){tryYahooShort();return;}
       var url=proxies[idx++];
-      var ab=makeAbort(9000,function(){tryNext();});
+      var ab=makeAbort(5000,function(){tryNext();});
       fetch(url,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
         .then(function(r){return r.json();})
         .then(function(wrapper){
@@ -3243,9 +3255,9 @@ function fetchOHLC(ticker){
     ];
     var idx=0;
     function tryNext(){
-      if(idx>=proxies.length){showErr('\u274c All sources failed.');return;}
+      if(idx>=proxies.length){tryClaudeSearch();return;}
       var url=proxies[idx++];
-      var ab=makeAbort(8000,function(){tryNext();});
+      var ab=makeAbort(5000,function(){tryNext();});
       fetch(url,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
         .then(function(r){return r.json();})
         .then(function(wrapper){
@@ -3268,6 +3280,53 @@ function fetchOHLC(ticker){
         .catch(function(e){ab.clear();if(e&&e.name==='AbortError')return;tryNext();});
     }
     tryNext();
+  }
+
+  // ── SOURCE 5: Claude web_search — final reliable fallback ──
+  function tryClaudeSearch(){
+    var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+    if(!apiKey){showErr('\u274c All sources failed. Enter data manually or add API key.');return;}
+    statusEl.innerHTML='\u23f3 Fetching via AI search\u2026';
+    var today=new Date();
+    var todayStr=today.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var prompt='Search Yahoo Finance or Google Finance for '+sym+' daily OHLC data for the last 7 trading days ending '+todayStr+'.\n'
+      +'Return ONLY a JSON array, no markdown:\n'
+      +'[{"date":"Mon 6/2","open":700.00,"high":710.00,"low":698.00,"close":707.00},...]\n'
+      +'Use real market data. Include exactly the last 5-7 trading days. Dates as "Day M/D" format.';
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:600,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error)throw new Error(data.error.message||'API error');
+      var text='';
+      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      var m=text.match(/\[[\s\S]*\]/);
+      if(!m)throw new Error('no json array');
+      var arr=JSON.parse(m[0]);
+      if(!arr||!arr.length)throw new Error('empty');
+      var days=arr.map(function(d){
+        return{label:d.date,o:parseFloat(d.open),h:parseFloat(d.high),l:parseFloat(d.low),c:parseFloat(d.close)};
+      }).filter(function(d){return d.o>1&&d.h>1&&d.l>1&&d.c>1;});
+      if(days.length<2)throw new Error('too few days');
+      onSuccess(days,'AI Search');
+    })
+    .catch(function(e){
+      console.error('Claude search failed:',e);
+      showErr('\u274c All sources failed.');
+    });
   }
 }
 
@@ -3296,175 +3355,6 @@ function addDay(){
 function setDay(i,f,v){
   BT_DAYS[i][f]=v;
   go5();
-}
-
-function btSim(openPx,high,low,close,iv3,capital){
-  var dte=BT_DTE;
-  // Cost at open: use actual DTE
-  // For 0-DTE use a tiny fraction to avoid math issues (0.1 days)
-  var dteForCost=Math.max(dte,0.1);
-
-  // Delta-aware strike selection: 50Δ → Kc=Kp=openPx (ATM straddle), 40/45Δ → OTM strangle
-  var isAtm=BT_DELTA===50;
-  var Kc,Kp,cost;
-  if(isAtm){
-    Kc=openPx;Kp=openPx;
-    cost=prem(openPx,dteForCost,iv3)*100;
-  } else {
-    var sg=strangleAtDelta(openPx,dteForCost/365,iv3,btDeltaFrac());
-    // Round to $1 grid only at >=5-DTE; at 0/1-DTE use exact strikes
-    // (at very short DTE, rounding collapses 45Δ/50Δ to the same strikes)
-    if(dte>=5){
-      Kc=Math.round(sg.Kc);
-      Kp=Math.round(sg.Kp);
-    } else {
-      Kc=sg.Kc;
-      Kp=sg.Kp;
-    }
-    cost=(bsC(openPx,Kc,dteForCost/365,iv3)+bsP(openPx,Kp,dteForCost/365,iv3))*100;
-  }
-  var contracts=capital>0&&cost>0?Math.max(1,Math.floor(capital/cost)):1;
-  var totalCost=cost*contracts;
-
-  // Intraday moves from open
-  var upMove=(high-openPx)/openPx*100;
-  var dnMove=(openPx-low)/openPx*100;
-  var eodMove=(close-openPx)/openPx*100;
-  var eodAbs=Math.abs(eodMove);
-  var bestMove=Math.max(upMove,dnMove);
-  var bestDir=upMove>=dnMove?'UP':'DOWN';
-
-  // P&L at intraday extreme:
-  // For 0-DTE: ~0.1 days remaining when you exit intraday, heavy gamma
-  // For 1-DTE: ~0.5 days remaining at midday exit
-  // For 5/8-DTE: DTE - 0.4 remaining (sold same day, ~0.4 day elapsed)
-  var remAtBest=dte===0?0.05:dte===1?0.4:dte-0.4;
-  var remAtEOD=dte===0?0:dte-1; // at EOD: 0 days left for 0-DTE, DTE-1 for others
-
-  // IV crush intraday: bigger for 0-DTE
-  var ivCrushIntra=dte===0?0.35:dte===1?0.20:0.10;
-  var ivCrushEOD=dte===0?1.0:dte===1?0.25:0.15; // 0-DTE = fully crushed at EOD
-
-  function pnlAt(movePct, remDays, ivCrush){
-    var np=openPx*(1+movePct/100);
-    var eiv=iv3*(1-ivCrush);
-    var rem=Math.max(remDays,0); // pass as days - callput divides by 365 internally
-    var val;
-    if(rem<0.01){
-      val=(Math.max(np-Kc,0)+Math.max(Kp-np,0))*100;
-    } else if(isAtm){
-      val=(callput(np,Kc,rem,eiv,true)+callput(np,Kp,rem,eiv,false))*100;
-    } else {
-      // For OTM strangle use full BS pricing (callput approximation degrades for OTM)
-      val=(bsC(np,Kc,rem/365,eiv)+bsP(np,Kp,rem/365,eiv))*100;
-    }
-    return (val-cost)*contracts;
-  }
-
-  var pnlBest=pnlAt(bestDir==='UP'?bestMove:-dnMove, remAtBest, ivCrushIntra);
-  var pnlEOD=pnlAt(eodMove, remAtEOD, ivCrushEOD);
-  // B/E based on strikes (ATM: ±cost/spot; OTM: from Kc-openPx + premium and openPx-Kp + premium)
-  var costPerShare=cost/100;
-  var bePct;
-  if(isAtm){
-    bePct=costPerShare/openPx*100;
-  } else {
-    // need move beyond Kc+premium (up) or below Kp-premium (down)
-    var beUpPct=(Kc+costPerShare-openPx)/openPx*100;
-    var beDnPct=(openPx-(Kp-costPerShare))/openPx*100;
-    bePct=Math.min(beUpPct,beDnPct); // closer side determines whether you cleared
-  }
-  var beClears=bestMove>=bePct;
-  var eodClears=eodAbs>=bePct;
-
-  return{
-    cost:cost,contracts:contracts,totalCost:totalCost,dte:dte,
-    strike:Math.round(openPx),Kc:Kc,Kp:Kp,
-    upMove:upMove,dnMove:dnMove,eodMove:eodMove,eodAbs:eodAbs,
-    bestMove:bestMove,bestDir:bestDir,
-    pnlBest:pnlBest,pnlEOD:pnlEOD,
-    bePct:bePct,beClears:beClears,eodClears:eodClears
-  };
-}
-
-/* Overnight: buy ~3:55pm day N at strike=round(closeN), close at day N+1 EOD.
-   1 full day elapsed. Strike is fixed at day-N close.
-   bestMove = day N+1 intraday extreme distance from strike (overnight gap captured).
-   eodMove  = day N+1 close distance from strike (the trade actually closed here). */
-function btSimOvernight(entryClose,nextOpen,nextHigh,nextLow,nextClose,iv3,capital){
-  var dte=BT_DTE;
-  var dteForCost=Math.max(dte,0.1);
-  // Delta-aware strikes: 50Δ → single ATM strike at round(entryClose); 40/45Δ → OTM strangle
-  var isAtm=BT_DELTA===50;
-  var Kc,Kp,K,cost;
-  if(isAtm){
-    K=Math.round(entryClose);
-    Kc=K;Kp=K;
-    cost=prem(entryClose,dteForCost,iv3)*100;
-  } else {
-    var sg=strangleAtDelta(entryClose,dteForCost/365,iv3,btDeltaFrac());
-    // Round to $1 grid only at >=5-DTE
-    if(dte>=5){
-      Kc=Math.round(sg.Kc);
-      Kp=Math.round(sg.Kp);
-    } else {
-      Kc=sg.Kc;
-      Kp=sg.Kp;
-    }
-    K=Math.round(entryClose); // reference midpoint for move calcs
-    cost=(bsC(entryClose,Kc,dteForCost/365,iv3)+bsP(entryClose,Kp,dteForCost/365,iv3))*100;
-  }
-  var contracts=capital>0&&cost>0?Math.max(1,Math.floor(capital/cost)):1;
-  var totalCost=cost*contracts;
-  // moves: ATM mode uses rounded strike K (preserves original behavior); OTM uses entry close (strike midpoint is non-integer)
-  var pivot=isAtm?K:entryClose;
-  var upMove=(nextHigh-pivot)/pivot*100;
-  var dnMove=(pivot-nextLow)/pivot*100;
-  var eodMove=(nextClose-pivot)/pivot*100;
-  var openMove=(nextOpen-pivot)/pivot*100;
-  var eodAbs=Math.abs(eodMove);
-  var bestMove=Math.max(upMove,dnMove);
-  var bestDir=upMove>=dnMove?'UP':'DOWN';
-  var remAtBest=dte===0?0:dte===1?0.05:dte-0.6;
-  var remAtEOD=dte===0?0:dte===1?0:dte-1;
-  var ivCrushBest=dte===0?1.0:dte===1?0.6:0.20;
-  var ivCrushEOD=dte===0?1.0:dte===1?1.0:0.30;
-  function pnlAt(spotAtExit, remDays, ivCrush){
-    var eiv=iv3*(1-ivCrush);
-    var rem=Math.max(remDays,0);
-    var val;
-    if(rem<0.01){
-      val=(Math.max(spotAtExit-Kc,0)+Math.max(Kp-spotAtExit,0))*100;
-    } else if(isAtm){
-      val=(callput(spotAtExit,Kc,rem,eiv,true)+callput(spotAtExit,Kp,rem,eiv,false))*100;
-    } else {
-      val=(bsC(spotAtExit,Kc,rem/365,eiv)+bsP(spotAtExit,Kp,rem/365,eiv))*100;
-    }
-    return (val-cost)*contracts;
-  }
-  var bestSpot=bestDir==='UP'?nextHigh:nextLow;
-  var pnlBest=pnlAt(bestSpot, remAtBest, ivCrushBest);
-  var pnlEOD=pnlAt(nextClose, remAtEOD, ivCrushEOD);
-  // B/E
-  var costPerShare=cost/100;
-  var bePct;
-  if(isAtm){
-    bePct=costPerShare/K*100;
-  } else {
-    var beUpPct=(Kc+costPerShare-pivot)/pivot*100;
-    var beDnPct=(pivot-(Kp-costPerShare))/pivot*100;
-    bePct=Math.min(beUpPct,beDnPct);
-  }
-  var beClears=bestMove>=bePct;
-  var eodClears=eodAbs>=bePct;
-  return{
-    cost:cost,contracts:contracts,totalCost:totalCost,dte:dte,
-    strike:K,Kc:Kc,Kp:Kp,entryClose:entryClose,openMove:openMove,
-    upMove:upMove,dnMove:dnMove,eodMove:eodMove,eodAbs:eodAbs,
-    bestMove:bestMove,bestDir:bestDir,
-    pnlBest:pnlBest,pnlEOD:pnlEOD,
-    bePct:bePct,beClears:beClears,eodClears:eodClears
-  };
 }
 
 function go5(){
@@ -4178,7 +4068,7 @@ function pmRenderSignalCards(){
     var riskAmt=available*pct/100;
     var dte=8;
     var K=Math.round(spot/5)*5;
-    var T=dte/365;
+    var T=dte/252;
     var premPerShare=isCall?bsC(spot,K,T,iv3):isPut?bsP(spot,K,T,iv3):0;
     var costPer=premPerShare*100;
     var qty=costPer>0?Math.max(1,Math.floor(riskAmt/costPer)):0;
@@ -4749,7 +4639,7 @@ function alGoC(){
   if(isSellPut){
     // Sell cash-secured put
     var K=spot*(1-otmPct/100);
-    var T=dte/365;
+    var T=dte/252;
     var premPerShare=bsP(spot,K,T,iv3);
     var premPerContract=premPerShare*100;
     var contracts=Math.max(1,Math.floor(capital/(K*100))); // CSP requires K*100 per contract
@@ -4793,9 +4683,9 @@ function alGoC(){
       // Put value at expiry
       var putVal=Math.max(K-ns,0)*100*contracts;
       var netPL=totalPrem-putVal; // we sold the put, so P&L = premium - put value
-      var d7v=Math.max(K-(spot*(1+mv/100)),0),d7put=bsP(spot*(1+mv/100),K,Math.max(dte-7,0)/365,iv3)*100*contracts;
+      var d7v=Math.max(K-(spot*(1+mv/100)),0),d7put=bsP(spot*(1+mv/100),K,Math.max(dte-7,0)/252,iv3)*100*contracts;
       var net7=totalPrem-d7put;
-      var d14put=bsP(spot*(1+mv/100),K,Math.max(dte-14,0)/365,iv3)*100*contracts;
+      var d14put=bsP(spot*(1+mv/100),K,Math.max(dte-14,0)/252,iv3)*100*contracts;
       var net14=totalPrem-d14put;
       sh+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0'+(mv%2===0?';background:#fafafa':'')+'">'+
         '<div style="padding:8px 5px 8px 10px;background:rgba(0,0,0,.02);min-height:44px;display:flex;flex-direction:column;justify-content:center">'+
@@ -4811,7 +4701,7 @@ function alGoC(){
   } else {
     // Covered Call
     var Kcc=spot*(1+otmPct/100);
-    var T2=dte/365;
+    var T2=dte/252;
     var premCC=bsC(spot,Kcc,T2,iv3);
     var premCCContract=premCC*100;
     var sharesOwned=Math.floor(capital/spot/100)*100;
@@ -4877,7 +4767,7 @@ function alGoM(){
   }
   var shares=Math.floor(capital/spot/100)*100;
   var contracts=Math.max(1,Math.floor(shares/100));
-  var T=dte/365;
+  var T=dte/252;
   var Kp=spot*(1-putOtm/100);
   var putPrem=bsP(spot,Kp,T,iv3);
   var putCost=putPrem*100*contracts;
@@ -4930,12 +4820,12 @@ function alGoM(){
 
       var rem7=Math.max(dte-7,0),rem14=Math.max(dte-14,0);
       var ns7=spot*(1+mv/100);
-      var putPay7=(rem7>0?bsP(ns7,Kp,rem7/365,iv3):Math.max(Kp-ns7,0))*100*contracts;
-      var callPay7=-(rem7>0?bsC(ns7,Kc,rem7/365,iv3):Math.max(ns7-Kc,0))*100*contracts;
+      var putPay7=(rem7>0?bsP(ns7,Kp,rem7/252,iv3):Math.max(Kp-ns7,0))*100*contracts;
+      var callPay7=-(rem7>0?bsC(ns7,Kc,rem7/252,iv3):Math.max(ns7-Kc,0))*100*contracts;
       var net7=(ns7-spot)*shares+putPay7+callPay7-putCost+callCredit;
 
-      var putPay14=(rem14>0?bsP(ns7,Kp,rem14/365,iv3):Math.max(Kp-ns7,0))*100*contracts;
-      var callPay14=-(rem14>0?bsC(ns7,Kc,rem14/365,iv3):Math.max(ns7-Kc,0))*100*contracts;
+      var putPay14=(rem14>0?bsP(ns7,Kp,rem14/252,iv3):Math.max(Kp-ns7,0))*100*contracts;
+      var callPay14=-(rem14>0?bsC(ns7,Kc,rem14/252,iv3):Math.max(ns7-Kc,0))*100*contracts;
       var net14=(ns7-spot)*shares+putPay14+callPay14-putCost+callCredit;
 
       sh+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
@@ -4982,8 +4872,8 @@ function alGoM(){
       var putPayoffExp=Math.max(Kp-ns,0)*100*contracts-putCost;
       var netPL=(ns-spot)*shares+putPayoffExp;
       var rem7=Math.max(dte-7,0),rem14=Math.max(dte-14,0);
-      var p7=(rem7>0?bsP(ns,Kp,rem7/365,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
-      var p14=(rem14>0?bsP(ns,Kp,rem14/365,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
+      var p7=(rem7>0?bsP(ns,Kp,rem7/252,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
+      var p14=(rem14>0?bsP(ns,Kp,rem14/252,iv3)*100*contracts:Math.max(Kp-ns,0)*100*contracts)-putCost;
       var net7=(ns-spot)*shares+p7;
       var net14=(ns-spot)*shares+p14;
       sh2+='<div style="display:grid;grid-template-columns:.55fr 1fr 1fr 1fr;border-top:1px solid #e2e8f0">'+
@@ -5056,7 +4946,7 @@ function alGoA(){
   }
 
   var cp,Kc,Kp,label,instrHtml;
-  var T=dte/365;
+  var T=dte/252;
   // Hoisted so plan box can reference regardless of which branch ran
   var totalCost=0,totalCost2=0,totalCostD=0;
   var bePct=0,beUp=0,beDn=0;
@@ -5064,7 +4954,8 @@ function alGoA(){
   var Kdir=spot,isCall=false,bePctD=0;
 
   if(AL_A_DIR==='straddle'){
-    var cost=prem(spot,dte,iv3);
+    var _T=dte/252;
+    var cost=bsC(spot,spot,_T,iv3)+bsP(spot,spot,_T,iv3); // ATM straddle per-share BS price
     cp=cost*100;Kc=spot;Kp=spot;label='ATM Straddle';
     contracts=Math.max(1,Math.floor(capital/cp));
     totalCost=cp*contracts;
@@ -5284,7 +5175,7 @@ function alPrefillLog(bucket,type){
     if(bucket==='Conservative'){
       var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otm=alFv('al-c4')||5;
       var K=AL_C_PHASE==='put'?spot*(1-otm/100):spot*(1+otm/100);
-      var prem2=AL_C_PHASE==='put'?bsP(spot,K,dte/365,iv3):bsC(spot,K,dte/365,iv3);
+      var prem2=AL_C_PHASE==='put'?bsP(spot,K,dte/252,iv3):bsC(spot,K,dte/252,iv3);
       var capital2=Math.round((alFv('al-cap')||500000)*0.40);
       var contracts=(AL_C_PHASE==='put'?Math.max(1,Math.floor(capital2/(K*100))):Math.max(1,Math.floor(capital2/spot/100)));
       if($('al-lg-entry'))$('al-lg-entry').value=(prem2*100*contracts).toFixed(0);

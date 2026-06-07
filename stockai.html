@@ -1281,7 +1281,9 @@ function callClaude(apiKey,prompt){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2400,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2400,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]})
   }).then(function(res){
     return res.json().then(function(data){
       if(!res.ok){
@@ -1291,8 +1293,11 @@ function callClaude(apiKey,prompt){
         if(res.status===529)msg='Anthropic overloaded — retry in a few seconds';
         throw new Error(msg);
       }
+      // Extract text from content blocks (may include tool_use/tool_result blocks)
       var blocks=data.content||[];
-      for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')return blocks[i].text;}
+      var text='';
+      for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')text+=blocks[i].text;}
+      if(text) return text;
       throw new Error('Empty response — try again');
     });
   }).catch(function(err){
@@ -1421,32 +1426,11 @@ function buildPrompt(ticker,hLabel,hz,livePrice,optionsData,flowData){
 
 // PARSE
 function parseJSON(raw){
-  try{
-    var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-    var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
-    if(s>-1&&e>-1)clean=clean.slice(s,e+1);
-    return JSON.parse(clean);
-  }catch(err){
-    return{signal:'NEUTRAL',confidence:60,earningsNote:'No earnings data available.',
-      summary:'Analysis complete. Review key drivers and trade recommendation below.',
-      priceTarget:{bear:'-3%',base:'+1%',bull:'+4%'},
-      forecastCurve:[0,0.4,0.8,0.6,1.1,1.4],
-      factors:[
-        {icon:'📊',text:'Mixed technical signals at current levels',impact:'NEUTRAL'},
-        {icon:'🏦',text:'Fed policy uncertainty creating headwinds',impact:'NEGATIVE'},
-        {icon:'💡',text:'Strong balance sheet provides downside support',impact:'POSITIVE'},
-        {icon:'📉',text:'Rising yields compressing growth multiples',impact:'NEGATIVE'},
-        {icon:'🤖',text:'Sector momentum broadly supportive',impact:'POSITIVE'}
-      ],
-      scenarios:[{name:'Bull Case',outcome:'+4-6%',dir:'up'},{name:'Base Case',outcome:'+0-1%',dir:'up'},{name:'Bear Case',outcome:'-2-4%',dir:'dn'},{name:'Tail Risk',outcome:'-8%+',dir:'dn'}],
-      trade:{
-        primary:{label:'ATM Call Spread',detail:'Buy ATM call, sell +5% OTM call — same expiry',expiry:'2 weeks',target:'+70% on spread',sizing:'Risk 1-2% of portfolio',rationale:'Captures upside while limiting premium outlay at moderate conviction.'},
-        hedge:{label:'OTM Put — stop-loss insurance',detail:'Buy 1x -8% OTM put per 4 spreads (~15% of spread premium)',trigger:'Close below key support level',rationale:'Protects against unexpected macro shock or gap-down event.'},
-        hedgeWeight:40,
-        structureNote:'At 60% confidence a spread structure is used rather than a naked call, capping max loss while preserving directional exposure.'
-      },
-      macroContext:'Current macro conditions present a mixed backdrop. Monitor Fed signals and Treasury yields for this position.'};
-  }
+  var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
+  var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
+  if(s>-1&&e>-1)clean=clean.slice(s,e+1);
+  var parsed=JSON.parse(clean); // throws on bad JSON — caller must catch and show real error
+  return parsed;
 }
 
 // Show cache dots on horizon buttons
@@ -1997,7 +1981,7 @@ function fetchNews(ticker){
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompt}]})
   })
   .then(function(r){return r.json();})
   .then(function(data){
