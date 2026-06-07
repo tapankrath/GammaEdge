@@ -3106,12 +3106,12 @@ function fetchOHLC(ticker){
   statusEl.style.borderColor='var(--bbd)';
   btSetOhlcChip('\u23f3 '+sym,'var(--blue)');
 
-  function onSuccess(allDays){
+  function onSuccess(allDays,src){
     BT_ALL_DAYS=allDays;
     BT_DAYS=allDays.slice(-5).map(function(d){
       return{label:d.label,o:d.o.toFixed(2),h:d.h.toFixed(2),l:d.l.toFixed(2),c:d.c.toFixed(2)};
     });
-    var msg='\u2713 '+sym+' \u2014 '+allDays.length+' days loaded'+(allDays.length>=10?' \u00b7 summary ready':'');
+    var msg='\u2713 '+sym+' \u2014 '+allDays.length+' days loaded'+(allDays.length>=10?' \u00b7 summary ready':'')+(src?' <span style="font-size:9px;color:#94a3b8">(via '+src+')</span>':'');
     statusEl.innerHTML=msg;
     statusEl.style.color='var(--green)';
     statusEl.style.background='var(--gbg)';
@@ -3130,53 +3130,112 @@ function fetchOHLC(ticker){
     btSetOhlcChip('\u26a0 '+sym,'var(--amber)');
   }
 
-  // ── SOURCE 1: Stooq CSV (no CORS, no proxy needed) ──
-  // Stooq returns CSV directly from browser — most reliable free source
+  function makeAbort(ms,fallback){
+    var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
+    var t=setTimeout(function(){if(ctrl)ctrl.abort();fallback();},ms);
+    return{signal:ctrl?ctrl.signal:null,clear:function(){clearTimeout(t);}};
+  }
+
+  // ── SOURCE 1: Stooq CSV (CORS-free, most reliable) ──
   var today=new Date();
   var d2=today.toISOString().slice(0,10).replace(/-/g,'');
   var past=new Date(today-65*864e5);
   var d1=past.toISOString().slice(0,10).replace(/-/g,'');
   var stooqUrl='https://stooq.com/q/d/l/?s='+sym.toLowerCase()+'.us&d1='+d1+'&d2='+d2+'&i=d';
-
-  var ctrl1=typeof AbortController!=='undefined'?new AbortController():null;
-  var t1=setTimeout(function(){if(ctrl1)ctrl1.abort();tryYahoo();},10000);
-
-  fetch(stooqUrl,ctrl1?{signal:ctrl1.signal}:{})
-    .then(function(r){
-      if(!r.ok)throw new Error('stooq http '+r.status);
-      return r.text();
-    })
+  var ab1=makeAbort(9000,function(){tryFinnhub();});
+  fetch(stooqUrl,ab1.signal?{signal:ab1.signal}:{})
+    .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text();})
     .then(function(csv){
-      clearTimeout(t1);
-      // Parse CSV: Date,Open,High,Low,Close,Volume
+      ab1.clear();
       var lines=csv.trim().split('\n');
-      if(lines.length<3)throw new Error('stooq too few rows');
+      if(lines.length<3||csv.indexOf('No data')===-1&&lines[0].indexOf('Close')===-1)throw new Error('bad csv');
       var days=[];
-      // Skip header, sort ascending
       lines.slice(1).forEach(function(line){
         var p=line.split(',');
         if(p.length<5)return;
         var o=parseFloat(p[1]),h=parseFloat(p[2]),l=parseFloat(p[3]),c=parseFloat(p[4]);
-        if(!o||!h||!l||!c||isNaN(o))return;
-        var dt=new Date(p[0]+'T12:00:00');
+        if(!o||!h||!l||!c||isNaN(o)||o<1)return;
+        var dt=new Date(p[0]+'T12:00:00Z');
         var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
-        var mmdd=(dt.getMonth()+1)+'/'+(dt.getDate());
-        days.push({label:dow+' '+mmdd,o:o,h:h,l:l,c:c});
+        days.push({label:dow+' '+(dt.getUTCMonth()+1)+'/'+dt.getUTCDate(),o:o,h:h,l:l,c:c});
       });
-      days.sort(function(a,b){return new Date(a.label)-new Date(b.label);}); // already sorted but ensure
-      if(days.length<2)throw new Error('stooq no valid days');
-      onSuccess(days);
+      if(days.length<2)throw new Error('too few');
+      onSuccess(days,'Stooq');
     })
-    .catch(function(e){
-      clearTimeout(t1);
-      if(e&&e.name==='AbortError'){tryYahoo();return;}
-      tryYahoo();
-    });
+    .catch(function(e){ab1.clear();if(e&&e.name==='AbortError')return;tryFinnhub();});
 
-  // ── SOURCE 2: Yahoo via corsproxy.io ──
+  // ── SOURCE 2: Finnhub candles (CORS-free, uses existing FK key) ──
+  function tryFinnhub(){
+    statusEl.innerHTML='\u23f3 Trying Finnhub\u2026';
+    var toTs=Math.floor(Date.now()/1000);
+    var fromTs=toTs-75*86400; // 75 trading days back
+    var fhUrl='https://finnhub.io/api/v1/stock/candle?symbol='+sym+'&resolution=D&from='+fromTs+'&to='+toTs+'&token='+FK;
+    var ab=makeAbort(9000,function(){tryYahoo();});
+    fetch(fhUrl,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        ab.clear();
+        if(!d||d.s==='no_data'||!d.t||!d.t.length)throw new Error('no data');
+        var days=[];
+        for(var i=0;i<d.t.length;i++){
+          var o=d.o[i],h=d.h[i],l=d.l[i],c=d.c[i];
+          if(o&&h&&l&&c&&o>1){
+            var dt=new Date(d.t[i]*1000);
+            var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
+            days.push({label:dow+' '+(dt.getMonth()+1)+'/'+dt.getDate(),o:o,h:h,l:l,c:c});
+          }
+        }
+        if(days.length<2)throw new Error('too few');
+        onSuccess(days,'Finnhub');
+      })
+      .catch(function(e){ab.clear();if(e&&e.name==='AbortError')return;tryYahoo();});
+  }
+
+  // ── SOURCE 3: Yahoo 60d via proxy cascade ──
   function tryYahoo(){
-    statusEl.innerHTML='\u23f3 Trying backup source\u2026';
+    statusEl.innerHTML='\u23f3 Trying Yahoo proxy\u2026';
     var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=60d';
+    var yhUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=60d';
+    var proxies=[
+      'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl),
+      'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl),
+      'https://corsproxy.io/?'+encodeURIComponent(yhUrl2),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl2)
+    ];
+    var idx=0;
+    function tryNext(){
+      if(idx>=proxies.length){tryYahooShort();return;}
+      var url=proxies[idx++];
+      var ab=makeAbort(9000,function(){tryNext();});
+      fetch(url,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
+        .then(function(r){return r.json();})
+        .then(function(wrapper){
+          ab.clear();
+          var raw=wrapper.chart?wrapper:(wrapper.contents?(typeof wrapper.contents==='string'?JSON.parse(wrapper.contents):wrapper.contents):wrapper);
+          var res=raw.chart&&raw.chart.result&&raw.chart.result[0];
+          if(!res||!res.timestamp)throw new Error('no result');
+          var ts=res.timestamp,q=res.indicators.quote[0],days=[];
+          for(var i=0;i<ts.length;i++){
+            var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
+            if(o&&h&&l&&c&&h>0&&l>0&&o>1){
+              var dt=new Date(ts[i]*1000);
+              var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
+              days.push({label:dow+' '+(dt.getMonth()+1)+'/'+dt.getDate(),o:o,h:h,l:l,c:c});
+            }
+          }
+          if(!days.length)throw new Error('no days');
+          onSuccess(days,'Yahoo');
+        })
+        .catch(function(e){ab.clear();if(e&&e.name==='AbortError')return;tryNext();});
+    }
+    tryNext();
+  }
+
+  // ── SOURCE 4: Yahoo 10d short last-resort ──
+  function tryYahooShort(){
+    statusEl.innerHTML='\u23f3 Last resort\u2026';
+    var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d';
     var proxies=[
       'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
       'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl),
@@ -3184,68 +3243,29 @@ function fetchOHLC(ticker){
     ];
     var idx=0;
     function tryNext(){
-      if(idx>=proxies.length){tryYahooShort();return;}
-      var url=proxies[idx++];
-      var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-      var t=setTimeout(function(){if(ctrl)ctrl.abort();tryNext();},10000);
-      fetch(url,ctrl?{signal:ctrl.signal,cache:'no-store'}:{cache:'no-store'})
-        .then(function(r){return r.json();})
-        .then(function(wrapper){
-          clearTimeout(t);
-          var raw=wrapper.chart?wrapper:(wrapper.contents?(typeof wrapper.contents==='string'?JSON.parse(wrapper.contents):wrapper.contents):wrapper);
-          var res=raw.chart&&raw.chart.result&&raw.chart.result[0];
-          if(!res)throw new Error('no result');
-          var ts=res.timestamp,q=res.indicators.quote[0],days=[];
-          for(var i=0;i<ts.length;i++){
-            var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
-            if(o&&h&&l&&c&&h>0&&l>0){
-              var dt=new Date(ts[i]*1000);
-              var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
-              days.push({label:dow+' '+(dt.getMonth()+1)+'/'+dt.getDate(),o:o,h:h,l:l,c:c});
-            }
-          }
-          if(!days.length)throw new Error('no days');
-          onSuccess(days);
-        })
-        .catch(function(e){clearTimeout(t);if(e&&e.name==='AbortError')return;tryNext();});
-    }
-    tryNext();
-  }
-
-  // ── SOURCE 3: Yahoo 10d short fallback ──
-  function tryYahooShort(){
-    statusEl.innerHTML='\u23f3 Loading recent days\u2026';
-    var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=10d';
-    var proxies=[
-      'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
-      'https://api.allorigins.win/get?url='+encodeURIComponent(yhUrl)
-    ];
-    var idx=0;
-    function tryNext(){
       if(idx>=proxies.length){showErr('\u274c All sources failed.');return;}
       var url=proxies[idx++];
-      var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-      var t=setTimeout(function(){if(ctrl)ctrl.abort();tryNext();},8000);
-      fetch(url,ctrl?{signal:ctrl.signal,cache:'no-store'}:{cache:'no-store'})
+      var ab=makeAbort(8000,function(){tryNext();});
+      fetch(url,ab.signal?{signal:ab.signal,cache:'no-store'}:{cache:'no-store'})
         .then(function(r){return r.json();})
         .then(function(wrapper){
-          clearTimeout(t);
+          ab.clear();
           var raw=wrapper.chart?wrapper:(wrapper.contents?(typeof wrapper.contents==='string'?JSON.parse(wrapper.contents):wrapper.contents):wrapper);
           var res=raw.chart&&raw.chart.result&&raw.chart.result[0];
-          if(!res)throw new Error('no result');
+          if(!res||!res.timestamp)throw new Error('no result');
           var ts=res.timestamp,q=res.indicators.quote[0],days=[];
           for(var i=0;i<ts.length;i++){
             var o=q.open[i],h=q.high[i],l=q.low[i],c=q.close[i];
-            if(o&&h&&l&&c){
+            if(o&&h&&l&&c&&o>1){
               var dt=new Date(ts[i]*1000);
               var dow=dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/New_York'});
               days.push({label:dow+' '+(dt.getMonth()+1)+'/'+dt.getDate(),o:o,h:h,l:l,c:c});
             }
           }
           if(!days.length)throw new Error('no days');
-          onSuccess(days);
+          onSuccess(days,'Yahoo-10d');
         })
-        .catch(function(e){clearTimeout(t);if(e&&e.name==='AbortError')return;tryNext();});
+        .catch(function(e){ab.clear();if(e&&e.name==='AbortError')return;tryNext();});
     }
     tryNext();
   }
