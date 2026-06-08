@@ -105,7 +105,8 @@ input[type=range].cap-slider{width:100%;accent-color:var(--bear);margin-bottom:1
 .gp-inp-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .gp-inp-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;width:74px;}
 .gp-dollar{font-size:13px;font-weight:800;color:var(--bull);}
-.gp-inp{flex:1;background:var(--bg);border:1.5px solid var(--rule2);border-radius:7px;padding:9px 11px;font-size:18px;font-family:var(--fd);letter-spacing:.5px;color:var(--ink);outline:none;transition:border-color .15s;}
+.gp-inp-half{width:0;flex:1;min-width:0;}
+.gp-inp{background:var(--bg);border:1.5px solid var(--rule2);border-radius:7px;padding:9px 11px;font-size:18px;font-family:var(--fd);letter-spacing:.5px;color:var(--ink);outline:none;transition:border-color .15s;}
 .gp-inp:focus{border-color:var(--bull);background:#fff;}
 .gp-inp::placeholder{font-family:var(--fs);font-size:12px;letter-spacing:0;color:#ccc;font-weight:500;}
 
@@ -450,21 +451,24 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
   <div class="goal-panel">
     <div class="gp-head">
       <div>
-        <div class="gp-head-title">What's your profit goal?</div>
-        <div class="gp-head-sub">AI picks best strategy + re-ranks plays</div>
+        <div class="gp-head-title">Set your moonshot target</div>
+        <div class="gp-head-sub">AI sizes plays + risk per entry</div>
       </div>
     </div>
     <div class="gp-body">
-      <div class="gp-inp-row">
-        <div class="gp-inp-label">I want to make</div>
-        <div class="gp-dollar">$</div>
-        <input class="gp-inp" type="number" id="goalAmt" placeholder="e.g. 50000" oninput="onGoalInput()">
+      <!-- Single row: invest + profit % -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        <span class="gp-dollar">$</span>
+        <input class="gp-inp gp-inp-half" type="number" id="investAmt" placeholder="Invest" oninput="onGoalInput()">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;">→</span>
+        <input class="gp-inp gp-inp-half" type="number" id="profitPct" placeholder="% profit" oninput="onGoalInput()" style="text-align:right;">
+        <span class="gp-dollar" style="color:var(--muted);">%</span>
       </div>
-      <!-- Context line -->
+      <!-- Output -->
       <div class="gp-explain" id="goalExplain">
-        Enter a dollar goal above — we'll show you exactly how many plays and which strategy to reach it.
+        Enter your investment amount and profit target above.
       </div>
-      <!-- Strategy + positions output -->
+      <!-- Strategy + positions -->
       <div class="gp-strat-row" id="goalStratRow" style="display:none">
         <div class="gp-strat-ico" id="goalIco">⚡</div>
         <div class="gp-strat-block">
@@ -473,7 +477,7 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
         </div>
         <div class="gp-positions">
           <div class="gp-pos-num" id="goalPosNum">—</div>
-          <div class="gp-pos-lbl">positions</div>
+          <div class="gp-pos-lbl">plays</div>
         </div>
       </div>
     </div>
@@ -570,101 +574,101 @@ window.addEventListener('resize',updateStickyHeight);
 setTimeout(()=>{const s=document.getElementById('splash');if(s){s.style.opacity='0';setTimeout(()=>s.remove(),420);}},2100);
 
 // ── GOAL LOGIC
-let GOAL_AMT = 0;
+let INVEST_AMT = 0;   // total $ to invest
+let PROFIT_PCT = 0;   // target profit % (e.g. 500 = 500%)
+let GOAL_AMT = 0;     // derived: INVEST_AMT * PROFIT_PCT/100
 let SORT_MODE = 'goal';
 
-// Strategy selection based on required multiplier
+// Strategy based on required per-play return multiple
 function pickStrategyForGoal(mult, pick){
-  // mult = required return multiple on per-play amount
-  // Also consider the pick's own best strategy
-  if(mult <= 1.5) return {strat:'Bull Call Spread', strat2:'Buy ATM call · sell OTM call · defined risk', exitTarget:150, exitStop:45, ico:'📊'};
-  if(mult <= 3)   return {strat:'Diagonal Spread',  strat2:"Long LEAPS · sell monthly OTM calls · recover cost basis", exitTarget:Math.min(300,pick.exitTarget), exitStop:60, ico:'🔄'};
-  if(mult <= 7)   return {strat: pick.strat,        strat2: pick.strat2, exitTarget: pick.exitTarget, exitStop: pick.exitStop, ico:'⚡'};
-  if(mult <= 15)  return {strat:'Deep OTM LEAPS',   strat2:"Far OTM calls · Jan'27 · small size, big upside", exitTarget:Math.max(pick.exitTarget,800), exitStop:70, ico:'🚀'};
-  return              {strat:'Deep OTM LEAPS (Lottery)', strat2:"3–5% sizing only · max OTM · accept 100% loss risk", exitTarget:Math.max(pick.exitTarget,1500), exitStop:80, ico:'🎯'};
+  if(mult <= 1.5) return {strat:'Bull Call Spread',    strat2:'ATM call · sell OTM call · defined risk',               exitTarget:150,  exitStop:45, ico:'📊'};
+  if(mult <= 3)   return {strat:'Diagonal Spread',     strat2:'Long LEAPS · sell monthly OTM calls · recover cost',     exitTarget:Math.min(300,pick.exitTarget), exitStop:50, ico:'🔄'};
+  if(mult <= 7)   return {strat: pick.strat,           strat2: pick.strat2, exitTarget: pick.exitTarget, exitStop: pick.exitStop, ico:'⚡'};
+  if(mult <= 15)  return {strat:'Deep OTM LEAPS',      strat2:"Far OTM calls · Jan'27 · small size, big upside",        exitTarget:Math.max(pick.exitTarget,800), exitStop:50, ico:'🚀'};
+  return              {strat:'Deep OTM LEAPS (Lottery)',strat2:'3–5% sizing only · max OTM · accept 100% loss risk',    exitTarget:Math.max(pick.exitTarget,1500),exitStop:50, ico:'🎯'};
 }
 
 function onGoalInput(){
-  GOAL_AMT = parseFloat(document.getElementById('goalAmt').value)||0;
+  INVEST_AMT = parseFloat(document.getElementById('investAmt').value) || 0;
+  PROFIT_PCT = parseFloat(document.getElementById('profitPct').value) || 0;
+  GOAL_AMT   = INVEST_AMT * (PROFIT_PCT / 100);
   updateGoalPanel();
   renderPicks();
 }
 
 function updateGoalPanel(){
-  const explain = document.getElementById('goalExplain');
-  const stratRow = document.getElementById('goalStratRow');
-  if(!GOAL_AMT || GOAL_AMT<=0){
-    explain.innerHTML='Enter a dollar goal above — we\'ll show you exactly how many plays and which strategy to reach it.';
-    stratRow.style.display='none';
-    document.getElementById('picksHeading').textContent='AI-Recommended Plays';
+  const explain   = document.getElementById('goalExplain');
+  const stratRow  = document.getElementById('goalStratRow');
+
+  if(!INVEST_AMT || INVEST_AMT <= 0 || !PROFIT_PCT || PROFIT_PCT <= 0){
+    explain.innerHTML = 'Enter your investment amount and profit target above.';
+    stratRow.style.display = 'none';
+    document.getElementById('picksHeading').textContent = 'AI-Recommended Plays';
     return;
   }
 
-  // Back-calculate: what per-play do you need for a realistic target return?
-  // Tier the target return multiple based on strategy:
-  // ≤200% = spread/moderate, ≤600% = LEAPS, ≤1500% = deep OTM, >1500% = lottery
-  // Find the tier that makes per-play sensible relative to capital
+  const targetProfit = GOAL_AMT; // e.g. $5000 * 500% = $25,000 profit target
 
-  // Try each tier and pick the one where per-play is between 2%-25% of capital
-  const tiers = [
-    { mult: 2,    label: 'moderate',      color: 'hi-gold' },
-    { mult: 5,    label: 'LEAPS',         color: 'hi-bull' },
-    { mult: 10,   label: 'deep OTM',      color: 'hi-bear' },
-    { mult: 20,   label: 'deep OTM',      color: 'hi-bear' },
-    { mult: 40,   label: 'lottery',       color: 'hi-bear' },
-  ];
-
-  let chosenTier = tiers[tiers.length-1];
-  let per = Math.round(GOAL_AMT / chosenTier.mult);
-  for(const tier of tiers){
-    const candidate = Math.round(GOAL_AMT / tier.mult);
-    const pctOfCap = candidate / CAP;
-    if(pctOfCap <= 0.25){ // keeps per-play at most 25% of capital
-      chosenTier = tier;
-      per = candidate;
+  // ── Number of plays: based on required per-play return
+  // More plays = lower required return each = more realistic
+  // Sweet spot: 3–8 plays, prefer where required return ≤ 2000%
+  let numPlays = 5;
+  for(const n of [3,4,5,6,8]){
+    const perPlayProfit = targetProfit / n;         // profit needed per play
+    const perPlayInvest = INVEST_AMT / n;           // capital per play
+    const requiredReturn = perPlayProfit / perPlayInvest; // multiple e.g. 4 = 400%
+    if(requiredReturn <= 20){ // ≤2000% per play is moonshot-achievable
+      numPlays = n;
       break;
     }
   }
 
-  // Clamp per to reasonable bounds: min $100, max 30% of capital
-  per = Math.max(100, Math.min(per, Math.round(CAP * 0.30)));
+  const perPlayInvest  = Math.round(INVEST_AMT / numPlays);   // $ allocated per play
+  const perPlayRisk    = Math.round(perPlayInvest * 0.50);     // risk = 50% of per-play (stop loss)
+  const perPlayProfit  = Math.round(targetProfit / numPlays);  // profit needed per play
+  const requiredMult   = perPlayProfit / perPlayInvest;        // e.g. 4× = 400%
+  const requiredPct    = Math.round(requiredMult * 100);
 
-  const mult = per > 0 ? GOAL_AMT / per : 0;
-  const pct  = Math.round(mult * 100);
-
-  // Positions: spread risk — more positions for higher required multiples
-  const posCount = Math.min(8, Math.max(1, mult <= 3 ? 2 : mult <= 8 ? 3 : mult <= 20 ? 4 : 5));
-
-  // Strategy
+  // Strategy recommendation
   const dummy = PICKS[0];
-  const rec = pickStrategyForGoal(mult, dummy || {strat:'Deep OTM LEAPS',strat2:'Far OTM calls',exitTarget:800,exitStop:70});
+  const rec = pickStrategyForGoal(requiredMult, dummy || {strat:'Deep OTM LEAPS',strat2:'Far OTM calls',exitTarget:800,exitStop:50});
 
-  // Explain line
-  let explainHTML = `To make <strong>${fmtK(GOAL_AMT)}</strong>, put <strong>${fmtK(per)} per-play</strong> — needs to return `;
-  if(pct<=200)       explainHTML += `<span class="hi-gold">+${pct}%</span> — achievable with moderate strategies.`;
-  else if(pct<=600)  explainHTML += `<span class="hi-bull">+${pct}%</span> — needs LEAPS or diagonal spread.`;
-  else if(pct<=1500) explainHTML += `<span class="hi-bear">+${pct}%</span> — requires deep OTM LEAPS, high risk.`;
-  else               explainHTML += `<span class="hi-bear">+${pct}%</span> — lottery territory, size very small.`;
-  explainHTML += ` Spread across <strong>${posCount} position${posCount>1?'s':''}</strong>.`;
+  // ── Build summary — clean 3-line output
+  let explainHTML = '';
+
+  // Line 1: the deal
+  explainHTML += `<div style="margin-bottom:6px;">Invest <strong>${fmtK(INVEST_AMT)}</strong> total → target <strong style="color:var(--bull)">+${PROFIT_PCT}%</strong> = <strong>${fmtK(targetProfit)}</strong> profit</div>`;
+
+  // Line 2: per play breakdown
+  explainHTML += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:6px;">`;
+  explainHTML += `<div style="background:var(--surface);border-radius:6px;padding:6px 8px;text-align:center;"><div style="font-size:8px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;">Per Play</div><div style="font-family:var(--fd);font-size:16px;color:var(--ink)">${fmtK(perPlayInvest)}</div></div>`;
+  explainHTML += `<div style="background:#fce8e8;border-radius:6px;padding:6px 8px;text-align:center;border:1px solid var(--rbd)"><div style="font-size:8px;font-weight:800;color:var(--bear);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;">Max Risk</div><div style="font-family:var(--fd);font-size:16px;color:var(--bear)">${fmtK(perPlayRisk)}</div></div>`;
+  explainHTML += `<div style="background:var(--bullbg);border-radius:6px;padding:6px 8px;text-align:center;border:1px solid var(--gbd)"><div style="font-size:8px;font-weight:800;color:var(--bull);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;">Need/Play</div><div style="font-family:var(--fd);font-size:16px;color:var(--bull)">+${requiredPct}%</div></div>`;
+  explainHTML += `</div>`;
+
+  // Line 3: context
+  if(requiredPct <= 300)       explainHTML += `<div style="font-size:11px;color:var(--muted);">Achievable with spreads or LEAPS — realistic target.</div>`;
+  else if(requiredPct <= 1000) explainHTML += `<div style="font-size:11px;color:var(--muted);">Deep OTM LEAPS territory — high risk, high reward.</div>`;
+  else if(requiredPct <= 3000) explainHTML += `<div style="font-size:11px;color:var(--bear);">True moonshot — small size is correct, accept potential total loss.</div>`;
+  else                          explainHTML += `<div style="font-size:11px;color:var(--bear);">Lottery odds — consider reducing profit target or increasing investment.</div>`;
+
   explain.innerHTML = explainHTML;
 
   // Strategy row
-  stratRow.style.display='flex';
-  document.getElementById('goalIco').textContent=rec.ico;
-  document.getElementById('goalStratName').textContent=rec.strat;
-  document.getElementById('goalStratWhy').textContent=rec.strat2;
-  document.getElementById('goalPosNum').textContent=posCount;
-  document.getElementById('picksHeading').textContent='Best Plays for Your Goal';
+  stratRow.style.display = 'flex';
+  document.getElementById('goalIco').textContent       = rec.ico;
+  document.getElementById('goalStratName').textContent = rec.strat;
+  document.getElementById('goalStratWhy').textContent  = rec.strat2;
+  document.getElementById('goalPosNum').textContent    = numPlays;
+  document.getElementById('picksHeading').textContent  = 'Best Plays for Your Goal';
 }
 
 function getGoalPer(){
-  if(!GOAL_AMT || GOAL_AMT<=0) return Math.round(CAP*0.10);
-  const tiers=[20,10,5,2];
-  for(const m of tiers){
-    const candidate=Math.round(GOAL_AMT/m);
-    if(candidate/CAP<=0.25) return Math.max(100,Math.min(candidate,Math.round(CAP*0.30)));
-  }
-  return Math.max(100,Math.min(Math.round(GOAL_AMT/40),Math.round(CAP*0.30)));
+  // Per-play investment amount — used by card renderer for I RISK
+  if(!INVEST_AMT || INVEST_AMT <= 0) return Math.max(100, Math.round(CAP * 0.02));
+  const numPlays = parseInt(document.getElementById('goalPosNum')?.textContent) || 5;
+  const perPlay  = Math.round(INVEST_AMT / numPlays);
+  return Math.max(100, perPlay);
 }
 
 // Sort picks by goal-relevance (highest exitTarget that can hit the goal)
@@ -793,8 +797,10 @@ function makePnlChart(pick, per, overrideTarget){
 // ── Build pick card HTML
 function makePickHTML(p, idPfx, isGoalMatch){
   PICK_STORE[idPfx] = p;
-  const defaultPct = 10;
-  const per = Math.round(CAP*defaultPct/100);
+
+  // ── SIZING: per-play investment from goal panel, I RISK = 50% (stop loss)
+  const perPlayInvest = getGoalPer();
+  const per = Math.round(perPlayInvest * 0.50); // I RISK = 50% of per-play
 
   // If there's a goal, adapt the strategy shown in this card
   let displayStrat = p.strat, displayStrat2 = p.strat2, displayExitTarget = p.exitTarget, displayExitStop = p.exitStop;
@@ -832,13 +838,13 @@ function makePickHTML(p, idPfx, isGoalMatch){
       <div class="pm"><div class="pm-l">Beta</div><div class="pm-v c-r">${p.beta}</div></div>
       <div class="pm"><div class="pm-l">Entry Δ</div><div class="pm-v c-o">${p.delta ? p.delta.toFixed(2) : '—'}</div></div>
       <div class="pm"><div class="pm-l">DTE</div><div class="pm-v c-g">${p.dte ? p.dte+'d' : '—'}</div></div>
-      <div class="pm"><div class="pm-l">I risk</div><div class="pm-v c-k" id="pm_per_${idPfx}">${fmtK(per)}</div></div>
+      <div class="pm"><div class="pm-l">I Risk</div><div class="pm-v c-r" id="pm_per_${idPfx}">${fmtK(per)}</div></div>
     </div>
     <div class="pick-body">
       <div class="card-sizer">
         <div class="cs-row1">
           <span class="cs-label">Amount to put in this play</span>
-          <input type="range" class="cs-slider" min="250" max="${Math.round(CAP*0.25)}" step="250" value="${per}"
+          <input type="range" class="cs-slider" min="100" max="${Math.round(perPlayInvest*2)}" step="100" value="${perPlayInvest}"
             oninput="updateCardSizer('${idPfx}',this.value)">
         </div>
         <div class="cs-breakdown">
