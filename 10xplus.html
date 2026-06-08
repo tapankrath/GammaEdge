@@ -325,6 +325,10 @@ input[type=range].cap-slider{width:100%;accent-color:var(--bear);margin-bottom:1
 /* AI source badge */
 .ai-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:rgba(31,148,72,.12);border:1px solid rgba(31,148,72,.3);color:var(--bull);border-radius:4px;padding:2px 7px;}
 .ai-badge-stale{background:rgba(160,120,0,.1);border-color:rgba(160,120,0,.3);color:var(--gold);}
+.btn-gear{width:28px;height:28px;border-radius:7px;font-size:13px;background:#fff;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s;}
+.btn-gear:active{background:#f1f5f9;}
+.gear-dot{position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #111;display:none;}
+.gear-dot.set{display:block;}
 </style>
 </head>
 <body>
@@ -377,8 +381,8 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
 </div>
 
 <!-- NAV -->
-<div class="nav">
-  <div class="nav-left">
+<nav style="background:linear-gradient(135deg,#09101f 0%,#111 100%);padding:0 14px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.35);">
+  <div style="display:flex;align-items:center;gap:9px">
     <div class="nav-mark">
       <div class="nav-mark-rule"></div>
       <div class="nav-mark-bars">
@@ -388,21 +392,13 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
     </div>
     <div class="nav-title">10X<em>PLUS</em></div>
   </div>
-  <div class="nav-right">
-    <div class="nav-cap" id="navCap" onclick="openCapModal()">$25K ▾</div>
-    <div class="nav-count" id="navCount">8 picks</div>
-    <button onclick="openApiKeyModal()" style="position:relative;background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️<div id="gearDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 4px #22c55e;"></div></button>
+  <div style="display:flex;align-items:center;gap:5px">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:all .15s;" onmouseover="this.style.borderColor='#64748b';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='linear-gradient(135deg,#0f172a,#1e293b)'">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    </a>
+    <button class="btn-gear" onclick="openApiKeyModal()" title="API Key Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
   </div>
-</div>
-
-<!-- SUITE LINKS ROW -->
-<div style="margin:0 0 0;background:#0f172a;display:flex;align-items:stretch;justify-content:center;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.22);">
-  <a href="index.html" style="flex:1;color:#e8c840;padding:9px 2px;font-size:10px;font-weight:800;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;gap:4px;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">← GammaEdge</a>
-  <a href="portfolioedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
-  <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
-  <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
-  <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
-</div>
+</nav>
 
 <!-- TABS -->
 <div class="tabs">
@@ -503,7 +499,7 @@ const PICK_STORE = {};
 let CAP = parseInt(localStorage.getItem('cap10x')||'25000');
 function fmtK(v){const a=Math.abs(v);return(v<0?'-':'')+(a>=1000?'$'+Math.round(a/1000)+'K':'$'+a);}
 function fmtNav(v){return v>=1000?'$'+Math.round(v/1000)+'K':'$'+v;}
-function syncNavCap(){document.getElementById('navCap').textContent=fmtNav(CAP)+' ▾';}
+function syncNavCap(){const el=document.getElementById('navCap');if(el)el.textContent=fmtNav(CAP)+' ▾';}
 function openCapModal(){
   document.getElementById('capSlider').value=CAP;
   document.getElementById('capDisplay').textContent='$'+CAP.toLocaleString();
@@ -984,7 +980,7 @@ function savePlays(p){localStorage.setItem('optPlays',JSON.stringify(p));}
 
 function renderBook(){
   const plays=loadPlays();
-  document.getElementById('navCount').textContent=(8+plays.length)+' picks';
+  const nc=document.getElementById('navCount');if(nc)nc.textContent=(8+plays.length)+' picks';
   document.getElementById('sumTotal').textContent=plays.length;
   const tr=plays.reduce((a,p)=>a+(p.perPlay||2500),0);
   const tt=plays.reduce((a,p)=>a+Math.round((p.perPlay||2500)*((p.exitTarget||500)/100)),0);
@@ -1112,10 +1108,8 @@ function saveApiKey(){
 }
 function updateApiKeyIndicator(){
   const hasKey = !!getApiKey();
-  const gearBtn = document.querySelector('[title="API Key Settings"]');
-  if(gearBtn) gearBtn.style.color = hasKey ? '#4ecf84' : 'rgba(255,255,255,0.55)';
   const dot = document.getElementById('gearDot');
-  if(dot) dot.style.display = hasKey ? 'block' : 'none';
+  if(dot) dot.className = hasKey ? 'gear-dot set' : 'gear-dot';
 }
 
 // ── REFRESH PICKS via Claude AI + web search
