@@ -6,12 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="OptionsAI"/>
+<meta name="application-name" content="OptionsAI"/>
 <meta name="theme-color" content="#ffffff"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<title>OptionsAI — Earnings Plays</title>
+<title>OptionsAI</title>
 <style>
 /* ── RESET & TOKENS ── */
 :root{
@@ -44,46 +45,48 @@ html,body{scroll-padding-top:190px;}
 
 /* ── HEADER ── */
 .hdr{
-  display:flex;align-items:center;
+  display:flex;flex-direction:column;
   background:#fff;border:2px solid var(--text);
-  border-radius:14px;padding:7px 10px;
+  border-radius:14px;padding:8px 10px 7px;
   box-shadow:3px 3px 0 var(--text);gap:7px;
 }
-.logo{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:7px;}
 .logo-mark{
   width:28px;height:28px;border-radius:7px;
   background:var(--text);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
-/* SVG bar-chart logo in black box with green spark */
-.logo-name{font-size:15px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
-.logo-name em{font-style:normal;color:var(--green);}
-.mkt-pills{display:flex;gap:4px;flex:1;justify-content:center;min-width:0;overflow:hidden;}
+.logo-name{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;}
+.logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+/* market pills — full width second row */
+.mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;align-items:center;justify-content:center;gap:4px;
   background:var(--bg);border:1.5px solid var(--borderB);
-  border-radius:7px;padding:3px 4px;min-width:0;flex:1;overflow:hidden;
+  border-radius:7px;padding:5px 4px;flex:1;overflow:hidden;min-width:0;
+  white-space:nowrap;
 }
 .mkt-q.up{border-color:var(--gbd);background:var(--gbg);}
 .mkt-q.dn{border-color:var(--rbd);background:var(--rbg);}
-.mkt-sym{font-family:var(--FM);font-size:8px;font-weight:800;color:var(--sub);
-  letter-spacing:.04em;line-height:1.2;text-align:center;}
-.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);
-  display:block;text-align:center;line-height:1.3;white-space:nowrap;}
-.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;
-  display:block;text-align:center;white-space:nowrap;}
+.mkt-sym{font-family:var(--FM);font-size:9px;font-weight:900;color:var(--sub);
+  letter-spacing:.02em;white-space:nowrap;}
+.mkt-q.up .mkt-sym{color:var(--green);}
+.mkt-q.dn .mkt-sym{color:var(--red);}
+.mkt-px{font-family:var(--FM);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+.mkt-chg{font-family:var(--FM);font-size:9px;font-weight:800;white-space:nowrap;}
 .mkt-q.up .mkt-chg{color:var(--green);}
 .mkt-q.dn .mkt-chg{color:var(--red);}
-.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);text-align:center;
+.mkt-load{font-family:var(--FM);font-size:9px;color:var(--muted);
   animation:ldp 1.2s ease-in-out infinite;}
 @keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
-.hdr-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:5px;}
 .live-pill{
   display:inline-flex;align-items:center;gap:3px;
   background:var(--gbg);border:1.5px solid var(--gbd);
-  border-radius:20px;padding:3px 7px;
-  font-size:8px;font-weight:800;color:var(--green);letter-spacing:.08em;
+  border-radius:20px;padding:3px 8px;
+  font-size:9px;font-weight:800;color:var(--green);letter-spacing:.08em;
 }
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
   animation:blink 1.8s ease-in-out infinite;}
@@ -370,6 +373,21 @@ html,body{scroll-padding-top:190px;}
   white-space:nowrap;opacity:0;
   transition:opacity .2s,transform .2s;pointer-events:none;
   box-shadow:0 4px 20px rgba(0,0,0,.2);}
+
+/* ── BACK TO GAMMAEDGE ── */
+.btn-back{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;
+  border:1.5px solid #334155;border-radius:8px;padding:5px 10px;
+  font-size:11px;font-weight:800;letter-spacing:.03em;
+  text-decoration:none;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+  transition:all .15s;flex-shrink:0;
+}
+.btn-back:hover{border-color:#64748b;background:#1e293b;}
+.btn-back:active{opacity:.85;}
+.btn-back svg{width:10px;height:10px;stroke:#94a3b8;stroke-width:2.5;
+  stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -399,34 +417,39 @@ html,body{scroll-padding-top:190px;}
 
   <!-- HEADER (sticky card 1) -->
   <div class="hdr">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-          <rect x="2"  y="12" width="3" height="6" rx="1" fill="white" opacity=".5"/>
-          <rect x="7"  y="8"  width="3" height="10" rx="1" fill="white" opacity=".75"/>
-          <rect x="12" y="4"  width="3" height="14" rx="1" fill="white"/>
-          <circle cx="17" cy="3" r="2.5" fill="#22c55e"/>
-        </svg>
+    <!-- Row 1: logo + controls -->
+    <div class="hdr-top">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <rect x="2"  y="12" width="3" height="6" rx="1" fill="white" opacity=".5"/>
+            <rect x="7"  y="8"  width="3" height="10" rx="1" fill="white" opacity=".75"/>
+            <rect x="12" y="4"  width="3" height="14" rx="1" fill="white"/>
+            <circle cx="17" cy="3" r="2.5" fill="#22c55e"/>
+          </svg>
+        </div>
+        <div class="logo-name">Options<em>AI</em></div>
       </div>
-      <div class="logo-name">Options<em>AI</em></div>
+      <div class="hdr-right">
+        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
+        <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+        <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
+      </div>
     </div>
+    <!-- Row 2: market quotes full width -->
     <div class="mkt-pills">
       <div class="mkt-q" id="mq-spy">
-        <span class="mkt-sym">SPY</span>
+        <span class="mkt-sym">S&amp;P</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-qqq">
-        <span class="mkt-sym">QQQ</span>
+        <span class="mkt-sym">NAS</span>
         <span class="mkt-load">···</span>
       </div>
       <div class="mkt-q" id="mq-dia">
         <span class="mkt-sym">DOW</span>
         <span class="mkt-load">···</span>
       </div>
-    </div>
-    <div class="hdr-right">
-      <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-      <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
     </div>
   </div>
 
@@ -495,25 +518,45 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── LIVE QUOTES ──
 function fetchQuotes(){
-  // SPY and QQQ direct; DIA = Dow ETF proxy for DOW
-  var syms=[['SPY','SPY'],['QQQ','QQQ'],['DIA','DOW']];
+  var syms=[['SPY','S&P'],['QQQ','NAS'],['DIA','DOW']];
   syms.forEach(function(pair){
     var ticker=pair[0],label=pair[1];
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=2d';
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var m=JSON.parse(d.contents).chart.result[0].meta;
-        renderQ(ticker,label,m.regularMarketPrice,(m.regularMarketPrice-(m.chartPreviousClose||m.previousClose))/(m.chartPreviousClose||m.previousClose)*100);
-      }).catch(function(){
-        var fb={'SPY':[582.30,.41],'QQQ':[499.60,.63],'DIA':[432.80,.18]};
-        renderQ(ticker,label,fb[ticker][0],fb[ticker][1]);
-      });
+    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?interval=1d&range=5d';
+    var proxies=[
+      'https://corsproxy.io/?'+encodeURIComponent(url),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+    ];
+    function tryNext(i){
+      if(i>=proxies.length){
+        // No fallback with stale numbers — just show dashes
+        var el=document.getElementById(ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase());
+        if(el)el.innerHTML='<span class="mkt-sym">'+label+'</span><span class="mkt-load">—</span>';
+        return;
+      }
+      fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+        .then(function(r){if(!r.ok)throw 0;return r.json();})
+        .then(function(raw){
+          var d=typeof raw==='string'?JSON.parse(raw):raw;
+          var res=d.chart.result[0];
+          var meta=res.meta;
+          var price=meta.regularMarketPrice;
+          // Use regularMarketPreviousClose — the correct field
+          var prev=meta.regularMarketPreviousClose||meta.previousClose;
+          // If >12% change, use actual bar data (stale previousClose guard)
+          if(!prev||Math.abs((price-prev)/prev)>0.12){
+            var closes=(res.indicators.quote[0].close||[]).filter(function(c){return c!=null;});
+            if(closes.length>=2){prev=closes[closes.length-2];price=closes[closes.length-1]||price;}
+          }
+          var pct=prev?((price-prev)/prev*100):0;
+          renderQ(ticker,label,price,pct);
+        })
+        .catch(function(){tryNext(i+1);});
+    }
+    tryNext(0);
   });
 }
 function renderQ(ticker,label,price,pct){
-  // DOW uses DIA element id
-  var elId=label==='DOW'?'mq-dia':'mq-'+ticker.toLowerCase();
+  var elId=ticker==='DIA'?'mq-dia':'mq-'+ticker.toLowerCase();
   var el=document.getElementById(elId);
   if(!el)return;
   var up=pct>=0;
@@ -597,14 +640,20 @@ function runAnalysis(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var steps=['Scanning earnings calendar…','Checking macro environment…','Running IV analysis…','Building P&L scenarios…','Finalizing plays…'];
+  var steps=['Searching live earnings calendar…','Filtering out already-reported…','Checking macro environment…','Building P&L scenarios…','Finalizing plays…'];
   var si=0;st.textContent=steps[0];
   var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
 
   callClaude(apiKey,buildPrompt())
     .then(function(raw){
       clearInterval(stimer);sb.classList.remove('on');
-      var parsed=parseResp(raw);
+      var parsed;
+      try{parsed=parseResp(raw);}
+      catch(pe){
+        // Show first 120 chars of raw so user can see what Claude returned
+        var preview=raw.replace(/[\r\n]+/g,' ').trim().slice(0,120);
+        throw new Error('Parse failed — Claude returned: '+preview+'…');
+      }
       renderResults(parsed);
     })
     .catch(function(err){
@@ -627,8 +676,12 @@ function callClaude(key,prompt){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4500,
-      messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:4500,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
   }).then(function(res){
     return res.json().then(function(data){
       if(!res.ok){
@@ -637,9 +690,14 @@ function callClaude(key,prompt){
         if(res.status===429)m='Rate limit — wait and retry';
         throw new Error(m);
       }
-      for(var i=0;i<(data.content||[]).length;i++)
-        if(data.content[i].type==='text')return data.content[i].text;
-      throw new Error('Empty response');
+      // Extract text from content blocks (web_search returns mixed tool_use + text blocks)
+      var blocks=data.content||[];
+      var text='';
+      for(var i=0;i<blocks.length;i++){
+        if(blocks[i].type==='text') text+=blocks[i].text;
+      }
+      if(text) return text;
+      throw new Error('Empty response — try again');
     });
   }).catch(function(e){
     if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error');
@@ -654,23 +712,26 @@ function buildPrompt(){
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
 
-  return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n'
-    +'Return ONLY raw JSON — no markdown, no commentary.\n\n'
-    +'CRITICAL RULE: Only include companies whose earnings are scheduled STRICTLY AFTER today ('+todayFull+'). '
-    +'Any company that has already reported as of today must be EXCLUDED — their options plays are dead. '
-    +'For example: if AVGO, CRM, NVDA, COST, or any other stock already reported this week or earlier, skip them entirely. '
-    +'Double-check every ticker — only future reports qualify.\n\n'
-    +'List TOP 10 high-impact UPCOMING earnings (report date after '+todayFull+') for '+wl+'. '
-    +'Prioritize: (1) mega/large-cap, (2) high options OI/volume, (3) momentum + catalyst history. '
-    +'Recommend CALL, PUT, STRADDLE, or AVOID using: '
-    +'analyst consensus + recent price trend + '
-    +'macro (Fed stance, 10Y yield, VIX, USD, credit spreads, sector rotation). '
-    +'3 scenarios per play. All text fields max 12 words.\n\n'
+  return 'You are OptionsAI. Today is EXACTLY: '+todayFull+'.\n\n'
+    +'STEP 1 — SEARCH LIVE CALENDAR: Use web_search for "earnings calendar week of '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
+    +'from earningswhispers.com, nasdaq.com, or benzinga.com. Get the real schedule — do not use training data.\n\n'
+    +'STEP 2 — FILTER RUTHLESSLY: Keep ONLY companies reporting STRICTLY AFTER '+todayFull+'. '
+    +'Anything already reported = remove immediately. No exceptions.\n\n'
+    +'STEP 3 — PICK ONLY ACTIONABLE PLAYS: From the verified upcoming list, select between 5 and 10 stocks that have '
+    +'a CLEAR, HIGH-CONVICTION options setup (CALL or PUT or STRADDLE). '
+    +'DO NOT include AVOID signals — if a stock has no clear edge, skip it entirely and pick a better one. '
+    +'Prefer: mega/large-cap, high options OI, stocks with momentum or strong analyst consensus. '
+    +'Quality over quantity — 5 great plays beats 10 mediocre ones.\n\n'
+    +'For each play: recommend CALL, PUT, or STRADDLE (never AVOID) with HIGH or MED confidence only. '
+    +'Base on: analyst consensus, recent price trend, earnings beat history, '
+    +'macro (Fed stance, 10Y yield, VIX, sector rotation). '
+    +'3 P&L scenarios. All text max 12 words.\n\n'
+    +'Return ONLY raw JSON — no markdown, no preamble:\n'
     +'{"week":"'+wl+'",'
     +'"macroSnapshot":"<18 words: current regime>",'
     +'"plays":['
     +'{"rank":1,"ticker":"","company":"","reportDate":"","reportTime":"AMC|BMO",'
-    +'"signal":"CALL|PUT|STRADDLE|AVOID","confidence":"HIGH|MED|LOW",'
+    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
     +'"why":"<12w>","earningsNote":"<10w EPS context>",'
     +'"iv":"","ivRank":"","execPriority":1,'
     +'"scenarios":['
@@ -679,9 +740,7 @@ function buildPrompt(){
     +'{"name":"Bear","move":"","strategy":"","dte":"","maxGain":"","maxLoss":"-100%","prob":""}'
     +'],"straddleNote":"<12w>"}'
     +']} '
-    +'Fill all 10 plays with real upcoming tickers. '
-    +'Sort by execPriority: 1=best setup (HIGH conf + directional signal), 10=weakest. '
-    +'No truncation. Zero already-reported stocks.';
+    +'Every play must come from web search results. Sort by execPriority: 1=execute first.';
 }
 
 function wkEnd(n){
@@ -693,21 +752,52 @@ function wkEnd(n){
 
 // ── PARSE ──
 function parseResp(raw){
-  var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-  var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
-  if(s>-1&&e>-1)clean=clean.slice(s,e+1);
-  var parsed=JSON.parse(clean);
-  if(!parsed.plays||!parsed.plays.length)throw new Error('No plays returned — try again');
-  return parsed;
+  // Strip markdown fences
+  var clean=raw.replace(/```json[\s\S]*?```/g,function(m){return m.replace(/```json/,'').replace(/```/,'');})
+               .replace(/```/g,'').trim();
+  // Try to find JSON object with "plays" key — scan for { after any preamble text
+  var best=null;
+  var idx=0;
+  while(idx<clean.length){
+    var s=clean.indexOf('{',idx);
+    if(s===-1)break;
+    // Find matching closing brace
+    var depth=0,e=-1;
+    for(var i=s;i<clean.length;i++){
+      if(clean[i]==='{')depth++;
+      else if(clean[i]==='}'){depth--;if(depth===0){e=i;break;}}
+    }
+    if(e===-1)break;
+    var chunk=clean.slice(s,e+1);
+    try{
+      var obj=JSON.parse(chunk);
+      if(obj.plays&&Array.isArray(obj.plays)&&obj.plays.length>0){best=obj;break;}
+    }catch(err){}
+    idx=s+1;
+  }
+  if(!best)throw new Error('No plays in response — retry');
+  return best;
 }
 
 // ── RENDER ──
 function renderResults(d){
   var plays=Array.isArray(d.plays)?d.plays:[];
 
+  // Strip any AVOIDs that slipped through
+  plays = plays.filter(function(p){
+    return (p.signal||'').toLowerCase() !== 'avoid';
+  });
+
+  // Sort by execPriority (lower = execute first)
+  plays.sort(function(a,b){
+    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
+    return ap-bp;
+  });
+  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+
   var html='<div class="res-hdr sin">'
     +'<div class="res-title">Earnings Plays</div>'
-    +'<div class="res-badge">'+plays.length+' stocks</div>'
+    +'<div class="res-badge">'+plays.length+' actionable</div>'
     +'</div>';
 
   if(d.macroSnapshot){
@@ -717,13 +807,12 @@ function renderResults(d){
       +'</div>';
   }
 
-  // Sort by execPriority (lower = execute first) — AI verdict ordering
-  plays.sort(function(a,b){
-    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
-    return ap-bp;
-  });
-  // Re-number rank after sort
-  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+  if(!plays.length){
+    html+='<div class="empty"><div class="empty-ico">🔍</div>'
+      +'<div class="empty-txt">No high-conviction plays found for this week.<br/>Try Next Week.</div></div>';
+    var el=document.getElementById('results');
+    el.innerHTML=html; el.classList.add('on'); return;
+  }
 
   html+='<div class="earn-list">';
 

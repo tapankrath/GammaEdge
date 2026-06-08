@@ -157,10 +157,10 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:5px">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);color:#94a3b8;border:1.5px solid #334155;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;transition:all .15s;font-family:var(--sans)" onmouseover="this.style.background='#1e293b';this.style.color='#fff';this.style.borderColor='#64748b'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#94a3b8';this.style.borderColor='#334155'">
-      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:all .15s;font-family:var(--sans)" onmouseover="this.style.borderColor='#64748b';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='linear-gradient(135deg,#0f172a,#1e293b)'">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
     </a>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);color:#94a3b8;border:1.5px solid #334155;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s" onmouseover="this.style.background='#1e293b';this.style.color='#fff';this.style.borderColor='#64748b'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#94a3b8';this.style.borderColor='#334155'">⚙ API Key</button>
+    <button onclick="showApiKeyModal()" id="api-status-btn" style="position:relative;background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️<div id="gearDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 4px #22c55e;"></div></button>
   </div>
 </nav>
 
@@ -287,7 +287,7 @@ function setApiKey(k){localStorage.setItem('ce_api_key',k);}
 function showApiKeyModal(){var m=gid('api-modal');if(!m)return;m.style.display='flex';gid('api-key-input').value=getApiKey();}
 function closeApiModal(){setDisp('api-modal','none');}
 function saveApiKey(){var v=gid('api-key-input').value.trim();if(!v){alert('Please enter your API key');return;}setApiKey(v);closeApiModal();updateApiStatus();}
-function updateApiStatus(){var b=gid('api-status-btn');if(!b)return;var h=getApiKey().length>0;b.textContent=h?'✓ API Key':'⚙ API Key';b.style.color=h?'#22c55e':'#94a3b8';b.style.borderColor=h?'#166534':'#334155';}
+function updateApiStatus(){var d=gid('gearDot');if(!d)return;var h=getApiKey().length>0;d.style.display=h?'block':'none';}
 
 // IMAGE
 function onDrag(e,over){e.preventDefault();gid('dropZone').classList.toggle('drag',over);}

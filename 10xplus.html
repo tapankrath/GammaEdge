@@ -391,7 +391,7 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
   <div class="nav-right">
     <div class="nav-cap" id="navCap" onclick="openCapModal()">$25K ▾</div>
     <div class="nav-count" id="navCount">8 picks</div>
-    <button onclick="openApiKeyModal()" style="background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️</button>
+    <button onclick="openApiKeyModal()" style="position:relative;background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️<div id="gearDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 4px #22c55e;"></div></button>
   </div>
 </div>
 
@@ -1111,13 +1111,11 @@ function saveApiKey(){
   showToast('✓ API key saved');
 }
 function updateApiKeyIndicator(){
-  // API key status shown via gear icon in nav; indicator element removed
-  // Optionally update gear color to reflect key state
   const hasKey = !!getApiKey();
   const gearBtn = document.querySelector('[title="API Key Settings"]');
-  if(gearBtn){
-    gearBtn.style.color = hasKey ? '#4ecf84' : 'rgba(255,255,255,0.55)';
-  }
+  if(gearBtn) gearBtn.style.color = hasKey ? '#4ecf84' : 'rgba(255,255,255,0.55)';
+  const dot = document.getElementById('gearDot');
+  if(dot) dot.style.display = hasKey ? 'block' : 'none';
 }
 
 // ── REFRESH PICKS via Claude AI + web search
