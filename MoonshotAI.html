@@ -67,11 +67,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--fs);font-size:14px;
 .nav-cap{font-size:10px;font-weight:700;background:rgba(31,148,72,.2);border:1px solid rgba(31,148,72,.45);color:#4ecf84;padding:3px 9px;border-radius:20px;cursor:pointer;}
 
 /* TABS */
-.tabs{display:flex;background:#1a1a1a;border-bottom:2px solid #282828;position:sticky;top:var(--sticky-h,130px);z-index:99;}
-/* scroll-padding accounts for sticky-top + tabs (~43px) */
-html,body{scroll-padding-top:calc(var(--sticky-h,130px) + 43px);}
+.tabs{display:flex;background:#0d1b30;border:1.5px solid #1e3a5f;border-top:none;border-radius:0 0 14px 14px;margin:0 0 8px 0;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.22);}
+/* scroll-padding accounts for full sticky-top height including tabs */
+html,body{scroll-padding-top:var(--sticky-h,175px);}
 .section{display:none;padding:11px 11px calc(16px + var(--safe-b));max-width:520px;margin:0 auto;}.tab{flex:1;height:43px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;font-family:var(--fs);}
-.tab.active{color:#fff;border-bottom-color:var(--bullm);}
+.tab.active{color:#fff;border-bottom-color:#22c55e;}
 .tab-ico{font-size:14px;}
 
 /* SECTIONS */
@@ -335,8 +335,8 @@ input[type=range].cap-slider{width:100%;accent-color:var(--bear);margin-bottom:1
 .gear-dot.set{display:block;}
 
 /* ── EARNINGSAI-STYLE STICKY HEADER ── */
-.sticky-top{position:sticky;top:0;z-index:100;background:var(--bg);max-width:480px;margin:0 auto;padding:10px 12px 0;}
-.hdr{display:flex;flex-direction:column;background:linear-gradient(160deg,#09101f 0%,#0f1e35 100%);border:1.5px solid #1e3a5f;border-radius:14px;padding:8px 12px 8px;box-shadow:0 4px 20px rgba(0,0,0,.22),0 0 0 1px rgba(94,234,212,.07);gap:7px;margin-bottom:8px;}
+.sticky-top{position:sticky;top:0;z-index:100;background:var(--bg);width:100%;padding:10px 12px 10px;box-shadow:0 4px 12px rgba(0,0,0,.10);}
+.hdr{display:flex;flex-direction:column;background:linear-gradient(160deg,#09101f 0%,#0f1e35 100%);border:1.5px solid #1e3a5f;border-bottom:none;border-radius:14px 14px 0 0;padding:8px 12px 4px;box-shadow:0 0 0 1px rgba(94,234,212,.07);gap:7px;}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .logo{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .logo-mark{width:26px;height:26px;border-radius:7px;background:#1c1c1c;border:1.5px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -402,7 +402,7 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
 </div>
 
 <!-- STICKY HEADER (matches EarningsAI pattern) -->
-<div class="sticky-top">
+<div class="sticky-top"><div style="max-width:480px;margin:0 auto;">
 
   <!-- Suite nav bar -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;padding:2px 2px 0;">
@@ -435,13 +435,13 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
     </div>
   </div>
 
-</div><!-- /sticky-top -->
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('plays',this)"><span class="tab-ico">📈</span> Picks &amp; Strategy</button>
+    <button class="tab" onclick="showTab('book',this)"><span class="tab-ico">📓</span> My Playbook</button>
+  </div>
 
-<!-- TABS -->
-<div class="tabs">
-  <button class="tab active" onclick="showTab('plays',this)"><span class="tab-ico">📈</span> Picks &amp; Strategy</button>
-  <button class="tab" onclick="showTab('book',this)"><span class="tab-ico">📓</span> My Playbook</button>
-</div>
+</div></div><!-- /sticky-top -->
 
 <!-- ══ TAB 1: PICKS ══ -->
 <div class="section active" id="plays">
@@ -559,7 +559,7 @@ function updateStickyHeight(){
   if(st){
     const h=st.offsetHeight;
     document.documentElement.style.setProperty('--sticky-h',h+'px');
-    document.documentElement.style.setProperty('scroll-padding-top',(h+43)+'px');
+    document.documentElement.style.setProperty('scroll-padding-top',h+'px');
   }
 }
 // Run after layout settles
