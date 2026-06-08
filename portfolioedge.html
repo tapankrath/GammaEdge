@@ -220,6 +220,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .share-bar{display:none;background:var(--p1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap}
 .share-bar.visible{display:flex}
 .share-btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em;white-space:nowrap}
+.btn-gear{width:28px;height:28px;border-radius:7px;font-size:13px;background:#fff;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s;}
+.btn-gear:active{background:#f1f5f9;}
+.gear-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;display:none;}
+.gear-dot.set{display:block;}
 </style>
 </head>
 <body>
@@ -243,7 +247,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
     <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:all .15s;font-family:var(--sans)" onmouseover="this.style.borderColor='#64748b';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='linear-gradient(135deg,#0f172a,#1e293b)'">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
     </a>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="position:relative;background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️<div id="gearDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 4px #22c55e;"></div></button>
+    <button class="btn-gear" onclick="showApiKeyModal()" title="API Key Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
   </div>
 </nav>
 
@@ -1086,7 +1090,7 @@ function updateApiStatus(){
   var d=document.getElementById('gearDot');
   if(!d)return;
   var hasKey=getApiKey().length>0;
-  d.style.display=hasKey?'block':'none';
+  d.className=hasKey?'gear-dot set':'gear-dot';
 }
 
 function showApiKeyModal(){

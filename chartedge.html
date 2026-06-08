@@ -142,6 +142,10 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
   .cards-scroll{overflow:visible!important;height:auto!important;padding:0}
   @page{margin:15mm}
 }
+.btn-gear{width:28px;height:28px;border-radius:7px;font-size:13px;background:#fff;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s;}
+.btn-gear:active{background:#f1f5f9;}
+.gear-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;display:none;}
+.gear-dot.set{display:block;}
 </style>
 </head>
 <body>
@@ -160,7 +164,7 @@ nav{background:#0a0f1e;padding:0 14px;height:var(--nav-h);display:flex;align-ite
     <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:all .15s;font-family:var(--sans)" onmouseover="this.style.borderColor='#64748b';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='linear-gradient(135deg,#0f172a,#1e293b)'">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
     </a>
-    <button onclick="showApiKeyModal()" id="api-status-btn" style="position:relative;background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:17px;line-height:1;color:rgba(255,255,255,0.6);transition:color .15s;" title="API Key Settings" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">⚙️<div id="gearDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 4px #22c55e;"></div></button>
+    <button class="btn-gear" onclick="showApiKeyModal()" title="API Key Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
   </div>
 </nav>
 
@@ -287,7 +291,7 @@ function setApiKey(k){localStorage.setItem('ce_api_key',k);}
 function showApiKeyModal(){var m=gid('api-modal');if(!m)return;m.style.display='flex';gid('api-key-input').value=getApiKey();}
 function closeApiModal(){setDisp('api-modal','none');}
 function saveApiKey(){var v=gid('api-key-input').value.trim();if(!v){alert('Please enter your API key');return;}setApiKey(v);closeApiModal();updateApiStatus();}
-function updateApiStatus(){var d=gid('gearDot');if(!d)return;var h=getApiKey().length>0;d.style.display=h?'block':'none';}
+function updateApiStatus(){var d=gid('gearDot');if(!d)return;var h=getApiKey().length>0;d.className=h?'gear-dot set':'gear-dot';}
 
 // IMAGE
 function onDrag(e,over){e.preventDefault();gid('dropZone').classList.toggle('drag',over);}
