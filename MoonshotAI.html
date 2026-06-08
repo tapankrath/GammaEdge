@@ -346,17 +346,6 @@ input[type=range].cap-slider{width:100%;accent-color:var(--bear);margin-bottom:1
 .live-pill{display:inline-flex;align-items:center;gap:3px;background:rgba(22,163,74,.15);border:1.5px solid rgba(134,239,172,.4);border-radius:20px;padding:3px 7px;font-size:8px;font-weight:800;color:#4ade80;letter-spacing:.08em;white-space:nowrap;}
 .live-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;animation:blink 1.8s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.mkt-pills{display:flex;gap:4px;width:100%;}
-.mkt-q{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;padding:4px 4px;flex:1;overflow:hidden;gap:1px;}
-.mkt-q.up{border-color:rgba(134,239,172,.4);background:rgba(22,163,74,.12);}
-.mkt-q.dn{border-color:rgba(252,165,165,.3);background:rgba(185,28,28,.1);}
-.mkt-sym{font-family:'SF Mono','Fira Mono',monospace;font-size:9px;font-weight:900;color:rgba(255,255,255,.55);letter-spacing:.04em;white-space:nowrap;}
-.mkt-q.up .mkt-sym{color:#4ade80;}.mkt-q.dn .mkt-sym{color:#f87171;}
-.mkt-px{font-family:'SF Mono','Fira Mono',monospace;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;}
-.mkt-chg{font-family:'SF Mono','Fira Mono',monospace;font-size:9px;font-weight:800;white-space:nowrap;}
-.mkt-q.up .mkt-chg{color:#4ade80;}.mkt-q.dn .mkt-chg{color:#f87171;}
-.mkt-load{font-family:'SF Mono','Fira Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);animation:ldp 1.2s ease-in-out infinite;}
-@keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
 .btn-back{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:all .15s;flex-shrink:0;font-family:'Inter',-apple-system,sans-serif;}
 .btn-back:active{opacity:.85;}
 .btn-back svg{width:10px;height:10px;stroke:#94a3b8;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
@@ -443,12 +432,6 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
         <div class="live-pill"><div class="live-dot"></div>LIVE</div>
         <button class="btn-gear" onclick="openApiKeyModal()" title="API Key Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
       </div>
-    </div>
-    <!-- market quotes row -->
-    <div class="mkt-pills">
-      <div class="mkt-q" id="mq-spy"><span class="mkt-sym">S&amp;P 500</span><span class="mkt-load">···</span></div>
-      <div class="mkt-q" id="mq-qqq"><span class="mkt-sym">NASDAQ</span><span class="mkt-load">···</span></div>
-      <div class="mkt-q" id="mq-dia"><span class="mkt-sym">DJIA</span><span class="mkt-load">···</span></div>
     </div>
   </div>
 
@@ -549,40 +532,6 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
 // ── STORE picks by id for safe retrieval (no inline JSON in onclick)
 const PICK_STORE = {};
 
-// ── LIVE QUOTES ──
-function fetchQuotes(){
-  var syms=[['%5EGSPC','sp'],['%5EIXIC','nas'],['%5EDJI','dia']];
-  syms.forEach(function(pair){
-    var encoded=pair[0],elKey=pair[1];
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+encoded+'?interval=1d&range=2d';
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var m=JSON.parse(d.contents).chart.result[0].meta;
-        var price=m.regularMarketPrice;
-        var prev=m.chartPreviousClose||m.previousClose;
-        var pct=(price-prev)/prev*100;
-        renderQ(elKey,price,pct);
-      }).catch(function(){
-        var fb={'sp':[7383.74,-2.64],'nas':[25709.43,-4.18],'dia':[50866.78,-1.35]};
-        renderQ(elKey,fb[elKey][0],fb[elKey][1]);
-      });
-  });
-}
-function fmtPrice(p){return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function renderQ(elKey,price,pct){
-  var idMap={'sp':'mq-spy','nas':'mq-qqq','dia':'mq-dia'};
-  var lblMap={'sp':'S&P 500','nas':'NASDAQ','dia':'DJIA'};
-  var el=document.getElementById(idMap[elKey]);
-  if(!el)return;
-  var up=pct>=0;
-  el.className='mkt-q '+(up?'up':'dn');
-  el.innerHTML='<span class="mkt-sym">'+lblMap[elKey]+'</span>'
-    +'<span class="mkt-px">'+fmtPrice(price)+'</span>'
-    +'<span class="mkt-chg">'+(up?'+':'')+pct.toFixed(2)+'%</span>';
-}
-fetchQuotes();
-setInterval(fetchQuotes,60000);
 
 // ── CAPITAL
 let CAP = parseInt(localStorage.getItem('cap10x')||'25000');
