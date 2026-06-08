@@ -460,7 +460,7 @@ window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
     <div class="sort-pill active" id="sp-goal" onclick="setSort('goal')">Best for goal</div>
     <div class="sort-pill" id="sp-stars" onclick="setSort('stars')">Top rated</div>
     <div class="sort-pill" id="sp-beta" onclick="setSort('beta')">Highest beta</div>
-    <div class="sort-pill" id="sp-iv" onclick="setSort('iv')">Highest IV</div>
+    <div class="sort-pill" id="sp-dte" onclick="setSort('dte')">Longest DTE</div>
   </div>
   <div id="pickList"></div>
 
@@ -634,7 +634,7 @@ function getSortedPicks(){
     });
   } else if(SORT_MODE==='stars') arr.sort((a,b)=>b.stars-a.stars);
   else if(SORT_MODE==='beta')  arr.sort((a,b)=>b.beta-a.beta);
-  else if(SORT_MODE==='iv')    arr.sort((a,b)=>b.iv-a.iv);
+  else if(SORT_MODE==='dte')   arr.sort((a,b)=>(b.dte||0)-(a.dte||0));
   return arr;
 }
 
@@ -645,50 +645,76 @@ function setSort(mode){
   renderPicks();
 }
 
-// ── PICKS DATA
+// ── PICKS DATA  (refreshed mid-2026; all entries use delta/DTE — no hard strikes or dates)
 let PICKS=[
-  {t:'RKLB',n:'Rocket Lab USA',s:'Space',sc:'s-space',beta:2.8,iv:68,mom:85,opts:84,stars:5,color:'bull',
-   thesis:"Rides the SpaceX IPO halo and NATO defense spending surge. Every launch is a market-moving catalyst. LEAPS give explosive leverage on a full re-rating.",
-   strat:"Deep OTM LEAPS",strat2:"Jan'27 $20–25C · enter on IV crush after dip",exitStop:65,exitTarget:800,exitTime:12},
-  {t:'ASTS',n:'AST SpaceMobile',s:'Satellite',sc:'s-space',beta:3.1,iv:75,mom:82,opts:80,stars:5,color:'bull',
-   thesis:"Direct-to-cell satellite play with AT&T and Verizon partner deals. Each constellation launch is binary — calendar spreads capture the IV spike perfectly.",
-   strat:"Calendar Spread",strat2:"Buy back-month · sell front-month around each launch",exitStop:60,exitTarget:500,exitTime:9},
-  {t:'MSTR',n:'Strategy (MicroStrategy)',s:'BTC Proxy',sc:'s-btc',beta:4.2,iv:90,mom:80,opts:90,stars:5,color:'mixed',
-   thesis:"Leveraged Bitcoin proxy — moves 2–3× BTC on big days. Highest IV on this list. Sell monthly calls against LEAPS to hammer down cost basis every cycle.",
-   strat:"Diagonal Spread",strat2:"Sell weeklies vs Jan'27 LEAPS · 20–30% cost recovery/month",exitStop:70,exitTarget:600,exitTime:12},
-  {t:'IONQ',n:'IonQ Inc.',s:'Quantum',sc:'s-q',beta:3.4,iv:80,mom:78,opts:76,stars:4,color:'bull',
-   thesis:"Pure quantum computing narrative. Explodes on any tech milestone. High IV — sell calendars around earnings, buy LEAPS deep on post-announcement dips.",
-   strat:"Deep OTM LEAPS",strat2:"Jan'27 $30–40C · enter after earnings IV crush",exitStop:65,exitTarget:800,exitTime:14},
-  {t:'PLTR',n:'Palantir Technologies',s:'AI / Defense',sc:'s-ai',beta:2.1,iv:55,mom:80,opts:86,stars:4,color:'bull',
-   thesis:"AI + defense secular story with the best options chain in this group. AIP adoption accelerating. Diagonals ideal — sell theta, own long-dated upside.",
-   strat:"Diagonal Spread",strat2:"Long Jan'27 ATM call · sell monthly OTM calls",exitStop:60,exitTarget:400,exitTime:12},
-  {t:'CRDO',n:'Credo Technology',s:'Semis / AI',sc:'s-ai',beta:2.6,iv:62,mom:82,opts:74,stars:4,color:'bull',
-   thesis:"High-speed connectivity chips for AI data centers. Consistent earnings beats. Ratio backspreads work when IV is suppressed before results — enter near credit.",
-   strat:"Ratio Backspread 1×2",strat2:"Sell 1 ATM · buy 2 OTM calls · enter pre-earnings",exitStop:100,exitTarget:700,exitTime:8},
-  {t:'RXRX',n:'Recursion Pharma',s:'Bio / AI',sc:'s-bio',beta:2.9,iv:78,mom:72,opts:76,stars:4,color:'mixed',
-   thesis:"AI drug discovery bridging both hot themes. NVIDIA invested directly. Binary trial readouts — textbook long straddle or calendar if you can time the event.",
-   strat:"Long Straddle",strat2:"ATM call + put before trial readout · target IV explosion",exitStop:55,exitTarget:500,exitTime:6},
-  {t:'BBAI',n:'BigBear.ai Holdings',s:'Defense AI',sc:'s-def',beta:3.8,iv:85,mom:55,opts:60,stars:3,color:'bear',
-   thesis:"Tiny-cap defense AI. Highest beta on this list. Deep OTM LEAPS only — pure lottery ticket. Keep at 3–5% max. DoD re-rating could be a 10–50× event.",
-   strat:"Deep OTM LEAPS",strat2:"3–5% sizing only · Jan'27 far OTM calls · accept 100% loss",exitStop:80,exitTarget:1500,exitTime:18},
+  {t:'PLTR',n:'Palantir Technologies',s:'AI / Defense',sc:'s-ai',beta:2.3,iv:62,mom:91,opts:90,stars:5,color:'bull',
+   thesis:"Government AI contracts compounding — AIP is now embedded in DoD, NATO, and allied ops. S&P 500 inclusion locked in sticky institutional flows. The narrative has legs for 18+ months.",
+   strat:"Diagonal Spread",
+   strat2:"Buy 18-mo LEAPS at ~0.60Δ · sell nearest 30-DTE call at ~0.25Δ monthly · collect 5–10% cost basis/cycle",
+   delta:0.60,dte:540,exitStop:55,exitTarget:500,exitTime:14},
+  {t:'RKLB',n:'Rocket Lab USA',s:'Space',sc:'s-space',beta:2.9,iv:72,mom:88,opts:82,stars:5,color:'bull',
+   thesis:"Neutron rocket first launch window approaching — each milestone is a binary re-rating. Defense satellite contracts accelerating post-Ukraine. Best pure-play small-launch exposure.",
+   strat:"Deep OTM LEAPS",
+   strat2:"Buy 12-mo calls at ~0.25–0.30Δ (1.5–2× OTM) · size 5% of capital · add on IV crush after dips",
+   delta:0.27,dte:365,exitStop:65,exitTarget:900,exitTime:12},
+  {t:'MSTR',n:'Strategy (MicroStrategy)',s:'BTC Proxy',sc:'s-btc',beta:4.5,iv:95,mom:84,opts:88,stars:5,color:'mixed',
+   thesis:"Levered BTC proxy moves 2–4× Bitcoin on large days. Highest IV on the list — ideal for selling premium. Perpetual BTC buying program creates a reflexive bid.",
+   strat:"Diagonal Spread",
+   strat2:"Buy 12-mo call at ~0.55Δ · sell weekly/bi-weekly call at ~0.20Δ · target 20–30% cost recovery/month",
+   delta:0.55,dte:365,exitStop:70,exitTarget:600,exitTime:12},
+  {t:'IONQ',n:'IonQ Inc.',s:'Quantum',sc:'s-q',beta:3.5,iv:82,mom:80,opts:74,stars:4,color:'bull',
+   thesis:"Quantum computing narrative with real hardware milestones — algorithmic qubits roadmap on track. Any government contract or partnership announcement is a 30–50% day. Pure LEAPS play.",
+   strat:"Deep OTM LEAPS",
+   strat2:"Buy 15-mo calls at ~0.20–0.25Δ · enter after earnings IV crush · hold through hardware milestones",
+   delta:0.22,dte:450,exitStop:65,exitTarget:1000,exitTime:14},
+  {t:'ASTS',n:'AST SpaceMobile',s:'Satellite',sc:'s-space',beta:3.2,iv:78,mom:82,opts:78,stars:4,color:'bull',
+   thesis:"Direct-to-cell satellite with live AT&T and Verizon commercial agreements. Each BlueBird launch batch is a binary event. IV spikes before launches — calendar spreads are the cleanest edge.",
+   strat:"Calendar Spread",
+   strat2:"Sell 30-DTE call at ~0.35Δ · buy 60-DTE same strike · roll front month after each launch event",
+   delta:0.35,dte:60,exitStop:60,exitTarget:600,exitTime:9},
+  {t:'CRDO',n:'Credo Technology',s:'Semis / AI',sc:'s-ai',beta:2.7,iv:65,mom:85,opts:72,stars:4,color:'bull',
+   thesis:"High-speed SerDes chips are the hidden bottleneck in AI datacenter scaling. CRDO consistently beats estimates as hyperscaler capex surges. Low IV pre-earnings sets up ratio backspreads near credit.",
+   strat:"Ratio Backspread 1×2",
+   strat2:"Sell 1 ATM call (0.50Δ) · buy 2 calls at ~0.30Δ · enter 2–3 weeks pre-earnings when IV is flat",
+   delta:0.30,dte:45,exitStop:100,exitTarget:700,exitTime:8},
+  {t:'HOOD',n:'Robinhood Markets',s:'Crypto / Fintech',sc:'s-btc',beta:3.0,iv:70,mom:78,opts:68,stars:4,color:'bull',
+   thesis:"Crypto trading volume correlation is near-perfect. Crypto bull cycle plus new prediction markets and options products creates a revenue flywheel. Clean directional LEAPS exposure.",
+   strat:"Deep OTM LEAPS",
+   strat2:"Buy 12-mo calls at ~0.25–0.30Δ · enter on market pullbacks · hold through crypto cycle",
+   delta:0.28,dte:365,exitStop:65,exitTarget:700,exitTime:12},
+  {t:'BBAI',n:'BigBear.ai Holdings',s:'Defense AI',sc:'s-def',beta:4.0,iv:88,mom:58,opts:58,stars:3,color:'bear',
+   thesis:"Tiny-cap defense AI contractor. DoD AI re-rating could be a 10–50× event — but this is a pure lottery ticket. Size at 3–5% max. Highest beta on the list.",
+   strat:"Deep OTM LEAPS",
+   strat2:"Buy 18-mo calls at ~0.15Δ (deep OTM) · 3–5% sizing only · accept 100% loss as the plan",
+   delta:0.15,dte:540,exitStop:80,exitTarget:1500,exitTime:18},
 ];
 
 const KNOWN={
-  NVDA:{name:'NVIDIA Corp',beta:1.9,iv:55,mom:88,opts:95,verdict:'caution',
-    thesis:'Momentum priced in. Most liquid options on earth. Bull call spreads beat deep OTM LEAPS at this valuation.',
-    strat:'Bull Call Spread',strat2:'Buy ATM · sell OTM · defined risk play',exitStop:50,exitTarget:200,exitTime:6},
-  TSLA:{name:'Tesla Inc',beta:2.3,iv:70,mom:72,opts:88,verdict:'caution',
-    thesis:'High beta and liquid options but narrative crowded from both sides. Best around product events.',
-    strat:'Calendar Spread',strat2:'Around earnings or product event · sell front-month IV spike',exitStop:60,exitTarget:250,exitTime:4},
-  COIN:{name:'Coinbase Global',beta:3.4,iv:75,mom:78,opts:82,verdict:'go',
-    thesis:'Excellent crypto cycle proxy. Liquid chain. Sell monthly OTM calls against LEAPS to recover cost basis.',
-    strat:'Diagonal Spread',strat2:"Long Jan'27 LEAPS · sell monthly OTM calls",exitStop:65,exitTarget:500,exitTime:12},
-  HOOD:{name:'Robinhood Markets',beta:2.8,iv:68,mom:74,opts:70,verdict:'go',
-    thesis:'Crypto + retail brokerage momentum. Benefits from any risk-on surge. Clean directional LEAPS exposure.',
-    strat:'Deep OTM LEAPS',strat2:"Jan'27 OTM calls · enter on market pullback",exitStop:65,exitTarget:600,exitTime:12},
-  AMD:{name:'Advanced Micro Devices',beta:1.8,iv:52,mom:65,opts:85,verdict:'caution',
-    thesis:'Solid semis but lower beta than ideal. Diagonal spreads with AI cycle conviction are the play.',
-    strat:'Diagonal Spread',strat2:'Long Jan LEAPS · sell monthly calls',exitStop:55,exitTarget:300,exitTime:10},
+  NVDA:{name:'NVIDIA Corp',beta:2.0,iv:52,mom:90,opts:96,verdict:'caution',
+    thesis:'Priced for perfection at this valuation — deep OTM calls rarely pay. Spreads or diagonals are the only sensible structure. Best-in-class options chain.',
+    strat:'Bull Call Spread',
+    strat2:'Buy 0.50Δ call · sell 0.25Δ call same expiry · 60–90 DTE · defined risk, defined reward',
+    delta:0.50,dte:75,exitStop:50,exitTarget:200,exitTime:6},
+  TSLA:{name:'Tesla Inc',beta:2.4,iv:72,mom:74,opts:88,verdict:'caution',
+    thesis:'High beta, liquid chain, but narrative crowded from both sides. Earnings and product events are the only clean catalysts. Calendars around known events.',
+    strat:'Calendar Spread',
+    strat2:'Sell 30-DTE call at ~0.35Δ · buy 60-DTE same strike · enter 2 weeks before catalyst',
+    delta:0.35,dte:60,exitStop:60,exitTarget:300,exitTime:4},
+  COIN:{name:'Coinbase Global',beta:3.5,iv:78,mom:80,opts:84,verdict:'go',
+    thesis:'Best crypto cycle proxy with a deeply liquid options chain. BTC ETF flows create a sustained bid. Sell monthly OTM calls against LEAPS to recover cost basis.',
+    strat:'Diagonal Spread',
+    strat2:'Buy 12-mo call at ~0.55Δ · sell 30-DTE call at ~0.25Δ monthly · target 8–12% cost recovery/cycle',
+    delta:0.55,dte:365,exitStop:65,exitTarget:600,exitTime:12},
+  AMD:{name:'Advanced Micro Devices',beta:1.9,iv:54,mom:68,opts:86,verdict:'caution',
+    thesis:'Solid AI semis story but lower beta than ideal for 10× plays. Diagonals with AI cycle conviction work; deep OTM rarely pays at this size.',
+    strat:'Diagonal Spread',
+    strat2:'Buy 12-mo call at ~0.55Δ · sell monthly call at ~0.25Δ · roll on IV spikes',
+    delta:0.55,dte:365,exitStop:55,exitTarget:300,exitTime:10},
+  RXRX:{name:'Recursion Pharma',beta:3.0,iv:80,mom:70,opts:74,verdict:'go',
+    thesis:'AI drug discovery bridging two hot themes — NVIDIA direct investment validates the thesis. Binary trial readouts are IV explosions waiting to happen.',
+    strat:'Long Straddle',
+    strat2:'Buy ATM call + ATM put at ~0.50Δ each · enter 2 weeks before trial readout · sell into IV spike',
+    delta:0.50,dte:45,exitStop:55,exitTarget:500,exitTime:6},
 };
 
 // ── P&L SVG chart
@@ -757,8 +783,8 @@ function makePickHTML(p, idPfx, isGoalMatch){
     </div>
     <div class="pick-mets">
       <div class="pm"><div class="pm-l">Beta</div><div class="pm-v c-r">${p.beta}</div></div>
-      <div class="pm"><div class="pm-l">IV Rank</div><div class="pm-v c-o">${p.iv}%</div></div>
-      <div class="pm"><div class="pm-l">Momentum</div><div class="pm-v c-g">${p.mom}</div></div>
+      <div class="pm"><div class="pm-l">Entry Δ</div><div class="pm-v c-o">${p.delta ? p.delta.toFixed(2) : '—'}</div></div>
+      <div class="pm"><div class="pm-l">DTE</div><div class="pm-v c-g">${p.dte ? p.dte+'d' : '—'}</div></div>
       <div class="pm"><div class="pm-l">I risk</div><div class="pm-v c-k" id="pm_per_${idPfx}">${fmtK(per)}</div></div>
     </div>
     <div class="pick-body">
@@ -935,14 +961,15 @@ async function analyzeCustom(){
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',credentials:'omit',mode:'cors',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:700,
-        messages:[{role:'user',content:`Analyze "${raw}" for a 10x speculative options strategy. Return ONLY valid JSON, no markdown:
-{"name":"company name","beta":number,"iv":0_to_100,"mom":0_to_100,"opts":0_to_100,"verdict":"go"|"caution"|"pass","thesis":"2 sentence options thesis","strat":"strategy name","strat2":"entry detail · when to enter","exitStop":40_to_85,"exitTarget":200_to_2000,"exitTime":3_to_18}`}]
+        messages:[{role:'user',content:`Analyze "${raw}" for a 10x speculative options strategy. Use delta and DTE only — no specific strike prices or calendar year labels. Return ONLY valid JSON, no markdown:
+{"name":"company name","beta":number,"iv":0_to_100,"mom":0_to_100,"opts":0_to_100,"delta":0.10_to_0.65,"dte":30_to_720,"verdict":"go"|"caution"|"pass","thesis":"2 sentence options thesis with catalyst","strat":"strategy name","strat2":"entry using Δ and DTE only, e.g. Buy 12-mo calls at ~0.25Δ","exitStop":40_to_85,"exitTarget":200_to_2000,"exitTime":3_to_18}`}]
       })
     });
     const d=await r.json();
     const txt=d.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(txt);
     const p={...parsed,t:raw,s:'Custom',sc:'s-cus',
+      delta:parsed.delta||0.25, dte:parsed.dte||365,
       stars:parsed.verdict==='go'?4:3,
       color:parsed.verdict==='go'?'bull':parsed.verdict==='pass'?'bear':'mixed'};
     res.innerHTML=makePickHTML(p,'c0',false);
@@ -1094,7 +1121,7 @@ function updateApiKeyIndicator(){
 }
 
 // ── REFRESH PICKS via Claude AI + web search
-const PICKS_CACHE_KEY = 'picks10x_v2';
+const PICKS_CACHE_KEY = 'picks10x_v3';
 
 function loadPicksCache(){
   try{
@@ -1110,7 +1137,12 @@ function savePicksCache(picks, ts){
 
 function applyPicksData(picks, ts){
   PICKS.length=0;
-  picks.forEach(p=>PICKS.push(p));
+  picks.forEach(p=>{
+    // Normalize: ensure delta and dte are always present
+    if(!p.delta || p.delta <= 0) p.delta = 0.25;
+    if(!p.dte   || p.dte   <= 0) p.dte   = 365;
+    PICKS.push(p);
+  });
   renderPicks();
   // Update timestamp UI
   const d=new Date(ts);
@@ -1146,14 +1178,17 @@ async function refreshPicks(){
   setRefreshState(true);
   showToast('Fetching AI picks…');
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const prompt=`Today is ${today}. You are a speculative options strategist. Identify the top 8 momentum stocks right now suitable for high-risk options plays targeting 8-10x returns (deep OTM LEAPS, diagonals, ratio backspreads). Focus on high beta, elevated IV, strong recent momentum, clear near-term catalysts. Sectors: AI, defense, space, biotech, crypto proxies, emerging tech.
+  const prompt=`Today is ${today}. You are a speculative options strategist. Identify the top 8 momentum stocks right now suitable for high-risk options plays targeting 8-10x returns (deep OTM LEAPS, diagonals, ratio backspreads, calendars). Focus on high beta, strong recent momentum, clear near-term catalysts. Sectors: AI, defense, space, biotech, crypto proxies, emerging tech.
+
+CRITICAL: All strategy entries must use delta and DTE (days-to-expiration) — NEVER mention specific strike prices or calendar year expirations (e.g. no "$25C", no "Jan'27"). Instead write entries like "Buy 12-mo call at ~0.25Δ" or "Sell 30-DTE call at ~0.35Δ". This keeps the advice timeless regardless of current stock price.
 
 Return EXACTLY this JSON array and nothing else — no markdown fences, no explanation, no preamble:
-[{"t":"TICKER","n":"Company Name","s":"Sector","sc":"s-ai","beta":2.5,"iv":65,"mom":78,"opts":82,"stars":4,"color":"bull","thesis":"Two sentence thesis with specific catalyst.","strat":"Deep OTM LEAPS","strat2":"Entry detail here","exitStop":50,"exitTarget":800,"exitTime":9},...]
+[{"t":"TICKER","n":"Company Name","s":"Sector","sc":"s-ai","beta":2.5,"iv":65,"mom":78,"opts":82,"delta":0.25,"dte":365,"stars":4,"color":"bull","thesis":"Two sentence thesis with specific catalyst.","strat":"Deep OTM LEAPS","strat2":"Buy 12-mo calls at ~0.25Δ · enter on IV crush after dip · hold through catalyst","exitStop":50,"exitTarget":800,"exitTime":9},...]
 
 sc must be one of: s-space s-ai s-bio s-def s-btc s-q s-cus
 color must be one of: bull bear mixed
-stars: 3-5, beta: 1.5-5.0, iv/mom/opts: 0-100, exitStop: 40-85, exitTarget: 200-2000, exitTime: 3-18`;
+stars: 3-5, beta: 1.5-5.0, iv/mom/opts: 0-100, delta: 0.10-0.65, dte: 30-720, exitStop: 40-85, exitTarget: 200-2000, exitTime: 3-18
+strat2 must describe entry using Δ (delta) and DTE only — no dollar strikes, no calendar year labels`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',credentials:'omit',mode:'cors',
@@ -1179,8 +1214,8 @@ stars: 3-5, beta: 1.5-5.0, iv/mom/opts: 0-100, exitStop: 40-85, exitTarget: 200-
     if(!match) throw new Error('No JSON array found — got: '+cleaned.slice(0,120));
     const picks=JSON.parse(match[0]);
     if(!Array.isArray(picks)||picks.length<4) throw new Error('Too few picks: '+picks.length);
-    const required=['t','n','s','sc','beta','iv','mom','stars','color','thesis','strat','strat2','exitStop','exitTarget','exitTime'];
-    const valid=picks.filter(p=>required.every(k=>p[k]!==undefined));
+    const required=['t','n','s','sc','beta','stars','color','thesis','strat','strat2','exitStop','exitTarget','exitTime'];
+    const valid=picks.filter(p=>required.every(k=>p[k]!==undefined)).map(p=>({...p, delta:p.delta||0.25, dte:p.dte||365}));
     if(valid.length<4) throw new Error('Too few valid picks: '+valid.length);
     const ts=Date.now();
     savePicksCache(valid,ts);
