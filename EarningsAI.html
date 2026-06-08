@@ -63,7 +63,6 @@ html,body{scroll-padding-top:190px;}
 .logo-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.4px;line-height:1;white-space:nowrap;}
 .logo-name em{font-style:normal;background:linear-gradient(135deg,#0a7060,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 /* market pills — full width second row */
-.mkt-pills{display:flex;gap:4px;width:100%;}
 .mkt-q{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
@@ -448,21 +447,6 @@ html,body{scroll-padding-top:190px;}
         <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
       </div>
     </div>
-    <!-- Row 2: market quotes full width -->
-    <div class="mkt-pills">
-      <div class="mkt-q" id="mq-spy">
-        <span class="mkt-sym">S&amp;P 500</span>
-        <span class="mkt-load">···</span>
-      </div>
-      <div class="mkt-q" id="mq-qqq">
-        <span class="mkt-sym">NASDAQ</span>
-        <span class="mkt-load">···</span>
-      </div>
-      <div class="mkt-q" id="mq-dia">
-        <span class="mkt-sym">DJIA</span>
-        <span class="mkt-load">···</span>
-      </div>
-    </div>
   </div>
 
   <!-- NO KEY -->
@@ -527,49 +511,8 @@ if(!Array.isArray(analysisLog))analysisLog=[];
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',function(){
   updateGear(); checkKey();
-  fetchQuotes(); setInterval(fetchQuotes,60000);
 });
 
-// ── LIVE QUOTES ──
-function fetchQuotes(){
-  // Fetch actual index tickers: ^GSPC=S&P500, ^IXIC=NASDAQ, ^DJI=DJIA
-  var syms=[['%5EGSPC','sp'],['%5EIXIC','nas'],['%5EDJI','dia']];
-  syms.forEach(function(pair){
-    var encoded=pair[0],elKey=pair[1];
-    var ticker=decodeURIComponent(encoded);
-    var url='https://query1.finance.yahoo.com/v8/finance/chart/'+encoded+'?interval=1d&range=2d';
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var m=JSON.parse(d.contents).chart.result[0].meta;
-        var price=m.regularMarketPrice;
-        var prev=m.chartPreviousClose||m.previousClose;
-        var pct=(price-prev)/prev*100;
-        renderQ(elKey,price,pct);
-      }).catch(function(){
-        // Fallback to approximate real index values
-        var fb={'sp':[7383.74,-2.64],'nas':[25709.43,-4.18],'dia':[50866.78,-1.35]};
-        renderQ(elKey,fb[elKey][0],fb[elKey][1]);
-      });
-  });
-}
-function fmtPrice(p){
-  // Format with commas, 2 decimals
-  return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function renderQ(elKey,price,pct){
-  var idMap={'sp':'mq-spy','nas':'mq-qqq','dia':'mq-dia'};
-  var lblMap={'sp':'S&P 500','nas':'NASDAQ','dia':'DJIA'};
-  var el=document.getElementById(idMap[elKey]);
-  if(!el)return;
-  var up=pct>=0;
-  el.className='mkt-q '+(up?'up':'dn');
-  el.innerHTML='<span class="mkt-sym">'+lblMap[elKey]+'</span>'
-    +'<div class="mkt-row2">'
-    +'<span class="mkt-px">'+fmtPrice(price)+'</span>'
-    +'<span class="mkt-chg">'+(up?'+':'')+pct.toFixed(2)+'%</span>'
-    +'</div>';
-}
 
 // ── SETTINGS ──
 function openSettings(){
