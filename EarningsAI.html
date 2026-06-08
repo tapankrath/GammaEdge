@@ -351,6 +351,9 @@ html,body{scroll-padding-top:190px;}
 .empty-ico{font-size:52px;opacity:.2;line-height:1;}
 .empty-txt{font-size:14px;color:var(--sub);line-height:1.7;font-weight:600;}
 
+/* ── SECTION DIVIDERS ── */
+.section-header{animation:slideIn .28s cubic-bezier(.4,0,.2,1) both;}
+
 /* ── DISC ── */
 .disc{background:var(--rbg);border:1.5px solid var(--rbd);border-radius:8px;
   padding:10px 12px;margin-top:10px;font-size:11px;color:var(--red);
@@ -485,7 +488,7 @@ html,body{scroll-padding-top:190px;}
   <!-- RUN -->
   <button class="btn-run" id="runBtn" onclick="runAnalysis()">
     <div class="btn-spin"></div>
-    <span id="runTxt">⚡ Get Top 10 Earnings Plays</span>
+    <span id="runTxt">⚡ Get Top 5 + 5 Plays</span>
   </button>
 
   <!-- STATUS -->
@@ -504,8 +507,10 @@ html,body{scroll-padding-top:190px;}
   <div class="empty" id="emptyState">
     <div class="empty-ico">🎯</div>
     <div class="empty-txt">
-      Select a week and tap<br/><strong>Get Top 10 Earnings Plays</strong><br/>
-      Each row collapses — tap to expand<br/>for strategy + full P&amp;L scenarios.
+      Select a week and tap<br/><strong>Get Top 5 + 5 Plays</strong><br/>
+      <strong>Section 1:</strong> Top 5 HIGH quality earnings plays<br/>
+      <strong>Section 2:</strong> Top 5 sympathy movers<br/>
+      Tap any row to expand strategy + P&amp;L
     </div>
   </div>
 
@@ -640,7 +645,7 @@ function runAnalysis(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var steps=['Searching live earnings calendar…','Filtering out already-reported…','Checking macro environment…','Building P&L scenarios…','Finalizing plays…'];
+  var steps=['Searching live earnings calendar…','Verifying each stock individually…','Cross-checking report dates vs today…','Filtering out already-reported…','Building plays + sympathy movers…'];
   var si=0;st.textContent=steps[0];
   var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
 
@@ -657,7 +662,7 @@ function runAnalysis(){
     })
     .finally(function(){
       btn.disabled=false;btn.classList.remove('loading');
-      lbl.textContent='⚡ Get Top 10 Earnings Plays';
+      lbl.textContent='⚡ Get Top 5 + 5 Plays';
     });
 }
 
@@ -735,49 +740,74 @@ function callClaude(key,prompt){
 function buildPrompt(){
   var today=new Date();
   var todayFull=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var todayISO=today.toISOString().slice(0,10);
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
+  var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
 
-  return 'You are EarningsAI. Today is EXACTLY: '+todayFull+'.\n\n'
-    +'STEP 1 — SEARCH LIVE CALENDAR: Use web_search for "earnings calendar week of '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'" '
-    +'from earningswhispers.com, nasdaq.com, or benzinga.com. Get the real schedule — do not use training data.\n\n'
-    +'STEP 2 — FILTER RUTHLESSLY: Keep ONLY companies reporting STRICTLY AFTER '+todayFull+'. '
-    +'Anything already reported = remove immediately. No exceptions.\n\n'
-    +'STEP 3 — PICK ONLY ACTIONABLE PLAYS: From the verified upcoming list, select between 5 and 10 stocks that have '
-    +'a CLEAR, HIGH-CONVICTION options setup (CALL or PUT or STRADDLE). '
-    +'DO NOT include AVOID signals — if a stock has no clear edge, skip it entirely and pick a better one. '
-    +'Prefer: mega/large-cap, high options OI, stocks with momentum or strong analyst consensus. '
-    +'Quality over quantity — 5 great plays beats 10 mediocre ones.\n\n'
-    +'For each play: recommend CALL, PUT, or STRADDLE (never AVOID) with HIGH or MED confidence only. '
-    +'Base on: analyst consensus, recent price trend, earnings beat history, '
-    +'macro (Fed stance, 10Y yield, VIX, sector rotation). '
-    +'3 P&L scenarios. All text max 12 words.\n\n'
-    +'CRITICAL for DTE field: Use the EXACT number of calendar days from today ('+todayFull+') to the suggested expiry Friday. '
-    +'For example if today is Jun 6 and expiry is Jun 13 → dte="7". If expiry is Jun 20 → dte="14". '
-    +'Never write a month name — always a plain integer like "3", "7", "14", "21".\n\n'
-    +'CRITICAL for strategy field: NEVER use dollar strike prices (e.g. no "$145C" or "$280P"). '
-    +'Instead describe strikes as ATM (at-the-money) or OTM (e.g. "1-strike OTM Call", "2-strike OTM Put", "ATM Bull Call Spread"). '
-    +'For each scenario also populate the delta field: approximate option delta (e.g. "Δ0.50" for ATM call, "Δ0.40" for slight OTM, "Δ-0.50" for ATM put, "Δ0.45/Δ0.30" for spreads).\n\n'
-    +'CRITICAL for exitAt field: Give a specific profit-take trigger — e.g. "+80% on premium" or "+150% if gap >5%" or "50% of max profit". '
-    +'This is NOT the max theoretical gain — it is the REALISTIC early exit target the trader should actually take. '
-    +'Consider: pre-earnings IV crush, gap-and-run risk, theta decay. Be specific and actionable.\n\n'
-    +'CRITICAL OUTPUT RULE: Your entire response must be ONLY a valid JSON object. No words before it, no words after it, no markdown fences, no "Based on", no explanations. Begin your response with { and end with }.\n'
+  return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+').\n\n'
+
+    +'STEP 1 — SEARCH THE LIVE EARNINGS CALENDAR:\n'
+    +'Search: "earnings calendar week of '+targetFri+'" using earningswhispers.com, nasdaq.com, benzinga.com, or stockanalysis.com.\n'
+    +'Extract every company with a confirmed report date during the week ending '+targetFri+'.\n'
+    +'DO NOT use training data for any earnings date — live search only.\n\n'
+
+    +'STEP 2 — VERIFY EACH CANDIDATE INDIVIDUALLY (mandatory — no exceptions):\n'
+    +'For EVERY stock on your candidate list, do a second targeted search: "[TICKER] earnings date 2026" or "[TICKER] next earnings report".\n'
+    +'Confirm the exact upcoming report date from search results.\n'
+    +'DISCARD a stock immediately if any of these are true:\n'
+    +'  • Its report date is on or before '+todayISO+'\n'
+    +'  • Search results mention it already reported this quarter (phrases like "reported earnings", "beat estimates", "EPS of $X", dated before today)\n'
+    +'  • Its report date falls outside the target week\n'
+    +'  • Fiscal year mismatch: companies with non-calendar fiscal years (e.g. fiscal Q ends Jan/Apr/Jul/Oct) may label a report "Q1" but have already released it — always check the actual calendar date, not the quarter label\n'
+    +'Only stocks with a CONFIRMED FUTURE date strictly after '+todayISO+' in the target week may proceed.\n\n'
+
+    +'STEP 3 — SECTION 1: Top 5 HIGH-Quality Earnings Plays:\n'
+    +'From your verified list only, pick the 5 best with a clear options setup (CALL / PUT / STRADDLE).\n'
+    +'Quality = High: strong analyst consensus, high options OI, clear directional catalyst, macro aligned.\n'
+    +'If fewer than 5 stocks pass verification, return only those that do — do not pad with unverified names.\n\n'
+
+    +'STEP 4 — SECTION 2: Top 5 Sympathy Movers:\n'
+    +'For the top 3 Section 1 plays, find 1-2 same-sector/supply-chain peers NOT reporting that week.\n'
+    +'Pick the 5 most compelling total. These move on read-across, not their own earnings.\n\n'
+
+    +'RULES:\n'
+    +'• Signals: CALL / PUT / STRADDLE only — never AVOID\n'
+    +'• DTE: exact integer days from '+todayISO+' to expiry Friday (e.g. 7, 14, 21) — no month names\n'
+    +'• Strategy: no dollar strikes — ATM/OTM descriptions only (e.g. "ATM Call", "1-strike OTM Put")\n'
+    +'• Delta: include per scenario (e.g. Δ0.50, Δ-0.40)\n'
+    +'• Exit: realistic take-profit trigger accounting for IV crush and theta\n\n'
+
+    +'CRITICAL OUTPUT: ONLY a raw JSON object — no markdown, no preamble, no explanation. Start with { and end with }.\n'
     +'{"week":"'+wl+'",'
     +'"macroSnapshot":"<18 words: current regime>",'
+    +'"section1":{'
+    +'"label":"Top 5 Earnings Plays — HIGH Quality",'
     +'"plays":['
-    +'{"rank":1,"ticker":"","company":"","reportDate":"","reportTime":"AMC|BMO",'
+    +'{"rank":1,"ticker":"","company":"","reportDate":"YYYY-MM-DD","reportTime":"AMC|BMO",'
+    +'"quality":"High",'
     +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
     +'"why":"<12w>","earningsNote":"<10w EPS context>",'
     +'"iv":"","ivRank":"","execPriority":1,'
     +'"scenarios":['
-    +'{"name":"Bull","move":"","strategy":"<e.g. ATM Call or 1-strike OTM Call>","delta":"<e.g. Δ0.50 or Δ0.40>","dte":"<integer days e.g. 7>","exitAt":"<e.g. +100% or 50% of max>","maxLoss":"-100%","prob":""},'
-    +'{"name":"Base","move":"","strategy":"<e.g. ATM Bull Call Spread or OTM Call Spread>","delta":"<e.g. Δ0.45/Δ0.30>","dte":"<integer days e.g. 14>","exitAt":"<e.g. +60% at open>","maxLoss":"-100%","prob":""},'
-    +'{"name":"Bear","move":"","strategy":"<e.g. ATM Put or 1-strike OTM Put>","delta":"<e.g. Δ-0.50 or Δ-0.40>","dte":"<integer days e.g. 7>","exitAt":"<e.g. +80% post-earnings>","maxLoss":"-100%","prob":""}'
+    +'{"name":"Bull","move":"","strategy":"<e.g. ATM Call>","delta":"<e.g. Δ0.50>","dte":"<integer>","exitAt":"<e.g. +100%>","maxLoss":"-100%","prob":""},'
+    +'{"name":"Base","move":"","strategy":"<e.g. ATM Bull Call Spread>","delta":"<e.g. Δ0.45/Δ0.30>","dte":"<integer>","exitAt":"<e.g. +60% at open>","maxLoss":"-100%","prob":""},'
+    +'{"name":"Bear","move":"","strategy":"<e.g. ATM Put>","delta":"<e.g. Δ-0.50>","dte":"<integer>","exitAt":"<e.g. +80% post-earnings>","maxLoss":"-100%","prob":""}'
     +'],"straddleNote":"<12w>"}'
-    +']} '
-    +'Every play must come from web search results. Sort by execPriority: 1=execute first.';
-}
-
+    +']},'
+    +'"section2":{'
+    +'"label":"Top 5 Related Stocks — Sympathy Movers",'
+    +'"plays":['
+    +'{"rank":1,"ticker":"","company":"","relatedTo":"<ticker>","relationship":"<12w why it moves>",'
+    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
+    +'"why":"<12w catalyst>","catalystTiming":"<e.g. post-earnings read-across>",'
+    +'"iv":"","ivRank":"","execPriority":1,'
+    +'"scenarios":['
+    +'{"name":"Base","move":"","strategy":"<e.g. ATM Call>","delta":"<e.g. Δ0.50>","dte":"<integer>","exitAt":"<e.g. +60%>","maxLoss":"-100%","prob":""}'
+    +']}'
+    +']}'
+    +'} '
+    +'Every Section 1 play must have individually passed Step 2 verification. No unverified stocks allowed.';}
 function wkEnd(n){
   var d=new Date(),day=d.getDay();
   var toFri=(5-day+7)%7||(day===5?7:0);
@@ -808,30 +838,30 @@ function parseResp(raw){
   try{ parsed=JSON.parse(jsonStr); }
   catch(e){ throw new Error('JSON parse failed: '+e.message.slice(0,60)); }
 
-  if(!parsed.plays||!parsed.plays.length) throw new Error('No plays returned — try again');
+  // Support both old format (plays) and new format (section1/section2)
+  if(!parsed.section1&&!parsed.plays) throw new Error('No plays returned — try again');
   return parsed;
 }
 
 // ── RENDER ──
 function renderResults(d){
-  var plays=Array.isArray(d.plays)?d.plays:[];
+  // Support both old (d.plays) and new (d.section1/section2) format
+  var s1plays = d.section1 && d.section1.plays ? d.section1.plays : (d.plays||[]);
+  var s2plays = d.section2 && d.section2.plays ? d.section2.plays : [];
+  var s1label = (d.section1&&d.section1.label)||'Top 5 Earnings Plays — HIGH Quality';
+  var s2label = (d.section2&&d.section2.label)||'Top 5 Related Stocks — Sympathy Movers';
 
-  // Strip any AVOIDs that slipped through
-  plays = plays.filter(function(p){
-    return (p.signal||'').toLowerCase() !== 'avoid';
-  });
+  // Strip AVOIDs
+  s1plays = s1plays.filter(function(p){return (p.signal||'').toLowerCase()!=='avoid';});
+  s2plays = s2plays.filter(function(p){return (p.signal||'').toLowerCase()!=='avoid';});
 
-  // Sort by execPriority (lower = execute first)
-  plays.sort(function(a,b){
-    var ap=a.execPriority||a.rank||99, bp=b.execPriority||b.rank||99;
-    return ap-bp;
-  });
-  for(var r=0;r<plays.length;r++) plays[r]._displayRank=r+1;
+  // Sort by execPriority
+  s1plays.sort(function(a,b){return (a.execPriority||a.rank||99)-(b.execPriority||b.rank||99);});
+  s2plays.sort(function(a,b){return (a.execPriority||a.rank||99)-(b.execPriority||b.rank||99);});
+  for(var r=0;r<s1plays.length;r++) s1plays[r]._displayRank=r+1;
+  for(var r=0;r<s2plays.length;r++) s2plays[r]._displayRank=r+1;
 
-  var html='<div class="res-hdr sin">'
-    +'<div class="res-title">Earnings Plays</div>'
-    +'<div class="res-badge">'+plays.length+' actionable</div>'
-    +'</div>';
+  var html='';
 
   if(d.macroSnapshot){
     html+='<div class="macro-strip sin">'
@@ -840,102 +870,48 @@ function renderResults(d){
       +'</div>';
   }
 
-  if(!plays.length){
-    html+='<div class="empty"><div class="empty-ico">🔍</div>'
-      +'<div class="empty-txt">No high-conviction plays found for this week.<br/>Try Next Week.</div></div>';
-    var el=document.getElementById('results');
-    el.innerHTML=html; el.classList.add('on'); return;
-  }
-
-  html+='<div class="earn-list">';
-
-  for(var i=0;i<plays.length;i++){
-    var p=plays[i];
-    var sig=(p.signal||'').toLowerCase();
-    var sigCls=sig==='call'?'call':sig==='put'?'put':sig==='straddle'||sig==='strangle'?'straddle':'avoid';
-    var sigTxt=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':sig==='strangle'?'◇ STRANGLE':'— AVOID';
-    var sigBig=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':sig==='strangle'?'◇ STRANGLE':'— AVOID';
-    var isTop=i<3;
-    var dispRank=p._displayRank||p.rank||i+1;
-    var rtCls=(p.reportTime||'').toUpperCase()==='BMO'?'bmo':'amc';
-    var rtTxt=(p.reportTime||'').toUpperCase()==='BMO'?'BMO':'AMC';
-    var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
-
-    // P&L rows
-    var scens=Array.isArray(p.scenarios)?p.scenarios:[];
-    var plRows='';
-    for(var j=0;j<scens.length;j++){
-      var sc=scens[j];
-      var md=(sc.move||'').charAt(0)==='-'?'dn':(sc.move||'').charAt(0)==='+'?'up':'fl';
-      var bestRow=(sig==='call'&&j===0)||(sig==='put'&&j===2)||(sigCls==='straddle'&&j===0);
-      var bearBest=sig==='put'&&j===2;
-      // Parse DTE — accept "7", "7d", "14 days", "Jun 21" etc → extract integer
-      var dteRaw=sc.dte||sc.expiry||'';
-      var dteNum=parseInt(dteRaw.replace(/[^0-9]/g,''))||'?';
-      var dteDisplay=dteNum==='?'?dteRaw:(dteNum+'d');
-      // exitAt — use maxGain as the profit target trigger, or generate from maxGain %
-      var exitAt=sc.exitAt||sc.maxGain||'';
-      var exitColor=(exitAt&&exitAt.charAt(0)==='+')?' style="color:var(--green);font-weight:900"':' style="color:var(--sub);font-weight:700"';
-      plRows+='<div class="pl-row'+(bestRow?' best-row'+(bearBest?' bear-best':''):'')+'">'
-        +'<div class="pc-sc"><span class="pc-scname">'+esc(sc.name||'')+'</span>'
-          +'<span class="pc-move '+md+'">'+esc(sc.move||'')+'</span></div>'
-        +'<div class="pc-cell"><span class="pc-strat">'+esc(sc.strategy||'')+'</span>'+(sc.delta?'<span class="pc-sub" style="font-family:var(--FM);color:var(--text);font-weight:800;letter-spacing:.02em">'+esc(sc.delta)+'</span>':'')+'</div>'
-        +'<div class="pc-cell"><span class="pc-val sub" style="font-size:13px;font-weight:900;color:var(--text)">'+esc(dteDisplay)+'</span>'
-          +'<span class="pc-sub">to expiry</span></div>'
-        +'<div class="pc-cell"><span class="pc-val pos"'+exitColor+'>'+esc(exitAt||'—')+'</span>'
-          +'<span class="pc-sub">exit target</span></div>'
-        +'<div class="pc-cell"><span class="pc-val sub">'+esc(sc.prob||'—')+'</span>'
-          +'<span class="pc-sub">prob</span></div>'
-        +'</div>';
-    }
-
-    html+='<div class="earn-row sin" onclick="toggleRow(this)">'
-      // collapsed header
-      +'<div class="er-head">'
-        +'<div class="er-rank'+(isTop?' top':'')+'">'+dispRank+'</div>'
-        +'<div class="er-ticker">'+esc(p.ticker||'')+'</div>'
-        +'<div class="er-company">'+esc(p.company||'')+'</div>'
-        +'<div class="er-meta">'
-          +'<span class="er-date">'+esc(p.reportDate||'')+'</span>'
-          +'<span class="er-when '+rtCls+'">'+rtTxt+'</span>'
-          +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
-        +'</div>'
-        +'<div class="er-chev">'
-          +'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l4 4 4-4"/></svg>'
-        +'</div>'
-      +'</div>'
-      // expanded body
-      +'<div class="er-body">'
-        +'<div class="er-verdict '+sigCls+'">'
-          +'<div class="er-sig-big '+sigCls+'">'+sigBig+'</div>'
-          +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
-            +'<div class="er-conf">'+esc(p.confidence||'')+'</div>'
-            +(p.execPriority?'<div style="font-size:9px;font-weight:800;color:var(--sub);font-family:var(--FM);letter-spacing:.06em;">#'+p.execPriority+' PRIORITY</div>':'')
-          +'</div>'
-        +'</div>'
-        +(p.why?'<div class="er-why">'+esc(p.why)+'</div>':'')
-        +(p.earningsNote?'<div class="er-earn">📅 '+esc(p.earningsNote)+'</div>':'')
-        +'<div class="iv-row">'
-          +'<span class="iv-lbl">IV '+esc(p.iv||'—')+'</span>'
-          +'<div class="iv-track"><div class="iv-fill" style="width:'+Math.min(ivNum,100)+'%"></div></div>'
-          +'<span class="iv-rank">'+esc(p.ivRank||'')+'</span>'
-        +'</div>'
-        +'<div class="pl-wrap">'
-          +'<div class="pl-hdr">'
-            +'<div class="phd">Scenario</div>'
-            +'<div class="phd">Strategy</div>'
-            +'<div class="phd">Exp<br><span style="font-size:7px;opacity:.7;font-weight:600">days</span></div>'
-            +'<div class="phd">Exit At<br><span style="font-size:7px;opacity:.7;font-weight:600">take profit</span></div>'
-            +'<div class="phd">Prob</div>'
-          +'</div>'
-          +plRows
-          +(p.straddleNote?'<div class="pl-note">💡 '+esc(p.straddleNote)+'</div>':'')
-        +'</div>'
-      +'</div>'
+  // ── SECTION 1 ──
+  html+='<div class="section-header sin" style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;">'
+    +'<div style="display:flex;align-items:center;gap:7px;">'
+    +'<div style="width:4px;height:22px;background:#16a34a;border-radius:2px;flex-shrink:0;"></div>'
+    +'<div>'
+    +'<div style="font-size:13px;font-weight:900;color:var(--text);letter-spacing:-.3px;">'+esc(s1label)+'</div>'
+    +'<div style="font-size:10px;font-weight:700;color:var(--sub);margin-top:1px;">Verified upcoming earnings · Options setups</div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="background:var(--text);color:#fff;font-family:var(--FM);font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px;letter-spacing:.04em;">'+s1plays.length+' plays</div>'
     +'</div>';
+
+  if(!s1plays.length){
+    html+='<div class="empty"><div class="empty-ico">🔍</div><div class="empty-txt">No high-conviction plays found.<br/>Try Next Week.</div></div>';
+  } else {
+    html+='<div class="earn-list">';
+    for(var i=0;i<s1plays.length;i++){
+      html+=renderPlayRow(s1plays[i], i, true);
+    }
+    html+='</div>';
   }
 
-  html+='</div>'; // earn-list
+  // ── SECTION 2 ──
+  if(s2plays.length){
+    html+='<div class="section-header sin" style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px;">'
+      +'<div style="display:flex;align-items:center;gap:7px;">'
+      +'<div style="width:4px;height:22px;background:#0891b2;border-radius:2px;flex-shrink:0;"></div>'
+      +'<div>'
+      +'<div style="font-size:13px;font-weight:900;color:var(--text);letter-spacing:-.3px;">'+esc(s2label)+'</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--sub);margin-top:1px;">Sector read-across · May move without reporting</div>'
+      +'</div>'
+      +'</div>'
+      +'<div style="background:#0891b2;color:#fff;font-family:var(--FM);font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px;letter-spacing:.04em;">'+s2plays.length+' plays</div>'
+      +'</div>';
+    html+='<div class="earn-list">';
+    for(var i=0;i<s2plays.length;i++){
+      html+=renderSymRow(s2plays[i], i);
+    }
+    html+='</div>';
+  }
+
+  html+='<div class="disc sin">⚠️ Not financial advice. Options involve significant risk of loss. Always do your own due diligence.</div>';
 
   var el=document.getElementById('results');
   el.innerHTML=html;
@@ -943,6 +919,144 @@ function renderResults(d){
   setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'});},60);
 }
 
+function renderPlayRow(p, i, showQuality){
+  var sig=(p.signal||'').toLowerCase();
+  var sigCls=sig==='call'?'call':sig==='put'?'put':sig==='straddle'||sig==='strangle'?'straddle':'avoid';
+  var sigTxt=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':sig==='strangle'?'◇ STRANGLE':'— AVOID';
+  var sigBig=sigTxt;
+  var isTop=i<3;
+  var dispRank=p._displayRank||p.rank||i+1;
+  var rtCls=(p.reportTime||'').toUpperCase()==='BMO'?'bmo':'amc';
+  var rtTxt=(p.reportTime||'').toUpperCase()==='BMO'?'BMO':'AMC';
+  var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
+  var scens=Array.isArray(p.scenarios)?p.scenarios:[];
+  var plRows='';
+  for(var j=0;j<scens.length;j++){
+    var sc=scens[j];
+    var md=(sc.move||'').charAt(0)==='-'?'dn':(sc.move||'').charAt(0)==='+'?'up':'fl';
+    var bestRow=(sig==='call'&&j===0)||(sig==='put'&&j===2)||(sigCls==='straddle'&&j===0);
+    var bearBest=sig==='put'&&j===2;
+    var dteRaw=sc.dte||sc.expiry||'';
+    var dteNum=parseInt(dteRaw.replace(/[^0-9]/g,''))||'?';
+    var dteDisplay=dteNum==='?'?dteRaw:(dteNum+'d');
+    var exitAt=sc.exitAt||sc.maxGain||'';
+    var exitColor=(exitAt&&exitAt.charAt(0)==='+')?' style="color:var(--green);font-weight:900"':' style="color:var(--sub);font-weight:700"';
+    plRows+='<div class="pl-row'+(bestRow?' best-row'+(bearBest?' bear-best':''):'')+'">'
+      +'<div class="pc-sc"><span class="pc-scname">'+esc(sc.name||'')+'</span>'
+        +'<span class="pc-move '+md+'">'+esc(sc.move||'')+'</span></div>'
+      +'<div class="pc-cell"><span class="pc-strat">'+esc(sc.strategy||'')+'</span>'+(sc.delta?'<span class="pc-sub" style="font-family:var(--FM);color:var(--text);font-weight:800;letter-spacing:.02em">'+esc(sc.delta)+'</span>':'')+'</div>'
+      +'<div class="pc-cell"><span class="pc-val sub" style="font-size:13px;font-weight:900;color:var(--text)">'+esc(dteDisplay)+'</span>'
+        +'<span class="pc-sub">to expiry</span></div>'
+      +'<div class="pc-cell"><span class="pc-val pos"'+exitColor+'>'+esc(exitAt||'—')+'</span>'
+        +'<span class="pc-sub">exit target</span></div>'
+      +'<div class="pc-cell"><span class="pc-val sub">'+esc(sc.prob||'—')+'</span>'
+        +'<span class="pc-sub">prob</span></div>'
+      +'</div>';
+  }
+  // Quality badge
+  var qBadge='';
+  if(showQuality&&p.quality){
+    var qColor=p.quality==='High'?'background:#dcfce7;color:#15803d;border:1.5px solid #86efac;'
+      :'background:#fef9c3;color:#854d0e;border:1.5px solid #fde047;';
+    qBadge='<span style="font-family:var(--FM);font-size:9px;font-weight:900;padding:2px 7px;border-radius:4px;'+qColor+'letter-spacing:.04em;">'+esc(p.quality)+'</span>';
+  }
+  return '<div class="earn-row sin" onclick="toggleRow(this)">'
+    +'<div class="er-head">'
+      +'<div class="er-rank'+(isTop?' top':'')+'">'+dispRank+'</div>'
+      +'<div class="er-ticker">'+esc(p.ticker||'')+'</div>'
+      +'<div class="er-company">'+esc(p.company||'')+'</div>'
+      +'<div class="er-meta">'
+        +qBadge
+        +'<span class="er-date">'+esc(p.reportDate||'')+'</span>'
+        +'<span class="er-when '+rtCls+'">'+rtTxt+'</span>'
+        +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
+      +'</div>'
+      +'<div class="er-chev"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l4 4 4-4"/></svg></div>'
+    +'</div>'
+    +'<div class="er-body">'
+      +'<div class="er-verdict '+sigCls+'">'
+        +'<div class="er-sig-big '+sigCls+'">'+sigBig+'</div>'
+        +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+          +'<div class="er-conf">'+esc(p.confidence||'')+'</div>'
+          +(p.execPriority?'<div style="font-size:9px;font-weight:800;color:var(--sub);font-family:var(--FM);letter-spacing:.06em;">#'+p.execPriority+' PRIORITY</div>':'')
+        +'</div>'
+      +'</div>'
+      +(p.why?'<div class="er-why">'+esc(p.why)+'</div>':'')
+      +(p.earningsNote?'<div class="er-earn">📅 '+esc(p.earningsNote)+'</div>':'')
+      +'<div class="iv-row">'
+        +'<span class="iv-lbl">IV '+esc(p.iv||'—')+'</span>'
+        +'<div class="iv-track"><div class="iv-fill" style="width:'+Math.min(ivNum,100)+'%"></div></div>'
+        +'<span class="iv-rank">'+esc(p.ivRank||'')+'</span>'
+      +'</div>'
+      +'<div class="pl-wrap">'
+        +'<div class="pl-hdr">'
+          +'<div class="phd">Scenario</div>'
+          +'<div class="phd">Strategy</div>'
+          +'<div class="phd">Exp<br><span style="font-size:7px;opacity:.7;font-weight:600">days</span></div>'
+          +'<div class="phd">Exit At<br><span style="font-size:7px;opacity:.7;font-weight:600">take profit</span></div>'
+          +'<div class="phd">Prob</div>'
+        +'</div>'
+        +plRows
+        +(p.straddleNote?'<div class="pl-note">💡 '+esc(p.straddleNote)+'</div>':'')
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
+function renderSymRow(p, i){
+  var sig=(p.signal||'').toLowerCase();
+  var sigCls=sig==='call'?'call':sig==='put'?'put':sig==='straddle'?'straddle':'avoid';
+  var sigTxt=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':'— AVOID';
+  var dispRank=p._displayRank||p.rank||i+1;
+  var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
+  var scens=Array.isArray(p.scenarios)?p.scenarios:[];
+  var sc=scens[0]||{};
+  var dteRaw=sc.dte||'';
+  var dteNum=parseInt(dteRaw.replace(/[^0-9]/g,''))||'?';
+  var dteDisplay=dteNum==='?'?dteRaw:(dteNum+'d');
+  var exitAt=sc.exitAt||'';
+  return '<div class="earn-row sin" onclick="toggleRow(this)">'
+    +'<div class="er-head">'
+      +'<div class="er-rank">'+dispRank+'</div>'
+      +'<div class="er-ticker" style="color:#0891b2">'+esc(p.ticker||'')+'</div>'
+      +'<div class="er-company">'+esc(p.company||'')+'</div>'
+      +'<div class="er-meta">'
+        +(p.relatedTo?'<span style="font-family:var(--FM);font-size:9px;font-weight:800;background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">↔ '+esc(p.relatedTo)+'</span>':'')
+        +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
+      +'</div>'
+      +'<div class="er-chev"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l4 4 4-4"/></svg></div>'
+    +'</div>'
+    +'<div class="er-body">'
+      +'<div class="er-verdict '+sigCls+'">'
+        +'<div class="er-sig-big '+sigCls+'">'+sigTxt+'</div>'
+        +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+          +'<div class="er-conf">'+esc(p.confidence||'')+'</div>'
+        +'</div>'
+      +'</div>'
+      +(p.relationship?'<div style="background:#e0f2fe;border:1.5px solid #bae6fd;border-radius:7px;padding:8px 10px;margin-bottom:9px;font-size:12px;font-weight:700;color:#0369a1;line-height:1.45;">🔗 Related to '+esc(p.relatedTo||'')+': '+esc(p.relationship)+'</div>':'')
+      +(p.why?'<div class="er-why">'+esc(p.why)+'</div>':'')
+      +(p.catalystTiming?'<div class="er-earn">⏱ '+esc(p.catalystTiming)+'</div>':'')
+      +'<div class="iv-row">'
+        +'<span class="iv-lbl">IV '+esc(p.iv||'—')+'</span>'
+        +'<div class="iv-track"><div class="iv-fill" style="width:'+Math.min(ivNum,100)+'%;background:#0891b2;"></div></div>'
+        +'<span class="iv-rank" style="color:#0891b2;">'+esc(p.ivRank||'')+'</span>'
+      +'</div>'
+      +(scens.length?'<div class="pl-wrap">'
+        +'<div class="pl-hdr"><div class="phd">Scenario</div><div class="phd">Strategy</div>'
+        +'<div class="phd">Exp<br><span style="font-size:7px;opacity:.7;font-weight:600">days</span></div>'
+        +'<div class="phd">Exit At</div><div class="phd">Prob</div></div>'
+        +'<div class="pl-row best-row">'
+          +'<div class="pc-sc"><span class="pc-scname">'+esc(sc.name||'Base')+'</span>'
+            +'<span class="pc-move up">'+esc(sc.move||'')+'</span></div>'
+          +'<div class="pc-cell"><span class="pc-strat">'+esc(sc.strategy||'')+'</span>'+(sc.delta?'<span class="pc-sub" style="font-family:var(--FM);font-weight:800;">'+esc(sc.delta)+'</span>':'')+'</div>'
+          +'<div class="pc-cell"><span class="pc-val sub" style="font-size:13px;font-weight:900;color:var(--text)">'+esc(dteDisplay)+'</span><span class="pc-sub">to expiry</span></div>'
+          +'<div class="pc-cell"><span class="pc-val pos" style="color:var(--green);font-weight:900;">'+esc(exitAt||'—')+'</span><span class="pc-sub">exit target</span></div>'
+          +'<div class="pc-cell"><span class="pc-val sub">'+esc(sc.prob||'—')+'</span><span class="pc-sub">prob</span></div>'
+        +'</div>'
+        +'</div>':'')
+    +'</div>'
+  +'</div>';
+}
 function esc(s){
   return String(s).replace(/[&<>"]/g,function(c){
     return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
