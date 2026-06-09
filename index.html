@@ -1458,9 +1458,11 @@ var PROXY_URL=''; // set this after Cloudflare Worker setup
 
 function fetchP(sym){
   var k=sym.toLowerCase();
-  // Use range=5d to get actual recent bars — previousClose from meta is unreliable
-  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
-  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d';
+  // interval=1m&range=1d → intraday bars; meta.regularMarketPrice = live last trade
+  // Cache-bust timestamp so proxies never serve a stale response
+  var ts=Date.now();
+  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1m&range=1d&_='+ts;
+  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1m&range=1d&_='+ts;
   var proxies=[
     'https://corsproxy.io/?'+encodeURIComponent(url1),
     'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
@@ -1475,18 +1477,15 @@ function fetchP(sym){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
         var res=d.chart.result[0];
         var meta=res.meta;
+        // regularMarketPrice = live last trade (real-time during market hours)
         var p=meta.regularMarketPrice;
-        // Best source: regularMarketPreviousClose (today's official prev close)
-        // Fallback: second-to-last close from actual bars
+        // regularMarketPreviousClose = official prior-session close
         var pc=meta.regularMarketPreviousClose||meta.previousClose;
-        if(!pc||isNaN(pc)||(p&&pc&&Math.abs((p-pc)/pc)>0.15)){
-          // >15% suspicious — use actual bar data instead
+        if(!p||isNaN(p)){
+          // Fallback: last non-null bar close from intraday data
           var closes=(res.indicators&&res.indicators.quote&&res.indicators.quote[0].close)||[];
           closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
-          if(closes.length>=2){
-            pc=closes[closes.length-2]; // yesterday's actual close
-            p=closes[closes.length-1];  // latest bar close
-          }
+          if(closes.length)p=closes[closes.length-1];
         }
         applyPrice(sym,p,pc);
       })
@@ -1581,18 +1580,37 @@ function updateMktNow(bull,bear){
   }
 }
 function fetchDIA(){
-  // DIA tracks the Dow Jones Industrial Average
-  var url=PROXY_URL
-    ?PROXY_URL+'?symbol=DIA'
-    :'https://finnhub.io/api/v1/quote?symbol=DIA&token='+FK;
-  fetch(url)
-    .then(function(r){return r.json();})
-    .then(function(d){
-      var p=d.c,ch=p-d.pc,pct=ch/d.pc*100;
-      if(isNaN(pct)||!isFinite(pct))return;
-      LIVE_CHG['dow']=pct;
-      updateMktNow();
-    }).catch(function(){});
+  // Use Yahoo Finance for DIA (consistent with fetchP, cache-busted)
+  var ts=Date.now();
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/DIA?interval=1m&range=1d&_='+ts;
+  var proxies=[
+    'https://corsproxy.io/?'+encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+  ];
+  function tryProxy(i){
+    if(i>=proxies.length){
+      // Final fallback: Finnhub
+      var furl=PROXY_URL?PROXY_URL+'?symbol=DIA':'https://finnhub.io/api/v1/quote?symbol=DIA&token='+FK;
+      fetch(furl).then(function(r){return r.json();}).then(function(d){
+        var p=d.c,ch=p-d.pc,pct=ch/d.pc*100;
+        if(!isNaN(pct)&&isFinite(pct)){LIVE_CHG['dow']=pct;updateMktNow();}
+      }).catch(function(){});
+      return;
+    }
+    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var meta=d.chart.result[0].meta;
+        var p=meta.regularMarketPrice,pc=meta.regularMarketPreviousClose||meta.previousClose;
+        if(!p||isNaN(p)||!pc||isNaN(pc))throw 0;
+        var pct=(p-pc)/pc*100;
+        LIVE_CHG['dow']=pct;
+        updateMktNow();
+      })
+      .catch(function(){tryProxy(i+1);});
+  }
+  tryProxy(0);
 }
 function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();}
 
