@@ -3913,13 +3913,80 @@ function renderBtSummary(){
       +'style="width:100%;background:'+btnBg+';color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">'
       +'<span style="font-size:15px">\u2192</span> '+(isViable?'Send to Planner':'Send to Planner (size small)')+'</button>';
   } else {
-    html+='<div style="background:rgba(220,38,38,.1);border:1px solid #7f1d1d;border-radius:8px;padding:10px;text-align:center;font-size:12px;font-weight:800;color:#f87171">';
-    html+='\u26d4 No actionable setup — wait for a better market window';
+    // Pull the directional signal for this ticker from the signal tab
+    var sigRec=G4_LAST_SIGNAL[T5]||quickSignal(btTicker);
+    var sigAction=sigRec?sigRec.action:'';
+    var hasDirectional=sigAction&&sigAction!=='NO TRADE'&&sigAction.indexOf('STRADDLE')===-1;
+    var isCallSig=sigAction&&sigAction.indexOf('CALL')>-1;
+    var isPutSig=sigAction&&sigAction.indexOf('PUT')>-1;
+    var sigConf=sigRec?sigRec.conf:'';
+    var sigDetail=sigRec?sigRec.detail:'';
+
+    html+='<div style="background:rgba(220,38,38,.1);border:1px solid #7f1d1d;border-radius:8px;padding:10px 12px;margin-bottom:8px">';
+    html+='<div style="font-size:11px;font-weight:900;color:#f87171;margin-bottom:4px">\u26d4 Straddles not viable — all combos negative</div>';
+    html+='<div style="font-size:10px;color:#fca5a5;font-weight:600;line-height:1.5">Realized moves have been smaller than IV priced in. Buying vol on '+btTicker+' has not paid off over any tested window.</div>';
     html+='</div>';
+
+    if(hasDirectional&&sigRec){
+      var dColor=isCallSig?'#4ade80':'#f87171';
+      var dBg=isCallSig?'rgba(22,163,74,.12)':'rgba(220,38,38,.12)';
+      var dBorder=isCallSig?'#16a34a':'#dc2626';
+      var dIcon=isCallSig?'\u2191':'\u2193';
+      var dType=isCallSig?'call':'put';
+      html+='<div style="background:'+dBg+';border:2px solid '+dBorder+';border-radius:10px;padding:12px 14px">';
+      html+='<div style="font-size:9px;font-weight:900;color:'+dColor+';text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">\u26a1 Signal tab says: try directional instead</div>';
+      // Signal summary
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">';
+      html+='<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px">';
+      html+='<div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Signal</div>';
+      html+='<div style="font-size:16px;font-weight:900;color:'+dColor+'">'+dIcon+' '+sigAction+'</div>';
+      html+='<div style="font-size:9px;color:#94a3b8;font-weight:600;margin-top:2px">'+sigConf+' confidence</div>';
+      html+='</div>';
+      html+='<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px">';
+      html+='<div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Indicators</div>';
+      html+='<div style="font-size:10px;color:#e2e8f0;font-weight:700;line-height:1.6">'+sigDetail+'</div>';
+      html+='</div>';
+      html+='</div>';
+      // Why directional beats straddle here
+      html+='<div style="font-size:10px;color:#cbd5e1;font-weight:600;line-height:1.6;margin-bottom:10px">';
+      html+='A directional <b style="color:'+dColor+'">'+(dType.toUpperCase())+'</b> only needs the move in one direction — you\'re not paying for both sides. ';
+      html+='With straddles losing money, the market is overpricing vol. A single-leg '+dType+' is cheaper and aligned with your signal.';
+      html+='</div>';
+      // CTA button → Signal tab
+      html+='<button onclick="btGoToSignal(\''+T5+'\')" '
+        +'style="width:100%;background:'+dBorder+';color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        +'<span style="font-size:15px">'+dIcon+'</span> Go to Signal tab — '+btTicker+' '+sigAction+'</button>';
+      html+='</div>';
+    } else {
+      html+='<div style="background:rgba(30,41,59,.6);border:1px solid #334155;border-radius:8px;padding:10px;text-align:center;font-size:11px;font-weight:700;color:#64748b">';
+      html+='No directional signal either — best to stay flat on '+btTicker+' for now.';
+      html+='</div>';
+    }
   }
   html+='</div>';
 
   body.innerHTML=html;
+}
+
+/* ── BACKTEST → SIGNAL TAB BRIDGE ── */
+function btGoToSignal(tk){
+  showTab(1);
+  setTimeout(function(){
+    if(tk&&tk!==T4){
+      setT4(tk);
+    }
+    // Scroll to top of signal pane
+    var pane=$('pane4');
+    if(pane)pane.scrollIntoView({behavior:'smooth',block:'start'});
+    // Flash the main signal card so user knows what to look at
+    var card=$('g-main-card');
+    if(card){
+      var orig=card.style.outline||'';
+      card.style.outline='3px solid #3b82f6';
+      card.style.transition='outline .3s';
+      setTimeout(function(){card.style.outline=orig;},1800);
+    }
+  },150);
 }
 
 /* ── BACKTEST → PLANNER BRIDGE ── */
