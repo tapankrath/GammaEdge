@@ -1267,7 +1267,7 @@ var PM_KEY='gammaedge_portfolio';
 var PM_HIST_KEY='gammaedge_history';
 var LIVE={spy:0,qqq:0},LIVE_CHG={};
 var T1='qqq',T2='qqq',T3='qqq',T4='qqq',SDIR='up',OTM=2,SEL=0;
-var DEFS={spy:{spot:588,cost:8,iv:17},qqq:{spot:705,cost:12,iv:20}};
+var DEFS={spy:{spot:737,cost:8,iv:17},qqq:{spot:530,cost:12,iv:20}};
 var DTES=[2,5,8,10,14,21,30];
 var SCENS=[{k:'drift',lo:.2,mid:.35,hi:.5},{k:'momentum',lo:.5,mid:.75,hi:1},{k:'explosive',lo:1,mid:1.5,hi:2}];
 
@@ -1459,16 +1459,19 @@ var PROXY_URL=''; // set this after Cloudflare Worker setup
 
 function fetchP(sym){
   var k=sym.toLowerCase();
-  // interval=1m&range=1d → intraday bars; meta.regularMarketPrice = live last trade
-  // Cache-bust timestamp so proxies never serve a stale response
   var ts=Date.now();
-  var url1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1m&range=1d&_='+ts;
-  var url2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1m&range=1d&_='+ts;
+  // v7/quote endpoint returns unambiguous regularMarketPrice (no split-adjustment issues)
+  var quoteUrl='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+sym+'&_='+ts;
+  var quoteUrl2='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+sym+'&_='+ts;
+  // Fallback: chart endpoint
+  var chartUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d&_='+ts;
   var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(url1),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url1),
-    'https://corsproxy.io/?'+encodeURIComponent(url2),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url2)
+    'https://corsproxy.io/?'+encodeURIComponent(quoteUrl),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(quoteUrl),
+    'https://corsproxy.io/?'+encodeURIComponent(quoteUrl2),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(quoteUrl2),
+    'https://corsproxy.io/?'+encodeURIComponent(chartUrl),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(chartUrl)
   ];
   function tryProxy(i){
     if(i>=proxies.length){tryClaudePrice(sym);return;}
@@ -1476,18 +1479,20 @@ function fetchP(sym){
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
-        var res=d.chart.result[0];
-        var meta=res.meta;
-        // regularMarketPrice = live last trade (real-time during market hours)
-        var p=meta.regularMarketPrice;
-        // regularMarketPreviousClose = official prior-session close
-        var pc=meta.regularMarketPreviousClose||meta.previousClose;
-        if(!p||isNaN(p)){
-          // Fallback: last non-null bar close from intraday data
-          var closes=(res.indicators&&res.indicators.quote&&res.indicators.quote[0].close)||[];
-          closes=closes.filter(function(c){return c!=null&&!isNaN(c);});
-          if(closes.length)p=closes[closes.length-1];
+        var p,pc;
+        // v7/quote response
+        if(d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result.length){
+          var q=d.quoteResponse.result[0];
+          p=q.regularMarketPrice;
+          pc=q.regularMarketPreviousClose;
         }
+        // v8/chart response fallback
+        else if(d.chart&&d.chart.result){
+          var meta=d.chart.result[0].meta;
+          p=meta.regularMarketPrice;
+          pc=meta.regularMarketPreviousClose||meta.previousClose;
+        }
+        if(!p||isNaN(p))throw 0;
         applyPrice(sym,p,pc);
       })
       .catch(function(){tryProxy(i+1);});
@@ -1583,10 +1588,11 @@ function updateMktNow(bull,bear){
 function fetchDIA(){
   // Use Yahoo Finance for DIA (consistent with fetchP, cache-busted)
   var ts=Date.now();
-  var url='https://query1.finance.yahoo.com/v8/finance/chart/DIA?interval=1m&range=1d&_='+ts;
+  // Use v7/quote for DIA — same reliable endpoint as fetchP
+  var quoteUrl='https://query1.finance.yahoo.com/v7/finance/quote?symbols=DIA&_='+ts;
   var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(url),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
+    'https://corsproxy.io/?'+encodeURIComponent(quoteUrl),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(quoteUrl)
   ];
   function tryProxy(i){
     if(i>=proxies.length){
@@ -1602,10 +1608,10 @@ function fetchDIA(){
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
-        var meta=d.chart.result[0].meta;
-        var p=meta.regularMarketPrice,pc=meta.regularMarketPreviousClose||meta.previousClose;
-        if(!p||isNaN(p)||!pc||isNaN(pc))throw 0;
-        var pct=(p-pc)/pc*100;
+        var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
+        if(!q||!q.regularMarketPrice)throw 0;
+        var pct=(q.regularMarketPrice-q.regularMarketPreviousClose)/q.regularMarketPreviousClose*100;
+        if(isNaN(pct)||!isFinite(pct))throw 0;
         LIVE_CHG['dow']=pct;
         updateMktNow();
       })
