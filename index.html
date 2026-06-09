@@ -955,6 +955,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="font-size:11px">Calculating trend signals</div>
   </div>
 
+  <!-- Gap / pre-market alert banner -->
+  <div id="g-gap-banner" style="display:none"></div>
+
   <!-- Signal card -->
   <div id="g-signal" style="display:none">
     <!-- Main signal -->
@@ -2419,6 +2422,12 @@ function quickSignal(sym){
     for(var i=29;i>=0;i--){var prev=p*(1+(Math.random()-.5)*iv3*Math.sqrt(1/252));arr.unshift({c:p});p=prev;}
     arr[arr.length-1]={c:spot};closes=arr.map(function(v){return v.c;});n=closes.length;
   }
+  // Gap injection — same logic as processSignal so dual cards stay consistent
+  var lastQClose=closes[n-1];
+  var qGapPct=lastQClose>0?(spot-lastQClose)/lastQClose*100:0;
+  if(Math.abs(qGapPct)>=0.75){
+    closes=closes.concat([spot]);n=closes.length;
+  }
   var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
   var aboveMA=spot>ma20;
   var gains=0,losses=0;
@@ -2706,6 +2715,36 @@ function buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,targetPct
   $(targetId).innerHTML=sh;
 }
 
+/* ── GAP BANNER ── */
+function renderGapBanner(gapPct,gapDetected,sym){
+  var el=document.getElementById('g-gap-banner');
+  if(!el)return;
+  if(!gapDetected){el.style.display='none';return;}
+  var up=gapPct>0;
+  var abs=Math.abs(gapPct).toFixed(2);
+  var bgColor=up?'#f0fdf4':'#fef2f2';
+  var borderColor=up?'#4ade80':'#f87171';
+  var textColor=up?'#14532d':'#7f1d1d';
+  var icon=up?'▲':'▼';
+  var direction=up?'GAP UP':'GAP DOWN';
+  var note=up
+    ?'Market opened/moved up strongly vs last close. Signal has been recalculated using the live price — bullish momentum may override prior PUT signal.'
+    :'Market opened/moved down vs last close. Signal recalculated using live price — bearish pressure may strengthen or create a PUT signal.';
+  el.style.display='block';
+  el.style.background=bgColor;
+  el.style.border='1.5px solid '+borderColor;
+  el.style.borderRadius='10px';
+  el.style.padding='10px 12px';
+  el.style.marginBottom='8px';
+  el.innerHTML=
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+      +'<span style="font-size:18px;font-weight:900;color:'+textColor+'">'+icon+' '+direction+' '+abs+'%</span>'
+      +'<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border-radius:10px;background:'+borderColor+'44;color:'+textColor+'">'+sym+' LIVE vs LAST CLOSE</span>'
+    +'</div>'
+    +'<div style="font-size:10px;font-weight:600;color:'+textColor+';line-height:1.5">'+note+'</div>'
+    +'<div style="font-size:9px;color:'+textColor+';opacity:.7;margin-top:4px;font-weight:700">Signal auto-updated · live price injected as newest bar</div>';
+}
+
 function processSignal(valid,capital,target,stopPct,sym){
   var closes=valid.map(function(v){return v.c;});
   var highs=valid.map(function(v){return v.h;});
@@ -2715,6 +2754,26 @@ function processSignal(valid,capital,target,stopPct,sym){
   // Use live Finnhub price if available, else DEFS default, else last close
   var tk=sym.toLowerCase();
   var spot=LIVE[tk]>0?LIVE[tk]:(DEFS[tk]?DEFS[tk].spot:closes[n-1]);
+
+  // ── GAP DETECTION ──
+  // If the live price has moved significantly vs the last historical close,
+  // inject the live price as a new bar so MA/momentum scoring reflects today's reality.
+  var lastHistClose=closes[n-1];
+  var gapPct=lastHistClose>0?(spot-lastHistClose)/lastHistClose*100:0;
+  var GAP_THRESHOLD=0.75; // flag gaps ≥ 0.75%
+  var gapDetected=Math.abs(gapPct)>=GAP_THRESHOLD;
+  if(gapDetected){
+    // Inject live price as today's bar — this makes MA and 3-day momentum react to the actual gap
+    var injected={c:spot,h:spot*1.002,l:spot*0.998,v:vols[n-1]||50000000};
+    valid=valid.concat([injected]);
+    closes=closes.concat([spot]);
+    highs=highs.concat([injected.h]);
+    lows=lows.concat([injected.l]);
+    vols=vols.concat([injected.v]);
+    n=closes.length;
+  }
+  // Render (or clear) gap banner
+  renderGapBanner(gapPct,gapDetected,sym);
 
   // 20-day MA
   var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
