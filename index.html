@@ -62,6 +62,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .btn-refresh{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:0 12px;height:36px;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;transition:opacity .15s}
 .btn-refresh:active{opacity:.75}
 .btn-refresh.spinning .rfr-ico{animation:spin .7s linear infinite;display:inline-block}
+.btn-refresh.round{width:34px;height:34px;padding:0;border-radius:50%;font-size:17px;background:#1e293b}
 
 /* CARD */
 .card{background:var(--p1);border:1.5px solid #c8d5e8;border-radius:12px;padding:10px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
@@ -868,7 +869,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="flex:1;padding:9px 4px;font-size:13px">QQQ</button>
       <input type="text" id="s-custom-tk" maxlength="6" placeholder="TICKER" oninput="this.value=this.value.toUpperCase()" style="flex:1.2;min-width:0;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 6px;font-size:13px;font-weight:800;color:var(--text);text-transform:uppercase;text-align:center"/>
       <button onclick="lotteryFetchCustom()" style="flex:0.8;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:9px 6px;font-size:12px;font-weight:800">Load</button>
-      <button id="rfr-lottery" class="btn-refresh" onclick="refreshLottery()" title="Refresh price &amp; IV" style="height:38px;padding:0 10px"><span class="rfr-ico">↻</span></button>
+      <button id="rfr-lottery" class="btn-refresh round" onclick="refreshLottery()" title="Refresh price &amp; IV"><span class="rfr-ico">↻</span></button>
     </div>
     <!-- Row 2: Direction buttons -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
@@ -953,7 +954,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
     <!-- Refresh -->
-    <button id="rfr-signal" class="btn-refresh" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span> Refresh</button>
+    <button id="rfr-signal" class="btn-refresh round" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span></button>
   </div>
 
   <!-- Loading state -->
