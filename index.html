@@ -929,9 +929,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <!-- Condensed controls row -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:stretch;gap:4px">
     <!-- SPY -->
-    <button class="tk spy" id="t4-spy" onclick="setT4('spy')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">SPY</button>
+    <button class="tk spy on" id="t4-spy" onclick="setT4('spy')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">SPY</button>
     <!-- QQQ -->
-    <button class="tk qqq on" id="t4-qqq" onclick="setT4('qqq')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">QQQ</button>
+    <button class="tk qqq" id="t4-qqq" onclick="setT4('qqq')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">QQQ</button>
     <!-- Capital -->
     <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--gbd);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box">
       <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Cap $</label>
@@ -2209,20 +2209,23 @@ function go3(){
 }
 
 /* ── TAB 4: SIGNAL ── */
-var T4='qqq',G_LOADED={};
+var T4='spy',G_LOADED={};
 var G_LAST_SIGNAL=null; // stores full signal context for deep analysis
 
 function openInStockAI(){
-  if(!G_LAST_SIGNAL){return;}
+  // Always use the signal for the currently selected ticker
+  var sig=G4_LAST_SIGNAL[T4];
+  if(!sig){alert('Signal not loaded yet — wait a moment and try again.');return;}
+  // Keep G_LAST_SIGNAL in sync for any legacy references
+  G_LAST_SIGNAL=sig;
   var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
   if(!apiKey||apiKey.indexOf('sk-')===-1){
-    // Prompt for key
     var k=prompt('Enter your Anthropic API key (sk-ant-...):');
     if(!k||k.indexOf('sk-')===-1){alert('Invalid key');return;}
     try{localStorage.setItem('sai_key',k);}catch(e){}
     apiKey=k;
   }
-  showDeepAnalysis(apiKey, G_LAST_SIGNAL);
+  showDeepAnalysis(apiKey, sig);
 }
 
 function showDeepAnalysis(apiKey, sig){
@@ -2955,7 +2958,15 @@ function processSignal(valid,capital,target,stopPct,sym){
   var detail2='RSI '+rsi.toFixed(0)+' · '+(aboveMA20?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
   G4_LAST_SIGNAL[sym.toLowerCase()]={
     action:action,color:color,bgColor:bgColor,borderColor:borderColor,
-    conf:confidence,sub:sub2,detail:detail2,bull:bullPoints,bear:bearPoints
+    conf:confidence,sub:sub2,detail:detail2,bull:bullPoints,bear:bearPoints,
+    // Full signal fields needed for deep analysis
+    sym:sym.toUpperCase(),confidence:confidence,
+    rsi:rsi,aboveMA:aboveMA20,ma20Pct:ma20Pct,
+    mom3:mom3,iv:Math.round(iv3*100),atr:atrPct.toFixed(2),
+    capital:capital||0,
+    stopPct:parseFloat($('g3')&&$('g3').value||'30'),
+    tgtPct:parseFloat($('g4')&&$('g4').value||'50'),
+    dte:dte||7,signals:signals
   };
   renderDualCards();
 
