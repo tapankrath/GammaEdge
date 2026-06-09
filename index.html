@@ -1533,7 +1533,7 @@ function applyPrice(sym,p,pc){
   var pxEl=$('px-'+k);if(pxEl)pxEl.textContent='$'+p.toFixed(2);
   var el=$('pc-'+k);
   if(el){var s=ch>=0?'+':'';el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';el.style.color=ch>=0?'var(--green)':'var(--red)';}
-  if(!G_LOADED[T4])updateMktNow();
+  updateMktNow();
   if(T1===k)$('c1')&&($('c1').value=p.toFixed(2));
   if(T2===k)$('r1')&&($('r1').value=p.toFixed(2));
   if(T3===k)$('s1')&&($('s1').value=p.toFixed(2));
@@ -1598,7 +1598,7 @@ function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();}
 
 /* ── Refresh helpers ── */
 function rfSpin(id,ms){var b=$('rfr-'+id);if(!b)return;b.classList.add('spinning');setTimeout(function(){b.classList.remove('spinning');},ms||3500);}
-function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};fetchAll();go4();}
+function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};LIVE_CHG={};fetchAll();go4();}
 function refreshLottery(){rfSpin('lottery',4000);var t=T3||'qqq';if(t.toLowerCase()==='spy')setT3('spy');else if(t.toLowerCase()==='qqq')setT3('qqq');else{$('s-custom-tk')&&($('s-custom-tk').value=t.toUpperCase());lotteryFetchCustom();}}
 function refreshBacktest(){rfSpin('backtest',5000);fetchOHLC(T5);}
 function refreshPlanner(){rfSpin('planner',4000);G4_CACHE={};fetchAll();setTimeout(function(){if(typeof pmUpdateDualSignals==='function')pmUpdateDualSignals();},2500);}
