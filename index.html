@@ -58,6 +58,10 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .pc-chg{font-size:11px;font-weight:700;margin-top:3px}
 .ld{animation:blink 1s infinite;color:#475569}
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-refresh{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:0 12px;height:36px;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;transition:opacity .15s}
+.btn-refresh:active{opacity:.75}
+.btn-refresh.spinning .rfr-ico{animation:spin .7s linear infinite;display:inline-block}
 
 /* CARD */
 .card{background:var(--p1);border:1.5px solid #c8d5e8;border-radius:12px;padding:10px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
@@ -864,6 +868,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <button class="tk qqq on" id="t3-qqq" onclick="setT3('qqq')" style="flex:1;padding:9px 4px;font-size:13px">QQQ</button>
       <input type="text" id="s-custom-tk" maxlength="6" placeholder="TICKER" oninput="this.value=this.value.toUpperCase()" style="flex:1.2;min-width:0;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 6px;font-size:13px;font-weight:800;color:var(--text);text-transform:uppercase;text-align:center"/>
       <button onclick="lotteryFetchCustom()" style="flex:0.8;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:9px 6px;font-size:12px;font-weight:800">Load</button>
+      <button id="rfr-lottery" class="btn-refresh" onclick="refreshLottery()" title="Refresh price &amp; IV" style="height:38px;padding:0 10px"><span class="rfr-ico">↻</span></button>
     </div>
     <!-- Row 2: Direction buttons -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
@@ -927,7 +932,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
   <!-- Condensed controls row -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:stretch;gap:4px">
+  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:auto auto 1fr auto auto auto;align-items:stretch;gap:4px">
     <!-- SPY -->
     <button class="tk spy on" id="t4-spy" onclick="setT4('spy')" style="padding:0 12px;font-size:11px;border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center">SPY</button>
     <!-- QQQ -->
@@ -947,6 +952,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Tgt %</label>
       <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
+    <!-- Refresh -->
+    <button id="rfr-signal" class="btn-refresh" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span> Refresh</button>
   </div>
 
   <!-- Loading state -->
@@ -1048,6 +1055,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <span style="font-size:11px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.1em">Daily OHLC Data</span>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="bt-ohlc-status-chip" style="font-size:10px;font-weight:700;color:#60a5fa">Loading…</span>
+        <button id="rfr-backtest" class="btn-refresh" onclick="event.stopPropagation();refreshBacktest()" title="Re-fetch OHLC data" style="height:28px;padding:0 9px;font-size:10px"><span class="rfr-ico" style="font-size:12px">↻</span></button>
         <span class="bt-chev" style="font-size:11px;color:#94a3b8">▸</span>
       </div>
     </button>
@@ -1205,6 +1213,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="background:#0f172a;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:16px;font-weight:900;color:#ffffff;letter-spacing:-.01em">Portfolio</div>
       <div style="display:flex;gap:8px;align-items:center">
+        <button id="rfr-planner" class="btn-refresh" onclick="refreshPlanner()" title="Refresh signals" style="height:28px;padding:0 9px;font-size:10px"><span class="rfr-ico" style="font-size:12px">↻</span> Refresh</button>
         <button onclick="pmExport()" style="background:transparent;color:#4ade80;border:1px solid #166534;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;cursor:pointer">⬇ Export</button>
         <button onclick="pmImportPaste()" style="background:transparent;color:#93c5fd;border:1px solid #1e3a8a;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;cursor:pointer">📋 Import</button>
       </div>
@@ -1586,6 +1595,13 @@ function fetchDIA(){
     }).catch(function(){});
 }
 function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();}
+
+/* ── Refresh helpers ── */
+function rfSpin(id,ms){var b=$('rfr-'+id);if(!b)return;b.classList.add('spinning');setTimeout(function(){b.classList.remove('spinning');},ms||3500);}
+function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};fetchAll();go4();}
+function refreshLottery(){rfSpin('lottery',4000);var t=T3||'qqq';if(t.toLowerCase()==='spy')setT3('spy');else if(t.toLowerCase()==='qqq')setT3('qqq');else{$('s-custom-tk')&&($('s-custom-tk').value=t.toUpperCase());lotteryFetchCustom();}}
+function refreshBacktest(){rfSpin('backtest',5000);fetchOHLC(T5);}
+function refreshPlanner(){rfSpin('planner',4000);G4_CACHE={};fetchAll();setTimeout(function(){if(typeof pmUpdateDualSignals==='function')pmUpdateDualSignals();},2500);}
 
 /* ── TAB 1 ── */
 function setT1(t){
