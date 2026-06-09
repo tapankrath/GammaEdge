@@ -3796,21 +3796,127 @@ function renderBtSummary(){
   });
   html+='</div>';
 
-  // Verdict — best overall combo
-  var bestDte=DTES[0], bestMode='Same Day', bestWr=0;
-  DTES.forEach(function(dte){
-    if(sdResults[dte].winRate>bestWr){bestWr=sdResults[dte].winRate;bestDte=dte;bestMode='Same Day';}
-    if(onResults[dte].winRate>bestWr){bestWr=onResults[dte].winRate;bestDte=dte;bestMode='Overnight';}
+  // ── PERIOD COMPARISON ROW — show best combo across all 4 periods at a glance ──
+  html+='<div style="margin-top:4px;margin-bottom:10px">';
+  html+='<div style="font-size:9px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">Best combo across all periods</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">';
+  [14,21,30,45].forEach(function(p){
+    var pSlice=days.slice(-p);
+    var pBest=null,pBestAvg=-Infinity;
+    DTES.forEach(function(dte){
+      var pSd=[],pOn=[];
+      pSlice.forEach(function(d,i){
+        var o=parseFloat(d.o),h=parseFloat(d.h),l=parseFloat(d.l),c=parseFloat(d.c);
+        if(!o||!h||!l||!c)return;
+        var r=btSim(o,h,l,c,iv3,capital,dte);
+        pSd.push({pnl:r.pnlEOD,label:d.label,upMove:r.upMove,dnMove:r.dnMove});
+        if(i<pSlice.length-1){
+          var nx=pSlice[i+1];
+          var no=parseFloat(nx.o),nh=parseFloat(nx.h),nl=parseFloat(nx.l),nc=parseFloat(nx.c);
+          if(no&&nh&&nl&&nc){var ron=btSimOvernight(c,no,nh,nl,nc,iv3,capital,dte);pOn.push({pnl:ron.pnlEOD,label:d.label,upMove:ron.upMove||0,dnMove:ron.dnMove||0});}
+        }
+      });
+      [calcStats(pSd),calcStats(pOn)].forEach(function(st,mi){
+        if(st.n>0&&st.avgPnl>pBestAvg){pBestAvg=st.avgPnl;pBest={dte:dte,mode:mi===0?'SD':'ON',r:st};}
+      });
+    });
+    var sufficient=pSlice.length>=p*0.7; // need at least 70% of requested days
+    var c2=pBest&&pBest.r.avgPnl>0?'#4ade80':pBest?'#f87171':'#64748b';
+    var bg2=pBest&&pBest.r.avgPnl>0?'rgba(22,163,74,.15)':pBest?'rgba(220,38,38,.1)':'rgba(30,41,59,.4)';
+    var bd2=pBest&&pBest.r.avgPnl>0?'#16a34a':pBest?'#dc2626':'#334155';
+    var isActive=p===BT_PERIOD;
+    html+='<div onclick="setBtPeriod('+p+')" style="background:'+bg2+';border:2px solid '+(isActive?'#60a5fa':bd2)+';border-radius:9px;padding:7px 4px;text-align:center;cursor:pointer">';
+    html+='<div style="font-size:9px;font-weight:900;color:'+(isActive?'#60a5fa':'#94a3b8')+';margin-bottom:3px">'+p+'d</div>';
+    if(!sufficient||!pBest){
+      html+='<div style="font-size:9px;color:#475569;font-weight:700">no data</div>';
+    } else {
+      html+='<div style="font-size:13px;font-weight:900;color:'+c2+'">'+fc(pBest.r.avgPnl)+'</div>';
+      html+='<div style="font-size:8px;color:#64748b;font-weight:700">'+dteLabels[pBest.dte]+' '+pBest.mode+'</div>';
+      html+='<div style="font-size:8px;font-weight:800;color:'+wrCol(pBest.r.winRate)+'">'+pBest.r.winRate+'%W</div>';
+    }
+    html+='</div>';
   });
-  var bestR=bestMode==='Same Day'?sdResults[bestDte]:onResults[bestDte];
+  html+='</div></div>';
+
+  // Verdict — best overall combo ranked by avg P&L (positive first), then win rate as tiebreaker
+  var allCombos=[];
+  DTES.forEach(function(dte){
+    allCombos.push({dte:dte,mode:'Same Day',r:sdResults[dte]});
+    allCombos.push({dte:dte,mode:'Overnight',r:onResults[dte]});
+  });
+  // Sort: profitable combos first (by avg P&L desc), then losing combos (by avg P&L desc = least bad)
+  allCombos.sort(function(a,b){
+    var aPos=a.r.avgPnl>0,bPos=b.r.avgPnl>0;
+    if(aPos&&!bPos)return -1;
+    if(!aPos&&bPos)return 1;
+    return b.r.avgPnl-a.r.avgPnl;
+  });
+  var best=allCombos[0];
+  var bestDte=best.dte, bestMode=best.mode, bestR=best.r, bestWr=bestR.winRate;
   var btTicker=T5.toUpperCase();
-  var avgCost=bestR.avgPnl; // used for entry hint
-  html+='<div style="margin-top:10px;background:#0f2d4a;border:1.5px solid #1d4ed8;border-radius:10px;padding:12px 14px">';
-  html+='<div style="font-size:9px;font-weight:900;color:#60a5fa;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">\u2728 Best combo \u2014 last '+BT_PERIOD+' days</div>';
-  html+='<div style="font-size:14px;font-weight:900;color:#ffffff;margin-bottom:10px;line-height:1.4">'+dteLabels[bestDte]+' '+bestMode+' \u2014 <span style="color:#4ade80">'+bestWr+'% win rate</span> \u00b7 avg <span style="color:#4ade80">'+fc(bestR.avgPnl)+'</span>/day</div>';
-  html+='<button onclick="btSendToPlanner('+bestDte+',\''+bestMode+'\',\''+btTicker+'\','+bestWr+','+bestR.avgPnl.toFixed(0)+')" '
-    +'style="width:100%;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">'
-    +'<span style="font-size:15px">\u2192</span> Send this setup to Planner</button>';
+
+  // Viability assessment
+  var isViable=bestR.avgPnl>0&&bestWr>=45;
+  var isMarginal=bestR.avgPnl>0&&bestWr<45;
+  var isNegative=bestR.avgPnl<=0;
+  var daysToRuin=isNegative&&bestR.avgPnl<0?Math.abs(Math.round(capital/bestR.avgPnl)):null;
+
+  var verdictBg=isViable?'#0a2a1a':isMarginal?'#1c1a08':'#2a0a0a';
+  var verdictBorder=isViable?'#16a34a':isMarginal?'#d97706':'#dc2626';
+  var verdictLabel=isViable?'\u2705 Viable — take this trade':isMarginal?'\u26a0\ufe0f Marginal — trade small':'🚫 No viable combo found';
+  var verdictColor=isViable?'#4ade80':isMarginal?'#fbbf24':'#f87171';
+  var avgColor=bestR.avgPnl>=0?'#4ade80':'#f87171';
+
+  html+='<div style="margin-top:10px;background:'+verdictBg+';border:2px solid '+verdictBorder+';border-radius:12px;padding:14px 14px 12px">';
+
+  // Header label
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+  html+='<div style="font-size:9px;font-weight:900;color:'+verdictColor+';text-transform:uppercase;letter-spacing:.14em">Best combo \u2014 last '+BT_PERIOD+' days</div>';
+  html+='<div style="font-size:11px;font-weight:900;color:'+verdictColor+'">'+verdictLabel+'</div>';
+  html+='</div>';
+
+  // Main numbers
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">';
+  html+='<div style="background:rgba(255,255,255,.07);border-radius:8px;padding:8px;text-align:center">';
+  html+='<div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Setup</div>';
+  html+='<div style="font-size:13px;font-weight:900;color:#fff">'+dteLabels[bestDte]+'</div>';
+  html+='<div style="font-size:9px;font-weight:700;color:#94a3b8">'+bestMode+'</div>';
+  html+='</div>';
+  html+='<div style="background:rgba(255,255,255,.07);border-radius:8px;padding:8px;text-align:center">';
+  html+='<div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Win Rate</div>';
+  html+='<div style="font-size:18px;font-weight:900;color:'+wrCol(bestWr)+'">'+bestWr+'%</div>';
+  html+='<div style="font-size:9px;font-weight:700;color:#94a3b8">'+bestR.wins+'W / '+bestR.losses+'L</div>';
+  html+='</div>';
+  html+='<div style="background:rgba(255,255,255,.07);border-radius:8px;padding:8px;text-align:center">';
+  html+='<div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Avg / Day</div>';
+  html+='<div style="font-size:18px;font-weight:900;color:'+avgColor+'">'+fc(bestR.avgPnl)+'</div>';
+  html+='<div style="font-size:9px;font-weight:700;color:#94a3b8">total '+fc(bestR.totalPnl)+'</div>';
+  html+='</div>';
+  html+='</div>';
+
+  // Warning if negative
+  if(isNegative){
+    html+='<div style="background:rgba(220,38,38,.15);border:1px solid #dc2626;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:11px;color:#fca5a5;font-weight:700;line-height:1.5">';
+    html+='Every combo tested has negative expectancy over the last '+BT_PERIOD+' days. '+(daysToRuin?'At '+fc(bestR.avgPnl)+'/day avg, a $'+capital.toLocaleString()+' account reaches zero in ~'+daysToRuin+' trading days. ':'');
+    html+='Do not trade any of these setups until market conditions change.';
+    html+='</div>';
+  } else if(isMarginal){
+    html+='<div style="background:rgba(217,119,6,.15);border:1px solid #d97706;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:11px;color:#fcd34d;font-weight:700;line-height:1.5">';
+    html+='Positive avg P&L but win rate below 50% — size down to 25–50% of normal. One bad streak can erase gains quickly.';
+    html+='</div>';
+  }
+
+  // Action button — only fully enabled if viable
+  if(isViable||isMarginal){
+    var btnBg=isViable?'linear-gradient(135deg,#15803d,#16a34a)':'linear-gradient(135deg,#92400e,#b45309)';
+    html+='<button onclick="btSendToPlanner('+bestDte+',\''+bestMode+'\',\''+btTicker+'\','+bestWr+','+bestR.avgPnl.toFixed(0)+')" '
+      +'style="width:100%;background:'+btnBg+';color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">'
+      +'<span style="font-size:15px">\u2192</span> '+(isViable?'Send to Planner':'Send to Planner (size small)')+'</button>';
+  } else {
+    html+='<div style="background:rgba(220,38,38,.1);border:1px solid #7f1d1d;border-radius:8px;padding:10px;text-align:center;font-size:12px;font-weight:800;color:#f87171">';
+    html+='\u26d4 No actionable setup — wait for a better market window';
+    html+='</div>';
+  }
   html+='</div>';
 
   body.innerHTML=html;
