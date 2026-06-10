@@ -301,7 +301,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
     <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
     <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
-    <a href="MoonshotAI.html" target="_blank" rel="noopener" style="flex:1;color:#e8c840;padding:9px 2px;font-size:10px;font-weight:800;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
+    <a href="MoonshotAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -411,19 +411,20 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div id="al-bkt-cons" onclick="alShow('cons')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #1d4ed8;background:#eff6ff;cursor:pointer;transition:box-shadow .15s">
       <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1d4ed8;margin-bottom:3px">Conservative</div>
       <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-cons-amt">$200K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px">40% · Wheel</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-cons" value="40" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #93c5fd;border-radius:4px;font-size:10px;font-weight:800;color:#1d4ed8;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Wheel</div>
     </div>
     <div id="al-bkt-mod" onclick="alShow('mod')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #059669;background:#ecfdf5;cursor:pointer;transition:box-shadow .15s">
       <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#059669;margin-bottom:3px">Moderate</div>
       <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-mod-amt">$200K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px">40% · Hedge</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-mod" value="40" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #6ee7b7;border-radius:4px;font-size:10px;font-weight:800;color:#059669;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Hedge</div>
     </div>
     <div id="al-bkt-agg" onclick="alShow('agg')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #b45309;background:#fffbeb;cursor:pointer;transition:box-shadow .15s">
       <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#b45309;margin-bottom:3px">Aggressive</div>
       <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-agg-amt">$100K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px">20% · Options</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-agg" value="20" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #fcd34d;border-radius:4px;font-size:10px;font-weight:800;color:#b45309;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Options</div>
     </div>
   </div>
+  <div id="al-pct-warn" style="display:none;margin-top:8px;text-align:center;font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:6px 10px"></div>
 </div>
 
 <!-- ── CONSERVATIVE CARD: Wheel (Sell Put → Covered Call) ── -->
@@ -436,7 +437,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <div style="text-align:right">
       <div style="font-size:16px;font-weight:900" id="al-cons-cap-disp">$200,000</div>
-      <div style="font-size:9px;font-weight:700;color:#6b7280">40% of capital</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-cons-pct-disp">40% of capital</div>
     </div>
   </div>
   <div style="padding:14px">
@@ -530,7 +531,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <div style="text-align:right">
       <div style="font-size:16px;font-weight:900" id="al-mod-cap-disp">$200,000</div>
-      <div style="font-size:9px;font-weight:700;color:#6b7280">40% of capital</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-mod-pct-disp">40% of capital</div>
     </div>
   </div>
   <div style="padding:14px">
@@ -624,7 +625,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <div style="text-align:right">
       <div style="font-size:16px;font-weight:900" id="al-agg-cap-disp">$100,000</div>
-      <div style="font-size:9px;font-weight:700;color:#6b7280">20% of capital</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-agg-pct-disp">20% of capital</div>
     </div>
   </div>
   <div style="padding:14px">
@@ -1052,13 +1053,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <!-- ── OHLC DATA (collapsible) ── -->
   <div class="card" id="b-ohlc-card" style="padding:0;overflow:hidden;margin-bottom:8px">
-    <button onclick="btToggle('bt-ohlc-body',this)" style="width:100%;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;background:#1e293b;border:none;cursor:pointer;text-align:left;border-radius:10px 10px 0 0">
-      <span style="font-size:11px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.1em">Daily OHLC Data</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="bt-ohlc-status-chip" style="font-size:10px;font-weight:700;color:#60a5fa">Loading…</span>
-        <button id="rfr-backtest" class="btn-refresh" onclick="event.stopPropagation();refreshBacktest()" title="Re-fetch OHLC data" style="height:28px;padding:0 9px;font-size:10px"><span class="rfr-ico" style="font-size:12px">↻</span></button>
-        <span class="bt-chev" style="font-size:11px;color:#94a3b8">▸</span>
-      </div>
+    <button onclick="btToggle('bt-ohlc-body',this)" style="position:relative;width:100%;min-height:44px;padding:11px 120px 11px 14px;display:block;background:#1e293b;border:none;cursor:pointer;text-align:left;border-radius:10px 10px 0 0">
+      <span style="font-size:11px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap">Daily OHLC Data</span>
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:7px;max-width:45%;white-space:nowrap">
+        <span id="bt-ohlc-status-chip" style="font-size:10px;font-weight:700;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Loading…</span>
+        <span id="rfr-backtest" class="btn-refresh" role="button" onclick="event.stopPropagation();refreshBacktest()" title="Re-fetch OHLC data" style="height:26px;width:30px;padding:0;font-size:10px;flex-shrink:0;border-radius:7px"><span class="rfr-ico" style="font-size:12px">↻</span></span>
+        <span class="bt-chev" style="font-size:11px;color:#94a3b8;flex-shrink:0">▸</span>
+      </span>
     </button>
     <div id="bt-ohlc-body" style="display:none;border-top:1px solid var(--border);padding:10px 14px 14px">
       <div id="b-fetch-status" style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:6px;padding:7px 10px;background:var(--bbg);border-radius:7px;border:1px solid var(--bbd)">Fetching data...</div>
@@ -4884,16 +4885,40 @@ function alFetchTicker(card){
   tryNext(0);
 }
 
-/* ── capital split ── */
+/* ── capital split (percentages are user-editable; defaults 40/40/20) ── */
+function alPct(b){
+  var el=$('al-pct-'+b);
+  var v=el?parseFloat(el.value):NaN;
+  if(isNaN(v)||v<0)v=(b==='agg'?20:40);
+  if(v>100)v=100;
+  return v/100;
+}
 function alSplit(){
   var total=alFv('al-cap')||500000;
-  var cons=Math.round(total*0.40),mod=Math.round(total*0.40),agg=Math.round(total*0.20);
+  var pc=alPct('cons'),pm=alPct('mod'),pa=alPct('agg');
+  var cons=Math.round(total*pc),mod=Math.round(total*pm),agg=Math.round(total*pa);
   $('al-cons-amt')&&($('al-cons-amt').textContent=alFmtK(cons));
   $('al-mod-amt')&&($('al-mod-amt').textContent=alFmtK(mod));
   $('al-agg-amt')&&($('al-agg-amt').textContent=alFmtK(agg));
   $('al-cons-cap-disp')&&($('al-cons-cap-disp').textContent=alFmtK(cons));
   $('al-mod-cap-disp')&&($('al-mod-cap-disp').textContent=alFmtK(mod));
   $('al-agg-cap-disp')&&($('al-agg-cap-disp').textContent=alFmtK(agg));
+  var fmtP=function(p){var x=p*100;return (x%1===0?x.toFixed(0):x.toFixed(1));};
+  $('al-cons-pct-disp')&&($('al-cons-pct-disp').textContent=fmtP(pc)+'% of capital');
+  $('al-mod-pct-disp')&&($('al-mod-pct-disp').textContent=fmtP(pm)+'% of capital');
+  $('al-agg-pct-disp')&&($('al-agg-pct-disp').textContent=fmtP(pa)+'% of capital');
+  var w=$('al-pct-warn');
+  if(w){
+    var sum=(pc+pm+pa)*100;
+    if(Math.abs(sum-100)>0.01){
+      w.style.display='block';
+      w.textContent='⚠ Buckets total '+fmtP((pc+pm+pa))+'% ('+(sum>100?alFmtK(Math.round(total*(pc+pm+pa)-total))+' over':alFmtK(Math.round(total-total*(pc+pm+pa)))+' unallocated')+')';
+    }else{w.style.display='none';}
+  }
+  /* refresh the three calculators so contract counts track the new split */
+  try{typeof alGoC==='function'&&alGoC();}catch(e){}
+  try{typeof alGoM==='function'&&alGoM();}catch(e){}
+  try{typeof alGoA==='function'&&alGoA();}catch(e){}
 }
 
 /* ── section show/hide ── */
@@ -4952,7 +4977,7 @@ function alCPhase(ph){
 
 function alGoC(){
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*0.40);
+  var capital=Math.round(total*alPct('cons'));
   var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otmPct=alFv('al-c4')||5;
   if(!spot||!iv3){
     if($('al-c-stats'))$('al-c-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#475569;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
@@ -5082,7 +5107,7 @@ function alMStrat(s){
 function alGoM(){
   var sym_m=($('al-m-ticker')&&$('al-m-ticker').value)||'SPY';
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*0.40);
+  var capital=Math.round(total*alPct('mod'));
   var spot=alFv('al-m1'),iv3=alFv('al-m2')/100,dte=alIv('al-m3')||30;
   var putOtm=alFv('al-m4')||5,callOtm=alFv('al-m5')||5;
   if(!spot||!iv3){
@@ -5262,7 +5287,7 @@ function alGoA(){
   var sym_a=(($('al-a-ticker-inp')&&$('al-a-ticker-inp').value)||AL_A_TICKER||'QQQ').toUpperCase();
   AL_A_TICKER=sym_a.toLowerCase();
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*0.20);
+  var capital=Math.round(total*alPct('agg'));
   var spot=alFv('al-a1'),iv3=alFv('al-a2')/100,dte=alIv('al-a3')||7;
   if(!spot||!iv3){
     if($('al-a-stats'))$('al-a-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#475569;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
@@ -5500,7 +5525,7 @@ function alPrefillLog(bucket,type){
       var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otm=alFv('al-c4')||5;
       var K=AL_C_PHASE==='put'?spot*(1-otm/100):spot*(1+otm/100);
       var prem2=AL_C_PHASE==='put'?bsP(spot,K,dte/252,iv3):bsC(spot,K,dte/252,iv3);
-      var capital2=Math.round((alFv('al-cap')||500000)*0.40);
+      var capital2=Math.round((alFv('al-cap')||500000)*alPct('cons'));
       var contracts=(AL_C_PHASE==='put'?Math.max(1,Math.floor(capital2/(K*100))):Math.max(1,Math.floor(capital2/spot/100)));
       if($('al-lg-entry'))$('al-lg-entry').value=(prem2*100*contracts).toFixed(0);
     }
