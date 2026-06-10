@@ -2386,7 +2386,8 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
     +'Live price: '+(livePrice?'$'+livePrice.toFixed(2):'unavailable')+'\n'
     +(optionsData?'P/C OI ratio: '+optionsData.pcRatio+' | Max pain: $'+optionsData.maxPain+'\nTop call OI walls: '+optionsData.topCalls+'\nTop put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:''):'Options chain: unavailable')+'\n\n'
     +'Return ONLY valid JSON:\n'
-    +'{"verdict":"GO"|"WAIT"|"ADJUST","emoji":"👍"|"👎"|"⚠️","headline":"<8 words max>","summary":"<2-3 sentences: does OI/macro confirm? Is stop/target ratio sensible for this setup?>","adjustment":"<one sentence tweak if needed, e.g. tighten stop or reduce size, else empty string>","trade":"<specific: e.g. Buy $738 call exp Jun 13, risk $400 (2% of capital), exit at +50% or −30%> or empty if WAIT","risk":"<one sentence on key risk>","color":"green"|"red"|"amber"}';
+    +'IMPORTANT: "verdict" is a GO / NO-GO double-check on THIS trade — it is NOT a market direction call. A bearish signal whose data checks out is still GO (take the put). GO = data confirms the signal, take the trade as configured. ADJUST = take it only with the stated adjustment. WAIT = do not enter now (data contradicts the signal, or setup is poor).\n'
+    +'{"verdict":"GO"|"WAIT"|"ADJUST","headline":"<8 words max>","summary":"<2-3 sentences: does OI/macro confirm? Is stop/target ratio sensible for this setup?>","adjustment":"<one sentence tweak if needed, e.g. tighten stop or reduce size, else empty string>","trade":"<specific: e.g. Buy $738 call exp Jun 13, risk $400 (2% of capital), exit at +50% or −30%> or empty if WAIT","risk":"<one sentence on key risk>"}';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -2414,7 +2415,13 @@ function renderDeepResult(r, sig, livePrice, optionsData){
   var colors={green:'#15803d',red:'#b91c1c',amber:'#b45309'};
   var bgs={green:'#f0fdf4',red:'#fef2f2',amber:'#fffbeb'};
   var bds={green:'#86efac',red:'#fca5a5',amber:'#fcd34d'};
-  var c=r.color||'amber';
+  // Emoji + color + label are DERIVED from the verdict — never model-chosen —
+  // so 👍 always means GO (take the trade) and 👎 always means NO-GO,
+  // regardless of whether the underlying signal is bullish or bearish.
+  var v=(r.verdict||'').toUpperCase();
+  var c=v==='GO'?'green':v==='WAIT'?'red':v==='ADJUST'?'amber':(r.color||'amber');
+  var emoji=v==='GO'?'👍':v==='WAIT'?'👎':'⚠️';
+  var verdictLabel=v==='GO'?'GO — DOUBLE-CHECK PASSED':v==='WAIT'?'NO-GO — STAND ASIDE':v==='ADJUST'?'GO WITH ADJUSTMENT':'UNVERIFIED';
 
   var tradeHtml=r.trade?
     '<div style="background:#0a0f1e;border-radius:10px;padding:12px 14px;margin-top:12px;">'
@@ -2441,7 +2448,10 @@ function renderDeepResult(r, sig, livePrice, optionsData){
   el.innerHTML=
     // Verdict block
     '<div style="background:'+bgs[c]+';border:1.5px solid '+bds[c]+';border-radius:14px;padding:16px;">'
-      +'<div style="font-size:42px;line-height:1;margin-bottom:8px;">'+r.emoji+'</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+        +'<div style="font-size:42px;line-height:1;">'+emoji+'</div>'
+        +'<div style="font-size:10px;font-weight:900;letter-spacing:.1em;color:'+colors[c]+';background:rgba(255,255,255,.6);border:1.5px solid '+bds[c]+';border-radius:8px;padding:4px 10px;">'+verdictLabel+'</div>'
+      +'</div>'
       +'<div style="font-size:18px;font-weight:900;color:'+colors[c]+';margin-bottom:8px;line-height:1.2;">'+r.headline+'</div>'
       +'<div style="font-size:13px;font-weight:500;color:#374151;line-height:1.6;">'+r.summary+'</div>'
     +'</div>'
