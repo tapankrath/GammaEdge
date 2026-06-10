@@ -173,6 +173,37 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .error-box{background:rgba(214,48,80,.05);border:1px solid rgba(214,48,80,.2);border-radius:8px;padding:14px 16px;color:var(--red);font-family:var(--sans);font-size:.84rem;margin-bottom:16px;line-height:1.7}
 .error-box code{background:rgba(0,0,0,.06);padding:2px 7px;border-radius:4px;font-size:.75rem}
 
+/* ── EXPORT / SHARE BAR ── */
+.export-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.export-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-family:var(--sans);font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--txt);transition:all .15s;white-space:nowrap}
+.export-btn:hover{background:var(--s2);border-color:#94a3b8}
+.export-btn.primary{background:#0f172a;color:#fff;border-color:#0f172a}
+.export-btn.primary:hover{background:#1e293b}
+.share-panel{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none}
+.share-panel.show{display:block}
+.share-panel textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:.75rem;color:var(--txt);font-family:var(--mono);resize:vertical;min-height:140px;box-sizing:border-box;line-height:1.6}
+
+/* ── PRINT / PDF ── */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .nav,.analyze-btn,.export-bar,.share-panel,.goBackWrap,
+  #goBackWrap,#uploadWrap,#manualSection,#intentWrap,
+  #extractBtn,#analyzeBtn,#inputCollapsed,#statusBar,#errorBox,
+  button.preview-clear,.modal-overlay,.add-row-btn,.remove-btn{display:none!important}
+  body{background:#fff!important;font-size:12px}
+  .wrap{max-width:100%!important;padding:0 16px!important}
+  .pos-card{break-inside:avoid;box-shadow:none!important;border:1px solid #ccc!important}
+  .pos-card-head{background:#f1f5f9!important}
+  .sum-card{break-inside:avoid}
+  .print-header{display:block!important}
+  .results.show{display:block!important}
+  .action-tag{border:1px solid #ccc!important}
+  @page{margin:14mm 12mm;size:A4}
+}
+.print-header{display:none;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1e293b}
+.print-header h2{font-size:1.1rem;font-weight:900;color:#0a0f1e;margin-bottom:2px}
+.print-header p{font-size:.75rem;color:#64748b}
+
 /* ── SCENARIO MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
 .modal-box{background:#fff;border-radius:16px;padding:0;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;animation:modalIn .2s ease}
@@ -1069,7 +1100,21 @@ function renderResults(plan, extractedHtml){
 
   html += '<div style="color:var(--mut);font-size:.68rem;font-family:var(--sans);text-align:center;padding:14px 0;border-top:1px solid var(--b1);margin-top:8px">FOR REFERENCE ONLY · NOT FINANCIAL ADVICE · OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS</div>';
   var el = document.getElementById('results');
-  el.innerHTML = html;
+
+  // Prepend print header + export bar before the results
+  var exportBar = '<div class="print-header"><h2>PortfolioEdge — Adjustment Plan</h2><p>Generated '+new Date().toLocaleString()+' &nbsp;·&nbsp; FOR REFERENCE ONLY · NOT FINANCIAL ADVICE</p></div>'
+    +'<div class="export-bar" id="exportBar">'
+    +'<button class="export-btn primary" onclick="exportPDF()">⬇ Export PDF</button>'
+    +'<button class="export-btn" onclick="toggleShare()">↗ Share Analysis</button>'
+    +'<button class="export-btn" onclick="doCopy()">⎘ Copy Text</button>'
+    +'</div>'
+    +'<div class="share-panel" id="sharePanel">'
+    +'<div style="font-size:.7rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">📋 Shareable Summary — copy and paste</div>'
+    +'<textarea id="shareTxt" readonly onclick="this.select()"></textarea>'
+    +'<div style="font-size:.68rem;color:var(--mut);margin-top:6px">Click the text box to select all · then copy</div>'
+    +'</div>';
+
+  el.innerHTML = exportBar + html;
   el.className = 'results show';
   // Show go-back button
   var gb = document.getElementById('goBackWrap');
@@ -1162,14 +1207,93 @@ window.addEventListener('load',function(){
   updateApiStatus();
 });
 
-function doPrint(){window.print();}
-function doEmail(){
-  var subj=encodeURIComponent('Portfolio Adjustment Plan — PortfolioEdge');
-  var body=encodeURIComponent(getPlanText());
-  window.location.href='mailto:?subject='+subj+'&body='+body;
+// ── EXPORT PDF ──
+function exportPDF(){
+  // hide export bar during print so it doesn't appear in PDF
+  var bar = document.getElementById('exportBar');
+  var sp  = document.getElementById('sharePanel');
+  if(bar) bar.style.display='none';
+  if(sp)  sp.style.display='none';
+  window.print();
+  // restore after print dialog closes
+  setTimeout(function(){
+    if(bar) bar.style.display='flex';
+  }, 500);
 }
+
+// ── SHARE PANEL ──
+function toggleShare(){
+  var sp = document.getElementById('sharePanel');
+  if(!sp) return;
+  var isOpen = sp.classList.contains('show');
+  if(isOpen){
+    sp.classList.remove('show');
+  } else {
+    document.getElementById('shareTxt').value = buildShareText();
+    sp.classList.add('show');
+    setTimeout(function(){ document.getElementById('shareTxt').select(); }, 100);
+  }
+}
+
+function buildShareText(){
+  var lines = [];
+  var now = new Date();
+  lines.push('══════════════════════════════════');
+  lines.push('  PORTFOLIOEDGE — ADJUSTMENT PLAN');
+  lines.push('  ' + now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}));
+  lines.push('══════════════════════════════════');
+  lines.push('');
+
+  // Summary
+  var intentKey = currentIntent !== 'auto' ? currentIntent : 'auto';
+  var intentLabelMap = {harvest:'🌾 Harvest',grow:'📈 Grow',protect:'🛡️ Protect',repair:'🔧 Repair',auto:'⚡ Auto'};
+  lines.push('STRATEGY: ' + (intentLabelMap[intentKey]||intentKey).toUpperCase());
+  lines.push('');
+
+  // Per-position detail from _scenarios
+  var keys = Object.keys(_scenarios);
+  keys.forEach(function(k){
+    var pos = _scenarios[k];
+    if(!pos) return;
+    var m = pos.currentMetrics || {};
+    var pnl = m.pnl != null ? (m.pnl >= 0 ? '+$' : '-$') + Math.abs(Math.round(m.pnl)).toLocaleString() : '';
+    var live = m.livePrice ? ' @ $' + (+m.livePrice).toFixed(2) : '';
+    lines.push('──────────────────────────────────');
+    lines.push('  ' + pos.sym.toUpperCase() + (pos.strategyLabel ? '  [' + pos.strategyLabel + ']' : '') + live);
+    if(pnl) lines.push('  Current P&L: ' + pnl + (m.pnlPct ? ' (' + (+m.pnlPct).toFixed(1) + '%)' : ''));
+    lines.push('');
+    // Steps
+    if(pos.steps && pos.steps.length){
+      lines.push('  RECOMMENDED ACTIONS:');
+      pos.steps.forEach(function(st, i){
+        var urg = st.urgency ? ' [' + st.urgency.toUpperCase() + ']' : '';
+        lines.push('  ' + (i+1) + '. [' + (st.action||'') + ']' + urg);
+        lines.push('     ' + (st.details || st.description || ''));
+      });
+      lines.push('');
+    }
+    // Scenarios
+    var sc = pos.scenarios || {};
+    if(sc.below || sc.at || sc.above){
+      lines.push('  OUTCOME SCENARIOS:');
+      var fmS = function(n){ n=+n; return (n>=0?'+$':'-$')+Math.abs(Math.round(n)).toLocaleString(); };
+      if(sc.below) lines.push('  📉 ' + (sc.below.label||'Below') + ':  ' + (sc.below.pnl!=null?fmS(sc.below.pnl):'—') + '  ' + (sc.below.note||''));
+      if(sc.at)    lines.push('  ⚖️  ' + (sc.at.label||'At Strike') + ':  ' + (sc.at.pnl!=null?fmS(sc.at.pnl):'—') + '  ' + (sc.at.note||''));
+      if(sc.above) lines.push('  📈 ' + (sc.above.label||'Above') + ':  ' + (sc.above.pnl!=null?fmS(sc.above.pnl):'—') + '  ' + (sc.above.note||''));
+      lines.push('');
+    }
+  });
+
+  lines.push('══════════════════════════════════');
+  lines.push('FOR REFERENCE ONLY · NOT FINANCIAL ADVICE');
+  lines.push('OPTIONS INVOLVE SIGNIFICANT RISK OF LOSS');
+  lines.push('Generated by PortfolioEdge · ' + now.toISOString().slice(0,10));
+  return lines.join('\n');
+}
+
+function doPrint(){exportPDF();}
 function doCopy(){
-  var txt=getPlanText();
+  var txt = (typeof buildShareText==='function') ? buildShareText() : getPlanText();
   if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){showToast('✓ Copied to clipboard');});}
   else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✓ Copied');}
 }
