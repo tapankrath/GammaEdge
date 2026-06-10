@@ -362,19 +362,6 @@ if(window.navigator.standalone === true){
 // Also handle the case where fetch to Anthropic might need credentials: 'omit'
 window._fetchOpts = window.navigator.standalone ? {credentials:'omit'} : {};
 </script>
-<!-- SPLASH -->
-<div id="splash">
-  <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#0f172a,#1e1040);border:2px solid rgba(139,92,246,.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(139,92,246,.3);animation:wordUp .4s ease .4s both;">
-    <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M26 7A14 14 0 1 0 13 33 18 18 0 0 1 26 7z" fill="#e8c840" opacity=".92"/>
-      <path d="M30 4 L27.5 13 L30 12 L32.5 13 Z" fill="#fff" opacity=".95"/>
-      <path d="M28.5 14 Q30 16 30 18" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
-      <circle cx="30" cy="19" r="2" fill="#f97316" opacity=".7"/>
-    </svg>
-  </div>
-  <div class="spl-name">Moonshot<em>AI</em></div>
-  <div class="spl-sub">Deep OTM · High Beta · Speculative</div>
-</div>
 
 <!-- CAPITAL MODAL -->
 <div class="modal-bg" id="capModal" onclick="if(event.target===this)closeCapModal()">
@@ -570,8 +557,6 @@ function updateStickyHeight(){
 setTimeout(updateStickyHeight,100);
 window.addEventListener('resize',updateStickyHeight);
 
-// ── SPLASH
-setTimeout(()=>{const s=document.getElementById('splash');if(s){s.style.opacity='0';setTimeout(()=>s.remove(),420);}},2100);
 
 // ── GOAL LOGIC
 let INVEST_AMT = 0;   // total $ to invest
