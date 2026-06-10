@@ -1272,37 +1272,47 @@ function runForecast(){
 
 // API
 function callClaude(apiKey,prompt){
-  return fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':apiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2400,
-      tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:prompt}]})
-  }).then(function(res){
-    return res.json().then(function(data){
-      if(!res.ok){
-        var msg=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
-        if(res.status===401)msg='Invalid API key — tap ⚙️ to update';
-        if(res.status===429)msg='Rate limit — wait a moment and retry';
-        if(res.status===529)msg='Anthropic overloaded — retry in a few seconds';
-        throw new Error(msg);
-      }
-      // Extract text from content blocks (may include tool_use/tool_result blocks)
-      var blocks=data.content||[];
-      var text='';
-      for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')text+=blocks[i].text;}
-      if(text) return text;
-      throw new Error('Empty response — try again');
+  var messages=[{role:'user',content:prompt}];
+  function doTurn(turnsLeft){
+    if(turnsLeft<=0)return Promise.reject(new Error('Research ran too long — try again'));
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2400,
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:6}],
+        messages:messages})
+    }).then(function(res){
+      return res.json().then(function(data){
+        if(!res.ok){
+          var msg=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+          if(res.status===401)msg='Invalid API key — tap ⚙️ to update';
+          if(res.status===429)msg='Rate limit — wait a moment and retry';
+          if(res.status===529)msg='Anthropic overloaded — retry in a few seconds';
+          throw new Error(msg);
+        }
+        var blocks=data.content||[];
+        // Long research turn paused — send assistant content back and continue
+        if(data.stop_reason==='pause_turn'){
+          messages.push({role:'assistant',content:blocks});
+          return doTurn(turnsLeft-1);
+        }
+        // Extract text from content blocks (may include tool_use/tool_result blocks)
+        var text='';
+        for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')text+=blocks[i].text;}
+        if(text) return text;
+        throw new Error('Empty response — try again');
+      });
+    }).catch(function(err){
+      if(err.message&&err.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
+      throw err;
     });
-  }).catch(function(err){
-    if(err.message&&err.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
-    throw err;
-  });
+  }
+  return doTurn(5);
 }
 
 // PROMPT
@@ -1400,7 +1410,7 @@ function buildPrompt(ticker,hLabel,hz,livePrice,optionsData,flowData){
   var jsonSchema='{"signal":"BULLISH"|"BEARISH"|"NEUTRAL",'
    +'"confidence":<42-91>,'
    +'"summary":"<Two sentences for '+ticker+' for '+hLabel+' — mention if flow confirms or contradicts macro>",'
-   +'"earningsNote":"<One sentence on upcoming earnings.>",'
+   +'"earningsNote":"<One sentence on earnings, VERIFIED via search per the EARNINGS DATE RULE — either confirmed upcoming date, or already-reported date with stock reaction. Never a guessed date.>",'
    +'"flowNote":"<One sentence summarizing what OI/flow data reveals about institutional positioning>",'
    +'"priceTarget":{"bear":"<e.g. -3.5%>","base":"<e.g. +1.2%>","bull":"<e.g. +4.8%>"},'
    +'"forecastCurve":[0,<d1>,<d2>,<d3>,<d4>,<d5>],'
@@ -1417,6 +1427,7 @@ function buildPrompt(ticker,hLabel,hz,livePrice,optionsData,flowData){
 
   return 'You are StockAI, an institutional options strategist with access to live market microstructure data.\n'
     +'Forecast '+ticker+' for the '+hLabel+'.\nToday: '+today+'\n'
+    +'EARNINGS DATE RULE: never state an earnings date from memory. Run a web search ("'+ticker+' next earnings date") first. If the company ALREADY reported this quarter, say so with the actual date and post-earnings reaction — do not present a stale or estimated future date. Aggregator "estimated" dates do not count; companies almost never report on Fridays. If unconfirmed, say the date is unconfirmed. This matters because a wrong earnings date invalidates the entire options structure (IV crush timing, DTE, event risk).\n'
     +priceContext+oiContext+flowContext
     +'\n'+moveGuide+'\n\n'+tradeRule
     +'\nMacro factors:\n'+macroList
@@ -1967,38 +1978,64 @@ function fetchIVAndSector(ticker){
 // ══════════════════════════════════════════
 // NEWS SENTIMENT (via Claude API)
 // ══════════════════════════════════════════
+function escNews(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 function fetchNews(ticker){
   var card=document.getElementById('newsCard');
   if(!card)return;
   var apiKey=localStorage.getItem('sai_key')||'';
   if(!apiKey)return;
   card.style.display='';
-  card.innerHTML='<div class="card-title">📰 News Sentiment</div><div style="font-size:12px;color:var(--muted);">Scanning recent headlines…</div>';
+  card.innerHTML='<div class="card-title">📰 News Sentiment</div><div style="font-size:12px;color:var(--muted);">Searching real headlines…</div>';
 
-  var prompt='You are a financial news analyst. For the stock ticker '+ticker+', generate 4 realistic and plausible recent news headlines (within the past week) that a real investor would see — based on the company\'s current situation, sector trends, and macro environment. For each headline, rate its sentiment.\n\nReturn ONLY valid JSON array, no markdown:\n[{"headline":"<realistic headline text>","source":"<e.g. Bloomberg, Reuters, WSJ, CNBC>","hoursAgo":<integer 1-72>,"sentiment":"POSITIVE"|"NEGATIVE"|"NEUTRAL","impact":"HIGH"|"MEDIUM"|"LOW"}]';
+  var today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var prompt='Today is '+today+'. Use web search to find REAL recent news about the stock '+ticker+' (search "'+ticker+' stock news this week").\n'
+    +'Return up to 4 actual news items from the past ~7 days. RULES:\n'
+    +'• Only items you actually found in search results — NEVER invent a headline, source, or date.\n'
+    +'• source = the real publisher of that article. url = the article link from the search result.\n'
+    +'• If you can only find 2 real items, return 2. If you find none, return [].\n'
+    +'• Rate each item\'s sentiment for '+ticker+' shareholders.\n\n'
+    +'Return ONLY a valid raw JSON array, no markdown:\n'
+    +'[{"headline":"<concise paraphrase of the real headline, max 14 words>","source":"<real publisher>","url":"<article url>","when":"<e.g. 2d ago or Jun 8>","sentiment":"POSITIVE"|"NEGATIVE"|"NEUTRAL","impact":"HIGH"|"MEDIUM"|"LOW"}]';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,
+      tools:[{type:'web_search_20250305',name:'web_search',max_uses:3}],
+      messages:[{role:'user',content:prompt}]})
   })
   .then(function(r){return r.json();})
   .then(function(data){
-    var text=data.content&&data.content[0]?data.content[0].text:'';
+    // With web search the response has multiple blocks — join ALL text blocks
+    var blocks=data.content||[];
+    var text='';
+    for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')text+=blocks[i].text;}
     var clean=text.replace(/```json|```/g,'').trim();
-    var items=JSON.parse(clean);
-    var html='<div class="card-title" style="margin-bottom:8px;">📰 News Sentiment — '+ticker+'</div>';
-    items.forEach(function(n){
+    var s=clean.indexOf('['),e=clean.lastIndexOf(']');
+    if(s===-1||e===-1)throw new Error('no array');
+    var items=JSON.parse(clean.slice(s,e+1));
+    if(!Array.isArray(items)||!items.length){
+      card.innerHTML='<div class="card-title">📰 News Sentiment — '+escNews(ticker)+'</div><div style="font-size:12px;color:var(--muted);">No notable headlines found this week.</div>';
+      return;
+    }
+    var html='<div class="card-title" style="margin-bottom:8px;">📰 News Sentiment — '+escNews(ticker)+'</div>';
+    items.slice(0,4).forEach(function(n){
       var sc=n.sentiment==='POSITIVE'?'pos':n.sentiment==='NEGATIVE'?'neg':'neu';
       var sentLabel=n.sentiment==='POSITIVE'?'Bullish':n.sentiment==='NEGATIVE'?'Bearish':'Neutral';
+      var srcHtml=escNews(n.source||'');
+      if(n.url&&/^https?:\/\//.test(n.url)){
+        srcHtml='<a href="'+escNews(n.url)+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">'+srcHtml+'</a>';
+      }
       html+='<div class="news-item">'
         +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
-          +'<div class="news-headline">'+n.headline+'</div>'
+          +'<div class="news-headline">'+escNews(n.headline)+'</div>'
           +'<span class="news-sent '+sc+'">'+sentLabel+'</span>'
         +'</div>'
-        +'<div class="news-meta">'+n.source+' · '+(n.hoursAgo<24?n.hoursAgo+'h ago':Math.round(n.hoursAgo/24)+'d ago')+' · Impact: '+n.impact+'</div>'
+        +'<div class="news-meta">'+srcHtml+(n.when?' · '+escNews(n.when):'')+' · Impact: '+escNews(n.impact||'—')+'</div>'
         +'</div>';
     });
+    html+='<div style="font-size:9px;color:var(--muted);font-weight:600;margin-top:6px;">Headlines found via live web search — tap a source to read.</div>';
     card.innerHTML=html;
   })
   .catch(function(){

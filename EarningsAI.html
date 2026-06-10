@@ -594,9 +594,14 @@ function runAnalysis(){
 
   callClaude(apiKey,buildPrompt())
     .then(function(raw){
-      clearInterval(stimer);sb.classList.remove('on');
       var parsed=parseResp(raw);
-      renderResults(parsed);
+      // Second pass: independently re-verify every Section 1 date before rendering
+      clearInterval(stimer);
+      st.textContent='Independently re-verifying each report date…';
+      return verifyPlays(apiKey,parsed).then(function(verified){
+        clearInterval(stimer);sb.classList.remove('on');
+        renderResults(verified);
+      });
     })
     .catch(function(err){
       clearInterval(stimer);sb.classList.remove('on');
@@ -609,13 +614,17 @@ function runAnalysis(){
     });
 }
 
-function callClaude(key,prompt){
-  // Agentic loop: keep sending until stop_reason is 'end_turn' (not 'tool_use')
+function callClaude(key,prompt,model,maxTokens){
+  // web_search is a SERVER tool: the API runs the searches itself within a turn.
+  // We only need to handle stop_reason 'pause_turn' (long research turn paused) by
+  // sending the assistant content back unchanged and letting it continue.
+  // NEVER inject synthetic tool_results — lying that a search ran forces the
+  // model to answer from stale training data (this caused wrong earnings dates).
   var messages=[{role:'user',content:prompt}];
   var MAX_TURNS=8;
 
   function doTurn(turnsLeft){
-    if(turnsLeft<=0) return Promise.reject(new Error('Too many tool-use rounds — try again'));
+    if(turnsLeft<=0) return Promise.reject(new Error('Research ran too long — try again'));
     return fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
@@ -625,9 +634,9 @@ function callClaude(key,prompt){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:4500,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
+        model:model||'claude-sonnet-4-5',
+        max_tokens:maxTokens||4500,
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:14}],
         messages:messages
       })
     }).then(function(res){
@@ -636,39 +645,26 @@ function callClaude(key,prompt){
           var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
           if(res.status===401)m='Invalid API key — tap ⚙️ to update';
           if(res.status===429)m='Rate limit — wait and retry';
+          if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
           throw new Error(m);
         }
         var blocks=data.content||[];
 
-        // Collect any text in this turn
+        // Turn paused mid-research: append assistant content as-is and continue
+        if(data.stop_reason==='pause_turn'){
+          messages.push({role:'assistant',content:blocks});
+          return doTurn(turnsLeft-1);
+        }
+
+        if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
+
+        // Final turn: collect all text blocks
         var text='';
         for(var i=0;i<blocks.length;i++){
           if(blocks[i].type==='text') text+=blocks[i].text;
         }
-
-        // If we have a final answer, return it
-        if(data.stop_reason==='end_turn'||text){
-          if(text) return text;
-          throw new Error('Empty response — try again');
-        }
-
-        // stop_reason==='tool_use': append assistant turn + synthetic tool_result and loop
-        messages.push({role:'assistant',content:blocks});
-
-        // Build tool_result blocks for every tool_use block
-        var toolResults=[];
-        for(var j=0;j<blocks.length;j++){
-          if(blocks[j].type==='tool_use'){
-            toolResults.push({
-              type:'tool_result',
-              tool_use_id:blocks[j].id,
-              content:'Search executed. Now return ONLY the raw JSON object — no preamble, no explanation, no markdown. Start with { and end with }.'
-            });
-          }
-        }
-        if(toolResults.length===0) throw new Error('Unexpected response format — try again');
-        messages.push({role:'user',content:toolResults});
-        return doTurn(turnsLeft-1);
+        if(text) return text;
+        throw new Error('Empty response — try again');
       });
     }).catch(function(e){
       if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
@@ -677,6 +673,74 @@ function callClaude(key,prompt){
   }
 
   return doTurn(MAX_TURNS);
+}
+
+// ── SECOND-PASS DATE VERIFICATION ──
+// Independent Haiku call that re-checks each Section 1 pick. Drops anything
+// already reported, corrects dates, and attaches notes for the UI.
+function verifyPlays(apiKey,parsed){
+  var plays=(parsed.section1&&parsed.section1.plays)?parsed.section1.plays:(parsed.plays||[]);
+  if(!plays.length) return Promise.resolve(parsed);
+
+  var todayISO=new Date().toISOString().slice(0,10);
+  var list=plays.map(function(p){return p.ticker+' (claimed: '+(p.reportDate||'?')+' '+(p.reportTime||'')+')';}).join(', ');
+
+  var vPrompt='Today is EXACTLY '+todayISO+'. You are a fact-checker. For EACH ticker below, run a web search ("[TICKER] earnings date" and if unclear "[TICKER] earnings report results") and determine its true earnings status.\n\n'
+    +'Tickers: '+list+'\n\n'
+    +'Rules:\n'
+    +'• If the company ALREADY REPORTED this quarter (press release, results coverage, "beat/missed estimates" dated on or before today) → status REPORTED, date = the actual report date.\n'
+    +'• If a future report date is confirmed by the company IR page, a press release, or dated news → status UPCOMING, date = that date.\n'
+    +'• Estimated dates on calendar aggregators are NOT confirmation. Companies almost never report on Fridays — re-check any Friday date.\n'
+    +'• If you cannot confirm either way → status UNKNOWN.\n\n'
+    +'Return ONLY a raw JSON array, no markdown:\n'
+    +'[{"ticker":"","status":"UPCOMING|REPORTED|UNKNOWN","date":"YYYY-MM-DD","note":"<8 words max>"}]';
+
+  return callClaude(apiKey,vPrompt,'claude-haiku-4-5-20251001',1200)
+    .then(function(raw){
+      var clean=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+      var s=clean.indexOf('['),e=clean.lastIndexOf(']');
+      if(s===-1||e===-1) throw new Error('no array');
+      var checks=JSON.parse(clean.slice(s,e+1));
+      var byTicker={};
+      checks.forEach(function(c){if(c&&c.ticker)byTicker[c.ticker.toUpperCase()]=c;});
+
+      var notes=[],kept=[];
+      plays.forEach(function(p){
+        var c=byTicker[(p.ticker||'').toUpperCase()];
+        if(!c){p._verified=false;kept.push(p);return;}
+        if(c.status==='REPORTED'){
+          notes.push('Removed '+p.ticker+' — already reported'+(c.date?' on '+c.date:'')+'.');
+          return; // drop it
+        }
+        if(c.status==='UPCOMING'){
+          if(c.date&&p.reportDate&&c.date!==p.reportDate){
+            notes.push('Corrected '+p.ticker+' date: '+p.reportDate+' → '+c.date+'.');
+            p.reportDate=c.date;
+          }
+          // a date in the past slipped through both passes — drop it
+          if(p.reportDate&&p.reportDate<=todayISO){
+            notes.push('Removed '+p.ticker+' — date '+p.reportDate+' is not in the future.');
+            return;
+          }
+          p._verified=true;
+        } else {
+          p._verified=false;
+          notes.push(p.ticker+': date could not be independently confirmed.');
+        }
+        kept.push(p);
+      });
+
+      if(parsed.section1) parsed.section1.plays=kept; else parsed.plays=kept;
+      parsed._verifyNotes=notes;
+      parsed._verifyRan=true;
+      return parsed;
+    })
+    .catch(function(){
+      // Verification call failed — show results but be honest about it
+      parsed._verifyNotes=['Second-pass verification failed — dates below are NOT independently confirmed.'];
+      parsed._verifyRan=false;
+      return parsed;
+    });
 }
 
 // ── PROMPT ──
@@ -698,6 +762,8 @@ function buildPrompt(){
     +'STEP 2 — VERIFY EACH CANDIDATE INDIVIDUALLY (mandatory — no exceptions):\n'
     +'For EVERY stock on your candidate list, do a second targeted search: "[TICKER] earnings date 2026" or "[TICKER] next earnings report".\n'
     +'Confirm the exact upcoming report date from search results.\n'
+    +'SOURCE QUALITY: an "estimated" or "expected" date on a calendar aggregator does NOT count as confirmation — aggregators keep stale estimated dates even after a company has reported. Confirmation requires a company press release, the company IR page, or a dated news article explicitly announcing the report date.\n'
+    +'FRIDAY RED FLAG: companies almost never report earnings on a Friday (especially AMC). If a source shows a Friday date, treat it as probably wrong and re-verify against the company IR page before using it.\n'
     +'DISCARD a stock immediately if any of these are true:\n'
     +'  • Its report date is on or before '+todayISO+'\n'
     +'  • Search results mention it already reported this quarter (phrases like "reported earnings", "beat estimates", "EPS of $X", dated before today)\n'
@@ -728,6 +794,8 @@ function buildPrompt(){
     +'"label":"Top 5 Earnings Plays — HIGH Quality",'
     +'"plays":['
     +'{"rank":1,"ticker":"","company":"","reportDate":"YYYY-MM-DD","reportTime":"AMC|BMO",'
+    +'"verifySource":"<domain of the source that CONFIRMED the date, e.g. investors.broadcom.com or reuters.com>",'
+    +'"verifyQuote":"<short paraphrase of what that source said about the date, max 15 words>",'
     +'"quality":"High",'
     +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
     +'"why":"<12w>","earningsNote":"<10w EPS context>",'
@@ -750,7 +818,7 @@ function buildPrompt(){
     +']}'
     +']}'
     +'} '
-    +'Every Section 1 play must have individually passed Step 2 verification. No unverified stocks allowed.';}
+    +'Every Section 1 play must have individually passed Step 2 verification, with verifySource and verifyQuote filled from a real search result. If you cannot cite a confirming source for a stock, it is DISQUALIFIED — never output a guessed or estimated date.';}
 function wkEnd(n){
   var d=new Date(),day=d.getDay();
   var toFri=(5-day+7)%7||(day===5?7:0);
@@ -805,6 +873,19 @@ function renderResults(d){
   for(var r=0;r<s2plays.length;r++) s2plays[r]._displayRank=r+1;
 
   var html='';
+
+  // ── VERIFICATION NOTES ──
+  if(d._verifyNotes&&d._verifyNotes.length){
+    var ok=d._verifyRan!==false;
+    html+='<div class="sin" style="background:'+(ok?'#f0fdf4':'#fef9c3')+';border:1.5px solid '+(ok?'#86efac':'#fde047')+';border-radius:10px;padding:8px 11px;margin:8px 0 4px;">'
+      +'<div style="font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:'+(ok?'#15803d':'#854d0e')+';margin-bottom:3px;">'+(ok?'✓ Date verification':'⚠ Verification incomplete')+'</div>';
+    d._verifyNotes.forEach(function(n){
+      html+='<div style="font-size:11px;font-weight:600;color:var(--dim);line-height:1.45;">• '+esc(n)+'</div>';
+    });
+    html+='</div>';
+  } else if(d._verifyRan){
+    html+='<div class="sin" style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:7px 11px;margin:8px 0 4px;font-size:11px;font-weight:700;color:#15803d;">✓ All report dates independently re-verified</div>';
+  }
 
   if(d.macroSnapshot){
     html+='<div class="macro-strip sin">'
@@ -910,7 +991,7 @@ function renderPlayRow(p, i, showQuality){
       +'<div class="er-company">'+esc(p.company||'')+'</div>'
       +'<div class="er-meta">'
         +qBadge
-        +'<span class="er-date">'+esc(p.reportDate||'')+'</span>'
+        +'<span class="er-date">'+(p._verified?'✓ ':'')+esc(p.reportDate||'')+'</span>'
         +'<span class="er-when '+rtCls+'">'+rtTxt+'</span>'
         +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
       +'</div>'
