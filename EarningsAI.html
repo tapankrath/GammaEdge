@@ -595,13 +595,40 @@ function runAnalysis(){
   callClaude(apiKey,buildPrompt())
     .then(function(raw){
       var parsed=parseResp(raw);
-      // Second pass: independently re-verify every Section 1 date before rendering
       clearInterval(stimer);
-      st.textContent='Independently re-verifying each report date…';
-      return verifyPlays(apiKey,parsed).then(function(verified){
-        clearInterval(stimer);sb.classList.remove('on');
-        renderResults(verified);
-      });
+      st.textContent='Verifying report dates…';
+      return verifyPlays(apiKey,parsed);
+    })
+    .then(function(verified){
+      // Background refill: if verification dropped picks, silently fetch replacements once
+      var plays=(verified.section1&&verified.section1.plays)?verified.section1.plays:(verified.plays||[]);
+      var removed=verified._removedTickers||[];
+      if(plays.length>=5||removed.length===0) return verified;
+
+      st.textContent='Scanning for additional plays…';
+      var exclude=removed.concat(plays.map(function(p){return p.ticker;}));
+      return callClaude(apiKey,buildPrompt(exclude))
+        .then(function(raw2){
+          var p2=parseResp(raw2);
+          return verifyPlays(apiKey,p2);
+        })
+        .then(function(v2){
+          var fresh=(v2.section1&&v2.section1.plays)?v2.section1.plays:(v2.plays||[]);
+          var have={};plays.forEach(function(p){have[(p.ticker||'').toUpperCase()]=1;});
+          for(var i=0;i<fresh.length&&plays.length<5;i++){
+            var t=(fresh[i].ticker||'').toUpperCase();
+            if(t&&!have[t]&&removed.indexOf(fresh[i].ticker)===-1){plays.push(fresh[i]);have[t]=1;}
+          }
+          if(verified.section1)verified.section1.plays=plays;else verified.plays=plays;
+          verified._verifyNotes=(verified._verifyNotes||[]).concat(v2._verifyNotes||[]);
+          return verified;
+        })
+        .catch(function(){return verified;}); // refill failed — show what passed
+    })
+    .then(function(finalData){
+      sb.classList.remove('on');
+      if(finalData._verifyNotes&&finalData._verifyNotes.length)console.log('EarningsAI verification:',finalData._verifyNotes);
+      renderResults(finalData);
     })
     .catch(function(err){
       clearInterval(stimer);sb.classList.remove('on');
@@ -675,25 +702,32 @@ function callClaude(key,prompt,model,maxTokens){
   return doTurn(MAX_TURNS);
 }
 
-// ── SECOND-PASS DATE VERIFICATION ──
+// ── SECOND-PASS DATE VERIFICATION (silent) ──
 // Independent Haiku call that re-checks each Section 1 pick. Drops anything
-// already reported, corrects dates, and attaches notes for the UI.
+// already reported, corrects dates, keeps same-day AMC names (most tradeable),
+// and records removals so the caller can backfill. Notes go to console only.
 function verifyPlays(apiKey,parsed){
   var plays=(parsed.section1&&parsed.section1.plays)?parsed.section1.plays:(parsed.plays||[]);
+  parsed._removedTickers=parsed._removedTickers||[];
+  parsed._verifyNotes=parsed._verifyNotes||[];
   if(!plays.length) return Promise.resolve(parsed);
 
   var todayISO=new Date().toISOString().slice(0,10);
+  // Current time in US Eastern — needed to judge same-day AMC reports
+  var nowET=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  var etHour=nowET.getHours()+nowET.getMinutes()/60;
   var list=plays.map(function(p){return p.ticker+' (claimed: '+(p.reportDate||'?')+' '+(p.reportTime||'')+')';}).join(', ');
 
   var vPrompt='Today is EXACTLY '+todayISO+'. You are a fact-checker. For EACH ticker below, run a web search ("[TICKER] earnings date" and if unclear "[TICKER] earnings report results") and determine its true earnings status.\n\n'
     +'Tickers: '+list+'\n\n'
     +'Rules:\n'
-    +'• If the company ALREADY REPORTED this quarter (press release, results coverage, "beat/missed estimates" dated on or before today) → status REPORTED, date = the actual report date.\n'
+    +'• If the company is scheduled to report TODAY ('+todayISO+') AFTER market close and results are NOT out yet → status TODAY_AMC.\n'
+    +'• If the company ALREADY RELEASED results this quarter (press release with numbers, "beat/missed estimates" coverage) → status REPORTED, date = the actual report date.\n'
     +'• If a future report date is confirmed by the company IR page, a press release, or dated news → status UPCOMING, date = that date.\n'
     +'• Estimated dates on calendar aggregators are NOT confirmation. Companies almost never report on Fridays — re-check any Friday date.\n'
     +'• If you cannot confirm either way → status UNKNOWN.\n\n'
     +'Return ONLY a raw JSON array, no markdown:\n'
-    +'[{"ticker":"","status":"UPCOMING|REPORTED|UNKNOWN","date":"YYYY-MM-DD","note":"<8 words max>"}]';
+    +'[{"ticker":"","status":"TODAY_AMC|UPCOMING|REPORTED|UNKNOWN","date":"YYYY-MM-DD","note":"<8 words max>"}]';
 
   return callClaude(apiKey,vPrompt,'claude-haiku-4-5-20251001',1200)
     .then(function(raw){
@@ -704,55 +738,76 @@ function verifyPlays(apiKey,parsed){
       var byTicker={};
       checks.forEach(function(c){if(c&&c.ticker)byTicker[c.ticker.toUpperCase()]=c;});
 
-      var notes=[],kept=[];
+      var kept=[];
       plays.forEach(function(p){
         var c=byTicker[(p.ticker||'').toUpperCase()];
         if(!c){p._verified=false;kept.push(p);return;}
-        if(c.status==='REPORTED'){
-          notes.push('Removed '+p.ticker+' — already reported'+(c.date?' on '+c.date:'')+'.');
-          return; // drop it
+
+        if(c.status==='TODAY_AMC'){
+          if(etHour<16){
+            // Reports after today's close and it's before 4pm ET — still tradeable
+            p.reportDate=todayISO;
+            p.reportTime='AMC';
+            p._verified=true;
+            p._todayAMC=true;
+            kept.push(p);
+          }else{
+            // After the close — results are out or seconds away, no entry left
+            parsed._removedTickers.push(p.ticker);
+            parsed._verifyNotes.push('Dropped '+p.ticker+' — reported after today\'s close.');
+          }
+          return;
         }
+
+        if(c.status==='REPORTED'){
+          parsed._removedTickers.push(p.ticker);
+          parsed._verifyNotes.push('Dropped '+p.ticker+' — already reported'+(c.date?' '+c.date:'')+'.');
+          return;
+        }
+
         if(c.status==='UPCOMING'){
           if(c.date&&p.reportDate&&c.date!==p.reportDate){
-            notes.push('Corrected '+p.ticker+' date: '+p.reportDate+' → '+c.date+'.');
+            parsed._verifyNotes.push('Corrected '+p.ticker+': '+p.reportDate+' → '+c.date+'.');
             p.reportDate=c.date;
           }
-          // a date in the past slipped through both passes — drop it
-          if(p.reportDate&&p.reportDate<=todayISO){
-            notes.push('Removed '+p.ticker+' — date '+p.reportDate+' is not in the future.');
+          if(p.reportDate&&p.reportDate<todayISO){
+            parsed._removedTickers.push(p.ticker);
+            parsed._verifyNotes.push('Dropped '+p.ticker+' — past date '+p.reportDate+'.');
             return;
           }
           p._verified=true;
-        } else {
+        }else{
           p._verified=false;
-          notes.push(p.ticker+': date could not be independently confirmed.');
+          parsed._verifyNotes.push(p.ticker+': unconfirmed.');
         }
         kept.push(p);
       });
 
       if(parsed.section1) parsed.section1.plays=kept; else parsed.plays=kept;
-      parsed._verifyNotes=notes;
       parsed._verifyRan=true;
       return parsed;
     })
     .catch(function(){
-      // Verification call failed — show results but be honest about it
-      parsed._verifyNotes=['Second-pass verification failed — dates below are NOT independently confirmed.'];
+      parsed._verifyNotes.push('Verification pass failed — dates not independently confirmed.');
       parsed._verifyRan=false;
       return parsed;
     });
 }
 
 // ── PROMPT ──
-function buildPrompt(){
+function buildPrompt(excludeTickers){
   var today=new Date();
   var todayFull=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   var todayISO=today.toISOString().slice(0,10);
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
   var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
+  var exclusion=(excludeTickers&&excludeTickers.length)
+    ? 'HARD EXCLUSION: Do NOT include any of these tickers under any circumstances (already reported or already covered): '+excludeTickers.join(', ')+'.\n\n'
+    : '';
 
   return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+').\n\n'
+    +exclusion
 
     +'STEP 1 — SEARCH THE LIVE EARNINGS CALENDAR:\n'
     +'Search: "earnings calendar week of '+targetFri+'" using earningswhispers.com, nasdaq.com, benzinga.com, or stockanalysis.com.\n'
@@ -874,19 +929,6 @@ function renderResults(d){
 
   var html='';
 
-  // ── VERIFICATION NOTES ──
-  if(d._verifyNotes&&d._verifyNotes.length){
-    var ok=d._verifyRan!==false;
-    html+='<div class="sin" style="background:'+(ok?'#f0fdf4':'#fef9c3')+';border:1.5px solid '+(ok?'#86efac':'#fde047')+';border-radius:10px;padding:8px 11px;margin:8px 0 4px;">'
-      +'<div style="font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:'+(ok?'#15803d':'#854d0e')+';margin-bottom:3px;">'+(ok?'✓ Date verification':'⚠ Verification incomplete')+'</div>';
-    d._verifyNotes.forEach(function(n){
-      html+='<div style="font-size:11px;font-weight:600;color:var(--dim);line-height:1.45;">• '+esc(n)+'</div>';
-    });
-    html+='</div>';
-  } else if(d._verifyRan){
-    html+='<div class="sin" style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:7px 11px;margin:8px 0 4px;font-size:11px;font-weight:700;color:#15803d;">✓ All report dates independently re-verified</div>';
-  }
-
   if(d.macroSnapshot){
     html+='<div class="macro-strip sin">'
       +'<div class="macro-strip-lbl">Macro Backdrop</div>'
@@ -991,7 +1033,7 @@ function renderPlayRow(p, i, showQuality){
       +'<div class="er-company">'+esc(p.company||'')+'</div>'
       +'<div class="er-meta">'
         +qBadge
-        +'<span class="er-date">'+(p._verified?'✓ ':'')+esc(p.reportDate||'')+'</span>'
+        +'<span class="er-date"'+(p._todayAMC?' style="color:#b45309;font-weight:900;"':'')+'>'+(p._todayAMC?'⚡ TODAY':(p._verified?'✓ ':'')+esc(p.reportDate||''))+'</span>'
         +'<span class="er-when '+rtCls+'">'+rtTxt+'</span>'
         +'<span class="er-signal '+sigCls+'">'+sigTxt+'</span>'
       +'</div>'
