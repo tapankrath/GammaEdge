@@ -82,6 +82,9 @@ function renderOiStrip(sym,K,dte,isCall,color){
   var cboeUrl='https://cdn.cboe.com/api/global/delayed_quotes/options/'+sym.toUpperCase()+'.json';
   var routes=[
     {u:cboeUrl,n:'cboe direct'},
+    {u:'https://api.allorigins.win/raw?url='+encodeURIComponent(cboeUrl),n:'cboe allorigins-raw'},
+    {u:'https://api.allorigins.win/get?url='+encodeURIComponent(cboeUrl),n:'cboe allorigins-get',w:true},
+    {u:'https://test.cors.workers.dev/?'+encodeURIComponent(cboeUrl),n:'cboe cf-worker'},
     {u:'https://corsproxy.io/?url='+encodeURIComponent(cboeUrl),n:'cboe corsproxy'},
     {u:'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(cboeUrl),n:'cboe codetabs'}
   ];
@@ -94,6 +97,10 @@ function renderOiStrip(sym,K,dte,isCall,color){
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(j){
         clearTimeout(to);
+        if(rt.w){ // allorigins /get wraps payload as {contents:"<json string>"}
+          if(!j||!j.contents)throw 0;
+          j=JSON.parse(j.contents);
+        }
         if(!j||!j.data||!j.data.options||!j.data.options.length)throw 0;
         if(typeof dbg==='function')dbg('  \u2713 via '+rt.n+' ('+j.data.options.length+' contracts)');
         if(seq===OI_STRIP_SEQ)render(j.data);
@@ -185,7 +192,9 @@ function connTest(){
     ['Stooq CSV',       'https://stooq.com/q/d/l/?s=spy.us&i=d'],
     ['corsproxy.io',    'https://corsproxy.io/?url='+encodeURIComponent('https://example.com')],
     ['codetabs proxy',  'https://api.codetabs.com/v1/proxy?quest=https://example.com'],
-    ['jsdelivr CDN',    'https://cdn.jsdelivr.net/npm/lodash@4.17.21/package.json']
+    ['jsdelivr CDN',    'https://cdn.jsdelivr.net/npm/lodash@4.17.21/package.json'],
+    ['allorigins raw',  'https://api.allorigins.win/raw?url='+encodeURIComponent('https://cdn.cboe.com/api/global/delayed_quotes/options/SPY.json')],
+    ['cf-worker proxy', 'https://test.cors.workers.dev/?'+encodeURIComponent('https://cdn.cboe.com/api/global/delayed_quotes/options/SPY.json')]
   ];
   targets.forEach(function(t){
     var t0=Date.now();
