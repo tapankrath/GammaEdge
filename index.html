@@ -1458,6 +1458,16 @@ function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays
 // Until then, direct Finnhub call is used as fallback
 var PROXY_URL=''; // set this after Cloudflare Worker setup
 
+// Shared CORS proxy fan-out — three independent providers, since any one
+// (especially corsproxy.io free tier) can be down or rate-limited at any time.
+function proxyWrap(url){
+  return [
+    'https://corsproxy.io/?url='+encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)
+  ];
+}
+
 function fetchP(sym){
   var k=sym.toLowerCase();
   var ts=Date.now();
@@ -1466,14 +1476,7 @@ function fetchP(sym){
   var quoteUrl2='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+sym+'&_='+ts;
   // Fallback: chart endpoint
   var chartUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d&_='+ts;
-  var proxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(quoteUrl),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(quoteUrl),
-    'https://corsproxy.io/?'+encodeURIComponent(quoteUrl2),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(quoteUrl2),
-    'https://corsproxy.io/?'+encodeURIComponent(chartUrl),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(chartUrl)
-  ];
+  var proxies=proxyWrap(quoteUrl).concat(proxyWrap(quoteUrl2),proxyWrap(chartUrl));
   function tryProxy(i){
     if(i>=proxies.length){tryClaudePrice(sym);return;}
     fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
@@ -1620,7 +1623,7 @@ function fetchDIA(){
   }
   tryProxy(0);
 }
-function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();}
+function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();fetchVIX();fetchMacro();}
 
 /* ── Refresh helpers ── */
 function rfSpin(id,ms){var b=$('rfr-'+id);if(!b)return;b.classList.add('spinning');setTimeout(function(){b.classList.remove('spinning');},ms||3500);}
@@ -2461,6 +2464,105 @@ function renderDeepResult(r, sig, livePrice, optionsData){
     +(dataPills?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;">'+dataPills+'</div>':'');
 }
 
+/* ── REGIME LAYER: 50MA trend + VIX + macro veto ──
+   Most false signals come from fading a strong trend or trading into a binary
+   macro event. These filters downgrade (never upgrade) the raw indicator score:
+   BUY → LEAN → NO TRADE. */
+var VIX_NOW=null;
+var MACRO={risk:'UNKNOWN',note:''};
+
+function fetchVIX(){
+  var urls=proxyWrap('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d&_='+Date.now());
+  (function tryV(i){
+    if(i>=urls.length)return;
+    fetch(urls[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(raw){
+        var d=typeof raw==='string'?JSON.parse(raw):raw;
+        var v=d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta.regularMarketPrice;
+        if(!v||isNaN(v))throw 0;
+        VIX_NOW=v;
+        geRerender();
+      })
+      .catch(function(){tryV(i+1);});
+  })(0);
+}
+
+function fetchMacro(){
+  // Cached 30 min — one cheap Haiku web-search call, not one per refresh
+  try{
+    var cached=JSON.parse(localStorage.getItem('ge_macro')||'null');
+    if(cached&&cached.ts&&Date.now()-cached.ts<30*60*1000){MACRO=cached;return;}
+  }catch(e){}
+  var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
+  if(!apiKey||apiKey.indexOf('sk-')===-1){MACRO={risk:'UNKNOWN',note:'macro check off — no API key set'};return;}
+  var today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',max_tokens:300,
+      tools:[{type:'web_search_20250305',name:'web_search',max_uses:2}],
+      messages:[{role:'user',content:'Today is '+today+'. Use web search ("economic calendar this week") to check: are there major scheduled US macro events TODAY or in the NEXT 2 TRADING DAYS that could move SPY/QQQ — FOMC decision or Fed chair speech, CPI/PPI, jobs report (NFP), GDP, or mega-cap (AAPL/MSFT/NVDA/AMZN/GOOGL/META) earnings? Reply ONLY raw JSON: {"risk":"LOW"|"MEDIUM"|"HIGH","note":"<10 words, name the event and day>"}'}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    var m=text.match(/\{[\s\S]*?\}/);
+    if(!m)throw 0;
+    var p=JSON.parse(m[0]);
+    if(['LOW','MEDIUM','HIGH'].indexOf(p.risk)===-1)throw 0;
+    MACRO={risk:p.risk,note:p.note||'',ts:Date.now()};
+    try{localStorage.setItem('ge_macro',JSON.stringify(MACRO));}catch(e){}
+    geRerender();
+  })
+  .catch(function(){MACRO={risk:'UNKNOWN',note:'macro check failed'};});
+}
+
+function geRerender(){
+  // VIX/macro arrive async — refresh the rendered signal if real data is loaded
+  try{
+    var sym=T4.toUpperCase();
+    if(G4_CACHE[sym])go4();else renderDualCards();
+  }catch(e){}
+}
+
+function geTrend(closes,spot){
+  if(!closes||closes.length<50)return{trend:null,ma50:null};
+  var ma50=closes.slice(-50).reduce(function(a,b){return a+b;})/50;
+  return{trend:spot>ma50?'UP':'DOWN',ma50:ma50};
+}
+
+// One-step downgrade per triggered filter: BUY → LEAN → NO TRADE. Never upgrades.
+function geRegimeFilter(action,bull,bear,trend){
+  var notes=[],a=action;
+  function down(reason){
+    notes.push(reason);
+    if(a.indexOf('BUY')===0)a=a.replace('BUY','LEAN');
+    else if(a.indexOf('LEAN')===0)a='NO TRADE';
+  }
+  var isCall=a.indexOf('CALL')>-1,isPut=a.indexOf('PUT')>-1;
+  // 1. Trend filter — don't fight the 50MA unless the score is overwhelming (≥7)
+  if(trend==='UP'&&isPut&&bear<7)down('Counter-trend: price above 50MA uptrend');
+  if(trend==='DOWN'&&isCall&&bull<7)down('Counter-trend: price below 50MA downtrend');
+  isPut=a.indexOf('PUT')>-1;
+  // 2. VIX regime
+  if(VIX_NOW!=null){
+    if(VIX_NOW>=28)down('VIX '+VIX_NOW.toFixed(1)+' — panic regime, whipsaw risk');
+    else if(VIX_NOW<15&&isPut&&a.indexOf('BUY')===0)down('VIX '+VIX_NOW.toFixed(1)+' — calm melt-up regime, fading is low-odds');
+  }
+  // 3. Macro veto — binary events ahead
+  if(MACRO.risk==='HIGH')down('Macro event ahead: '+(MACRO.note||'major release'));
+  return{action:a,notes:notes,changed:a!==action};
+}
+
+function geActionColor(a){
+  if(a.indexOf('CALL')>-1)return a.indexOf('BUY')===0?'#14532d':'#166534';
+  if(a.indexOf('PUT')>-1)return a.indexOf('BUY')===0?'#7f1d1d':'#991b1b';
+  return '#1e293b';
+}
+
 /* Runs same math as processSignal but returns a result object instead of writing DOM.
    Keeps processSignal 100% untouched. */
 function quickSignal(sym){
@@ -2472,10 +2574,11 @@ function quickSignal(sym){
   if(cache&&cache.length>=20){
     closes=cache.map(function(v){return v.c;});n=closes.length;
   } else {
-    // synthetic from live price
-    var arr=[],p=spot;
-    for(var i=29;i>=0;i--){var prev=p*(1+(Math.random()-.5)*iv3*Math.sqrt(1/252));arr.unshift({c:p});p=prev;}
-    arr[arr.length-1]={c:spot};closes=arr.map(function(v){return v.c;});n=closes.length;
+    // No real history yet — never compute RSI/MA on a Math.random() series.
+    // (A backwards random walk is biased toward "Below MA" → fake LEAN PUT.)
+    return{action:'NO DATA',color:'#475569',bgColor:'#f8fafc',borderColor:'#e2e8f0',
+      conf:'—',sub:'─ Awaiting live feed',detail:'No signal without real market data',
+      bull:0,bear:0,noData:true};
   }
   // Gap injection — same logic as processSignal so dual cards stay consistent
   var lastQClose=closes[n-1];
@@ -2500,8 +2603,18 @@ function quickSignal(sym){
   else if(bear>bull){action='LEAN PUT';color='#991b1b';bgColor='#ffffff';borderColor='#e2e8f0';}
   else{action='NO TRADE';color='#1e293b';bgColor='#ffffff';borderColor='#e2e8f0';}
   var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
+  // Same regime filter as processSignal — dual cards must agree with main signal
+  var regT=geTrend(closes,spot);
+  var regF=geRegimeFilter(action,bull,bear,regT.trend);
+  if(regF.changed){
+    action=regF.action;
+    color=geActionColor(action);
+    conf='Low (regime)';
+  }
   var sub=action.indexOf('CALL')>-1?'↑ Bullish':action.indexOf('PUT')>-1?'↓ Bearish':'─ Wait';
   var detail='RSI '+rsi.toFixed(0)+' · '+(aboveMA?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
+  if(regF.changed)detail+=' · ⛔ '+regF.notes[0];
+  else if(regT.trend)detail+=' · 50MA '+(regT.trend==='UP'?'↑':'↓');
   return{action:action,color:color,bgColor:bgColor,borderColor:borderColor,conf:conf,sub:sub,detail:detail,bull:bull,bear:bear};
 }
 
@@ -2556,49 +2669,35 @@ function go4(){
     return;
   }
 
-  // Show instant estimate while fetching
-  $('g-loading').style.display='none';
-  $('g-signal').style.display='block';
+  // NO SYNTHETIC SIGNALS: a Math.random() price series is not a market view.
+  // Show a loading state and only render a signal once REAL history arrives.
+  $('g-loading').style.display='block';
+  $('g-signal').style.display='none';
   $('g-error').style.display='none';
-  // Build synthetic dataset centered on live price for instant render
-  var liveP=LIVE[T4]>0?LIVE[T4]:DEFS[T4].spot;
-  var synthetic=[];
-  var p=liveP;
-  for(var i=29;i>=1;i--){
-    // Walk backwards from live price
-    var prev=p*(1+(Math.random()-0.5)*iv3*Math.sqrt(1/252));
-    synthetic.unshift({c:p,h:p*1.004,l:p*0.996,v:50000000});
-    p=prev;
-  }
-  synthetic.unshift({c:p,h:p*1.004,l:p*0.996,v:50000000}); // day 0
-  synthetic[synthetic.length-1]={c:liveP,h:liveP*1.004,l:liveP*0.996,v:50000000};
-  processSignal(synthetic,capital,target,stopPct,sym);
-
-  // Show subtle loading indicator
-  var indEl=$('g-indicators');
-  if(indEl){
-    var loadDiv=document.createElement('div');
-    loadDiv.id='g-ind-load-'+sym;
-    loadDiv.style.cssText='margin-top:8px;font-size:10px;color:#64748b;font-weight:600;padding:6px 8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0';
-    loadDiv.textContent='⟳ Fetching live RSI/MA data…';
-    indEl.appendChild(loadDiv);
-  }
-
+  var gl=$('g-loading');
+  if(gl)gl.innerHTML='<div style="padding:28px 16px;text-align:center;"><div style="font-size:26px;margin-bottom:8px;">⟳</div><div style="font-size:13px;font-weight:800;color:#334155;">Fetching live market data for '+sym+'…</div><div style="font-size:11px;color:#64748b;margin-top:4px;">No signal is shown until real price history loads.</div></div>';
   function clearLoadMsg(){
     var ld=document.getElementById('g-ind-load-'+sym);
     if(ld)ld.remove();
   }
-  function showIndError(){
+  function showIndError(reason){
     clearLoadMsg();
-    // Only add error once per symbol
-    if(document.getElementById('g-ind-err-'+sym)) return;
-    var el=$('g-indicators');
-    if(!el) return;
-    var errEl=document.createElement('div');
-    errEl.id='g-ind-err-'+sym;
-    errEl.style.cssText='margin-top:8px;font-size:10px;color:#92400e;font-weight:600;padding:6px 8px;background:#fffbeb;border-radius:6px;border:1px solid #fcd34d';
-    errEl.textContent='⚠ Using estimated indicators — using synthetic data';
-    el.appendChild(errEl);
+    // HARD STOP: all real data sources failed. Never show a tradeable signal
+    // computed from fabricated data — show an explicit no-signal state instead.
+    $('g-loading').style.display='none';
+    $('g-signal').style.display='none';
+    var why=reason==='noKey'
+      ? 'The free market-data proxies are unreachable right now, and the AI fallback needs your Anthropic API key (not set on this device). Tap ⟳ refresh and enter your key when asked.'
+      : 'Could not load real price history for '+sym+' from any source (3 proxies × 2 endpoints + AI fallback all failed). This can happen if the viewer blocks outside network requests — try opening the file in Safari/Chrome, or tap ⟳ to retry.';
+    var ge=$('g-error');
+    if(ge){
+      ge.style.display='block';
+      ge.innerHTML='<div style="background:#f8fafc;border:2px dashed #cbd5e1;border-radius:14px;padding:22px 16px;text-align:center;">'
+        +'<div style="font-size:30px;margin-bottom:8px;">📡</div>'
+        +'<div style="font-size:16px;font-weight:900;color:#334155;margin-bottom:6px;">NO SIGNAL — live data unavailable</div>'
+        +'<div style="font-size:12px;color:#64748b;line-height:1.6;">Rather than compute RSI/MA from made-up data, no trade signal is shown.<br><br>'+why+'</div>'
+      +'</div>';
+    }
   }
   function applyHistData(closes,currentPrice,prevClose){
     if(closes.length<10){showIndError();return;}
@@ -2613,14 +2712,9 @@ function go4(){
   }
 
   // ── Step 1: Try Yahoo Finance directly for 30-day history ──
-  var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=45d';
-  var yhUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=45d';
-  var yhProxies=[
-    'https://corsproxy.io/?'+encodeURIComponent(yhUrl),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl),
-    'https://corsproxy.io/?'+encodeURIComponent(yhUrl2),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(yhUrl2)
-  ];
+  var yhUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=6mo';
+  var yhUrl2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=6mo';
+  var yhProxies=proxyWrap(yhUrl).concat(proxyWrap(yhUrl2));
 
   function tryYahooHist(i){
     if(i>=yhProxies.length){
@@ -2652,8 +2746,16 @@ function go4(){
   function tryClaude30Day(){
     var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||localStorage.getItem('oai_key')||'';
     if(!apiKey||apiKey.indexOf('sk-')===-1){
-      showIndError();
-      return;
+      // Don't fail silently — this is the last data source. Ask once.
+      var k=window.prompt('Market data proxies are unreachable. Enter your Anthropic API key (sk-ant-...) so the AI fallback can fetch real prices:');
+      if(k&&k.indexOf('sk-')>-1){
+        try{localStorage.setItem('sai_key',k.trim());}catch(e){}
+        apiKey=k.trim();
+        fetchAll(); // also retry quotes now that a key exists
+      }else{
+        showIndError('noKey');
+        return;
+      }
     }
     var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     var prompt='Search Yahoo Finance for '+sym+' stock. Return ONLY valid JSON (no markdown): '
@@ -2979,6 +3081,31 @@ function processSignal(valid,capital,target,stopPct,sym){
       reasons.push('Mixed signals — wait for clearer direction');
       if(capital>0&&target>0)reasons.push('Target is '+Math.round(capRatio*100)+'% of capital ('+fp(target)+'/'+fp(capital)+') — '+(aggressiveTrade?'high commitment needs strong signal':'consider smaller target to enable weaker-signal trades'));
     }
+  }
+
+  // ── REGIME FILTER (50MA trend + VIX + macro) — downgrades only ──
+  var regT=geTrend(closes,spot);
+  var regF=geRegimeFilter(action,bullPoints,bearPoints,regT.trend);
+  if(regF.changed){
+    action=regF.action;
+    isCall=action.indexOf('CALL')>-1?true:(action.indexOf('PUT')>-1?false:null);
+    color=geActionColor(action);
+    confidence=action==='NO TRADE'?'—':'Low (regime filter)';
+    regF.notes.forEach(function(nn){reasons.push('⛔ '+nn+' — signal downgraded');});
+  }
+  if(regT.ma50!=null){
+    var ma50Pct=(spot-regT.ma50)/regT.ma50*100;
+    signals.push({lbl:'Trend — 50MA',val:(ma50Pct>=0?'+':'')+ma50Pct.toFixed(1)+'%',note:regT.trend==='UP'?'Above 50MA — primary uptrend':'Below 50MA — primary downtrend',bull:regT.trend==='UP'});
+  }else{
+    signals.push({lbl:'Trend — 50MA',val:'n/a',note:'Need 50+ days of history for trend filter',bull:null});
+  }
+  if(VIX_NOW!=null){
+    signals.push({lbl:'VIX',val:VIX_NOW.toFixed(1),note:VIX_NOW>=28?'Panic — whipsaw regime':VIX_NOW>=20?'Elevated volatility':VIX_NOW>=15?'Normal regime':'Calm — melt-up regime',bull:VIX_NOW<20?true:(VIX_NOW>=28?false:null)});
+  }
+  if(MACRO.risk!=='UNKNOWN'){
+    signals.push({lbl:'Macro (next 2d)',val:MACRO.risk,note:MACRO.note||'—',bull:MACRO.risk==='LOW'?true:(MACRO.risk==='HIGH'?false:null)});
+  }else if(MACRO.note){
+    signals.push({lbl:'Macro (next 2d)',val:'—',note:MACRO.note,bull:null});
   }
 
   // Add capital context to reasoning always
