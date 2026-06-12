@@ -1458,6 +1458,18 @@ function buildRows(spot,iv3,dte,contracts,costPer,stopPct,bestDay,selDay,maxDays
 // Until then, direct Finnhub call is used as fallback
 var PROXY_URL=''; // set this after Cloudflare Worker setup
 
+// Sandbox-safe fetch with timeout: some viewers serialize fetch options and
+// CANNOT clone an AbortSignal ("The object can not be cloned" DataCloneError),
+// killing every request. So timeouts use Promise.race — no signal ever passed.
+function geFetch(url,ms){
+  var f;
+  try{f=fetch(url,{cache:'no-store'});}catch(e){return Promise.reject(e);}
+  return Promise.race([
+    f,
+    new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout '+(ms||9000)+'ms'));},ms||9000);})
+  ]);
+}
+
 // Shared CORS proxy fan-out — three independent providers, since any one
 // (especially corsproxy.io free tier) can be down or rate-limited at any time.
 function proxyWrap(url){
@@ -1466,6 +1478,65 @@ function proxyWrap(url){
     'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
     'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)
   ];
+}
+
+/* ── CBOE DIRECT (no proxy needed — their CDN allows browser requests) ──
+   Primary source for quotes, history, and VIX; proxies become the fallback. */
+var GE_NETLOG=[];
+function logNet(tag,msg){
+  GE_NETLOG.push(tag+': '+String(msg).slice(0,60));
+  if(GE_NETLOG.length>14)GE_NETLOG.shift();
+}
+function tdKey(){return (localStorage.getItem('td_key')||'').trim();}
+function geSetTdKey(){
+  var k=window.prompt('Paste your free Twelve Data API key (get one in ~1 min at twelvedata.com/register):');
+  if(k&&k.trim().length>10){try{localStorage.setItem('td_key',k.trim());}catch(e){} refreshSignal();}
+}
+function tdQuote(sym){
+  var k=tdKey();if(!k)return Promise.reject(new Error('no td key'));
+  return geFetch('https://api.twelvedata.com/quote?symbol='+sym.toUpperCase()+'&apikey='+k,8000)
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j.status==='error')throw new Error(j.message||'td error');
+      var p=parseFloat(j.close),pc=parseFloat(j.previous_close);
+      if(!p||isNaN(p))throw new Error('no price');
+      return{p:p,pc:isNaN(pc)?null:pc};
+    });
+}
+function tdHistory(sym){
+  var k=tdKey();if(!k)return Promise.reject(new Error('no td key'));
+  return geFetch('https://api.twelvedata.com/time_series?symbol='+sym.toUpperCase()+'&interval=1day&outputsize=130&apikey='+k,9000)
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j.status==='error')throw new Error(j.message||'td error');
+      var vals=j.values||[];
+      var closes=vals.map(function(v){return parseFloat(v.close);}).filter(function(x){return x>0&&!isNaN(x);}).reverse();
+      if(closes.length<10)throw new Error('only '+closes.length+' bars');
+      return closes;
+    });
+}
+function cboeQuote(sym){
+  var s=sym.toUpperCase();
+  return geFetch('https://cdn.cboe.com/api/global/delayed_quotes/quotes/'+s+'.json',7000)
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(j){
+      var d=(j&&j.data)||{};
+      var p=parseFloat(d.current_price!==undefined?d.current_price:(d.last_trade_price!==undefined?d.last_trade_price:d.close));
+      var pc=parseFloat(d.prev_day_close!==undefined?d.prev_day_close:(d.previous_close!==undefined?d.previous_close:d.prev_close));
+      if(!p||isNaN(p))throw new Error('no price in response');
+      return{p:p,pc:isNaN(pc)?null:pc};
+    });
+}
+function cboeHistory(sym){
+  var s=sym.toUpperCase();
+  return geFetch('https://cdn.cboe.com/api/global/delayed_quotes/charts/historical/'+s+'.json',8000)
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(j){
+      var arr=(j&&Array.isArray(j.data))?j.data:((j&&j.data&&Array.isArray(j.data.history))?j.data.history:[]);
+      var closes=arr.map(function(b){return parseFloat(b.close!==undefined?b.close:b.c);}).filter(function(x){return x>0&&!isNaN(x);});
+      if(closes.length<10)throw new Error('only '+closes.length+' bars');
+      return closes.slice(-130);
+    });
 }
 
 function fetchP(sym){
@@ -1478,8 +1549,7 @@ function fetchP(sym){
   var chartUrl='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=5d&_='+ts;
   var proxies=proxyWrap(quoteUrl).concat(proxyWrap(quoteUrl2),proxyWrap(chartUrl));
   function tryProxy(i){
-    if(i>=proxies.length){tryClaudePrice(sym);return;}
-    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+    if(i>=proxies.length){tryClaudePrice(sym);return;}    geFetch(proxies[i],9000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -1499,19 +1569,32 @@ function fetchP(sym){
         if(!p||isNaN(p))throw 0;
         applyPrice(sym,p,pc);
       })
-      .catch(function(){tryProxy(i+1);});
+      .catch(function(e){logNet('q-proxy'+i+' '+sym,(e&&e.message)||e||'fail');tryProxy(i+1);});
   }
-  tryProxy(0);
+  tdQuote(sym)
+    .then(function(q){applyPrice(sym,q.p,q.pc);})
+    .catch(function(e){
+      if(tdKey())logNet('td-q '+sym,(e&&e.message)||e||'fail');
+      cboeQuote(sym)
+        .then(function(q){applyPrice(sym,q.p,q.pc);})
+        .catch(function(e2){logNet('cboe-q '+sym,(e2&&e2.message)||e2||'fail');tryProxy(0);});
+    });
 }
 
+function loadStalePrice(sym){
+  try{
+    var c=JSON.parse(localStorage.getItem('ge_px_'+sym.toLowerCase())||'null');
+    if(c&&c.p)applyPrice(sym,c.p,c.pc,c.ts||Date.now());
+  }catch(e){}
+}
 function tryClaudePrice(sym){
   var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
-  if(!apiKey||apiKey.indexOf('sk-')===-1) return;
+  if(!apiKey||apiKey.indexOf('sk-')===-1){loadStalePrice(sym);return;}
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:80,
+      model:'claude-haiku-4-5-20251001',max_tokens:1200,
       tools:[{type:'web_search_20250305',name:'web_search'}],
       messages:[{role:'user',content:'Current price and previous close of '+sym+' stock right now? Reply ONLY JSON: {"c":123.45,"pc":122.10}'}]
     })
@@ -1527,10 +1610,10 @@ function tryClaudePrice(sym){
     var d=JSON.parse(full.slice(0,end));
     applyPrice(sym,d.c,d.pc);
   })
-  .catch(function(){});
+  .catch(function(){loadStalePrice(sym);});
 }
 
-function applyPrice(sym,p,pc){
+function applyPrice(sym,p,pc,staleTs){
   if(!p||isNaN(p))return;
   // Sanity: if computed change > 12% for index ETFs, something is wrong — clamp to 0
   var ch=p-(pc||p),pct=pc&&!isNaN(pc)?(ch/pc*100):0,k=sym.toLowerCase();
@@ -1539,9 +1622,20 @@ function applyPrice(sym,p,pc){
     ch=0;pct=0;
   }
   LIVE[k]=p;LIVE_CHG[k]=pct;
+  if(!staleTs){try{localStorage.setItem('ge_px_'+k,JSON.stringify({p:p,pc:pc,ts:Date.now()}));}catch(e){}}
   var pxEl=$('px-'+k);if(pxEl)pxEl.textContent='$'+p.toFixed(2);
   var el=$('pc-'+k);
-  if(el){var s=ch>=0?'+':'';el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';el.style.color=ch>=0?'var(--green)':'var(--red)';}
+  if(el){
+    var s=ch>=0?'+':'';
+    if(staleTs){
+      var st=new Date(staleTs).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%) · '+st;
+      el.style.color='#64748b';
+    }else{
+      el.textContent=s+ch.toFixed(2)+' ('+s+pct.toFixed(2)+'%)';
+      el.style.color=ch>=0?'var(--green)':'var(--red)';
+    }
+  }
   updateMktNow();
   if(T1===k)$('c1')&&($('c1').value=p.toFixed(2));
   if(T2===k)$('r1')&&($('r1').value=p.toFixed(2));
@@ -1608,7 +1702,7 @@ function fetchDIA(){
       }).catch(function(){});
       return;
     }
-    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+    geFetch(proxies[i],9000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -1995,7 +2089,7 @@ function lotteryFetchCustom(){
 
   function tryChart(i){
     if(i>=chartProxies.length){lotteryCustomFail(sym,'price');return;}
-    fetch(chartProxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+    geFetch(chartProxies[i],9000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -2047,7 +2141,7 @@ function fetchLotteryIV(sym,p,pc){
       lotteryApplyCustom(sym,p,pc,hv,true);
       return;
     }
-    fetch(optProxies[i],{cache:'no-store',signal:AbortSignal.timeout(7000)})
+    geFetch(optProxies[i],7000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -2472,10 +2566,15 @@ var VIX_NOW=null;
 var MACRO={risk:'UNKNOWN',note:''};
 
 function fetchVIX(){
+  cboeQuote('_VIX')
+    .then(function(q){VIX_NOW=q.p;geRerender();})
+    .catch(function(e){logNet('cboe-vix',(e&&e.message)||e||'fail');fetchVIXProxy();});
+}
+function fetchVIXProxy(){
   var urls=proxyWrap('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d&_='+Date.now());
   (function tryV(i){
     if(i>=urls.length)return;
-    fetch(urls[i],{cache:'no-store',signal:AbortSignal.timeout(5000)})
+    geFetch(urls[i],9000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -2484,7 +2583,7 @@ function fetchVIX(){
         VIX_NOW=v;
         geRerender();
       })
-      .catch(function(){tryV(i+1);});
+      .catch(function(e){logNet('vix-proxy'+i,(e&&e.message)||e||'fail');tryV(i+1);});
   })(0);
 }
 
@@ -2497,27 +2596,36 @@ function fetchMacro(){
   var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
   if(!apiKey||apiKey.indexOf('sk-')===-1){MACRO={risk:'UNKNOWN',note:'macro check off — no API key set'};return;}
   var today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:300,
-      tools:[{type:'web_search_20250305',name:'web_search',max_uses:2}],
-      messages:[{role:'user',content:'Today is '+today+'. Use web search ("economic calendar this week") to check: are there major scheduled US macro events TODAY or in the NEXT 2 TRADING DAYS that could move SPY/QQQ — FOMC decision or Fed chair speech, CPI/PPI, jobs report (NFP), GDP, or mega-cap (AAPL/MSFT/NVDA/AMZN/GOOGL/META) earnings? Reply ONLY raw JSON: {"risk":"LOW"|"MEDIUM"|"HIGH","note":"<10 words, name the event and day>"}'}]
+  var messages=[{role:'user',content:'Today is '+today+'. Use web search ("economic calendar this week") to check: are there major scheduled US macro events TODAY or in the NEXT 2 TRADING DAYS that could move SPY/QQQ — FOMC decision or Fed chair speech, CPI/PPI, jobs report (NFP), GDP, or mega-cap (AAPL/MSFT/NVDA/AMZN/GOOGL/META) earnings? Verify event dates against the calendar you find — do not guess dates. Reply ONLY raw JSON: {"risk":"LOW"|"MEDIUM"|"HIGH","note":"<10 words, name the event and day>"}'}];
+  (function turn(left){
+    if(left<=0){MACRO={risk:'UNKNOWN',note:'macro check failed — tap ⟳ to retry'};return;}
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:1500,
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:3}],
+        messages:messages
+      })
     })
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-    var m=text.match(/\{[\s\S]*?\}/);
-    if(!m)throw 0;
-    var p=JSON.parse(m[0]);
-    if(['LOW','MEDIUM','HIGH'].indexOf(p.risk)===-1)throw 0;
-    MACRO={risk:p.risk,note:p.note||'',ts:Date.now()};
-    try{localStorage.setItem('ge_macro',JSON.stringify(MACRO));}catch(e){}
-    geRerender();
-  })
-  .catch(function(){MACRO={risk:'UNKNOWN',note:'macro check failed'};});
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.stop_reason==='pause_turn'){
+        messages.push({role:'assistant',content:data.content||[]});
+        turn(left-1);return;
+      }
+      var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      // Take the LAST JSON object in the text — search chatter may contain braces
+      var all=text.match(/\{[^{}]*\}/g);
+      if(!all||!all.length)throw 0;
+      var p=JSON.parse(all[all.length-1]);
+      if(['LOW','MEDIUM','HIGH'].indexOf(p.risk)===-1)throw 0;
+      MACRO={risk:p.risk,note:p.note||'',ts:Date.now()};
+      try{localStorage.setItem('ge_macro',JSON.stringify(MACRO));}catch(e){}
+      geRerender();
+    })
+    .catch(function(){MACRO={risk:'UNKNOWN',note:'macro check failed — tap ⟳ to retry'};geRerender();});
+  })(4);
 }
 
 function geRerender(){
@@ -2682,8 +2790,26 @@ function go4(){
   }
   function showIndError(reason){
     clearLoadMsg();
-    // HARD STOP: all real data sources failed. Never show a tradeable signal
-    // computed from fabricated data — show an explicit no-signal state instead.
+    // FIRST: fall back to the last REAL data we ever fetched (clearly labeled stale).
+    // After hours this is usually just the official close — fully valid for signals.
+    // This also keeps the signal card (and its StockAI validate button) available.
+    var stale=null;
+    try{stale=JSON.parse(localStorage.getItem('ge_hist_'+sym)||'null');}catch(e){}
+    if(stale&&stale.bars&&stale.bars.length>=10){
+      G4_CACHE[sym]=stale.bars;
+      $('g-loading').style.display='none';
+      $('g-signal').style.display='block';
+      processSignal(stale.bars,capital,target,stopPct,sym);
+      renderDualCards();
+      var when=new Date(stale.ts).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+      var ge0=$('g-error');
+      if(ge0){
+        ge0.style.display='block';
+        ge0.innerHTML='<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:11px;font-weight:700;color:#854d0e;line-height:1.5;">⏱ STALE DATA — live feed unreachable. Signal uses last real data from '+when+'. '+(reason==='noKey'?'AI fallback needs your API key — tap ⟳ and enter it.':'Tap ⟳ to retry live.')+'</div>';
+      }
+      return;
+    }
+    // No real data has EVER loaded — hard stop, never fabricate.
     $('g-loading').style.display='none';
     $('g-signal').style.display='none';
     var why=reason==='noKey'
@@ -2696,6 +2822,9 @@ function go4(){
         +'<div style="font-size:30px;margin-bottom:8px;">📡</div>'
         +'<div style="font-size:16px;font-weight:900;color:#334155;margin-bottom:6px;">NO SIGNAL — live data unavailable</div>'
         +'<div style="font-size:12px;color:#64748b;line-height:1.6;">Rather than compute RSI/MA from made-up data, no trade signal is shown.<br><br>'+why+'</div>'
+        +'<div onclick="geSetTdKey()" style="margin-top:12px;display:inline-block;background:#0e7490;color:#fff;font-size:12px;font-weight:800;border-radius:9px;padding:9px 14px;cursor:pointer;">🔑 Fix permanently: add a free Twelve Data key</div>'
+        +'<div style="font-size:10px;color:#94a3b8;margin-top:5px;">1-min signup at twelvedata.com — direct feed, no proxies, 800 req/day free</div>'
+        +(GE_NETLOG.length?'<div style="margin-top:12px;text-align:left;background:#0f172a;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-size:9px;border-radius:8px;padding:8px 10px;line-height:1.6;max-height:150px;overflow:auto;">DATA LOG (screenshot this)<br>'+GE_NETLOG.join('<br>')+'</div>':'')
       +'</div>';
     }
   }
@@ -2704,9 +2833,12 @@ function go4(){
     var valid=closes.map(function(c){return{c:c,h:c*1.005,l:c*0.995,v:1000000};});
     if(currentPrice) applyPrice(sym,currentPrice,prevClose);
     G4_CACHE[sym]=valid;
+    // Persist last-known-good REAL data — used as clearly-labeled stale fallback
+    try{localStorage.setItem('ge_hist_'+sym,JSON.stringify({bars:valid,ts:Date.now()}));}catch(e){}
     clearLoadMsg();
     $('g-loading').style.display='none';
     $('g-signal').style.display='block';
+    $('g-error').style.display='none';
     processSignal(valid,capital,target,stopPct,sym);
     renderDualCards();
   }
@@ -2722,7 +2854,7 @@ function go4(){
       tryClaude30Day();
       return;
     }
-    fetch(yhProxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+    geFetch(yhProxies[i],9000)
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -2740,7 +2872,7 @@ function go4(){
         }
         applyHistData(closes,meta.regularMarketPrice,prevClose);
       })
-      .catch(function(){tryYahooHist(i+1);});
+      .catch(function(e){logNet('h-proxy'+i+' '+sym,(e&&e.message)||e||'fail');tryYahooHist(i+1);});
   }
 
   function tryClaude30Day(){
@@ -2753,34 +2885,71 @@ function go4(){
         apiKey=k.trim();
         fetchAll(); // also retry quotes now that a key exists
       }else{
+        logNet('claude-h','no API key');
         showIndError('noKey');
         return;
       }
     }
-    var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    var prompt='Search Yahoo Finance for '+sym+' stock. Return ONLY valid JSON (no markdown): '
-      +'{"closes":[<last 30 daily closing prices oldest first>],"currentPrice":<number>,"prevClose":<number>}';
-    fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',max_tokens:600,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:prompt}]
+    logNet('claude-h '+sym,'attempting…');
+    var prompt='Use web search to find recent daily closing prices for '+sym+' stock (search "'+sym+' historical prices"). '
+      +'I need AT LEAST 12 (ideally 20+) consecutive daily closes, oldest first, plus the latest price and previous close. '
+      +'Use only REAL numbers found in search results — never estimate or invent. '
+      +'Reply ONLY raw JSON, no markdown: {"closes":[...],"currentPrice":123.45,"prevClose":122.10}';
+    var messages=[{role:'user',content:prompt}];
+    (function turn(left){
+      if(left<=0){logNet('claude-h '+sym,'ran out of turns');showIndError();return;}
+      fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({
+          model:'claude-haiku-4-5-20251001',max_tokens:4000,
+          tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
+          messages:messages
+        })
       })
-    })
-    .then(function(r){return r.json();})
-    .then(function(data){
-      var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-      var match=text.match(/\{[\s\S]*?\}/);
-      if(!match)throw new Error('no json');
-      var parsed=JSON.parse(match[0]);
-      applyHistData(parsed.closes||[],parsed.currentPrice,parsed.prevClose);
-    })
-    .catch(function(){showIndError();});
+      .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+      .then(function(res){
+        if(!res.ok){
+          var em=(res.data.error&&res.data.error.message)||('HTTP '+res.status);
+          logNet('claude-h '+sym,em);
+          showIndError();return;
+        }
+        var data=res.data;
+        if(data.stop_reason==='pause_turn'){
+          messages.push({role:'assistant',content:data.content||[]});
+          turn(left-1);return;
+        }
+        var text='';(data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+        // Balanced-brace scan for the object containing "closes"
+        var ix=text.lastIndexOf('"closes"');
+        if(ix===-1){logNet('claude-h '+sym,'no closes in reply ('+(data.stop_reason||'?')+')');showIndError();return;}
+        var start=text.lastIndexOf('{',ix);
+        var depth=0,end=-1;
+        for(var i2=start;i2<text.length;i2++){
+          if(text[i2]==='{')depth++;
+          else if(text[i2]==='}'){depth--;if(depth===0){end=i2;break;}}
+        }
+        if(start===-1||end===-1){logNet('claude-h '+sym,'unbalanced json');showIndError();return;}
+        try{
+          var parsed=JSON.parse(text.slice(start,end+1));
+          var cl=(parsed.closes||[]).map(parseFloat).filter(function(x){return x>0&&!isNaN(x);});
+          if(cl.length<10){logNet('claude-h '+sym,'only '+cl.length+' closes');showIndError();return;}
+          logNet('claude-h '+sym,'OK — '+cl.length+' closes');
+          applyHistData(cl,parsed.currentPrice,parsed.prevClose);
+        }catch(e){logNet('claude-h '+sym,'parse: '+(e.message||e));showIndError();}
+      })
+      .catch(function(e){logNet('claude-h '+sym,(e&&e.message)||'network fail');showIndError();});
+    })(4);
   }
 
-  tryYahooHist(0);
+  tdHistory(sym)
+    .then(function(closes){applyHistData(closes,null,null);})
+    .catch(function(e){
+      if(tdKey())logNet('td-h '+sym,(e&&e.message)||e||'fail');
+      cboeHistory(sym)
+        .then(function(closes){applyHistData(closes,null,null);})
+        .catch(function(e2){logNet('cboe-h '+sym,(e2&&e2.message)||e2||'fail');tryYahooHist(0);});
+    });
 }
 
 // Refresh cache every 5 minutes
@@ -3221,17 +3390,17 @@ function processSignal(valid,capital,target,stopPct,sym){
   $('g-reason').innerHTML='<div style="font-size:11px;color:#0f172a;line-height:1.7;font-weight:600">'+reasons.join(' · ')+'</div>'
     +'<div style="font-size:10px;color:#374151;margin-top:6px;font-weight:500">ATR +/-'+expMove+'%/day · RSI '+rsi.toFixed(0)+' · IV '+(iv3*100).toFixed(0)+'%</div>';
 
-  // Indicators
-  var ih='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  // Indicators — compact single-line rows (phone-friendly)
+  var ih='<div style="display:flex;flex-direction:column;gap:4px">';
   signals.forEach(function(s){
     var sc=s.bull===true?'#166534':s.bull===false?'#9b1c1c':'#1e3a8a';
     var bg=s.bull===true?'#f0fdf4':s.bull===false?'#fef2f2':'#eff6ff';
-    var bd=s.bull===true?'#bbf7d0':s.bull===false?'#fecaca':'#bfdbfe';
+    var bd=s.bull===true?'#86efac':s.bull===false?'#fca5a5':'#bfdbfe';
     var icon=s.bull===true?'▲':s.bull===false?'▼':'─';
-    ih+='<div style="background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:10px 11px">';
-    ih+='<div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">'+s.lbl+'</div>';
-    ih+='<div style="font-size:15px;font-weight:800;color:'+sc+'">'+icon+' '+s.val+'</div>';
-    ih+='<div style="font-size:10px;color:'+sc+';font-weight:600;margin-top:3px;opacity:.85">'+s.note+'</div>';
+    ih+='<div style="display:flex;align-items:center;gap:8px;background:'+bg+';border-left:3px solid '+bd+';border-radius:7px;padding:5px 9px;min-width:0">';
+    ih+='<div style="font-size:9px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0">'+s.lbl+'</div>';
+    ih+='<div style="flex:1;font-size:9.5px;color:'+sc+';font-weight:600;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;min-width:0">'+s.note+'</div>';
+    ih+='<div style="font-size:12.5px;font-weight:800;color:'+sc+';white-space:nowrap;flex-shrink:0">'+icon+' '+s.val+'</div>';
     ih+='</div>';
   });
   ih+='</div>';
@@ -4982,7 +5151,7 @@ function alFetchTicker(card){
       if(badgeEl)badgeEl.innerHTML='<div style="font-size:10px;color:#f87171;font-weight:700">⚠ Could not fetch — enter price manually</div>';
       return;
     }
-    fetch(proxies[i],{cache:'no-store',signal:AbortSignal.timeout(6000)})
+    geFetch(proxies[i],9000)
       .then(function(r){return r.json();})
       .then(function(raw){
         var d=typeof raw==='string'?JSON.parse(raw):(raw.contents?JSON.parse(raw.contents):raw);
