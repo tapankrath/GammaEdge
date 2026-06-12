@@ -3427,110 +3427,127 @@ function gePlanManual(isCall){
   var K=Math.round(c.spot);
   var dte=c.atrPct>1?8:14; // same DTE logic as engine's low-confidence path
   renderSetupGrid(c.spot,K,c.iv3,dte,c.capital,c.stopPct,isCall?'#166534':'#991b1b',isCall,0,false);
-  // Make clear this is a manual plan, not an engine signal
   var sg=$('g-setup-grid');
-  if(sg)sg.insertAdjacentHTML('afterbegin','<div style="grid-column:1/-1;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:800;color:#854d0e;">✋ MANUAL PLAN — engine signal is NO TRADE; this is your discretionary setup</div>');
+  if(sg)sg.insertAdjacentHTML('afterbegin','<div style="grid-column:1/-1;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:800;color:#854d0e;">\u270b MANUAL PLAN \u2014 engine signal is NO TRADE; this is your discretionary setup</div>');
 }
+
+/* ── TREND-SKEWED RATIO STRANGLE ──
+   Both legs LONG: trend leg ATM in signal direction, hedge leg OTM opposite.
+   Capital split favors trend by confidence: High 80/20, Medium 70/30, Low 60/40.
+   All sizing & P&L compute ONLY from broker-entered premiums (model never prices). */
 function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShare,isLive){
   var sg=$('g-setup-grid');
   if(!sg) return;
-  G_SETUP={spot:spot,K:K,iv3:iv3,dte:dte,capital:capital,stopPct:stopPct,color:color,isCall:isCall};
-  var pk=T4+'_'+K+(isCall?'C':'P');
-  var saved=G_PREM[pk]||'';
-  // If a REAL live mid was fetched from the chain, prefill (still editable).
-  // Model estimates (isLive=false) never prefill — broker price is the truth.
-  if(!saved&&isLive&&premPerShare>0)saved=premPerShare.toFixed(2);
+  var conf=(typeof G_LAST_SIGNAL!=='undefined'&&G_LAST_SIGNAL&&G_LAST_SIGNAL.confidence)||'';
+  var ratio=conf.indexOf('High')===0?0.8:conf.indexOf('Low')===0?0.6:0.7;
+  var Kt=K; // trend leg ATM
+  var Kh=isCall?Math.round(spot*0.975):Math.round(spot*1.025); // hedge ~2.5% OTM opposite side
+  G_SETUP={spot:spot,Kt:Kt,Kh:Kh,iv3:iv3,dte:dte,capital:capital,stopPct:stopPct,isCall:isCall,ratio:ratio,color:color};
+  var pk=T4+'_'+Kt+'_'+Kh+(isCall?'C':'P');
+  var sv=G_PREM[pk]||{};
+  var trendName=isCall?'CALL':'PUT',hedgeName=isCall?'PUT':'CALL';
 
-  // Recommendation = WHAT to buy (direction · strike · DTE · delta).
-  // Premium comes from YOUR broker — model estimates never match live bid/ask,
-  // so sizing and P&L only compute from the price you actually see/fill.
   sg.innerHTML=
-    '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Buy</div>'
-      +'<div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' '+(isCall?'CALL':'PUT')+'</div>'
-      +'<div style="font-size:9.5px;color:#475569;font-weight:600;margin-top:3px">ATM strike · target Δ 0.45–0.55 · check chain at broker</div></div>'
-    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Broker premium ($/share)</div>'
-      +'<input id="g-prem-in" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 6.45" value="'+saved+'" oninput="geManualPrem()" '
-      +'style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:15px;font-weight:800;color:#0f172a;background:#fff;outline:none;">'
-      +'<div style="font-size:8.5px;color:#64748b;font-weight:600;margin-top:3px">enter the mid/ask you see — ×100 per contract</div></div>'
+    '<div style="grid-column:1/-1;background:rgba(0,0,0,.06);padding:10px;border-radius:8px">'
+      +'<div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Structure \u2014 trend-skewed ratio strangle \u2014 contracts '+Math.round(ratio*100)+':'+Math.round((1-ratio)*100)+')</div>'
+      +'<div style="font-size:14px;font-weight:800;color:'+color+'">'+dte+' DTE \u00b7 BUY $'+Kt+' '+trendName+' <span style="font-size:10px;font-weight:700;color:#475569">(trend \u00b7 \u0394 0.45\u20130.55)</span></div>'
+      +'<div style="font-size:14px;font-weight:800;color:#475569;margin-top:2px">+ BUY $'+Kh+' '+hedgeName+' <span style="font-size:10px;font-weight:700;color:#64748b">(hedge \u00b7 \u0394 0.25\u20130.35)</span></div>'
+      +'<div style="font-size:9px;color:#64748b;font-weight:600;margin-top:4px">trend:hedge contract ratio \u2248 '+Math.round(ratio*100)+':'+Math.round((1-ratio)*100)+', sized to $'+fmt(capital)+' \u00b7 look both legs up at your broker</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Trend leg $'+Kt+' '+trendName+' ($/share)</div>'
+      +'<input id="g-prem-t" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 6.45" value="'+(sv.t||'')+'" oninput="geManualPrem()" '
+      +'style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:15px;font-weight:800;color:#0f172a;background:#fff;outline:none;"></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Hedge leg $'+Kh+' '+hedgeName+' ($/share)</div>'
+      +'<input id="g-prem-h" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 2.10" value="'+(sv.h||'')+'" oninput="geManualPrem()" '
+      +'style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:15px;font-weight:800;color:#0f172a;background:#fff;outline:none;"></div>'
     +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts (from $'+fmt(capital)+')</div>'
-      +'<div style="font-size:15px;font-weight:800;color:'+color+'" id="g-ct-out">— enter premium</div></div>'
-    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">P&L at target / stop</div>'
-      +'<div style="font-size:13.5px;font-weight:800;color:#1e293b" id="g-pnl-out">—</div></div>';
+      +'<div style="font-size:13.5px;font-weight:800;color:'+color+'" id="g-ct-out">\u2014 enter both premiums</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Position P&L</div>'
+      +'<div style="font-size:12px;font-weight:800;color:#1e293b;line-height:1.5" id="g-pnl-out">\u2014</div></div>';
 
-  // P&L table waits for the real premium
   var rowsEl=$('g-rows');
-  if(saved){geManualPrem();}
+  if(sv.t){geManualPrem();}
   else{
     if(rowsEl)rowsEl.innerHTML='';
     var pl=$('g-pnl-label');
-    if(pl)pl.textContent='Enter your broker premium above to compute the P&L table';
-  }
-
-  // Straddle/strangle context strip — clearly labeled as model reference only
-  var ctxEl=$('g-stdl-context');
-  if(ctxEl){
-    var T2=dte/252;
-    var ctxRows='';
-    [50,45,40].forEach(function(d){
-      var sgl=strangleAtDelta(spot,T2,iv3,d/100);
-      var pkgCost=sgl.cost*100;
-      var pkgCostPct=sgl.cost/spot*100;
-      var lbl=d===50?'Straddle (ATM)':d+'\u0394 Strangle';
-      var strikes=d===50?'$'+Math.round(sgl.Kc):'$'+sgl.Kp.toFixed(0)+'/$'+sgl.Kc.toFixed(0);
-      ctxRows+='<div style="background:rgba(0,0,0,.04);padding:8px 10px;border-radius:7px">';
-      ctxRows+='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:3px">'+lbl+'</div>';
-      ctxRows+='<div style="font-size:13px;font-weight:800;color:'+color+'">~$'+pkgCost.toFixed(0)+'/pkg</div>';
-      ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600;margin-top:2px">'+strikes+' \u00b7 '+pkgCostPct.toFixed(2)+'% of spot</div>';
-      ctxRows+='</div>';
-    });
-    ctxEl.innerHTML='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Non-directional alternatives at '+dte+' DTE <span style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-size:8px;">MODEL EST</span></div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+ctxRows+'</div>';
+    if(pl)pl.textContent='Enter your broker premiums above to compute the expiry P&L table';
   }
 }  // end renderSetupGrid
 
 function geManualPrem(){
   var s=G_SETUP;if(!s)return;
-  var inEl=$('g-prem-in');
-  var v=inEl?parseFloat(inEl.value):NaN;
-  var ct=$('g-ct-out'),po=$('g-pnl-out'),rowsEl=$('g-rows'),pl=$('g-pnl-label');
-  if(!v||isNaN(v)||v<=0){
-    if(ct)ct.textContent='\u2014 enter premium';
+  var tEl=$('g-prem-t'),hEl=$('g-prem-h');
+  var vt=tEl?parseFloat(tEl.value):NaN;
+  var vh=hEl?parseFloat(hEl.value):NaN;
+  var ct=$('g-ct-out'),po=$('g-pnl-out'),rowsEl=$('g-rows'),pl=$('g-pnl-label'),hd=$('g-stbl-hd');
+  function clearOut(msg){
+    if(ct)ct.innerHTML=msg||'\u2014 enter both premiums';
     if(po)po.textContent='\u2014';
     if(rowsEl)rowsEl.innerHTML='';
-    if(pl)pl.textContent='Enter your broker premium above to compute the P&L table';
-    return;
+    if(pl)pl.textContent='Enter your broker premiums above to compute the expiry P&L table';
   }
-  // Sanity: if entry looks like a per-contract value (e.g. 645 instead of 6.45)
-  if(v>s.spot*0.6){
-    if(ct)ct.innerHTML='<span style="font-size:11px;color:#b45309">That looks like $/contract \u2014 enter the per-SHARE price (\u00f7100)</span>';
-    if(po)po.textContent='\u2014';
-    return;
+  if(!vt||isNaN(vt)||vt<=0){clearOut();return;}
+  if(vt>s.spot*0.6||((vh||0)>s.spot*0.6)){clearOut('<span style="font-size:11px;color:#b45309">That looks like $/contract \u2014 enter the per-SHARE price (\u00f7100)</span>');return;}
+  var hedged=vh>0&&!isNaN(vh);
+  // Sizing: the ratio applies to CONTRACT COUNTS (e.g. 7 trend : 3 hedge),
+  // scaled to fit capital. Splitting dollars instead would give the cheaper
+  // hedge leg MORE contracts than the trend leg — the opposite of the intent.
+  var costT=vt*100,costH=hedged?vh*100:0;
+  var hRatio=(1-s.ratio)/s.ratio; // hedge contracts per trend contract
+  var nT,nH;
+  if(hedged){
+    nT=Math.floor(s.capital/(costT+costH*hRatio));
+    nH=Math.max(1,Math.round(nT*hRatio));
+    while(nT>1&&nT*costT+nH*costH>s.capital){nT--;nH=Math.max(1,Math.round(nT*hRatio));}
+  }else{
+    nT=Math.floor(s.capital/costT);nH=0;
   }
-  G_PREM[T4+'_'+s.K+(s.isCall?'C':'P')]=v;
-  var costPer=v*100;
-  var n=s.capital>0?Math.floor(s.capital/costPer):0;
-  if(n<1){
-    if(ct)ct.innerHTML='<span style="font-size:11px;color:#b45309">0 contracts \u2014 one contract ($'+fmt(costPer)+') exceeds capital</span>';
-    if(po)po.textContent='\u2014';
-    return;
-  }
-  var dep=n*costPer;
+  if(nT<1||(hedged&&nT*costT+nH*costH>s.capital)){clearOut('<span style="font-size:11px;color:#b45309">Premiums too rich \u2014 even 1 trend + 1 hedge contract exceeds $'+fmt(s.capital)+'</span>');return;}
+  var totalCost=nT*costT+nH*costH;
+  G_PREM[T4+'_'+s.Kt+'_'+s.Kh+(s.isCall?'C':'P')]={t:vt,h:hedged?vh:''};
+
+  var trendName=s.isCall?'C':'P',hedgeName=s.isCall?'P':'C';
+  if(ct)ct.innerHTML=nT+'\u00d7 $'+s.Kt+trendName+' + '+(nH>0?nH+'\u00d7 $'+s.Kh+hedgeName:'<span style="color:#b45309">no hedge</span>')
+    +'<div style="font-size:10px;color:#475569;font-weight:700;margin-top:2px">$'+fmt(totalCost)+' deployed'+(nH===0&&hedged?' \u00b7 hedge leg too expensive for '+Math.round((1-s.ratio)*100)+'% slice':'')+'</div>';
+
   var tgt=fv('g4')||50,stp=s.stopPct||30;
-  if(ct)ct.textContent=n+'c \u00b7 $'+fmt(dep)+' deployed';
-  if(po)po.innerHTML='<span style="color:#166534">+$'+fmt(Math.round(dep*tgt/100))+' at +'+tgt+'%</span><br><span style="color:#b91c1c">\u2212$'+fmt(Math.round(dep*stp/100))+' at \u2212'+stp+'%</span>';
-  // Rebuild P&L-by-day table anchored to YOUR real entry cost
-  var bp=-Infinity,bd2=1;
-  for(var dd=1;dd<=s.dte;dd++){
-    var remDays=Math.max(s.dte-dd,0);
-    var eiv=s.iv3*(1-crush(dd,s.dte));
-    var ns=s.spot*(1+(s.isCall?1:-1)*SCENS[2].mid/100);
-    var exitVal=(s.isCall?bsC(ns,s.K,remDays/252,eiv):bsP(ns,s.K,remDays/252,eiv))*100;
-    if(exitVal-costPer>bp){bp=exitVal-costPer;bd2=dd;}
-  }
+  if(po)po.innerHTML='Cost $'+fmt(totalCost)
+    +'<br><span style="color:#166534">+$'+fmt(Math.round(totalCost*tgt/100))+' if position value hits +'+tgt+'%</span>'
+    +'<br><span style="color:#b91c1c">\u2212$'+fmt(Math.round(totalCost*stp/100))+' stop at \u2212'+stp+'%</span>'
+    +'<br><span style="color:#64748b;font-size:10px">max loss if BOTH expire worthless: \u2212$'+fmt(totalCost)+'</span>';
+
+  // Deterministic EXPIRY scenario table (pure intrinsic — no model pricing)
+  if(hd)hd.innerHTML='<div class="shd">Spot at expiry</div><div class="shd dr">Trend leg</div><div class="shd mo">Hedge leg</div><div class="shd ex">Net P&L</div>';
   if(rowsEl){
-    buildDirectionalRows(s.spot,s.K,s.iv3,s.dte,n,costPer,stp,tgt,bd2,s.isCall,'g-rows');
-    if(pl)pl.textContent=(s.isCall?'Call':'Put')+' P&L by Day \u2014 '+s.dte+' DTE $'+s.K+' \u00b7 your fill $'+v.toFixed(2)+'/sh';
+    var moves=s.isCall?[-4,-2,-1,0,1,2,4]:[4,2,1,0,-1,-2,-4];
+    var rows='';
+    moves.forEach(function(m){
+      var S=s.spot*(1+m/100);
+      var legT=(s.isCall?Math.max(S-s.Kt,0):Math.max(s.Kt-S,0))*100*nT;
+      var legH=(s.isCall?Math.max(s.Kh-S,0):Math.max(S-s.Kh,0))*100*nH;
+      var net=legT+legH-totalCost;
+      var nc=net>=0?'#166534':'#b91c1c';
+      rows+='<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:4px;padding:5px 8px;border-bottom:1px solid #f1f5f9;align-items:center">'
+        +'<div style="font-size:10.5px;font-weight:800;color:#1e293b">'+(m>=0?'+':'')+m+'% \u00b7 $'+S.toFixed(0)+'</div>'
+        +'<div style="font-size:10.5px;font-weight:700;color:#475569">$'+fmt(Math.round(legT))+'</div>'
+        +'<div style="font-size:10.5px;font-weight:700;color:#475569">$'+fmt(Math.round(legH))+'</div>'
+        +'<div style="font-size:11px;font-weight:800;color:'+nc+'">'+(net>=0?'+':'\u2212')+'$'+fmt(Math.abs(Math.round(net)))+'</div>'
+      +'</div>';
+    });
+    // Breakevens (expiry)
+    var beUp,beDn,beTxt='';
+    if(s.isCall){
+      beUp=s.Kt+totalCost/(100*nT);
+      beTxt='Upside BE $'+beUp.toFixed(2)+' ('+(((beUp-s.spot)/s.spot)*100).toFixed(1)+'%)';
+      if(nH>0){beDn=s.Kh-totalCost/(100*nH);beTxt+=' \u00b7 Crash BE $'+beDn.toFixed(2)+' ('+(((beDn-s.spot)/s.spot)*100).toFixed(1)+'%)';}
+    }else{
+      beDn=s.Kt-totalCost/(100*nT);
+      beTxt='Downside BE $'+beDn.toFixed(2)+' ('+(((beDn-s.spot)/s.spot)*100).toFixed(1)+'%)';
+      if(nH>0){beUp=s.Kh+totalCost/(100*nH);beTxt+=' \u00b7 Rally BE $'+beUp.toFixed(2)+' ('+(((beUp-s.spot)/s.spot)*100).toFixed(1)+'%)';}
+    }
+    rows+='<div style="padding:6px 8px;font-size:9.5px;font-weight:700;color:#64748b">'+beTxt+' \u00b7 between BEs at expiry = loss zone (theta) \u00b7 exits before expiry will differ</div>';
+    rowsEl.innerHTML=rows;
   }
+  if(pl)pl.textContent='Expiry P&L scenarios \u2014 your fills $'+vt.toFixed(2)+(hedged?' / $'+vh.toFixed(2):'')+ ' \u00b7 intrinsic values, no model';
 }
 
 /* ── TAB 5: BACKTEST ── */
