@@ -3413,41 +3413,43 @@ function processSignal(valid,capital,target,stopPct,sym){
   renderIVMeter(iv3,atrPct,spot);
 }  // end processSignal
 
+var G_SETUP=null,G_PREM={};
 function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShare,isLive){
   var sg=$('g-setup-grid');
   if(!sg) return;
-  var costPer=premPerShare*100;
-  var contracts=capital>0&&costPer>0?Math.max(1,Math.floor(capital/costPer)):1;
-  var totalDeployed=costPer*contracts;
+  G_SETUP={spot:spot,K:K,iv3:iv3,dte:dte,capital:capital,stopPct:stopPct,color:color,isCall:isCall};
+  var pk=T4+'_'+K+(isCall?'C':'P');
+  var saved=G_PREM[pk]||'';
+  // If a REAL live mid was fetched from the chain, prefill (still editable).
+  // Model estimates (isLive=false) never prefill — broker price is the truth.
+  if(!saved&&isLive&&premPerShare>0)saved=premPerShare.toFixed(2);
 
-  // Find best exit day using real premium
-  var bp=-Infinity,bd=1;
-  for(var dd=1;dd<=dte;dd++){
-    var remDays=Math.max(dte-dd,0);
-    var eiv=iv3*(1-crush(dd,dte));
-    var ns=spot*(1+(isCall?1:-1)*SCENS[2].mid/100);
-    var exitVal=(isCall?bsC(ns,K,remDays/252,eiv):bsP(ns,K,remDays/252,eiv))*100;
-    var pnlDD=(exitVal-costPer);
-    if(pnlDD>bp){bp=pnlDD;bd=dd;}
-  }
-  var expectedPnl=bp*contracts;
-  var pnlClr=expectedPnl>0?'#166534':'#b91c1c';
-  var premLabel=isLive?'<span style="font-size:8px;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle;margin-left:4px;">LIVE MID</span>':'<span style="font-size:8px;background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle;margin-left:4px;">EST</span>';
-
+  // Recommendation = WHAT to buy (direction · strike · DTE · delta).
+  // Premium comes from YOUR broker — model estimates never match live bid/ask,
+  // so sizing and P&L only compute from the price you actually see/fill.
   sg.innerHTML=
-    '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Setup</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' ATM '+(isCall?'CALL':'PUT')+'</div></div>'
-    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Premium'+premLabel+'</div><div style="font-size:15px;font-weight:800;color:'+color+'">$'+premPerShare.toFixed(2)+'/sh · $'+fmt(costPer)+'/ct</div></div>'
-    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts (from $'+fmt(capital)+')</div><div style="font-size:15px;font-weight:800;color:'+color+'">'+contracts+'c · $'+fmt(totalDeployed)+' deployed</div></div>'
-    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Expected P&L at 1.5% D'+bd+'</div><div style="font-size:15px;font-weight:800;color:'+pnlClr+'">'+(expectedPnl>=0?'+':'')+'$'+fmt(expectedPnl)+'</div></div>';
+    '<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Buy</div>'
+      +'<div style="font-size:15px;font-weight:800;color:'+color+'">'+dte+' DTE $'+K+' '+(isCall?'CALL':'PUT')+'</div>'
+      +'<div style="font-size:9.5px;color:#475569;font-weight:600;margin-top:3px">ATM strike · target Δ 0.45–0.55 · check chain at broker</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Broker premium ($/share)</div>'
+      +'<input id="g-prem-in" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 6.45" value="'+saved+'" oninput="geManualPrem()" '
+      +'style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:15px;font-weight:800;color:#0f172a;background:#fff;outline:none;">'
+      +'<div style="font-size:8.5px;color:#64748b;font-weight:600;margin-top:3px">enter the mid/ask you see — ×100 per contract</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">Contracts (from $'+fmt(capital)+')</div>'
+      +'<div style="font-size:15px;font-weight:800;color:'+color+'" id="g-ct-out">— enter premium</div></div>'
+    +'<div style="background:rgba(0,0,0,.06);padding:10px;border-radius:8px"><div style="font-size:9px;color:#1e293b;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:4px">P&L at target / stop</div>'
+      +'<div style="font-size:13.5px;font-weight:800;color:#1e293b" id="g-pnl-out">—</div></div>';
 
-  // P&L table
+  // P&L table waits for the real premium
   var rowsEl=$('g-rows');
-  if(rowsEl){
-    buildDirectionalRows(spot,K,iv3,dte,contracts,costPer,stopPct,fv('g4'),bd,isCall,'g-rows');
-    $('g-pnl-label').textContent=(isCall?'Call':'Put')+' P&L by Day — '+dte+' DTE $'+K+' Strike'+(isLive?' (live mid)':'');
+  if(saved){geManualPrem();}
+  else{
+    if(rowsEl)rowsEl.innerHTML='';
+    var pl=$('g-pnl-label');
+    if(pl)pl.textContent='Enter your broker premium above to compute the P&L table';
   }
 
-  // Straddle/strangle context strip
+  // Straddle/strangle context strip — clearly labeled as model reference only
   var ctxEl=$('g-stdl-context');
   if(ctxEl){
     var T2=dte/252;
@@ -3456,20 +3458,63 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
       var sgl=strangleAtDelta(spot,T2,iv3,d/100);
       var pkgCost=sgl.cost*100;
       var pkgCostPct=sgl.cost/spot*100;
-      var pkgContracts=capital>0&&pkgCost>0?Math.max(1,Math.floor(capital/pkgCost)):0;
-      var lbl=d===50?'Straddle (ATM)':d+'Δ Strangle';
+      var lbl=d===50?'Straddle (ATM)':d+'\u0394 Strangle';
       var strikes=d===50?'$'+Math.round(sgl.Kc):'$'+sgl.Kp.toFixed(0)+'/$'+sgl.Kc.toFixed(0);
       ctxRows+='<div style="background:rgba(0,0,0,.04);padding:8px 10px;border-radius:7px">';
       ctxRows+='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:3px">'+lbl+'</div>';
-      ctxRows+='<div style="font-size:13px;font-weight:800;color:'+color+'">$'+pkgCost.toFixed(0)+'/pkg</div>';
-      ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600;margin-top:2px">'+strikes+' · '+pkgCostPct.toFixed(2)+'% of spot</div>';
-      if(pkgContracts>0)ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600">'+pkgContracts+'c · $'+fmt(pkgCost*pkgContracts)+'</div>';
+      ctxRows+='<div style="font-size:13px;font-weight:800;color:'+color+'">~$'+pkgCost.toFixed(0)+'/pkg</div>';
+      ctxRows+='<div style="font-size:9px;color:#475569;font-weight:600;margin-top:2px">'+strikes+' \u00b7 '+pkgCostPct.toFixed(2)+'% of spot</div>';
       ctxRows+='</div>';
     });
-    ctxEl.innerHTML='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Non-directional alternatives at '+dte+' DTE</div>'
+    ctxEl.innerHTML='<div style="font-size:9px;color:#374151;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Non-directional alternatives at '+dte+' DTE <span style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-size:8px;">MODEL EST</span></div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+ctxRows+'</div>';
   }
 }  // end renderSetupGrid
+
+function geManualPrem(){
+  var s=G_SETUP;if(!s)return;
+  var inEl=$('g-prem-in');
+  var v=inEl?parseFloat(inEl.value):NaN;
+  var ct=$('g-ct-out'),po=$('g-pnl-out'),rowsEl=$('g-rows'),pl=$('g-pnl-label');
+  if(!v||isNaN(v)||v<=0){
+    if(ct)ct.textContent='\u2014 enter premium';
+    if(po)po.textContent='\u2014';
+    if(rowsEl)rowsEl.innerHTML='';
+    if(pl)pl.textContent='Enter your broker premium above to compute the P&L table';
+    return;
+  }
+  // Sanity: if entry looks like a per-contract value (e.g. 645 instead of 6.45)
+  if(v>s.spot*0.6){
+    if(ct)ct.innerHTML='<span style="font-size:11px;color:#b45309">That looks like $/contract \u2014 enter the per-SHARE price (\u00f7100)</span>';
+    if(po)po.textContent='\u2014';
+    return;
+  }
+  G_PREM[T4+'_'+s.K+(s.isCall?'C':'P')]=v;
+  var costPer=v*100;
+  var n=s.capital>0?Math.floor(s.capital/costPer):0;
+  if(n<1){
+    if(ct)ct.innerHTML='<span style="font-size:11px;color:#b45309">0 contracts \u2014 one contract ($'+fmt(costPer)+') exceeds capital</span>';
+    if(po)po.textContent='\u2014';
+    return;
+  }
+  var dep=n*costPer;
+  var tgt=fv('g4')||50,stp=s.stopPct||30;
+  if(ct)ct.textContent=n+'c \u00b7 $'+fmt(dep)+' deployed';
+  if(po)po.innerHTML='<span style="color:#166534">+$'+fmt(Math.round(dep*tgt/100))+' at +'+tgt+'%</span><br><span style="color:#b91c1c">\u2212$'+fmt(Math.round(dep*stp/100))+' at \u2212'+stp+'%</span>';
+  // Rebuild P&L-by-day table anchored to YOUR real entry cost
+  var bp=-Infinity,bd2=1;
+  for(var dd=1;dd<=s.dte;dd++){
+    var remDays=Math.max(s.dte-dd,0);
+    var eiv=s.iv3*(1-crush(dd,s.dte));
+    var ns=s.spot*(1+(s.isCall?1:-1)*SCENS[2].mid/100);
+    var exitVal=(s.isCall?bsC(ns,s.K,remDays/252,eiv):bsP(ns,s.K,remDays/252,eiv))*100;
+    if(exitVal-costPer>bp){bp=exitVal-costPer;bd2=dd;}
+  }
+  if(rowsEl){
+    buildDirectionalRows(s.spot,s.K,s.iv3,s.dte,n,costPer,stp,tgt,bd2,s.isCall,'g-rows');
+    if(pl)pl.textContent=(s.isCall?'Call':'Put')+' P&L by Day \u2014 '+s.dte+' DTE $'+s.K+' \u00b7 your fill $'+v.toFixed(2)+'/sh';
+  }
+}
 
 /* ── TAB 5: BACKTEST ── */
 var AV_KEY='9EFXB0AURE601M2C';
