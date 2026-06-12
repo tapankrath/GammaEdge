@@ -3381,12 +3381,11 @@ function processSignal(valid,capital,target,stopPct,sym){
   else {
     // NO TRADE: engine says wait, but keep the position calculator reachable
     // for discretionary planning (and for testing the manual-premium flow).
-    G_PLAN_CTX={spot:spot,iv3:iv3,capital:capital,stopPct:stopPct,atrPct:atrPct};
+    G_PLAN_CTX={spot:spot,iv3:iv3,capital:capital,stopPct:stopPct,atrPct:atrPct,lean:bullPoints>=bearPoints};
     var sgEl=$('g-setup-grid');
     if(sgEl)sgEl.innerHTML='<div style="grid-column:1/-1;padding:10px;font-size:12px;color:#1e293b;font-weight:600">No trade recommended — wait for stronger signal'
-      +'<div style="display:flex;gap:8px;margin-top:9px;">'
-        +'<div onclick="gePlanManual(true)" style="flex:1;text-align:center;background:#f0fdf4;border:1.5px solid #86efac;color:#166534;border-radius:9px;padding:8px 6px;font-size:11px;font-weight:800;cursor:pointer;">Plan a CALL anyway</div>'
-        +'<div onclick="gePlanManual(false)" style="flex:1;text-align:center;background:#fef2f2;border:1.5px solid #fca5a5;color:#991b1b;border-radius:9px;padding:8px 6px;font-size:11px;font-weight:800;cursor:pointer;">Plan a PUT anyway</div>'
+      +'<div id="ge-plan-area" style="margin-top:9px;">'
+        +'<div onclick="gePlanDefault()" style="text-align:center;background:#0f172a;color:#fff;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:800;cursor:pointer;">📋 Plan a trade</div>'
       +'</div>'
       +'<div style="font-size:9px;color:#64748b;font-weight:600;margin-top:5px;">Manual planning — your discretion, engine still says wait</div></div>';
     if($('g-rows'))$('g-rows').innerHTML='';
@@ -3422,13 +3421,20 @@ function processSignal(valid,capital,target,stopPct,sym){
 }  // end processSignal
 
 var G_SETUP=null,G_PREM={},G_PLAN_CTX=null;
+function gePlanDefault(){
+  // Default direction = the engine's raw indicator lean (even when downgraded
+  // to NO TRADE), flippable from the banner.
+  gePlanManual(!!(G_PLAN_CTX&&G_PLAN_CTX.lean));
+}
 function gePlanManual(isCall){
   var c=G_PLAN_CTX;if(!c)return;
   var K=Math.round(c.spot);
   var dte=c.atrPct>1?8:14; // same DTE logic as engine's low-confidence path
   renderSetupGrid(c.spot,K,c.iv3,dte,c.capital,c.stopPct,isCall?'#166534':'#991b1b',isCall,0,false);
   var sg=$('g-setup-grid');
-  if(sg)sg.insertAdjacentHTML('afterbegin','<div style="grid-column:1/-1;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:800;color:#854d0e;">\u270b MANUAL PLAN \u2014 engine signal is NO TRADE; this is your discretionary setup</div>');
+  if(sg)sg.insertAdjacentHTML('afterbegin','<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:800;color:#854d0e;">'
+    +'<span style="flex:1">\u270b MANUAL '+(isCall?'CALL':'PUT')+' PLAN \u2014 engine says NO TRADE; defaulted to the raw '+(isCall?'bullish':'bearish')+' lean</span>'
+    +'<span onclick="gePlanManual('+(!isCall)+')" style="background:#fff;border:1px solid #fde047;border-radius:7px;padding:4px 9px;cursor:pointer;white-space:nowrap;">\u2194 flip to '+(isCall?'PUT':'CALL')+'</span></div>');
 }
 
 /* ── TREND-SKEWED RATIO STRANGLE ──
@@ -3445,6 +3451,10 @@ function renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,premPerShar
   G_SETUP={spot:spot,Kt:Kt,Kh:Kh,iv3:iv3,dte:dte,capital:capital,stopPct:stopPct,isCall:isCall,ratio:ratio,color:color};
   var pk=T4+'_'+Kt+'_'+Kh+(isCall?'C':'P');
   var sv=G_PREM[pk]||{};
+  // If a REAL live mid was fetched from the chain, prefill the trend leg
+  // (still editable). Model estimates (isLive=false) never prefill —
+  // broker prices are the truth. Hedge leg has no live source: always manual.
+  if(!sv.t&&isLive&&premPerShare>0)sv={t:premPerShare.toFixed(2),h:sv.h||''};
   var trendName=isCall?'CALL':'PUT',hedgeName=isCall?'PUT':'CALL';
 
   sg.innerHTML=
