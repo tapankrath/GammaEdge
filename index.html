@@ -6456,6 +6456,26 @@ $('pane6').className='pane';
 $('pane7').className='pane';
 $('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
+
+// ── RESUME REFRESH ──
+// iOS suspends timers while backgrounded/locked. Quotes catch up within a
+// minute of resume, but the RENDERED signal stays frozen at its last compute.
+// If the app was away >2 min, force-refresh everything so what you see on
+// open is current — same as tapping the ⟳ button.
+var GE_LAST_SEEN=Date.now();
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'){
+    var away=Date.now()-GE_LAST_SEEN;
+    GE_LAST_SEEN=Date.now();
+    if(away>2*60*1000){
+      G4_CACHE={};LIVE_CHG={};
+      fetchAll();
+      if(typeof go4==='function')go4(); // recomputes the open panel + "as of" stamp
+    }
+  }else{
+    GE_LAST_SEEN=Date.now();
+  }
+});
 setTimeout(function(){go4();},800);
 if($('b-dte-note'))$('b-dte-note').textContent=BT_DTE_NOTES[0];
 </script>
