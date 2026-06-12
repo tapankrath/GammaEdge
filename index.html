@@ -1728,7 +1728,7 @@ function fetchAll(){fetchP('SPY');fetchP('QQQ');fetchDIA();fetchVIX();fetchMacro
 
 /* ── Refresh helpers ── */
 function rfSpin(id,ms){var b=$('rfr-'+id);if(!b)return;b.classList.add('spinning');setTimeout(function(){b.classList.remove('spinning');},ms||3500);}
-function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};LIVE_CHG={};fetchAll();go4();}
+function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};LIVE_CHG={};fetchAll();go4();if(typeof geWarmIdxHist==='function')geWarmIdxHist();if(typeof geVerifyPicks==='function')geVerifyPicks(true);}
 function refreshLottery(){rfSpin('lottery',4000);var t=T3||'qqq';if(t.toLowerCase()==='spy')setT3('spy');else if(t.toLowerCase()==='qqq')setT3('qqq');else{$('s-custom-tk')&&($('s-custom-tk').value=t.toUpperCase());lotteryFetchCustom();}}
 function refreshBacktest(){rfSpin('backtest',5000);fetchOHLC(T5);}
 function refreshPlanner(){rfSpin('planner',4000);G4_CACHE={};fetchAll();setTimeout(function(){if(typeof pmUpdateDualSignals==='function')pmUpdateDualSignals();},2500);}
@@ -2723,6 +2723,7 @@ setTimeout(function(){
     var c=JSON.parse(localStorage.getItem('ge_scan')||'null');
     geRenderScan((c&&c.picks)||[]);
   }catch(e){geRenderScan([]);}
+  geVerifyPicks(); // chips turn engine-current in the background, no taps needed
 },400);
 
 function geScan(force){
@@ -2770,6 +2771,7 @@ function geScan(force){
         if(!picks.length)throw 0;
         try{localStorage.setItem('ge_scan',JSON.stringify({picks:picks,ts:Date.now()}));}catch(e){}
         geRenderScan(picks);
+        geVerifyPicks(true); // verify the fresh list in the background
       }catch(e){geScanStatus('Could not parse scan \u2014 tap Scan to retry.');}
     })
     .catch(function(){geScanStatus('Network error during scan \u2014 tap Scan to retry.');});
@@ -2785,6 +2787,61 @@ function geFindPick(tk){
     if(String(GE_PICKS[i].ticker).replace(/[^A-Za-z.]/g,'').toUpperCase()===tk)return GE_PICKS[i];
   }
   return null;
+}
+
+/* ── BACKGROUND PICK VERIFIER ──
+   On load (and after each scan), every pick is verified headlessly so chip
+   colors/markers are engine-current WITHOUT tapping. Decision math is the
+   same quickSignal the dual cards use — now branch-identical to processSignal,
+   so tapping a chip cannot flip its direction (same bars ⇒ same action). */
+var GE_VQ=[],GE_VQ_BUSY=false;
+function geVerifyPicks(force){
+  GE_PICKS.forEach(function(p){
+    var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
+    if(!tk||tk==='SPY'||tk==='QQQ')return;
+    if(!force&&G4_LAST_SIGNAL[tk.toLowerCase()])return; // already verified this session
+    if(GE_VQ.indexOf(tk)===-1)GE_VQ.push(tk);
+  });
+  geVQNext();
+}
+function geVQNext(){
+  if(GE_VQ_BUSY)return;
+  var tk=GE_VQ.shift();
+  if(!tk)return;
+  GE_VQ_BUSY=true;
+  function done(){GE_VQ_BUSY=false;setTimeout(geVQNext,1200);} // ~1.2s spacing — gentle on proxies
+  var k=tk.toLowerCase();
+  if(!DEFS[k])DEFS[k]={spot:0,iv:32,cost:10}; // quickSignal expects a DEFS entry
+  fetchP(tk); // live quote so background math matches the on-tap math
+  function ok(closes){
+    closes=(closes||[]).filter(function(c){return c!=null&&!isNaN(c)&&c>0;});
+    if(closes.length<10)return done();
+    var bars=closes.slice(-130).map(function(c){return{c:c,h:c*1.005,l:c*0.995,v:1000000};});
+    G4_CACHE[tk]=bars;
+    try{localStorage.setItem('ge_hist_'+tk,JSON.stringify({bars:bars,ts:Date.now()}));}catch(e){}
+    var q=quickSignal(tk);
+    if(q&&!q.noData){
+      G4_LAST_SIGNAL[k]={action:q.action,confidence:q.conf,spot:LIVE[k]||bars[bars.length-1].c,
+        rsi:null,iv:null,atrPct:null,dte:null,signals:[]};
+      geStyleChip(tk,GE_OPEN_PICK===tk);
+    }
+    done();
+  }
+  cboeHistory(tk).then(ok).catch(function(){
+    var u1='https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?interval=1d&range=6mo';
+    var u2='https://query2.finance.yahoo.com/v8/finance/chart/'+tk+'?interval=1d&range=6mo';
+    var ps=proxyWrap(u1).concat(proxyWrap(u2));
+    (function tryP(i){
+      if(i>=ps.length){tdHistory(tk).then(ok).catch(function(){done();});return;}
+      geFetch(ps[i],9000)
+        .then(function(r){if(!r.ok)throw 0;return r.json();})
+        .then(function(raw){
+          var d=typeof raw==='string'?JSON.parse(raw):raw;
+          ok(d.chart.result[0].indicators.quote[0].close||[]);
+        })
+        .catch(function(){tryP(i+1);});
+    })(0);
+  });
 }
 
 /* Effective chip view: once the engine has verified a ticker (G4_LAST_SIGNAL),
@@ -3059,12 +3116,23 @@ function quickSignal(sym){
   if(aboveMA)bull+=2;else bear+=2;
   if(rsi>65)bear+=2;else if(rsi>55)bull+=1;else if(rsi<35)bull+=2;else if(rsi<45)bear+=1;
   if(mom3>1.5)bull+=2;else if(mom3>0.5)bull+=1;else if(mom3<-1.5)bear+=2;else if(mom3<-.5)bear+=1;
-  var action,color,bgColor,borderColor;
-  if(bull>=5&&bull>bear*1.5){action='BUY CALL';color='#14532d';bgColor='#ffffff';borderColor='#e2e8f0';}
-  else if(bear>=5&&bear>bull*1.5){action='BUY PUT';color='#7f1d1d';bgColor='#ffffff';borderColor='#e2e8f0';}
-  else if(bull>bear){action='LEAN CALL';color='#166534';bgColor='#ffffff';borderColor='#e2e8f0';}
-  else if(bear>bull){action='LEAN PUT';color='#991b1b';bgColor='#ffffff';borderColor='#e2e8f0';}
-  else{action='NO TRADE';color='#1e293b';bgColor='#ffffff';borderColor='#e2e8f0';}
+  var action,color,bgColor,borderColor;bgColor='#ffffff';borderColor='#e2e8f0';
+  // MUST mirror processSignal's decision branches exactly (with target=0 ⇒
+  // lowRiskTrade=true, aggressiveTrade=false) or chips flip on click:
+  if(bull>=5&&bull>bear*1.5){action='BUY CALL';color='#14532d';}
+  else if(bear>=5&&bear>bull*1.5){action='BUY PUT';color='#7f1d1d';}
+  else if(bull>bear){action='LEAN CALL';color='#166534';}
+  else if(bear>bull){
+    // processSignal's mean-reversion branch: overbought above MA = BUY PUT
+    if(rsi>=65&&aboveMA){action='BUY PUT';color='#7f1d1d';}
+    else{action='LEAN PUT';color='#991b1b';}
+  }
+  else{
+    // processSignal's tie branches (lowRiskTrade is always true with target=0)
+    if(rsi>65){action='LEAN PUT (small)';color='#991b1b';}
+    else if(rsi<35){action='LEAN CALL (small)';color='#166534';}
+    else{action='NO TRADE';color='#1e293b';}
+  }
   var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
   // Same regime filter as processSignal — dual cards must agree with main signal
   var regT=geTrend(closes,spot);
@@ -3308,10 +3376,61 @@ function go4(){
     });
 }
 
-// Refresh cache every 5 minutes
+/* ── INDEX HISTORY WARMER ──
+   The dual SPY/QQQ cards need 30d history (G4_CACHE) for RSI/MA, but go4 only
+   fetches the OPEN ticker's history — so the other index sat at NO DATA until
+   tapped. This warms BOTH indices in the background at startup, on refresh,
+   and every 5 minutes. Same source order as go4: TwelveData → CBOE → Yahoo
+   proxies → last-known-real stale data. Cache is only ever REPLACED on a
+   successful fetch — never cleared first — so cards can't regress to NO DATA. */
+function geWarmIdxHist(force){
+  ['SPY','QQQ'].forEach(function(sym){
+    if(!force){
+      if(sym===T4.toUpperCase())return; // go4 owns the open ticker's fetch
+      if(G4_CACHE[sym]&&G4_CACHE[sym].length>=20)return; // already live
+    }
+    function ok(closes){
+      closes=(closes||[]).filter(function(c){return c!=null&&!isNaN(c)&&c>0;});
+      if(closes.length<10)return fallbackStale();
+      var bars=closes.slice(-130).map(function(c){return{c:c,h:c*1.005,l:c*0.995,v:1000000};});
+      G4_CACHE[sym]=bars;
+      try{localStorage.setItem('ge_hist_'+sym,JSON.stringify({bars:bars,ts:Date.now()}));}catch(e){}
+      renderDualCards();
+    }
+    function fallbackStale(){
+      if(G4_CACHE[sym]&&G4_CACHE[sym].length>=20)return; // keep what we have
+      try{
+        var st=JSON.parse(localStorage.getItem('ge_hist_'+sym)||'null');
+        if(st&&st.bars&&st.bars.length>=10){G4_CACHE[sym]=st.bars;renderDualCards();}
+      }catch(e){}
+    }
+    tdHistory(sym).then(ok).catch(function(){
+      cboeHistory(sym).then(ok).catch(function(){
+        var u1='https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=6mo';
+        var u2='https://query2.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=6mo';
+        var ps=proxyWrap(u1).concat(proxyWrap(u2));
+        (function tryP(i){
+          if(i>=ps.length)return fallbackStale();
+          geFetch(ps[i],9000)
+            .then(function(r){if(!r.ok)throw 0;return r.json();})
+            .then(function(raw){
+              var d=typeof raw==='string'?JSON.parse(raw):raw;
+              var res=d.chart.result[0];
+              ok(res.indicators.quote[0].close||[]);
+            })
+            .catch(function(){tryP(i+1);});
+        })(0);
+      });
+    });
+  });
+}
+
+// Every 5 minutes: indices re-warm in the background (dual cards self-refresh);
+// a non-index open ticker (scan pick) is marked stale to refetch on next open.
 setInterval(function(){
   var sym=T4.toUpperCase();
-  G4_CACHE[sym]=null; // clear cache to force refetch next time tab is opened
+  if(sym!=='SPY'&&sym!=='QQQ')G4_CACHE[sym]=null;
+  geWarmIdxHist(true);
 },5*60*1000);
 
 /* ── DIRECTIONAL P&L TABLE (single leg call or put) ── */
@@ -6456,6 +6575,7 @@ $('pane6').className='pane';
 $('pane7').className='pane';
 $('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
+geWarmIdxHist(); // both index cards get real history from the start
 
 // ── RESUME REFRESH ──
 // iOS suspends timers while backgrounded/locked. Quotes catch up within a
@@ -6471,6 +6591,8 @@ document.addEventListener('visibilitychange',function(){
       G4_CACHE={};LIVE_CHG={};
       fetchAll();
       if(typeof go4==='function')go4(); // recomputes the open panel + "as of" stamp
+      if(typeof geWarmIdxHist==='function')geWarmIdxHist(); // both dual cards current
+      if(typeof geVerifyPicks==='function')geVerifyPicks(true); // chips re-verify too
     }
   }else{
     GE_LAST_SEEN=Date.now();
