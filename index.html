@@ -951,6 +951,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div id="ge-scan-out" style="font-size:10.5px;color:#64748b;font-weight:600;line-height:1.5">Loading&hellip;</div>
   </div>
 
+  <!-- SPY/QQQ full plan expands here — outside the picks list so it doesn't push picks down inside the card -->
+  <div id="ge-idx-detail" style="display:none;margin-bottom:8px"></div>
+
   <div id="ge-signal-home"></div>
   <div id="ge-signal-block" style="display:none">
   <!-- Loading state -->
@@ -3020,6 +3023,9 @@ function geIndexPick(t){
   }
   geOpenSignalPanel(tk,key,'ge-idx-detail');
   var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25B4';
+  // Scroll the full-plan panel into view
+  var det=document.getElementById('ge-idx-detail');
+  if(det&&det.scrollIntoView)setTimeout(function(){det.scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 
 function geMarkIndexChips(){
@@ -3085,8 +3091,7 @@ function geRenderScan(picks){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
     +idxCard('spy','var(--purple)','var(--pbg)')
     +idxCard('qqq','var(--amber)','var(--abg)')
-    +'</div>'
-    +'<div id="ge-idx-detail" style="display:none;margin-top:9px"></div>';
+    +'</div>';
 
   // ── Cluster 2: opportunities — unified sorted list (most active, bull/bear) ──
   if(GE_PICKS.length){
