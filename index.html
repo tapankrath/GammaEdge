@@ -2950,8 +2950,25 @@ function geBuildPickReco(p){
   var rsiTag=(p.rsi!=null&&p.rsi!=='')?' \u00B7 RSI '+p.rsi:'';
   var col=bull?'#166534':'#991b1b';
   var tk=String(p.ticker).toUpperCase();
+  // Scan age for thesis card
+  var scanAgeNote='';
+  if(GE_SCAN_TS){
+    var _ageMs=Date.now()-GE_SCAN_TS;
+    var _ageMin=Math.floor(_ageMs/60000);
+    var _ageStr=_ageMin<2?'just now':_ageMin<60?_ageMin+'m ago':Math.floor(_ageMin/60)+'h '+(_ageMin%60)+'m ago';
+    var _isStale=_ageMs>4*60*60*1000;
+    scanAgeNote='<span style="font-size:8px;font-weight:700;color:'+(_isStale?'#b45309':'#94a3b8')+'">AI thesis from '+_ageStr+(_isStale?' — <b>may be outdated</b>':'')+' </span>';
+  }
+  var staleBar='';
+  if(GE_SCAN_TS&&(Date.now()-GE_SCAN_TS)>4*60*60*1000){
+    staleBar='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:6px 9px;margin-bottom:7px;font-size:9.5px;font-weight:800;color:#92400e">'  
+      +'⚠️ This AI thesis is from a stale scan. The note below may reference outdated events. '
+      +'<span onclick="geScan(true)" style="text-decoration:underline;cursor:pointer">Run a fresh scan</span> for current picks.'
+    +'</div>';
+  }
   return '<div style="border:1px solid #e2e8f0;border-left:4px solid '+col+';border-radius:9px;padding:9px 11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05)">'
-    +'<div style="font-size:12.5px;font-weight:900;color:'+col+'">'+tk+' \u2014 '+label+' <span style="font-size:9px;color:#64748b;font-weight:700">'+(p.sector||'')+rsiTag+'</span> <span style="font-size:8.5px;color:#94a3b8;font-weight:700">\u00B7 AI thesis</span></div>'
+    +staleBar
+    +'<div style="font-size:12.5px;font-weight:900;color:'+col+'">'+tk+' \u2014 '+label+' <span style="font-size:9px;color:#64748b;font-weight:700">'+(p.sector||'')+rsiTag+'</span> '+scanAgeNote+'</div>'
     +'<div style="font-size:10px;color:#334155;font-weight:600;margin:3px 0 6px">'+(p.note||'')+(p.catalyst?' \u2014 \u26A1'+p.catalyst:'')+'</div>'
     +'<div id="ge-reco-verdict" style="font-size:10px;font-weight:800;border:1.5px solid #cbd5e1;background:#f8fafc;color:#64748b;border-radius:7px;padding:6px 9px;margin:0 0 7px">\u23F3 Checking the thesis against the live tape\u2026</div>'
     +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
@@ -3140,7 +3157,14 @@ function geRenderScan(picks,scanTs){
         +(isStale?' — <span onclick="geScan(true)" style="text-decoration:underline;cursor:pointer">Rescan now</span>':'' )
       +'</span>'
       :'';
+    var staleTopBar=isStale
+      ?'<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+        +'<span style="font-size:9px;font-weight:800;color:#92400e">⚠️ Scan is '+ageStr+' old — thesis notes may be outdated</span>'
+        +'<span onclick="geScan(true)" style="font-size:9px;font-weight:900;color:#b45309;text-decoration:underline;cursor:pointer">Rescan</span>'
+      +'</div>'
+      :'';
     h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
+      +staleTopBar
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
         +'<span style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em">Opportunities</span>'
         +'<div style="display:flex;align-items:center;gap:8px">'+ageBanner+'<span id="ge-verify-status" style="font-size:8px;color:#94a3b8;font-weight:700">⏳ verifying…</span></div>'
@@ -3173,6 +3197,7 @@ var GE_AGE_TICK=null;
 function geTickScanAge(){
   clearInterval(GE_AGE_TICK);
   if(!GE_SCAN_TS)return;
+  var _prevStale=null;
   function updateAge(){
     var el=document.getElementById('ge-scan-age');
     if(!el)return;
@@ -3187,6 +3212,22 @@ function geTickScanAge(){
     el.style.color=isStale?'#b45309':'#64748b';
     el.style.background=isStale?'#fffbeb':'transparent';
     el.style.padding=isStale?'2px 7px':'0';
+    // When staleness threshold is crossed, inject/remove the prominent top bar
+    if(_prevStale!==null&&_prevStale!==isStale){
+      var tb=document.getElementById('ge-stale-topbar');
+      if(isStale&&!tb){
+        var grid=document.getElementById('ge-opp-grid');
+        if(grid){
+          var div=document.createElement('div');
+          div.id='ge-stale-topbar';
+          div.style.cssText='background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between';
+          div.innerHTML='<span style="font-size:9px;font-weight:800;color:#92400e">⚠️ Scan is '+ageStr+' old — thesis notes may be outdated</span>'
+            +'<span onclick="geScan(true)" style="font-size:9px;font-weight:900;color:#b45309;text-decoration:underline;cursor:pointer">Rescan</span>';
+          grid.parentNode.insertBefore(div,grid);
+        }
+      }else if(!isStale&&tb){tb.parentNode.removeChild(tb);}
+    }
+    _prevStale=isStale;
   }
   updateAge();
   GE_AGE_TICK=setInterval(updateAge,60000);
