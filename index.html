@@ -2713,10 +2713,20 @@ function geApplyCollapse(){
 }
 setTimeout(function(){
   geApplyCollapse();
-  // Always render the chip row: SPY/QQQ index chips + last cached scan (no API call)
+  // On load: check URL hash first (cross-device sync link), then localStorage
   try{
-    var c=JSON.parse(localStorage.getItem('ge_scan')||'null');
-    geRenderScan((c&&c.picks)||[]);
+    var hashPicks=null;
+    try{
+      var hm=window.location.hash.match(/[#&]scan=([^&]+)/);
+      if(hm)hashPicks=JSON.parse(decodeURIComponent(escape(atob(hm[1])))).map(geNormPick);
+    }catch(he){}
+    if(hashPicks&&hashPicks.length){
+      try{localStorage.setItem('ge_scan',JSON.stringify({picks:hashPicks,ts:Date.now()}));}catch(e){}
+      geRenderScan(hashPicks);
+    }else{
+      var lsc=JSON.parse(localStorage.getItem('ge_scan')||'null');
+      geRenderScan((lsc&&lsc.picks)||[]);
+    }
   }catch(e){geRenderScan([]);}
   geVerifyPicks(); // chips turn engine-current in the background, no taps needed
 },400);
@@ -2793,7 +2803,13 @@ function geScan(force){
           bktCount[c]++;return true;
         });
         if(!picks.length)throw 0;
-        try{localStorage.setItem('ge_scan',JSON.stringify({picks:picks,ts:Date.now()}));}catch(e){}
+        var scanData={picks:picks,ts:Date.now()};
+        try{localStorage.setItem('ge_scan',JSON.stringify(scanData));}catch(e){}
+        // Encode scan in URL hash for cross-device sync
+        try{
+          var compact=btoa(unescape(encodeURIComponent(JSON.stringify(picks))));
+          history.replaceState(null,'','#scan='+compact);
+        }catch(he){}
         GE_SCANNING=false;
         geRenderScan(picks);
         geVerifyPicks(true); // verify the fresh list in the background
@@ -2972,6 +2988,23 @@ function geUpdatePickVerdict(sym,action){
   if(typeof geApplyFilter==='function')geApplyFilter();
 }
 
+function geCopyLink(){
+  try{
+    var compact=btoa(unescape(encodeURIComponent(JSON.stringify(GE_PICKS))));
+    var url=window.location.href.split('#')[0]+'#scan='+compact;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(function(){
+        var ack=document.getElementById('ge-copy-ack');if(ack){ack.style.display='';setTimeout(function(){ack.style.display='none';},3000);}
+      });
+    }else{
+      var ta=document.createElement('textarea');ta.value=url;
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');
+      document.body.removeChild(ta);
+      var ack=document.getElementById('ge-copy-ack');if(ack){ack.style.display='';setTimeout(function(){ack.style.display='none';},3000);}
+    }
+  }catch(e){alert('Could not copy — try long-pressing the address bar.');}
+}
+
 function geTogglePick(tk){
   tk=String(tk||'').replace(/[^A-Za-z.]/g,'').toUpperCase();if(!tk)return;
   var det=document.getElementById('ge-pick-detail');if(!det)return;
@@ -3108,6 +3141,12 @@ function geRenderScan(picks){
       +'<div id="ge-opp-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'+geBuildOppCols()+'</div>';
   }
 
+  if(GE_PICKS.length){
+    h+='<div style="margin-top:8px">'
+      +'<span onclick="geCopyLink()" style="font-size:8px;font-weight:800;color:#3b82f6;cursor:pointer;border:1px solid #bfdbfe;border-radius:999px;padding:3px 9px;background:#eff6ff;-webkit-user-select:none;user-select:none">🔗 Copy sync link</span>'
+      +'<span id="ge-copy-ack" style="font-size:8px;color:#15803d;font-weight:700;margin-left:7px;display:none">✓ Copied! Open on other device</span>'
+    +'</div>';
+  }
   h+='<div id="ge-pick-detail" style="display:none;margin-top:9px"></div>'
     +'<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:7px">'
     +(GE_PICKS.length
@@ -3158,13 +3197,14 @@ function geBuildOppCols(){
    actually chose, NOT the AI's label. CALL+RSI≤35 = oversold bounce; PUT+RSI≥65 = overbought
    fade; any other live CALL/PUT = momentum. NO TRADE / no RSI → null (stays filtered). */
 function geEngineBucket(tk){
+  // Engine confirms direction only — AI bucket (OVERSOLD/OVERBOUGHT/MOMENTUM) is preserved.
+  // Overriding bucket here caused all confirmed picks to collapse into MOMENTUM.
   var rec=(typeof G4_LAST_SIGNAL!=='undefined')?G4_LAST_SIGNAL[String(tk).toLowerCase()]:null;
   if(!rec||!rec.action)return null;
-  var a=String(rec.action),rsi=rec.rsi;
+  var a=String(rec.action);
   var isCall=a.indexOf('CALL')>-1,isPut=a.indexOf('PUT')>-1;
   if(!isCall&&!isPut)return null; // NO TRADE / NO DATA
-  if(isCall)return{cond:(rsi!=null&&rsi<=35)?'OVERSOLD':'MOMENTUM',bias:'BULL'};
-  return{cond:(rsi!=null&&rsi>=65)?'OVERBOUGHT':'MOMENTUM',bias:'BEAR'};
+  return{bias:isCall?'BULL':'BEAR'}; // bias only; caller keeps AI-assigned condition
 }
 
 /* Re-sort chips into engine buckets after verification, rebuilding ONLY the columns grid
@@ -3176,7 +3216,7 @@ function geRefreshBuckets(){
   GE_PICKS.forEach(function(p){
     var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
     var eb=geEngineBucket(tk);
-    if(eb){p.condition=eb.cond;p.bias=eb.bias;}
+    if(eb&&eb.bias)p.bias=eb.bias; // engine updates direction only; AI bucket stays
   });
   // If a pick is open, don't rebuild the grid (would wipe the open detail panel context)
   // Just re-style chips in place and apply filter — the chip DOM is already there
