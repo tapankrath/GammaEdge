@@ -2634,11 +2634,14 @@ function gePrintPicks(){
   var rows='';
   c.picks.forEach(function(p,i){
     var bull=String(p.bias).toUpperCase()==='BULL';
+    var cond=String(p.condition||'').toUpperCase();
+    var label=cond==='OVERSOLD'?'Oversold \u2192 bounce \u2191':cond==='OVERBOUGHT'?'Overbought \u2192 fade \u2193':cond==='MOMENTUM'?(bull?'Momentum \u2191':'Momentum \u2193'):(bull?'Bullish \u2191':'Bearish \u2193');
+    var rsiTag=(p.rsi!=null&&p.rsi!=='')?' \u00b7 RSI '+p.rsi:'';
     var dir=bull?'CALL':'PUT',hedge=bull?'PUT':'CALL';
     var col=bull?'#166534':'#991b1b';
     var tk=String(p.ticker).toUpperCase();
     rows+='<div style="border:1px solid #e2e8f0;border-left:4px solid '+col+';border-radius:8px;padding:12px 16px;margin-bottom:12px;page-break-inside:avoid;">'
-      +'<div style="font-size:16px;font-weight:800;color:'+col+';">'+(i+1)+'. '+tk+' \u2014 '+(bull?'Bullish \u2191':'Bearish \u2193')+' <span style="font-size:11px;color:#64748b;font-weight:600;">'+(p.sector||'')+'</span></div>'
+      +'<div style="font-size:16px;font-weight:800;color:'+col+';">'+(i+1)+'. '+tk+' \u2014 '+label+' <span style="font-size:11px;color:#64748b;font-weight:600;">'+(p.sector||'')+rsiTag+'</span></div>'
       +'<div style="font-size:12px;color:#334155;margin:5px 0 9px;">'+(p.note||'')+(p.catalyst?' \u2014 '+p.catalyst:'')+'</div>'
       +'<table style="width:100%;border-collapse:collapse;font-size:12px;color:#0f172a;">'
         +'<tr><td style="padding:3px 8px 3px 0;color:#64748b;white-space:nowrap;vertical-align:top;width:90px;">Main leg</td><td style="padding:3px 0;">Buy '+tk+' '+dir+' at the money, 8\u201314 days out</td></tr>'
@@ -2674,19 +2677,24 @@ function geDockSignal(){
   if(b){b.style.display='none';b.style.marginTop='';}
   var cta=document.getElementById('g-deep-cta');if(cta)cta.style.display='inline-flex';
 }
+/* Dock the engine home and clear BOTH detail slots (picks + indices). Prevents a
+   stale empty panel or a duplicate ge-slot-live id when switching index<->pick. */
+function geCloseDetails(){
+  geDockSignal();
+  ['ge-pick-detail','ge-idx-detail'].forEach(function(id){var d=document.getElementById(id);if(d){d.style.display='none';d.innerHTML='';}});
+  ['spy','qqq'].forEach(function(tk){var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25BE';});
+}
 function geToggle(id){
   var el=document.getElementById(id);if(!el)return;
   var hidden=el.style.display==='none';
   // Collapsing the picks list must not swallow an inline signal \u2014 dock it out first
   if(id==='ge-scan-out'&&!hidden){
-    geDockSignal();
     if(typeof GE_OPEN_PICK!=='undefined'&&GE_OPEN_PICK){
-      var d=document.getElementById('ge-pick-detail');
-      if(d){d.style.display='none';d.innerHTML='';}
       geChipActive(GE_OPEN_PICK,false);
       GE_OPEN_PICK=null;
       if(typeof GE_LAST_IDX!=='undefined')setT4(GE_LAST_IDX);
     }
+    geCloseDetails();
   }
   el.style.display=hidden?'':'none';
   var ch=document.getElementById(id+'-chev');if(ch)ch.innerHTML=hidden?'&#9662;':'&#9656;';
@@ -2725,16 +2733,20 @@ function geScan(force){
     if(k&&k.indexOf('sk-')>-1){try{localStorage.setItem('sai_key',k.trim());}catch(e){} apiKey=k.trim();}
     else{geScanStatus('Scanner needs your Anthropic API key.');return;}
   }
-  geScanStatus('\u23F3 Scanning the market \u2014 trend, sectors, macro, catalysts\u2026 (~20\u201330s)');
+  geScanStatus('\u23F3 Scanning the market \u2014 reversion (RSI extremes) + momentum leaders\u2026 (~20\u201330s)');
   var today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var prompt='Today is '+today+'. You are a market scanner. Use web search (sector performance this week, stock momentum leaders, market movers) to propose the 10 most TRADEABLE liquid US stocks for the next 1-2 weeks of options trading.\n'
+  var prompt='Today is '+today+'. You are a market scanner. Use web search (this week\u2019s biggest movers, RSI readings, oversold/overbought lists, sector leaders, momentum/trend leaders, names breaking down) to propose up to 15 liquid US stocks across THREE buckets for the next 1-2 weeks of options trading.\n'
+    +'Buckets:\n'
+    +'- OVERSOLD = sharp selloff / RSI roughly <30 / capitulating into support \u2192 bullish bounce (bias BULL).\n'
+    +'- OVERBOUGHT = parabolic run / RSI roughly >70 / extended into resistance \u2192 bearish fade (bias BEAR).\n'
+    +'- MOMENTUM = clean trend with room to run, NOT yet stretched: strong uptrend leaders (bias BULL) OR clear downtrend breakdowns (bias BEAR).\n'
     +'Rules:\n'
-    +'- Large/mid-cap only with liquid options (tight spreads): no microcaps.\n'
-    +'- Mix directions honestly: bullish names in strong sectors/uptrends, bearish names breaking down. Do not force a 50/50 split; follow the actual market.\n'
+    +'- Large/mid-cap ONLY with liquid options (tight spreads): no microcaps.\n'
+    +'- Aim for a spread across all three buckets, but follow the actual market \u2014 do not force even splits.\n'
     +'- EXCLUDE any stock reporting earnings within the next 14 days (verify via search, never guess).\n'
     +'- Base every claim on what you actually find in search results.\n'
     +'Reply ONLY a raw JSON array, no markdown:\n'
-    +'[{"ticker":"","name":"","bias":"BULL"|"BEAR","sector":"","note":"<10 words why now>","catalyst":"<8 words or empty>"}]';
+    +'[{"ticker":"","name":"","category":"OVERSOLD"|"OVERBOUGHT"|"MOMENTUM","bias":"BULL"|"BEAR","rsi":"<number or empty>","sector":"","note":"<10 words why now>","catalyst":"<8 words or empty>"}]';
   var messages=[{role:'user',content:prompt}];
   (function turn(left){
     if(left<=0){geScanStatus('Scan ran too long \u2014 tap Scan to retry.');return;}
@@ -2753,7 +2765,7 @@ function geScan(force){
       var a1=text.indexOf('['),a2=text.lastIndexOf(']');
       if(a1===-1||a2===-1){geScanStatus('Scan returned no list \u2014 tap Scan to retry.');return;}
       try{
-        var picks=JSON.parse(text.slice(a1,a2+1)).filter(function(p){return p&&p.ticker;}).slice(0,10);
+        var picks=JSON.parse(text.slice(a1,a2+1)).filter(function(p){return p&&p.ticker;}).map(geNormPick).slice(0,15);
         if(!picks.length)throw 0;
         try{localStorage.setItem('ge_scan',JSON.stringify({picks:picks,ts:Date.now()}));}catch(e){}
         geRenderScan(picks);
@@ -2872,10 +2884,13 @@ function geChipActive(tk,on){
 /* The same action plan the PDF prints — shown inline when a chip is expanded */
 function geBuildPickReco(p){
   var bull=String(p.bias).toUpperCase()==='BULL';
+  var cond=String(p.condition||'').toUpperCase();
+  var label=cond==='OVERSOLD'?'Oversold \u2192 bounce \u2191':cond==='OVERBOUGHT'?'Overbought \u2192 fade \u2193':cond==='MOMENTUM'?(bull?'Momentum \u2191':'Momentum \u2193'):(bull?'Bullish \u2191':'Bearish \u2193');
+  var rsiTag=(p.rsi!=null&&p.rsi!=='')?' \u00B7 RSI '+p.rsi:'';
   var col=bull?'#166534':'#991b1b';
   var tk=String(p.ticker).toUpperCase();
   return '<div style="border:1px solid #e2e8f0;border-left:4px solid '+col+';border-radius:9px;padding:9px 11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05)">'
-    +'<div style="font-size:12.5px;font-weight:900;color:'+col+'">'+tk+' \u2014 '+(bull?'Bullish \u2191':'Bearish \u2193')+' <span style="font-size:9px;color:#64748b;font-weight:700">'+(p.sector||'')+'</span> <span style="font-size:8.5px;color:#94a3b8;font-weight:700">\u00B7 AI thesis</span></div>'
+    +'<div style="font-size:12.5px;font-weight:900;color:'+col+'">'+tk+' \u2014 '+label+' <span style="font-size:9px;color:#64748b;font-weight:700">'+(p.sector||'')+rsiTag+'</span> <span style="font-size:8.5px;color:#94a3b8;font-weight:700">\u00B7 AI thesis</span></div>'
     +'<div style="font-size:10px;color:#334155;font-weight:600;margin:3px 0 6px">'+(p.note||'')+(p.catalyst?' \u2014 \u26A1'+p.catalyst:'')+'</div>'
     +'<div id="ge-reco-verdict" style="font-size:10px;font-weight:800;border:1.5px solid #cbd5e1;background:#f8fafc;color:#64748b;border-radius:7px;padding:6px 9px;margin:0 0 7px">\u23F3 Checking the thesis against the live tape\u2026</div>'
     +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
@@ -2902,7 +2917,7 @@ function geUpdatePickVerdict(sym,action){
     v.innerHTML='\u2713 Thesis + tape aligned (<b>'+a+'</b>) \u2014 highest-confidence setup, price it up below';
   }else{
     v.style.background='#fffbeb';v.style.borderColor='#fcd34d';v.style.color='#b45309';
-    v.innerHTML='\u26A0 Thesis ('+(bull?'bullish':'bearish')+') vs tape (<b>'+a+'</b>) disagree \u2014 likely '+(bull?'an extended/overbought leader':'an oversold bounce')+'. Lower confidence: stand aside, or size small only if you side with the tape';
+    v.innerHTML='\u26A0 Thesis ('+(bull?'oversold bounce':'overbought fade')+') vs tape (<b>'+a+'</b>) disagree \u2014 '+(bull?'the selloff hasn\u2019t bottomed yet':'the run hasn\u2019t topped yet')+'. Lower confidence: wait for the turn, or size small only if you side with the tape';
   }
   // Chip color follows the engine from here on — no more green chip saying BUY PUT
   geStyleChip(GE_OPEN_PICK,true);
@@ -2911,18 +2926,18 @@ function geUpdatePickVerdict(sym,action){
 function geTogglePick(tk){
   tk=String(tk||'').replace(/[^A-Za-z.]/g,'').toUpperCase();if(!tk)return;
   var det=document.getElementById('ge-pick-detail');if(!det)return;
-  // Tapping the open chip again collapses it — block parks hidden at home,
-  // the dual SPY/QQQ cards at the top remain the only resting-state signal view
+  // Tapping the open chip again collapses it — block parks hidden at home.
   if(GE_OPEN_PICK===tk){
-    geDockSignal(); // MUST dock out first — clearing the panel would destroy the block
-    det.style.display='none';det.innerHTML='';
+    geCloseDetails();
     geChipActive(tk,false);
     GE_OPEN_PICK=null;
     setT4(GE_LAST_IDX); // keep index data + chip marks fresh
     return;
   }
-  // Switching chips — dock the signal out and reset the old chip first
-  if(GE_OPEN_PICK){geDockSignal();geChipActive(GE_OPEN_PICK,false);}
+  // Switching from any open panel (chip OR index card): reset old chip, clear both slots.
+  if(GE_OPEN_PICK)geChipActive(GE_OPEN_PICK,false);
+  geCloseDetails();
+  GE_OPEN_PICK=null;
   var p=geFindPick(tk);if(!p)return;
   GE_OPEN_PICK=tk;
   geChipActive(tk,true);
@@ -2933,13 +2948,12 @@ function geTogglePick(tk){
 
 /* Opens the shared panel with ONLY the live signal block inside (no thesis card).
    Used by the SPY/QQQ index chips and the backtest bridge for arbitrary tickers. */
-function geOpenSignalPanel(t,key){
-  var det=document.getElementById('ge-pick-detail');if(!det)return;
-  if(GE_OPEN_PICK){
-    geDockSignal(); // dock out first — clearing the panel would destroy the block
-    geChipActive(GE_OPEN_PICK,false);
-  }
+function geOpenSignalPanel(t,key,targetId){
+  targetId=targetId||'ge-pick-detail';
+  if(GE_OPEN_PICK)geChipActive(GE_OPEN_PICK,false);
+  geCloseDetails(); // dock engine home + clear both slots so ge-slot-live is unique
   GE_OPEN_PICK=key;
+  var det=document.getElementById(targetId);if(!det)return;
   det.innerHTML='<div id="ge-slot-live"></div>';
   det.style.display='';
   var slot=document.getElementById('ge-slot-live'),block=document.getElementById('ge-signal-block');
@@ -2948,18 +2962,18 @@ function geOpenSignalPanel(t,key){
   setT4(String(t).toLowerCase());
 }
 
-/* SPY/QQQ index chips — same tap-to-expand / tap-again-to-collapse as picks */
+/* SPY/QQQ index cards — the "Full plan" link expands the engine INLINE under the
+   card (ge-idx-detail), collapsible. Stock picks expand below the columns instead. */
 function geIndexPick(t){
-  var key='IDX'+String(t).toUpperCase();
-  var det=document.getElementById('ge-pick-detail');if(!det)return;
-  if(GE_OPEN_PICK===key){
-    geDockSignal();
-    det.style.display='none';det.innerHTML='';
+  var tk=String(t).toLowerCase(),key='IDX'+tk.toUpperCase();
+  if(GE_OPEN_PICK===key){ // collapse
+    geCloseDetails();
     GE_OPEN_PICK=null;
-    setT4(t); // keep data + chip marks fresh; block stays parked hidden
+    setT4(tk); // keep data + chip marks fresh; block parks hidden
     return;
   }
-  geOpenSignalPanel(t,key);
+  geOpenSignalPanel(tk,key,'ge-idx-detail');
+  var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25B4';
 }
 
 function geMarkIndexChips(){
@@ -2978,32 +2992,87 @@ function geScanStatus(msg){
   if(s)s.innerHTML=msg;
 }
 
+/* Normalize a scan pick into {condition, bias}. Oversold/Overbought derive bias
+   from the bucket; Momentum keeps the AI's trend direction (bull leader / bear breakdown). */
+function geNormPick(p){
+  var cat=String(p.category||p.condition||'').toUpperCase();
+  var bias=String(p.bias||'').toUpperCase();
+  if(cat!=='OVERSOLD'&&cat!=='OVERBOUGHT'&&cat!=='MOMENTUM')cat=(bias==='BEAR')?'OVERBOUGHT':'OVERSOLD';
+  if(cat==='OVERSOLD')bias='BULL';
+  else if(cat==='OVERBOUGHT')bias='BEAR';
+  else if(bias!=='BULL'&&bias!=='BEAR')bias='BULL'; // momentum must have a direction
+  p.condition=cat;p.bias=bias;return p;
+}
+
 function geRenderScan(picks){
   var out=$('ge-scan-out');if(!out)return;
   geDockSignal();
   GE_PICKS=picks||[];
+  // Normalize cached/older picks (backfills condition + bias for all three buckets)
+  GE_PICKS.forEach(geNormPick);
   GE_OPEN_PICK=null;
-  var h='<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">'
-    +'<div id="ge-chip-IDXSPY" onclick="geIndexPick(\'spy\')" style="display:inline-flex;align-items:center;background:var(--p2);border:1.5px solid var(--border);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:900;color:#334155;white-space:nowrap;-webkit-user-select:none;user-select:none">SPY</div>'
-    +'<div id="ge-chip-IDXQQQ" onclick="geIndexPick(\'qqq\')" style="display:inline-flex;align-items:center;background:var(--p2);border:1.5px solid var(--border);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:900;color:#334155;white-space:nowrap;-webkit-user-select:none;user-select:none">QQQ</div>';
-  if(GE_PICKS.length)h+='<div style="width:1px;height:18px;background:var(--border);margin:0 2px;flex-shrink:0"></div>';
-  GE_PICKS.forEach(function(p){
+  function chip(p){
     var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
-    h+='<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
+    return '<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
       +'<span id="ge-chip-ar-'+tk+'"></span>'+tk
       +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:1px"></span>'
       +'<span style="font-size:8px;font-weight:800;opacity:.55;margin-left:1px">\u25BE</span>'
     +'</div>';
-  });
-  h+='</div>'
-    +'<div id="ge-pick-detail" style="display:none;margin-top:7px"></div>'
-    +'<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:6px">'
+  }
+  // Always-on index summary card (auto-shown, no tap). Manual link docks the full engine.
+  function idxCard(tk,accent,accentBg){
+    var T=tk.toUpperCase();
+    return '<div id="ge-idx-'+tk+'" style="border-radius:12px;padding:11px 12px;border:1.5px solid var(--border);background:var(--p2)">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">'
+        +'<span style="font-size:10px;font-weight:900;color:'+accent+';text-transform:uppercase;letter-spacing:.1em">'+T+'</span>'
+        +'<span style="font-size:8px;color:#94a3b8;font-weight:600" id="ge-idx-'+tk+'-ts">\u2014</span>'
+      +'</div>'
+      +'<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;line-height:1.1" id="ge-idx-'+tk+'-action">\u2014</div>'
+      +'<div style="font-size:10px;font-weight:800;margin:1px 0 3px" id="ge-idx-'+tk+'-sub">Loading\u2026</div>'
+      +'<div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:8px" id="ge-idx-'+tk+'-detail"></div>'
+      +'<div onclick="geIndexPick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:5px;background:'+accentBg+';color:'+accent+';border:1.5px solid '+accent+';border-radius:999px;padding:5px 11px;font-size:9.5px;font-weight:800;cursor:pointer;-webkit-user-select:none;user-select:none">\u2197 Full plan &amp; manual trade <span id="ge-idx-'+tk+'-cv" style="font-size:8px">\u25BE</span></div>'
+    +'</div>';
+  }
+
+  // ── Cluster 1: SPY / QQQ summary cards (always shown) ──
+  var h='<div style="font-size:9px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px">Indices</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +idxCard('spy','var(--purple)','var(--pbg)')
+    +idxCard('qqq','var(--amber)','var(--abg)')
+    +'</div>'
+    +'<div id="ge-idx-detail" style="display:none;margin-top:9px"></div>';
+
+  // ── Cluster 2: opportunities — oversold / overbought / momentum as 3 columns ──
+  if(GE_PICKS.length){
+    var byCond=function(k){return function(p){return String(p.condition).toUpperCase()===k;};};
+    var os=GE_PICKS.filter(byCond('OVERSOLD'));
+    var ob=GE_PICKS.filter(byCond('OVERBOUGHT'));
+    var mo=GE_PICKS.filter(byCond('MOMENTUM'));
+    var none='<span style="font-size:8.5px;color:#94a3b8;font-weight:700">none this scan</span>';
+    function colCard(bd,bg,tc,sc,title,subt,arr){
+      return '<div style="border:1.5px solid '+bd+';background:'+bg+';border-radius:10px;padding:8px 7px">'
+        +'<div style="font-size:8.5px;font-weight:900;color:'+tc+';text-transform:uppercase;letter-spacing:.04em">'+title+'</div>'
+        +'<div style="font-size:7.5px;color:'+sc+';font-weight:700;margin:1px 0 7px">'+subt+'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(chip).join(''):none)+'</div>'
+      +'</div>';
+    }
+    h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
+      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Opportunities</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'
+        +colCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge',os)
+        +colCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge',ob)
+        +colCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge',mo)
+      +'</div>';
+  }
+
+  h+='<div id="ge-pick-detail" style="display:none;margin-top:9px"></div>'
+    +'<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:7px">'
     +(GE_PICKS.length
-      ?'AI candidates from live web search \u2014 tap to verify against the live engine; tap again to collapse. Chip colors follow the ENGINE once verified: \u2713 thesis confirmed \u00B7 \u26A0 thesis/tape conflict \u00B7 \u26D4 no trade. Verify earnings dates at your broker.'
-      :'Tap Scan \u2014 AI proposes ~10 liquid candidates (trend \u00B7 sector \u00B7 macro \u00B7 catalyst). Tapping a name runs the same real-data signal engine used for SPY/QQQ.')
+      ?'SPY/QQQ summaries are live \u2014 tap \u201cFull plan\u201d for the hedged + manual trade view. Opportunities are AI candidates in three buckets: oversold (bounce), overbought (fade), and momentum (ride the trend). Tap any to verify against the live engine \u2014 same hedged two-leg plan. Chip color follows the ENGINE: \u2713 confirmed \u00B7 \u26A0 tape disagrees \u00B7 \u26D4 no trade. Verify earnings at your broker.'
+      :'SPY/QQQ summaries are live above. Tap Scan \u2014 AI proposes liquid large/mid caps in three buckets: oversold \u2192 bullish bounce, overbought \u2192 bearish fade, momentum \u2192 ride the trend. All use the same hedged two-leg plan.')
     +'</div>';
   out.innerHTML=h;
-  geMarkIndexChips();
+  renderDualCards(); // fill the SPY/QQQ summary cards from the live engine
   GE_PICKS.forEach(function(p){
     geStyleChip(String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase(),false);
   });
@@ -3040,7 +3109,7 @@ function geTrend(closes,spot){
 }
 
 // One-step downgrade per triggered filter: BUY → LEAN → NO TRADE. Never upgrades.
-function geRegimeFilter(action,bull,bear,trend){
+function geRegimeFilter(action,bull,bear,trend,rsi){
   var notes=[],a=action;
   function down(reason){
     notes.push(reason);
@@ -3048,9 +3117,14 @@ function geRegimeFilter(action,bull,bear,trend){
     else if(a.indexOf('LEAN')===0)a='NO TRADE';
   }
   var isCall=a.indexOf('CALL')>-1,isPut=a.indexOf('PUT')>-1;
-  // 1. Trend filter — don't fight the 50MA unless the score is overwhelming (≥7)
-  if(trend==='UP'&&isPut&&bear<7)down('Counter-trend: price above 50MA uptrend');
-  if(trend==='DOWN'&&isCall&&bull<7)down('Counter-trend: price below 50MA downtrend');
+  // An RSI extreme IS the mean-reversion thesis — a stretched tape is not "fighting"
+  // the 50MA, it's fading exhaustion. Exempt the counter-trend downgrade when the
+  // extreme lines up with the trade direction. Hedging/sizing/legs all unchanged.
+  var obExempt=(rsi!=null&&rsi>=65); // overbought → short fade ok even above an uptrend MA
+  var osExempt=(rsi!=null&&rsi<=35); // oversold  → long bounce ok even below a downtrend MA
+  // 1. Trend filter — don't fight the 50MA unless score is overwhelming (≥7) or RSI is stretched
+  if(trend==='UP'&&isPut&&bear<7&&!obExempt)down('Counter-trend: price above 50MA uptrend');
+  if(trend==='DOWN'&&isCall&&bull<7&&!osExempt)down('Counter-trend: price below 50MA downtrend');
   isPut=a.indexOf('PUT')>-1;
   // 2. VIX regime
   if(VIX_NOW!=null){
@@ -3122,7 +3196,7 @@ function quickSignal(sym){
   var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
   // Same regime filter as processSignal — dual cards must agree with main signal
   var regT=geTrend(closes,spot);
-  var regF=geRegimeFilter(action,bull,bear,regT.trend);
+  var regF=geRegimeFilter(action,bull,bear,regT.trend,rsi);
   if(regF.changed){
     action=regF.action;
     color=geActionColor(action);
@@ -3139,21 +3213,19 @@ function quickSignal(sym){
 var G4_LAST_SIGNAL={spy:null,qqq:null};
 
 function renderDualCards(){
+  // Fills the always-on SPY/QQQ summary cards inside the Top Picks scanner.
+  // Guarded per-element so it's safe on tabs/states where the cards aren't built.
   ['spy','qqq'].forEach(function(tk){
     var sym=tk.toUpperCase();
-    // Use stored processSignal result if available — guarantees consistency
     var r=G4_LAST_SIGNAL[tk]||quickSignal(sym);
-    var card=$('ds-'+tk);
+    var card=$('ge-idx-'+tk);
     if(!card)return;
     card.style.background=r.bgColor;
     card.style.borderColor=r.borderColor;
-    $('ds-'+tk+'-action').textContent=r.action;
-    $('ds-'+tk+'-action').style.color=r.color;
-    $('ds-'+tk+'-sub').textContent=r.sub+' · '+r.conf;
-    $('ds-'+tk+'-sub').style.color=r.color;
-    $('ds-'+tk+'-detail').textContent=r.detail;
-    $('ds-'+tk+'-detail').style.color=r.color;
-    $('ds-'+tk+'-ts').textContent='as of '+fmtTs();
+    var a=$('ge-idx-'+tk+'-action'); if(a){a.textContent=r.action;a.style.color=r.color;}
+    var s=$('ge-idx-'+tk+'-sub'); if(s){s.textContent=r.sub+' · '+r.conf;s.style.color=r.color;}
+    var d=$('ge-idx-'+tk+'-detail'); if(d){d.textContent=r.detail;}
+    var ts=$('ge-idx-'+tk+'-ts'); if(ts)ts.textContent='as of '+fmtTs();
   });
   var q=G4_LAST_SIGNAL['qqq']||quickSignal('QQQ');
   updateMktNow(q.bull,q.bear);
@@ -3717,7 +3789,7 @@ function processSignal(valid,capital,target,stopPct,sym){
 
   // ── REGIME FILTER (50MA trend + VIX + macro) — downgrades only ──
   var regT=geTrend(closes,spot);
-  var regF=geRegimeFilter(action,bullPoints,bearPoints,regT.trend);
+  var regF=geRegimeFilter(action,bullPoints,bearPoints,regT.trend,rsi);
   if(regF.changed){
     action=regF.action;
     isCall=action.indexOf('CALL')>-1?true:(action.indexOf('PUT')>-1?false:null);
