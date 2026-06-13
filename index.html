@@ -2722,10 +2722,10 @@ setTimeout(function(){
     }catch(he){}
     if(hashPicks&&hashPicks.length){
       try{localStorage.setItem('ge_scan',JSON.stringify({picks:hashPicks,ts:Date.now()}));}catch(e){}
-      geRenderScan(hashPicks);
+      geRenderScan(hashPicks,Date.now());
     }else{
       var lsc=JSON.parse(localStorage.getItem('ge_scan')||'null');
-      geRenderScan((lsc&&lsc.picks)||[]);
+      geRenderScan((lsc&&lsc.picks)||[],(lsc&&lsc.ts)||0);
     }
   }catch(e){geRenderScan([]);}
   geVerifyPicks(); // chips turn engine-current in the background, no taps needed
@@ -2737,7 +2737,7 @@ function geScan(force){
   geDockSignal();
   try{
     var c=JSON.parse(localStorage.getItem('ge_scan')||'null');
-    if(!force&&c&&c.ts&&Date.now()-c.ts<30*60*1000){geRenderScan(c.picks);return;}
+    if(!force&&c&&c.ts&&Date.now()-c.ts<4*60*60*1000){geRenderScan(c.picks,c.ts);return;}
   }catch(e){}
   // One scan at a time — never fire a second request while one is in flight.
   if(GE_SCANNING){geScanStatus('A scan is already running \u2014 hang tight\u2026');return;}
@@ -2811,7 +2811,7 @@ function geScan(force){
           history.replaceState(null,'','#scan='+compact);
         }catch(he){}
         GE_SCANNING=false;
-        geRenderScan(picks);
+        geRenderScan(picks,scanData.ts);
         geVerifyPicks(true); // verify the fresh list in the background
       }catch(e){GE_SCANNING=false;geScanStatus('Could not parse scan \u2014 tap Scan to retry.');}
     })
@@ -2820,6 +2820,7 @@ function geScan(force){
 }
 
 var GE_PICKS=[];      // last rendered scan list
+var GE_SCAN_TS=0;     // timestamp of the currently displayed scan (ms)
 var GE_OPEN_PICK=null; // ticker of the currently expanded chip (null = all collapsed)
 // "Tradeable only" filter — when on, buckets show only engine-confirmed (✓) chips.
 // Default ON; persisted. Re-applied as chips verify and on refresh.
@@ -3091,8 +3092,9 @@ function geNormPick(p){
   p.condition=cat;p.bias=bias;return p;
 }
 
-function geRenderScan(picks){
+function geRenderScan(picks,scanTs){
   var out=$('ge-scan-out');if(!out)return;
+  if(scanTs)GE_SCAN_TS=scanTs;
   geDockSignal();
   GE_PICKS=picks||[];
   // Normalize cached/older picks (backfills condition + bias for all three buckets)
@@ -3133,10 +3135,27 @@ function geRenderScan(picks){
   //    Initial placement uses the AI category; once verification finishes, geRefreshBuckets
   //    re-sorts every name by the engine's own RSI + chosen direction (the trustworthy view).
   if(GE_PICKS.length){
+    // Scan age — compute from GE_SCAN_TS (set by callers)
+    var ageStr='';
+    var isStale=false;
+    if(GE_SCAN_TS){
+      var ageMs=Date.now()-GE_SCAN_TS;
+      var ageMin=Math.floor(ageMs/60000);
+      if(ageMin<2)ageStr='just now';
+      else if(ageMin<60)ageStr=ageMin+'m ago';
+      else{var ageH=Math.floor(ageMin/60);ageStr=ageH+'h '+( ageMin%60)+'m ago';}
+      isStale=(ageMs>4*60*60*1000); // >4h = stale
+    }
+    var ageBanner=GE_SCAN_TS
+      ?'<span id="ge-scan-age" style="font-size:8px;font-weight:800;border-radius:999px;color:'+(isStale?'#b45309':'#64748b')+';background:'+(isStale?'#fffbeb':'transparent')+';padding:'+(isStale?'2px 7px':'0')+'">'
+        +(isStale?'⚠️ ':'')+'scan '+ageStr
+        +(isStale?' — <span onclick="geScan(true)" style="text-decoration:underline;cursor:pointer">Rescan now</span>':'' )
+      +'</span>'
+      :'';
     h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
         +'<span style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em">Opportunities</span>'
-        +'<span id="ge-verify-status" style="font-size:8px;color:#94a3b8;font-weight:700">⏳ verifying…</span>'
+        +'<div style="display:flex;align-items:center;gap:8px">'+ageBanner+'<span id="ge-verify-status" style="font-size:8px;color:#94a3b8;font-weight:700">⏳ verifying…</span></div>'
       +'</div>'
       +'<div id="ge-opp-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'+geBuildOppCols()+'</div>';
   }
@@ -3159,6 +3178,30 @@ function geRenderScan(picks){
     geStyleChip(String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase(),false);
   });
   geApplyFilter();
+  geTickScanAge(); // start/restart the live age ticker
+}
+
+var GE_AGE_TICK=null;
+function geTickScanAge(){
+  clearInterval(GE_AGE_TICK);
+  if(!GE_SCAN_TS)return;
+  function updateAge(){
+    var el=document.getElementById('ge-scan-age');
+    if(!el)return;
+    var ageMs=Date.now()-GE_SCAN_TS;
+    var ageMin=Math.floor(ageMs/60000);
+    var ageStr;
+    if(ageMin<2)ageStr='just now';
+    else if(ageMin<60)ageStr=ageMin+'m ago';
+    else{var ageH=Math.floor(ageMin/60);ageStr=ageH+'h '+(ageMin%60)+'m ago';}
+    var isStale=(ageMs>4*60*60*1000);
+    el.innerHTML=(isStale?'⚠️ scan '+ageStr+' — <span onclick="geScan(true)" style="text-decoration:underline;cursor:pointer">Rescan now</span>':'scan '+ageStr);
+    el.style.color=isStale?'#b45309':'#64748b';
+    el.style.background=isStale?'#fffbeb':'transparent';
+    el.style.padding=isStale?'2px 7px':'0';
+  }
+  updateAge();
+  GE_AGE_TICK=setInterval(updateAge,60000);
 }
 
 /* Auto-filter: hides ⛔ NO TRADE and ⚠ conflict chips silently after engine verification.
