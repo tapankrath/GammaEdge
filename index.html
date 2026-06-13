@@ -2822,10 +2822,6 @@ function geScan(force){
 var GE_PICKS=[];      // last rendered scan list
 var GE_SCAN_TS=0;     // timestamp of the currently displayed scan (ms)
 var GE_OPEN_PICK=null; // ticker of the currently expanded chip (null = all collapsed)
-// "Tradeable only" filter — when on, buckets show only engine-confirmed (✓) chips.
-// Default ON; persisted. Re-applied as chips verify and on refresh.
-// Default OFF so all chips show immediately; user can enable "Tradeable only" to filter by engine
-var GE_TRADEABLE_ONLY=(function(){try{var v=localStorage.getItem('ge_tradeable');return v===null?false:v!=='0';}catch(e){return false;}})();
 var GE_LAST_IDX='spy'; // last index (spy/qqq) — home signal reverts here on collapse
 
 function geFindPick(tk){
@@ -2864,7 +2860,7 @@ function geVQRun(tk){
   }
   var k=tk.toLowerCase();
   if(!DEFS[k])DEFS[k]={spot:0,iv:32,cost:10}; // quickSignal expects a DEFS entry
-  fetchP(tk); // live quote so background math matches the on-tap math
+  fetchP(tk); // live quote — fire-and-forget; quickSignal falls back to bars[-1].c if LIVE not ready yet
   function ok(closes){
     closes=(closes||[]).filter(function(c){return c!=null&&!isNaN(c)&&c>0;});
     if(closes.length<10){
@@ -3100,14 +3096,6 @@ function geRenderScan(picks,scanTs){
   // Normalize cached/older picks (backfills condition + bias for all three buckets)
   GE_PICKS.forEach(geNormPick);
   GE_OPEN_PICK=null;
-  function chip(p){
-    var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
-    return '<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
-      +'<span id="ge-chip-ar-'+tk+'"></span>'+tk
-      +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:1px"></span>'
-      +'<span style="font-size:8px;font-weight:800;opacity:.55;margin-left:1px">\u25BE</span>'
-    +'</div>';
-  }
   // Always-on index summary card (auto-shown, no tap). Manual link docks the full engine.
   function idxCard(tk,accent,accentBg){
     var T=tk.toUpperCase();
@@ -3300,15 +3288,16 @@ function geApplyFilter(){
       var v=geEffView(tk);
       var mk=(v||{}).mark||'';
       var verified=(mk!=='');                   // engine has resolved this one
-      var noTrade=(mk==='⛔');               // engine says NO TRADE
-      var conflict=(mk==='⚠');              // engine disagrees with AI bias
+      var noTrade=(mk==='⛔');               // engine says NO TRADE — hide
+      var conflict=(mk==='⚠');              // engine disagrees — show dimmed, not hidden
       var isOpen=(GE_OPEN_PICK===tk);           // currently expanded — never hide
       if(!verified)totalPending++;
-      if(verified&&(noTrade||conflict))totalRemoved++;
-      // Show if: open, OR confirmed (✓), OR still pending (not yet resolved)
-      // Hide only once verified AND it's a dead end (NO TRADE or conflict)
-      var hide=!isOpen&&verified&&(noTrade||conflict);
+      if(verified&&noTrade)totalRemoved++;
+      // Hide only NO TRADE chips — conflict chips stay visible dimmed (still useful info)
+      var hide=!isOpen&&verified&&noTrade;
       el.style.display=hide?'none':'';
+      // Dim conflict chips so they read as lower-confidence but not gone
+      el.style.opacity=(!hide&&verified&&conflict)?'0.45':'1';
       if(!hide)shown++;
     });
     // Live count badge — shows only actionable/pending chips
@@ -3328,7 +3317,7 @@ function geApplyFilter(){
       vs.textContent='⏳ verifying '+totalPending+' remaining…';
       vs.style.color='#94a3b8';vs.style.display='';
     }else if(totalRemoved>0){
-      vs.textContent=totalRemoved+' no-trade pruned';
+      vs.textContent=totalRemoved+' no-trade hidden';
       vs.style.color='#94a3b8';vs.style.display='';
     }else{
       vs.style.display='none';
