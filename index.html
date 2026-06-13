@@ -915,23 +915,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <!-- TAB 4: SIGNAL -->
 <div class="pane on" id="pane4" style="padding-top:8px">
 
-  <!-- DUAL SIGNAL CARDS: SPY + QQQ side by side -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-    <div id="ds-spy" style="border-radius:12px;padding:12px;border:2px solid #e2e8f0;background:#f8fafc">
-      <div style="font-size:9px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">SPY</div>
-      <div style="font-size:9px;color:#94a3b8;margin-bottom:4px" id="ds-spy-ts">—</div>
-      <div style="font-size:20px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px" id="ds-spy-action">—</div>
-      <div style="font-size:10px;font-weight:700;margin-bottom:6px" id="ds-spy-sub">Loading…</div>
-      <div style="font-size:9px;font-weight:700" id="ds-spy-detail"></div>
-    </div>
-    <div id="ds-qqq" style="border-radius:12px;padding:12px;border:2px solid #e2e8f0;background:#f8fafc">
-      <div style="font-size:9px;font-weight:800;color:#b45309;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">QQQ</div>
-      <div style="font-size:9px;color:#94a3b8;margin-bottom:4px" id="ds-qqq-ts">—</div>
-      <div style="font-size:20px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px" id="ds-qqq-action">—</div>
-      <div style="font-size:10px;font-weight:700;margin-bottom:6px" id="ds-qqq-sub">Loading…</div>
-      <div style="font-size:9px;font-weight:700" id="ds-qqq-detail"></div>
-    </div>
-  </div>
+  <!-- Dual SPY/QQQ signal cards removed — SPY/QQQ now live in the Top Picks
+       scanner chips, which verify against the same engine. renderDualCards()
+       no-ops on the missing ds-* elements but still drives the MKT NOW pill. -->
 
   <!-- Condensed controls row -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:1fr auto auto auto;align-items:stretch;gap:4px">
