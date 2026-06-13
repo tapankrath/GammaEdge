@@ -2683,6 +2683,7 @@ function geCloseDetails(){
   geDockSignal();
   ['ge-pick-detail','ge-idx-detail'].forEach(function(id){var d=document.getElementById(id);if(d){d.style.display='none';d.innerHTML='';}});
   ['spy','qqq'].forEach(function(tk){var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25BE';});
+  if(typeof geApplyFilter==='function')geApplyFilter();
 }
 function geToggle(id){
   var el=document.getElementById(id);if(!el)return;
@@ -2795,6 +2796,9 @@ function geScan(force){
 
 var GE_PICKS=[];      // last rendered scan list
 var GE_OPEN_PICK=null; // ticker of the currently expanded chip (null = all collapsed)
+// "Tradeable only" filter — when on, buckets show only engine-confirmed (✓) chips.
+// Default ON; persisted. Re-applied as chips verify and on refresh.
+var GE_TRADEABLE_ONLY=(function(){try{return localStorage.getItem('ge_tradeable')!=='0';}catch(e){return true;}})();
 var GE_LAST_IDX='spy'; // last index (spy/qqq) — home signal reverts here on collapse
 
 function geFindPick(tk){
@@ -2839,6 +2843,7 @@ function geVQNext(){
       G4_LAST_SIGNAL[k]={action:q.action,confidence:q.conf,spot:LIVE[k]||bars[bars.length-1].c,
         rsi:null,iv:null,atrPct:null,dte:null,signals:[]};
       geStyleChip(tk,GE_OPEN_PICK===tk);
+      if(typeof geApplyFilter==='function')geApplyFilter();
     }
     done();
   }
@@ -2938,6 +2943,7 @@ function geUpdatePickVerdict(sym,action){
   }
   // Chip color follows the engine from here on — no more green chip saying BUY PUT
   geStyleChip(GE_OPEN_PICK,true);
+  if(typeof geApplyFilter==='function')geApplyFilter();
 }
 
 function geTogglePick(tk){
@@ -3066,19 +3072,25 @@ function geRenderScan(picks){
     var ob=GE_PICKS.filter(byCond('OVERBOUGHT'));
     var mo=GE_PICKS.filter(byCond('MOMENTUM'));
     var none='<span style="font-size:8.5px;color:#94a3b8;font-weight:700">none this scan</span>';
-    function colCard(bd,bg,tc,sc,title,subt,arr){
+    function colCard(bd,bg,tc,sc,title,subt,key,arr){
       return '<div style="border:1.5px solid '+bd+';background:'+bg+';border-radius:10px;padding:8px 7px">'
         +'<div style="font-size:8.5px;font-weight:900;color:'+tc+';text-transform:uppercase;letter-spacing:.04em">'+title+'</div>'
         +'<div style="font-size:7.5px;color:'+sc+';font-weight:700;margin:1px 0 7px">'+subt+'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(chip).join(''):none)+'</div>'
+        +'<div id="ge-col-'+key+'" style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(chip).join(''):none)+'</div>'
+        +'<div id="ge-colnote-'+key+'" style="font-size:7.5px;color:#94a3b8;font-weight:700;margin-top:6px;display:none"></div>'
       +'</div>';
     }
+    var tgOn=GE_TRADEABLE_ONLY;
+    var tgStyle=tgOn?'background:#f0fdf4;border-color:#86efac;color:#15803d':'background:var(--p2);border-color:var(--border);color:#334155';
     h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
-      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Opportunities</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+        +'<span style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em">Opportunities</span>'
+        +'<span id="ge-trade-toggle" onclick="geToggleTradeable()" style="font-size:8.5px;font-weight:800;cursor:pointer;border:1.5px solid;border-radius:999px;padding:3px 9px;-webkit-user-select:none;user-select:none;'+tgStyle+'">'+(tgOn?'\u2713 Tradeable only':'Show all')+'</span>'
+      +'</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'
-        +colCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge',os)
-        +colCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge',ob)
-        +colCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge',mo)
+        +colCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge','OVERSOLD',os)
+        +colCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge','OVERBOUGHT',ob)
+        +colCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge','MOMENTUM',mo)
       +'</div>';
   }
 
@@ -3093,6 +3105,51 @@ function geRenderScan(picks){
   GE_PICKS.forEach(function(p){
     geStyleChip(String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase(),false);
   });
+  geApplyFilter();
+}
+
+/* "Tradeable only" filter: when on, each bucket shows ONLY engine-confirmed (✓) chips
+   and hides no-trade (⛔), conflict (⚠), and not-yet-verified ('') names. The currently
+   open pick is never hidden. Re-applied as chips verify and on toggle. */
+function geApplyFilter(){
+  if(!GE_PICKS||!GE_PICKS.length)return;
+  var only=GE_TRADEABLE_ONLY;
+  var buckets={OVERSOLD:[],OVERBOUGHT:[],MOMENTUM:[]};
+  GE_PICKS.forEach(function(p){var c=String(p.condition).toUpperCase();if(buckets[c])buckets[c].push(p);});
+  Object.keys(buckets).forEach(function(key){
+    var arr=buckets[key],shown=0,hidden=0,pending=0;
+    arr.forEach(function(p){
+      var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
+      var el=document.getElementById('ge-chip-'+tk);if(!el)return;
+      var mk=(geEffView(tk)||{}).mark||'';
+      var keep=!only||mk==='\u2713'||GE_OPEN_PICK===tk; // tradeable = confirmed; never hide the open pick
+      el.style.display=keep?'':'none';
+      if(keep)shown++;else{hidden++;if(mk==='')pending++;}
+    });
+    var note=document.getElementById('ge-colnote-'+key);
+    if(!note)return;
+    if(!only||arr.length===0){note.style.display='none';return;} // 'none this scan' covers empty buckets
+    if(shown===0){
+      note.textContent=pending>0?'verifying\u2026':'nothing actionable now';
+      note.style.display='';
+    }else if(hidden>0){
+      note.textContent='+'+hidden+' filtered'+(pending>0?' \u00B7 verifying\u2026':'');
+      note.style.display='';
+    }else{note.style.display='none';}
+  });
+}
+
+function geToggleTradeable(){
+  GE_TRADEABLE_ONLY=!GE_TRADEABLE_ONLY;
+  try{localStorage.setItem('ge_tradeable',GE_TRADEABLE_ONLY?'1':'0');}catch(e){}
+  var b=document.getElementById('ge-trade-toggle');
+  if(b){
+    b.textContent=GE_TRADEABLE_ONLY?'\u2713 Tradeable only':'Show all';
+    b.style.background=GE_TRADEABLE_ONLY?'#f0fdf4':'var(--p2)';
+    b.style.borderColor=GE_TRADEABLE_ONLY?'#86efac':'var(--border)';
+    b.style.color=GE_TRADEABLE_ONLY?'#15803d':'#334155';
+  }
+  geApplyFilter();
 }
 
 function geScanPick(t){
