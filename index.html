@@ -924,17 +924,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <!-- Capital -->
     <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--gbd);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box">
       <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Cap $</label>
-      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:100%;min-width:0;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
+      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4d()" style="width:100%;min-width:0;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
     <!-- Stop -->
     <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
       <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Stop %</label>
-      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--orange);line-height:1"/>
+      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4d()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--orange);line-height:1"/>
     </div>
     <!-- Target -->
     <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
       <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Tgt %</label>
-      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
+      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4d()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
     </div>
     <!-- Refresh -->
     <button id="rfr-signal" class="btn-refresh round" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span></button>
@@ -2720,6 +2720,7 @@ setTimeout(function(){
   geVerifyPicks(); // chips turn engine-current in the background, no taps needed
 },400);
 
+var GE_SCANNING=false,GE_SCAN_CONFIRM=false,GE_SCAN_CONFIRM_T=null;
 function geScan(force){
   var out=$('ge-scan-out');if(!out)return;
   geDockSignal();
@@ -2727,6 +2728,20 @@ function geScan(force){
     var c=JSON.parse(localStorage.getItem('ge_scan')||'null');
     if(!force&&c&&c.ts&&Date.now()-c.ts<30*60*1000){geRenderScan(c.picks);return;}
   }catch(e){}
+  // One scan at a time — never fire a second request while one is in flight.
+  if(GE_SCANNING){geScanStatus('A scan is already running \u2014 hang tight\u2026');return;}
+  // Soft cooldown: each scan is a Sonnet call + up to 6 web searches. Block accidental
+  // rapid re-scans within 90s; tapping Scan again within 5s overrides the cooldown.
+  if(force){
+    var lastTs=0;try{var sc=JSON.parse(localStorage.getItem('ge_scan')||'null');lastTs=(sc&&sc.ts)||0;}catch(e){}
+    if(lastTs&&(Date.now()-lastTs)<90*1000&&!GE_SCAN_CONFIRM){
+      geScanStatus('Just scanned '+Math.round((Date.now()-lastTs)/1000)+'s ago \u2014 tap Scan again to force a fresh one.');
+      GE_SCAN_CONFIRM=true;clearTimeout(GE_SCAN_CONFIRM_T);
+      GE_SCAN_CONFIRM_T=setTimeout(function(){GE_SCAN_CONFIRM=false;},5000);
+      return;
+    }
+    GE_SCAN_CONFIRM=false;
+  }
   var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
   if(!apiKey||apiKey.indexOf('sk-')===-1){
     var k=window.prompt('The scanner uses Claude web search. Enter your Anthropic API key (sk-ant-...):');
@@ -2748,8 +2763,9 @@ function geScan(force){
     +'Reply ONLY a raw JSON array, no markdown:\n'
     +'[{"ticker":"","name":"","category":"OVERSOLD"|"OVERBOUGHT"|"MOMENTUM","bias":"BULL"|"BEAR","rsi":"<number or empty>","sector":"","note":"<10 words why now>","catalyst":"<8 words or empty>"}]';
   var messages=[{role:'user',content:prompt}];
+  GE_SCANNING=true;
   (function turn(left){
-    if(left<=0){geScanStatus('Scan ran too long \u2014 tap Scan to retry.');return;}
+    if(left<=0){GE_SCANNING=false;geScanStatus('Scan ran too long \u2014 tap Scan to retry.');return;}
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -2759,20 +2775,21 @@ function geScan(force){
     })
     .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
     .then(function(res){
-      if(!res.ok){geScanStatus('Scan failed: '+((res.data.error&&res.data.error.message)||('HTTP '+res.status)));return;}
+      if(!res.ok){GE_SCANNING=false;geScanStatus('Scan failed: '+((res.data.error&&res.data.error.message)||('HTTP '+res.status)));return;}
       if(res.data.stop_reason==='pause_turn'){messages.push({role:'assistant',content:res.data.content||[]});turn(left-1);return;}
       var text='';(res.data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
       var a1=text.indexOf('['),a2=text.lastIndexOf(']');
-      if(a1===-1||a2===-1){geScanStatus('Scan returned no list \u2014 tap Scan to retry.');return;}
+      if(a1===-1||a2===-1){GE_SCANNING=false;geScanStatus('Scan returned no list \u2014 tap Scan to retry.');return;}
       try{
         var picks=JSON.parse(text.slice(a1,a2+1)).filter(function(p){return p&&p.ticker;}).map(geNormPick).slice(0,15);
         if(!picks.length)throw 0;
         try{localStorage.setItem('ge_scan',JSON.stringify({picks:picks,ts:Date.now()}));}catch(e){}
+        GE_SCANNING=false;
         geRenderScan(picks);
         geVerifyPicks(true); // verify the fresh list in the background
-      }catch(e){geScanStatus('Could not parse scan \u2014 tap Scan to retry.');}
+      }catch(e){GE_SCANNING=false;geScanStatus('Could not parse scan \u2014 tap Scan to retry.');}
     })
-    .catch(function(){geScanStatus('Network error during scan \u2014 tap Scan to retry.');});
+    .catch(function(){GE_SCANNING=false;geScanStatus('Network error during scan \u2014 tap Scan to retry.');});
   })(5);
 }
 
@@ -3240,6 +3257,11 @@ function setT4(t){
 
 var G4_CACHE={};  // cache fetched data per ticker
 
+// Debounced entry point for the Cap/Stop/Target number inputs — coalesces rapid
+// keystrokes into a single recompute (~400ms after typing stops). Chip taps still
+// call go4() directly so they stay instant.
+var GO4_DEB=null;
+function go4d(){clearTimeout(GO4_DEB);GO4_DEB=setTimeout(go4,400);}
 function go4(){
   var capital=fv('g1'),target=0,stopPct=fv('g3'),targetPct=fv('g4');
   var sym=T4.toUpperCase();
@@ -3878,6 +3900,18 @@ function processSignal(valid,capital,target,stopPct,sym){
     var apiKey=localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'';
     if(!apiKey||apiKey.indexOf('sk-')===-1) return; // no key — keep BS estimate
 
+    // Cache by OPTION identity (sym/strike/dte/type) — invariant to capital/stop/target,
+    // so editing those inputs reuses the cached mid and never re-hits the API. 5-min TTL.
+    // 'pending' flag stops duplicate concurrent calls when go4 fires several times fast.
+    var baKey=sym.toUpperCase()+'_'+K+'_'+dte+'_'+(isCall?'C':'P');
+    var baHit=GE_BIDASK[baKey];
+    if(baHit&&baHit.mid>0&&(Date.now()-baHit.ts)<5*60*1000){
+      renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,baHit.mid,true);
+      return;
+    }
+    if(baHit&&baHit.pending) return; // a fetch for this exact option is already in flight
+    GE_BIDASK[baKey]={pending:true,ts:Date.now()};
+
     var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     var optType=isCall?'call':'put';
     var prompt='Search Yahoo Finance options for '+sym+' today '+today+'. '
@@ -3905,14 +3939,17 @@ function processSignal(valid,capital,target,stopPct,sym){
       var text='';
       (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
       var match=text.match(/\{[^}]+\}/);
-      if(!match) return;
+      if(!match){delete GE_BIDASK[baKey];return;}
       var opt=JSON.parse(match[0]);
       var liveMid=opt.mid||(opt.bid>0?(opt.bid+opt.ask)/2:opt.ask);
       if(liveMid>0){
+        GE_BIDASK[baKey]={mid:liveMid,ts:Date.now()};
         renderSetupGrid(spot,K,iv3,dte,capital,stopPct,color,isCall,liveMid,true);
+      } else {
+        delete GE_BIDASK[baKey];
       }
     })
-    .catch(function(){/* keep BS estimate */});
+    .catch(function(){delete GE_BIDASK[baKey];/* keep BS estimate */});
   }  // end if(isCall!==null&&dte)
   else {
     // NO TRADE: engine says wait, but keep the position calculator reachable
@@ -3956,7 +3993,7 @@ function processSignal(valid,capital,target,stopPct,sym){
   renderIVMeter(iv3,atrPct,spot);
 }  // end processSignal
 
-var G_SETUP=null,G_PREM={},G_PLAN_CTX=null;
+var G_SETUP=null,G_PREM={},G_PLAN_CTX=null,GE_BIDASK={};
 function gePlanDefault(){
   // Default direction = the engine's raw indicator lean (even when downgraded
   // to NO TRADE), flippable from the banner.
