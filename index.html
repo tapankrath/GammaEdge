@@ -2662,10 +2662,19 @@ function gePrintPicks(){
     +rows
     +'<div style="font-size:10px;color:#94a3b8;margin-top:12px;">Research candidates, not advice. Verify every pick in the app and price every contract at your broker before trading.</div>'
     +'</body></html>';
-  var w=window.open('','_blank');
-  if(!w){alert('Popup blocked \u2014 allow popups for this page to view the report.');return;}
-  w.document.write(html);
-  w.document.close();
+  // Blob URL avoids mobile Safari's window.open+write hijack
+  try{
+    var blob=new Blob([html],{type:'text/html'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.target='_blank';a.rel='noopener';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  }catch(e){
+    var w=window.open('','_blank');
+    if(!w){alert('Popup blocked — allow popups for this page.');return;}
+    w.document.write(html);w.document.close();
+  }
 }
 
 // Re-dock the signal block to its normal position (above the scan results)
@@ -2725,7 +2734,18 @@ setTimeout(function(){
       geRenderScan(hashPicks,Date.now());
     }else{
       var lsc=JSON.parse(localStorage.getItem('ge_scan')||'null');
-      geRenderScan((lsc&&lsc.picks)||[],(lsc&&lsc.ts)||0);
+      var lscAge=lsc&&lsc.ts?(Date.now()-lsc.ts):Infinity;
+      if(lscAge>4*60*60*1000){
+        // Scan is >4h old — discard stale picks, show empty state with prompt
+        try{localStorage.removeItem('ge_scan');}catch(e){}
+        geRenderScan([],0);
+        setTimeout(function(){
+          var note=document.getElementById('ge-scan-note');
+          if(note)note.innerHTML='⚠️ Last scan was '+(Math.floor(lscAge/3600000))+'h+ ago and has been cleared. Tap <b>Scan</b> to get fresh picks.';
+        },500);
+      }else{
+        geRenderScan((lsc&&lsc.picks)||[],(lsc&&lsc.ts)||0);
+      }
     }
   }catch(e){geRenderScan([]);}
   geVerifyPicks(); // chips turn engine-current in the background, no taps needed
