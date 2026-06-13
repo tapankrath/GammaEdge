@@ -2813,7 +2813,7 @@ function geFindPick(tk){
    colors/markers are engine-current WITHOUT tapping. Decision math is the
    same quickSignal the dual cards use — now branch-identical to processSignal,
    so tapping a chip cannot flip its direction (same bars ⇒ same action). */
-var GE_VQ=[],GE_VQ_BUSY=false;
+var GE_VQ=[],GE_VQ_ACTIVE=0,GE_VQ_MAX=3; // verify up to 3 names concurrently (was 1/1.2s)
 function geVerifyPicks(force){
   GE_PICKS.forEach(function(p){
     var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
@@ -2821,14 +2821,20 @@ function geVerifyPicks(force){
     if(!force&&G4_LAST_SIGNAL[tk.toLowerCase()])return; // already verified this session
     if(GE_VQ.indexOf(tk)===-1)GE_VQ.push(tk);
   });
-  geVQNext();
+  geVQPump();
 }
-function geVQNext(){
-  if(GE_VQ_BUSY)return;
-  var tk=GE_VQ.shift();
-  if(!tk)return;
-  GE_VQ_BUSY=true;
-  function done(){GE_VQ_BUSY=false;setTimeout(geVQNext,1200);} // ~1.2s spacing — gentle on proxies
+function geVQPump(){
+  while(GE_VQ_ACTIVE<GE_VQ_MAX&&GE_VQ.length)geVQRun(GE_VQ.shift());
+}
+function geVQRun(tk){
+  GE_VQ_ACTIVE++;
+  var settled=false;
+  function done(){
+    if(settled)return;settled=true;
+    GE_VQ_ACTIVE--;
+    geRefreshBucketsSoon(); // re-sort the instant each name lands (debounced to coalesce the pool)
+    geVQPump();
+  }
   var k=tk.toLowerCase();
   if(!DEFS[k])DEFS[k]={spot:0,iv:32,cost:10}; // quickSignal expects a DEFS entry
   fetchP(tk); // live quote so background math matches the on-tap math
@@ -2841,9 +2847,7 @@ function geVQNext(){
     var q=quickSignal(tk);
     if(q&&!q.noData){
       G4_LAST_SIGNAL[k]={action:q.action,confidence:q.conf,spot:LIVE[k]||bars[bars.length-1].c,
-        rsi:null,iv:null,atrPct:null,dte:null,signals:[]};
-      geStyleChip(tk,GE_OPEN_PICK===tk);
-      if(typeof geApplyFilter==='function')geApplyFilter();
+        rsi:(q.rsi!=null?q.rsi:null),iv:null,atrPct:null,dte:null,signals:[]};
     }
     done();
   }
@@ -2853,7 +2857,7 @@ function geVQNext(){
     var ps=proxyWrap(u1).concat(proxyWrap(u2));
     (function tryP(i){
       if(i>=ps.length){tdHistory(tk).then(ok).catch(function(){done();});return;}
-      geFetch(ps[i],9000)
+      geFetch(ps[i],6000)
         .then(function(r){if(!r.ok)throw 0;return r.json();})
         .then(function(raw){
           var d=typeof raw==='string'?JSON.parse(raw):raw;
@@ -3065,21 +3069,10 @@ function geRenderScan(picks){
     +'</div>'
     +'<div id="ge-idx-detail" style="display:none;margin-top:9px"></div>';
 
-  // ── Cluster 2: opportunities — oversold / overbought / momentum as 3 columns ──
+  // ── Cluster 2: opportunities — ENGINE-classified into oversold/overbought/momentum.
+  //    Initial placement uses the AI category; once verification finishes, geRefreshBuckets
+  //    re-sorts every name by the engine's own RSI + chosen direction (the trustworthy view).
   if(GE_PICKS.length){
-    var byCond=function(k){return function(p){return String(p.condition).toUpperCase()===k;};};
-    var os=GE_PICKS.filter(byCond('OVERSOLD'));
-    var ob=GE_PICKS.filter(byCond('OVERBOUGHT'));
-    var mo=GE_PICKS.filter(byCond('MOMENTUM'));
-    var none='<span style="font-size:8.5px;color:#94a3b8;font-weight:700">none this scan</span>';
-    function colCard(bd,bg,tc,sc,title,subt,key,arr){
-      return '<div style="border:1.5px solid '+bd+';background:'+bg+';border-radius:10px;padding:8px 7px">'
-        +'<div style="font-size:8.5px;font-weight:900;color:'+tc+';text-transform:uppercase;letter-spacing:.04em">'+title+'</div>'
-        +'<div style="font-size:7.5px;color:'+sc+';font-weight:700;margin:1px 0 7px">'+subt+'</div>'
-        +'<div id="ge-col-'+key+'" style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(chip).join(''):none)+'</div>'
-        +'<div id="ge-colnote-'+key+'" style="font-size:7.5px;color:#94a3b8;font-weight:700;margin-top:6px;display:none"></div>'
-      +'</div>';
-    }
     var tgOn=GE_TRADEABLE_ONLY;
     var tgStyle=tgOn?'background:#f0fdf4;border-color:#86efac;color:#15803d':'background:var(--p2);border-color:var(--border);color:#334155';
     h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
@@ -3087,11 +3080,7 @@ function geRenderScan(picks){
         +'<span style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em">Opportunities</span>'
         +'<span id="ge-trade-toggle" onclick="geToggleTradeable()" style="font-size:8.5px;font-weight:800;cursor:pointer;border:1.5px solid;border-radius:999px;padding:3px 9px;-webkit-user-select:none;user-select:none;'+tgStyle+'">'+(tgOn?'\u2713 Tradeable only':'Show all')+'</span>'
       +'</div>'
-      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'
-        +colCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge','OVERSOLD',os)
-        +colCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge','OVERBOUGHT',ob)
-        +colCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge','MOMENTUM',mo)
-      +'</div>';
+      +'<div id="ge-opp-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'+geBuildOppCols()+'</div>';
   }
 
   h+='<div id="ge-pick-detail" style="display:none;margin-top:9px"></div>'
@@ -3111,6 +3100,69 @@ function geRenderScan(picks){
 /* "Tradeable only" filter: when on, each bucket shows ONLY engine-confirmed (✓) chips
    and hides no-trade (⛔), conflict (⚠), and not-yet-verified ('') names. The currently
    open pick is never hidden. Re-applied as chips verify and on toggle. */
+/* Reusable chip + column builders (shared by initial render and the post-verify reflow). */
+function geChipHtml(p){
+  var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
+  return '<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
+    +'<span id="ge-chip-ar-'+tk+'"></span>'+tk
+    +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:1px"></span>'
+    +'<span style="font-size:8px;font-weight:800;opacity:.55;margin-left:1px">\u25BE</span>'
+  +'</div>';
+}
+function geColCard(bd,bg,tc,sc,title,subt,key,arr){
+  var none='<span style="font-size:8.5px;color:#94a3b8;font-weight:700">none this scan</span>';
+  return '<div style="border:1.5px solid '+bd+';background:'+bg+';border-radius:10px;padding:8px 7px">'
+    +'<div style="font-size:8.5px;font-weight:900;color:'+tc+';text-transform:uppercase;letter-spacing:.04em">'+title+'</div>'
+    +'<div style="font-size:7.5px;color:'+sc+';font-weight:700;margin:1px 0 7px">'+subt+'</div>'
+    +'<div id="ge-col-'+key+'" style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(geChipHtml).join(''):none)+'</div>'
+    +'<div id="ge-colnote-'+key+'" style="font-size:7.5px;color:#94a3b8;font-weight:700;margin-top:6px;display:none"></div>'
+  +'</div>';
+}
+function geBuildOppCols(){
+  var by=function(k){return function(p){return String(p.condition).toUpperCase()===k;};};
+  var os=GE_PICKS.filter(by('OVERSOLD')),ob=GE_PICKS.filter(by('OVERBOUGHT')),mo=GE_PICKS.filter(by('MOMENTUM'));
+  return geColCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge','OVERSOLD',os)
+    +geColCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge','OVERBOUGHT',ob)
+    +geColCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge','MOMENTUM',mo);
+}
+
+/* The trustworthy classifier: bucket a name by the ENGINE's own RSI + the direction it
+   actually chose, NOT the AI's label. CALL+RSI≤35 = oversold bounce; PUT+RSI≥65 = overbought
+   fade; any other live CALL/PUT = momentum. NO TRADE / no RSI → null (stays filtered). */
+function geEngineBucket(tk){
+  var rec=(typeof G4_LAST_SIGNAL!=='undefined')?G4_LAST_SIGNAL[String(tk).toLowerCase()]:null;
+  if(!rec||!rec.action)return null;
+  var a=String(rec.action),rsi=rec.rsi;
+  var isCall=a.indexOf('CALL')>-1,isPut=a.indexOf('PUT')>-1;
+  if(!isCall&&!isPut)return null; // NO TRADE / NO DATA
+  if(isCall)return{cond:(rsi!=null&&rsi<=35)?'OVERSOLD':'MOMENTUM',bias:'BULL'};
+  return{cond:(rsi!=null&&rsi>=65)?'OVERBOUGHT':'MOMENTUM',bias:'BEAR'};
+}
+
+/* Re-sort chips into engine buckets after verification, rebuilding ONLY the columns grid
+   (index cards + any open plan panel are siblings and untouched). */
+function geRefreshBuckets(){
+  if(!GE_PICKS||!GE_PICKS.length)return;
+  var grid=document.getElementById('ge-opp-grid');if(!grid)return;
+  GE_PICKS.forEach(function(p){
+    var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
+    var eb=geEngineBucket(tk);
+    if(eb){p.condition=eb.cond;p.bias=eb.bias;} // verified → engine truth; else keep AI bucket (filtered anyway)
+  });
+  grid.innerHTML=geBuildOppCols();
+  GE_PICKS.forEach(function(p){
+    var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
+    geStyleChip(tk,GE_OPEN_PICK===tk);
+  });
+  geApplyFilter();
+}
+
+var GE_REFLOW_T=null;
+function geRefreshBucketsSoon(){
+  clearTimeout(GE_REFLOW_T);
+  GE_REFLOW_T=setTimeout(function(){if(typeof geRefreshBuckets==='function')geRefreshBuckets();},120);
+}
+
 function geApplyFilter(){
   if(!GE_PICKS||!GE_PICKS.length)return;
   var only=GE_TRADEABLE_ONLY;
@@ -3280,7 +3332,7 @@ function quickSignal(sym){
   var detail='RSI '+rsi.toFixed(0)+' · '+(aboveMA?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
   if(regF.changed)detail+=' · ⛔ '+regF.notes[0];
   else if(regT.trend)detail+=' · 50MA '+(regT.trend==='UP'?'↑':'↓');
-  return{action:action,color:color,bgColor:bgColor,borderColor:borderColor,conf:conf,sub:sub,detail:detail,bull:bull,bear:bear};
+  return{action:action,color:color,bgColor:bgColor,borderColor:borderColor,conf:conf,sub:sub,detail:detail,bull:bull,bear:bear,rsi:rsi};
 }
 
 // Store last signal results so dual cards always match processSignal
