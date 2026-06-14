@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Yield Aggressive Strategy Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Custom smooth transitions */
+        .transition-all { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased">
+
+    <div class="max-w-md mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-emerald-400 tracking-tight">Aggressive Yield Planner</h1>
+            <p class="text-xs text-gray-400 mt-1">Targeting 5-7% Weekly via Income & Hedging</p>
+        </header>
+
+        <div class="bg-amber-950/40 border border-amber-500/30 rounded-xl p-4 mb-6 text-xs text-amber-300">
+            <span class="font-bold block mb-1">⚠️ High Risk Notice:</span>
+            A 5-7% weekly return requires aggressive leverage (options). Hedging mitigates, but does not eliminate, the risk of severe capital loss.
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-700/50 mb-6">
+            <label for="capital" class="block text-sm font-medium text-gray-300 mb-2">Total Capital ($)</label>
+            <div class="relative rounded-md shadow-sm">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <span class="text-gray-400 sm:text-sm">$</span>
+                </div>
+                <input type="number" id="capital" value="100000" class="block w-full rounded-xl border-0 bg-gray-700 py-3 pl-8 pr-3 text-white font-semibold placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 text-lg" placeholder="0.00">
+            </div>
+            <button onclick="calculateStrategy()" class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 px-4 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                Generate Execution Plan
+            </button>
+        </div>
+
+        <div id="results" class="space-y-4">
+            </div>
+    </div>
+
+    <script>
+        function calculateStrategy() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            if (isNaN(capital) || capital <= 0) {
+                alert('Please enter a valid capital amount.');
+                return;
+            }
+
+            // Allocation Percentages
+            const allocation = {
+                etfs: 0.40,      // 40% Broad Market Index for stability/collateral
+                stocks: 0.35,    // 35% High Beta/Tech Tech for aggressive premium generation
+                options: 0.20,   // 20% Pure Cash-Flow Risk Capital (Spreads/Intraday)
+                hedge: 0.05      // 5% Permanent Insurance (Tail-risk puts)
+            };
+
+            // Formatting helper
+            const fmt = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="bg-gray-800 rounded-2xl p-5 border border-gray-700/50 shadow-xl">
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Portfolio Allocation</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Core ETFs (Collateral)</span>
+                                <span class="font-semibold text-emerald-400">${fmt(capital * allocation.etfs)} (40%)</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-emerald-400 h-2 rounded-full" style="width: 40%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>High-Beta Stocks</span>
+                                <span class="font-semibold text-teal-400">${fmt(capital * allocation.stocks)} (35%)</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-teal-400 h-2 rounded-full" style="width: 35%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Options Risk Capital</span>
+                                <span class="font-semibold text-purple-400">${fmt(capital * allocation.options)} (20%)</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-purple-400 h-2 rounded-full" style="width: 20%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Tail-Risk Hedging</span>
+                                <span class="font-semibold text-rose-400">${fmt(capital * allocation.hedge)} (5%)</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-rose-400 h-2 rounded-full" style="width: 5%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider px-1">Execution Playbook</h3>
+                    
+                    <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700/30">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide">1. Core ETFs (${fmt(capital * allocation.etfs)})</span>
+                        <p class="text-sm text-gray-200 mt-1 font-semibold">Where/What: SPY (S&P 500) or QQQ (Nasdaq 100)</p>
+                        <p class="text-xs text-gray-400 mt-1">Tactics: Buy underlying shares. Use these stable shares as collateral to write (sell) out-of-the-money weekly Covered Calls to generate baseline income.</p>
+                    </div>
+
+                    <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700/30">
+                        <span class="text-xs font-bold text-teal-400 uppercase tracking-wide">2. High-Beta Growth Stocks (${fmt(capital * allocation.stocks)})</span>
+                        <p class="text-sm text-gray-200 mt-1 font-semibold">Where/What: NVDA, AMD, TSLA or similar high-volatility equities.</p>
+                        <p class="text-xs text-gray-400 mt-1">Tactics: Execute the "Wheel Strategy". Sell weekly Cash-Secured Puts (CSP) to collect massive premiums. If assigned, write Covered Calls. High implied volatility (IV) is mandatory to approach your yield goals.</p>
+                    </div>
+
+                    <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700/30">
+                        <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">3. Spread Trading Engine (${fmt(capital * allocation.options)})</span>
+                        <p class="text-sm text-gray-200 mt-1 font-semibold">Where/What: SPX or NDX (Index options for tax efficiencies/no assignment risk).</p>
+                        <p class="text-xs text-gray-400 mt-1">Tactics: Sell 0DTE (Zero Days to Expiration) or 1-to-3 day Credit Spreads (Bull Put or Bear Call Spreads). This is the primary engine driving towards the 5% weekly target, relying on rapid time decay (theta).</p>
+                    </div>
+
+                    <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700/30 border-l-4 border-l-rose-500">
+                        <span class="text-xs font-bold text-rose-400 uppercase tracking-wide">4. The Defensive Hedge (${fmt(capital * allocation.hedge)})</span>
+                        <p class="text-sm text-gray-200 mt-1 font-semibold">Where/What: VIX Call Options or Long SPY OTM Protective Puts.</p>
+                        <p class="text-xs text-gray-400 mt-1">Tactics: Treat this 5% as pure insurance premium that will likely expire worthless. Buy 30-60 day out-of-the-money Puts. If a sudden market crash happens, these contracts will explode in value, offsetting losses in your stock/ETF portfolios.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-950/40 to-gray-800 p-5 rounded-2xl border border-emerald-500/20 text-center">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Target Weekly Yield Range (5% - 7%)</p>
+                    <p class="text-3xl font-black text-emerald-400 mt-1">${fmt(capital * 0.05)} - ${fmt(capital * 0.07)}</p>
+                    <p class="text-[10px] text-gray-500 mt-2 italic">Note: To hit this target, market conditions must favor short-volatility strategies, and trades must be heavily micro-managed daily.</p>
+                </div>
+            `;
+        }
+
+        // Auto-run on load
+        window.onload = calculateStrategy;
+    </script>
+</body>
+</html>
