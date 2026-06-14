@@ -8,16 +8,36 @@
 :root{--bg:#090d13;--surf:#0f1621;--card:#141c2a;--bor:#1e2d42;--grn:#00d4a1;--blu:#3b82f6;--yel:#f59e0b;--red:#ef4444;--txt:#e8edf5;--mut:#5a7090;--lbl:#8aa0bc}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,sans-serif;min-height:100vh}
-header{background:var(--surf);border-bottom:1px solid var(--bor);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+
+/* HEADER */
+header{background:var(--surf);border-bottom:1px solid var(--bor);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--grn),var(--blu));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
 .logo-text{font-size:17px;font-weight:700}.logo-text span{color:var(--grn)}
+.header-right{display:flex;align-items:center;gap:10px}
 .badge{font-size:10px;background:rgba(0,212,161,.12);color:var(--grn);border:1px solid rgba(0,212,161,.25);border-radius:4px;padding:2px 7px;font-family:monospace}
+
+/* GEAR BUTTON */
+.gear-btn{width:36px;height:36px;background:var(--card);border:1px solid var(--bor);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;flex-shrink:0}
+.gear-btn.active{border-color:var(--grn);background:rgba(0,212,161,.1)}
+.gear-dot{width:7px;height:7px;background:var(--grn);border-radius:50%;position:absolute;top:6px;right:6px}
+.gear-wrap{position:relative}
+
+/* API DRAWER */
+.api-drawer{display:none;position:absolute;top:62px;right:16px;left:16px;background:var(--card);border:1px solid var(--bor);border-radius:14px;padding:16px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.api-drawer.open{display:block}
+.api-drawer .lbl{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.api-drawer input{width:100%;background:var(--surf);border:1.5px solid var(--bor);border-radius:8px;padding:11px 12px;color:var(--txt);font-size:13px;outline:none;font-family:monospace}
+.api-drawer input:focus{border-color:var(--grn)}
+.api-hint{font-size:11px;color:var(--mut);margin-top:6px}
+.api-status{font-size:11px;margin-top:6px;font-weight:600}
+.api-status.set{color:var(--grn)}.api-status.unset{color:var(--yel)}
+.save-btn{margin-top:10px;width:100%;background:var(--grn);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;color:#050d0a;cursor:pointer}
+
 main{max-width:500px;margin:0 auto;padding:20px 16px 80px}
 .card{background:var(--card);border:1px solid var(--bor);border-radius:16px;padding:18px;margin-bottom:14px}
 .lbl{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
-input[type=password],input[type=number]{width:100%;background:var(--surf);border:1.5px solid var(--bor);border-radius:8px;padding:11px 12px;color:var(--txt);font-size:14px;outline:none;-webkit-appearance:none}
-input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;border-radius:10px;font-family:monospace}
+input[type=number]{width:100%;background:var(--surf);border:1.5px solid var(--bor);border-radius:8px;padding:11px 12px;color:var(--txt);font-size:14px;outline:none;-webkit-appearance:none;font-size:26px;font-weight:700;padding:12px 14px 12px 30px;border-radius:10px;font-family:monospace}
 .cap-wrap{position:relative;margin-bottom:14px}
 .cap-sign{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--grn);font-weight:700}
 .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -32,7 +52,6 @@ input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;bo
 .risk-opt.sel-u{border-color:var(--red);background:rgba(239,68,68,.1)}.risk-opt.sel-u .rl{color:var(--red)}
 .gen-btn{width:100%;background:linear-gradient(135deg,#00d4a1,#00b887);border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;color:#050d0a;cursor:pointer}
 .gen-btn:disabled{background:#1e2d42;color:var(--mut);cursor:not-allowed}
-.hint{font-size:11px;color:var(--mut);margin-top:6px}
 .err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;color:var(--red);font-size:13px;margin-bottom:14px;display:none;line-height:1.6}
 #loading{display:none;text-align:center;padding:40px 20px}
 .spin{width:40px;height:40px;border:3px solid var(--bor);border-top-color:var(--grn);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
@@ -55,33 +74,58 @@ input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;bo
 .sec-hdr{display:flex;align-items:center;gap:8px;margin:18px 0 10px}
 .sec-dot{width:8px;height:8px;border-radius:50%}
 .sec-title{font-size:14px;font-weight:700}
-.pos{background:var(--surf);border:1px solid var(--bor);border-radius:12px;padding:14px 15px;margin-bottom:9px}
-.pos-tag{font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:8px}
-.pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.pos-tick{font-family:monospace;font-size:16px;font-weight:700}
-.pos-name{font-size:11px;color:var(--mut);margin-top:2px}
-.pos-r{text-align:right}
-.pos-dol{font-family:monospace;font-size:15px;font-weight:600}
-.pos-pct{font-size:11px;color:var(--mut);margin-top:2px}
-.pos-note{font-size:12px;color:var(--lbl);line-height:1.6;padding-top:8px;border-top:1px solid var(--bor)}
+
+/* COLLAPSIBLE POSITION CARDS */
+.pos{background:var(--surf);border:1px solid var(--bor);border-radius:12px;margin-bottom:9px;overflow:hidden}
+.pos-header{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pos-header-left{display:flex;align-items:center;gap:10px}
+.pos-tag{font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;display:inline-block;flex-shrink:0}
+.pos-tick{font-family:monospace;font-size:15px;font-weight:700}
+.pos-name-sm{font-size:11px;color:var(--mut);margin-top:1px}
+.pos-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.pos-dol{font-family:monospace;font-size:14px;font-weight:600}
+.pos-chevron{font-size:12px;color:var(--mut);transition:transform .25s}
+.pos-chevron.open{transform:rotate(180deg)}
+.pos-body{display:none;padding:0 15px 14px;border-top:1px solid var(--bor)}
+.pos-body.open{display:block}
+.pos-note{font-size:12px;color:var(--lbl);line-height:1.6;padding-top:10px}
+.pos-pct-sm{font-size:11px;color:var(--mut)}
+
+/* ACTION BUTTON */
+.act-btn{display:inline-block;margin-top:12px;background:var(--grn);color:#050d0a;font-size:12px;font-weight:700;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;letter-spacing:.3px}
+.act-btn.put{background:var(--red);color:#fff}
+.act-btn.hedge{background:#a78bfa;color:#fff}
+.act-btn.etf{background:var(--blu);color:#fff}
+
 .info-card{border-radius:12px;padding:14px 15px;margin-bottom:9px}
 .disc{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--mut);line-height:1.6;margin-top:14px}
 </style>
 </head>
 <body>
+
 <header>
   <div class="logo">
     <div class="logo-icon">⚡</div>
     <div class="logo-text">Weekly<span>Alpha</span></div>
   </div>
-  <span class="badge">AI PLANNER</span>
-</header>
-<main>
-  <div class="card">
-    <div class="lbl">Anthropic API Key</div>
-    <input type="password" id="key" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-    <div class="hint">🔒 Never stored — only sent to Anthropic's API</div>
+  <div class="header-right">
+    <span class="badge">AI PLANNER</span>
+    <div class="gear-wrap">
+      <div class="gear-btn" id="gearBtn" onclick="toggleGear()">⚙️</div>
+    </div>
   </div>
+</header>
+
+<!-- API Drawer -->
+<div class="api-drawer" id="apiDrawer">
+  <div class="lbl">Anthropic API Key</div>
+  <input type="password" id="key" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateStatus()">
+  <div class="api-hint">🔒 Saved in browser only — never sent anywhere except Anthropic</div>
+  <div class="api-status unset" id="apiStatus">⚠️ No key set</div>
+  <button class="save-btn" onclick="saveKey()">Save Key</button>
+</div>
+
+<main>
   <div class="card">
     <div class="lbl">Capital to Deploy</div>
     <div class="cap-wrap">
@@ -103,88 +147,103 @@ input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;bo
     </div>
     <button class="gen-btn" id="btn" onclick="go()">⚡ Generate Weekly Plan</button>
   </div>
+
   <div class="err" id="err"></div>
   <div id="loading"><div class="spin"></div><div style="color:var(--lbl);font-size:14px">Analyzing market conditions…</div></div>
   <div id="results"></div>
 </main>
+
 <script>
 var selR='a';
+
+// Load saved key on start
+window.onload=function(){
+  var saved=localStorage.getItem('wa_key');
+  if(saved){document.getElementById('key').value=saved;updateStatus()}
+  // close drawer on outside tap
+  document.addEventListener('click',function(e){
+    var drawer=document.getElementById('apiDrawer');
+    var gear=document.getElementById('gearBtn');
+    if(drawer.classList.contains('open')&&!drawer.contains(e.target)&&!gear.contains(e.target)){
+      drawer.classList.remove('open');
+      document.getElementById('gearBtn').classList.remove('active');
+    }
+  });
+}
+
+function toggleGear(){
+  var d=document.getElementById('apiDrawer');
+  var g=document.getElementById('gearBtn');
+  d.classList.toggle('open');
+  g.classList.toggle('active');
+}
+
+function saveKey(){
+  var k=document.getElementById('key').value.trim();
+  if(k){localStorage.setItem('wa_key',k);updateStatus();toggleGear();}
+}
+
+function updateStatus(){
+  var k=document.getElementById('key').value.trim();
+  var s=document.getElementById('apiStatus');
+  if(k&&k.startsWith('sk-ant')){s.textContent='✓ Key ready';s.className='api-status set';}
+  else{s.textContent='⚠️ No valid key';s.className='api-status unset';}
+}
+
 function setC(v,b){document.getElementById('cap').value=v;document.querySelectorAll('.pre-btn').forEach(function(x){x.classList.remove('on')});b.classList.add('on')}
 function setR(r){selR=r;['m','a','u'].forEach(function(x){document.getElementById('r'+x).className='risk-opt'});var map={m:'sel-m',a:'sel-a',u:'sel-u'};document.getElementById('r'+r).classList.add(map[r])}
 function fmt(n){n=Number(n)||0;if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1000)return'$'+(n/1000).toFixed(1)+'K';return'$'+Math.round(n).toLocaleString()}
-function showErr(m){document.getElementById('err').innerHTML='⚠️ '+m;document.getElementById('err').style.display='block';document.getElementById('loading').style.display='none';document.getElementById('btn').disabled=false}
+
+function showErr(m){
+  document.getElementById('err').innerHTML='⚠️ '+m;
+  document.getElementById('err').style.display='block';
+  document.getElementById('loading').style.display='none';
+  document.getElementById('btn').disabled=false;
+}
+
+function togglePos(id){
+  var body=document.getElementById('body-'+id);
+  var chev=document.getElementById('chev-'+id);
+  if(body.classList.contains('open')){body.classList.remove('open');chev.classList.remove('open');}
+  else{body.classList.add('open');chev.classList.add('open');}
+}
 
 async function go(){
-  var key=document.getElementById('key').value.trim();
+  var key=(localStorage.getItem('wa_key')||document.getElementById('key').value||'').trim();
   var cap=parseFloat(document.getElementById('cap').value)||100000;
-  if(!key){showErr('Please enter your Anthropic API key.');return}
-  if(!key.startsWith('sk-ant')){showErr('Key must start with sk-ant-');return}
+  if(!key){showErr('Tap the ⚙️ gear icon to enter your API key first.');return}
+  if(!key.startsWith('sk-ant')){showErr('API key must start with sk-ant-');return}
   document.getElementById('err').style.display='none';
   document.getElementById('results').style.display='none';
   document.getElementById('loading').style.display='block';
   document.getElementById('btn').disabled=true;
-
   var rnames={m:'Moderate',a:'Aggressive',u:'Ultra'};
-
-  // Simple, clean prompt - no pre-filled template to confuse the model
-  var sys='You are an expert options trader. Respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }';
-  
-  var usr='Create a weekly trading plan for $'+cap+' capital, '+rnames[selR]+' risk profile, targeting 5-7% weekly return with hedging.\n\nRespond with a JSON object containing exactly these fields:\n- summary: string\n- targetReturn: string like "6%"\n- targetDollar: number\n- maxDrawdown: string like "8%"\n- riskScore: number 1-10\n- weeklyThesis: string\n- exitRules: string\n- riskWarning: string\n- allocation: object with etfs, stocks, options, hedge each having pct and dollar\n- etfPositions: array of positions with ticker, name, dollar, pct, action, rationale\n- stockPositions: array of positions with ticker, name, dollar, pct, action, rationale\n- optionPositions: array of positions with ticker, name, dollar, pct, action (CALL or PUT), rationale\n- hedgePositions: array of positions with ticker, name, dollar, pct, action, rationale\n\nAll dollars must sum to '+cap+'. Use SPY, QQQ, high-beta tech stocks. Specific option strikes and expiry dates. Real tickers only.';
-
   try{
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens:3000,
-        system:sys,
-        messages:[{role:'user',content:usr}]
+        system:'You are an expert options trader. Respond with ONLY a valid JSON object. Start with { and end with }. No markdown. No backticks. No text before or after.',
+        messages:[{role:'user',content:'Generate a weekly trading plan for $'+cap+' capital with '+rnames[selR]+' risk, targeting 5-7% weekly return with hedging. Return JSON with: summary, targetReturn, targetDollar, maxDrawdown, riskScore (1-10), weeklyThesis, exitRules, riskWarning, allocation (etfs/stocks/options/hedge each with pct and dollar), etfPositions, stockPositions, optionPositions, hedgePositions. Each position: ticker, name, dollar, pct, action, rationale. Use SPY QQQ NVDA TSLA AAPL META. Specific option strikes and expiry dates. All dollars sum to '+cap+'.'}]
       })
     });
-
     var data=await resp.json();
-
     if(!resp.ok){
-      if(resp.status===401)throw new Error('Invalid API key. Get one at console.anthropic.com');
-      if(resp.status===429)throw new Error('Rate limited — wait 30 seconds and retry');
+      if(resp.status===401)throw new Error('Invalid API key. Tap ⚙️ to update it.');
+      if(resp.status===429)throw new Error('Rate limited — wait 30 seconds and retry.');
       throw new Error((data&&data.error&&data.error.message)||'API error '+resp.status);
     }
-
     var raw='';
-    if(data.content&&data.content.length>0){
-      for(var i=0;i<data.content.length;i++){
-        if(data.content[i].type==='text') raw+=data.content[i].text;
-      }
-    }
-    raw=raw.trim();
-
-    // Strip markdown fences if present
-    if(raw.indexOf('```')!==-1){
-      raw=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-    }
-
-    // Find outermost { }
-    var s=raw.indexOf('{');
-    var e=raw.lastIndexOf('}');
-    if(s===-1||e===-1||e<=s)throw new Error('No JSON in response. Try again.');
-    
-    var jsonStr=raw.substring(s,e+1);
+    for(var i=0;i<(data.content||[]).length;i++){if(data.content[i].type==='text')raw+=data.content[i].text;}
+    raw=raw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+    if(s===-1||e===-1)throw new Error('No JSON in response. Try again.');
     var plan;
-    try{
-      plan=JSON.parse(jsonStr);
-    }catch(pe){
-      // Show raw for debugging
-      showErr('Parse error: '+pe.message+'<br><small style="opacity:0.6">Raw: '+jsonStr.substring(0,200)+'</small>');
-      return;
-    }
+    try{plan=JSON.parse(raw.substring(s,e+1));}
+    catch(pe){throw new Error('Parse error: '+pe.message+'. Try again.');}
     render(plan);
-
   }catch(err){
     showErr(err.message||'Something went wrong. Try again.');
   }finally{
@@ -193,46 +252,38 @@ async function go(){
   }
 }
 
-function posHTML(arr,tc,tagC,tagBg){
-  if(!arr||!arr.length)return'';
-  return arr.map(function(p){
-    return '<div class="pos"><span class="pos-tag" style="background:'+tagBg+';color:'+tagC+'">'+p.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:'+tc+'">'+p.ticker+'</div><div class="pos-name">'+p.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(p.dollar)+'</div><div class="pos-pct">'+p.pct+'% of capital</div></div></div><div class="pos-note">'+p.rationale+'</div></div>';
-  }).join('');
+var posIdx=0;
+function posCard(p,tickerColor,tagColor,tagBg,btnClass){
+  var id='pos'+(posIdx++);
+  var actionBtn='<button class="act-btn '+btnClass+'" onclick="alert(\'Action: '+p.action+' '+p.ticker+'\\nAmount: '+fmt(p.dollar)+'\\nCopy ticker to your broker app.\')">▶ Place Trade</button>';
+  return '<div class="pos"><div class="pos-header" onclick="togglePos(\''+id+'\')"><div class="pos-header-left"><span class="pos-tag" style="background:'+tagBg+';color:'+tagColor+'">'+p.action+'</span><div><div class="pos-tick" style="color:'+tickerColor+'">'+p.ticker+'</div><div class="pos-name-sm">'+p.name+'</div></div></div><div class="pos-header-right"><div style="text-align:right"><div class="pos-dol">'+fmt(p.dollar)+'</div><div class="pos-pct-sm">'+p.pct+'%</div></div><div class="pos-chevron" id="chev-'+id+'">▼</div></div></div><div class="pos-body" id="body-'+id+'"><div class="pos-note">'+p.rationale+'</div>'+actionBtn+'</div></div>';
 }
 
 function render(p){
+  posIdx=0;
   var a=p.allocation||{};
   var rs=p.riskScore||7;
   var rc=rs>=8?'#ef4444':rs>=6?'#f59e0b':'#00d4a1';
-
   var opts=(p.optionPositions||[]).map(function(o){
     var oc=o.action==='CALL'?'#f59e0b':'#ef4444';
     var ob=o.action==='CALL'?'rgba(245,158,11,.12)':'rgba(239,68,68,.12)';
-    return '<div class="pos"><span class="pos-tag" style="background:'+ob+';color:'+oc+'">'+o.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:#f59e0b">'+o.ticker+'</div><div class="pos-name">'+o.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(o.dollar)+'</div><div class="pos-pct">'+o.pct+'% of capital</div></div></div><div class="pos-note">'+o.rationale+'</div></div>';
+    var bc=o.action==='CALL'?'':'put';
+    return posCard(o,'#f59e0b',oc,ob,bc);
   }).join('');
 
   var h='';
   h+='<div class="res-hdr"><div class="res-title">📋 Weekly Plan · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><div class="res-sum">'+(p.summary||'')+'</div></div>';
-  h+='<div class="alloc">';
-  h+='<div class="a-card"><div class="a-pct" style="color:#3b82f6">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div>';
-  h+='<div class="a-card"><div class="a-pct" style="color:#00d4a1">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div>';
-  h+='<div class="a-card"><div class="a-pct" style="color:#f59e0b">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div>';
-  h+='</div>';
-  h+='<div class="card"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--lbl)"><span>Risk Score</span><span style="color:'+rc+';font-family:monospace;font-weight:700">'+rs+'/10</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div><div class="metrics">';
-  h+='<div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:#00d4a1">'+(p.targetReturn||'–')+'</div></div>';
-  h+='<div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:#ef4444">'+(p.maxDrawdown||'–')+'</div></div>';
-  h+='<div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:#00d4a1">'+fmt(p.targetDollar)+'</div></div>';
-  h+='<div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:#a78bfa">'+fmt((a.hedge||{}).dollar)+'</div></div>';
-  h+='</div></div>';
+  h+='<div class="alloc"><div class="a-card"><div class="a-pct" style="color:#3b82f6">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div><div class="a-card"><div class="a-pct" style="color:#00d4a1">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div><div class="a-card"><div class="a-pct" style="color:#f59e0b">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div></div>';
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--lbl)"><span>Risk Score</span><span style="color:'+rc+';font-family:monospace;font-weight:700">'+rs+'/10</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div><div class="metrics"><div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:#00d4a1">'+(p.targetReturn||'–')+'</div></div><div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:#ef4444">'+(p.maxDrawdown||'–')+'</div></div><div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:#00d4a1">'+fmt(p.targetDollar)+'</div></div><div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:#a78bfa">'+fmt((a.hedge||{}).dollar)+'</div></div></div></div>';
 
-  if((p.etfPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#3b82f6"></div><div class="sec-title" style="color:#3b82f6">ETF Positions</div></div>';h+=posHTML(p.etfPositions,'#3b82f6','#3b82f6','rgba(59,130,246,.12)');}
-  if((p.stockPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#00d4a1"></div><div class="sec-title" style="color:#00d4a1">Stock Positions</div></div>';h+=posHTML(p.stockPositions,'#00d4a1','#00d4a1','rgba(0,212,161,.12)');}
+  if((p.etfPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#3b82f6"></div><div class="sec-title" style="color:#3b82f6">ETF Positions</div></div>';h+=(p.etfPositions||[]).map(function(pos){return posCard(pos,'#3b82f6','#3b82f6','rgba(59,130,246,.12)','etf')}).join('');}
+  if((p.stockPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#00d4a1"></div><div class="sec-title" style="color:#00d4a1">Stock Positions</div></div>';h+=(p.stockPositions||[]).map(function(pos){return posCard(pos,'#00d4a1','#00d4a1','rgba(0,212,161,.12)','')}).join('');}
   if((p.optionPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#f59e0b"></div><div class="sec-title" style="color:#f59e0b">Options Positions</div></div>';h+=opts;}
-  if((p.hedgePositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#a78bfa"></div><div class="sec-title" style="color:#a78bfa">Hedge Positions</div></div>';h+=posHTML(p.hedgePositions,'#a78bfa','#a78bfa','rgba(167,139,250,.12)');}
+  if((p.hedgePositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#a78bfa"></div><div class="sec-title" style="color:#a78bfa">Hedge Positions</div></div>';h+=(p.hedgePositions||[]).map(function(pos){return posCard(pos,'#a78bfa','#a78bfa','rgba(167,139,250,.12)','hedge')}).join('');}
 
-  if(p.weeklyThesis)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(59,130,246,.25)"><span class="pos-tag" style="background:rgba(59,130,246,.12);color:#3b82f6">MACRO THESIS</span><div style="font-size:12px;color:#e8edf5;line-height:1.6">'+p.weeklyThesis+'</div></div>';
-  if(p.exitRules)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(245,158,11,.2)"><span class="pos-tag" style="background:rgba(245,158,11,.12);color:#f59e0b">EXIT RULES</span><div style="font-size:12px;color:#8aa0bc;line-height:1.6">'+p.exitRules+'</div></div>';
-  h+='<div class="disc"><strong style="color:#ef4444">⚠️ DISCLAIMER:</strong> '+(p.riskWarning||'Options trading involves substantial risk.')+' Not financial advice. 5-7% weekly returns are highly speculative. You may lose your entire investment.</div>';
+  if(p.weeklyThesis)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(59,130,246,.25)"><span class="pos-tag" style="background:rgba(59,130,246,.12);color:#3b82f6">MACRO THESIS</span><div style="font-size:12px;color:#e8edf5;line-height:1.6;margin-top:8px">'+p.weeklyThesis+'</div></div>';
+  if(p.exitRules)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(245,158,11,.2)"><span class="pos-tag" style="background:rgba(245,158,11,.12);color:#f59e0b">EXIT RULES</span><div style="font-size:12px;color:#8aa0bc;line-height:1.6;margin-top:8px">'+p.exitRules+'</div></div>';
+  h+='<div class="disc"><strong style="color:#ef4444">⚠️ DISCLAIMER:</strong> '+(p.riskWarning||'Options trading involves substantial risk.')+' Not financial advice. You may lose your entire investment.</div>';
 
   document.getElementById('results').innerHTML=h;
   document.getElementById('results').style.display='block';
