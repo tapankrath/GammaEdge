@@ -42,7 +42,7 @@
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; tracking: 0.05em; }
         
         .input-wrapper { position: relative; display: flex; align-items: center; }
@@ -51,6 +51,11 @@
             width: 100%; background-color: #334155; border: none; border-radius: 6px; 
             padding: 8px 8px 8px 20px; color: #fff; font-weight: 700; font-size: 13px;
         }
+        .select-input {
+            width: 100%; background-color: #334155; border: none; border-radius: 6px; 
+            padding: 8px; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+            outline: none; -webkit-appearance: none; appearance: none;
+        }
         .yield-slider { width: 100%; margin-top: 8px; cursor: pointer; accent-color: #34d399; }
         .yield-badge { font-size: 13px; font-weight: 900; color: #34d399; }
 
@@ -58,7 +63,7 @@
         .action-btn { 
             width: 100%; background-color: #10b981; color: #0f172a; font-weight: 700; 
             padding: 10px; border-radius: 6px; font-size: 11px; text-transform: uppercase; 
-            letter-spacing: 0.05em; border: none; cursor: pointer; text-align: center;
+            letter-spacing: 0.05em; border: none; cursor: pointer; text-align: center; margin-top: 4px;
         }
         .action-btn:hover { background-color: #059669; }
 
@@ -86,17 +91,19 @@
 
     <div class="container">
         
+        <!-- Header Section Component Layer -->
         <header>
             <div>
                 <h1 class="title">Alpha Yield Planner</h1>
                 <p class="subtitle">Interactive Allocation & Hedging Engine</p>
             </div>
             <div>
-                <div id="payoutDisplay" class="grand-payout">$5,000 / wk</div>
-                <div id="annualizedWarning" class="annualized-text">($260,000 / yr)</div>
+                <div id="payoutDisplay" class="grand-payout">$0 / wk</div>
+                <div id="annualizedWarning" class="annualized-text">($0 / yr)</div>
             </div>
         </header>
 
+        <!-- Config Settings Panel -->
         <div class="control-panel">
             <div class="grid-2">
                 <div>
@@ -107,41 +114,45 @@
                     </div>
                 </div>
                 <div>
-                    <div class="flex-between">
-                        <label class="input-label">Yield Goal</label>
-                        <span id="yieldValue" class="yield-badge">5%</span>
-                    </div>
-                    <input type="range" id="yieldSlider" min="1" max="10" value="5" step="0.5" oninput="updateSliderValue()" class="yield-slider">
+                    <label class="input-label" for="horizon">Time Horizon</label>
+                    <!-- Enhanced responsiveness with both onchange and oninput listeners -->
+                    <select id="horizon" onchange="calculateStrategy()" oninput="calculateStrategy()" class="select-input">
+                        <option value="weekly" selected>Weekly</option>
+                        <option value="biweekly">Biweekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
                 </div>
             </div>
+            
+            <div style="margin-bottom: 10px;">
+                <div class="flex-between">
+                    <label class="input-label">Yield Goal</label>
+                    <span id="yieldValue" class="yield-badge">5%</span>
+                </div>
+                <input type="range" id="yieldSlider" min="1" max="10" value="5" step="0.5" oninput="updateSliderValue()" class="yield-slider">
+            </div>
+
             <button onclick="sharePlan()" class="action-btn">Share Strategy Plan</button>
         </div>
 
+        <!-- Render Target Anchor Area -->
         <div id="results"></div>
 
     </div>
 
     <script>
-        // Global variables to store real-time stock prices (with safe fallbacks)
         var spyPrice = 520.00;
-        var qqqPrice = 450.00;
 
-        // Async function to fetch true live market prices in the background
         async function fetchMarketPrices() {
             try {
-                // Using a reliable open-access public financial data endpoint
                 const resSPY = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY');
                 const dataSPY = await resSPY.json();
-                spyPrice = dataSPY.chart.result[0].meta.regularMarketPrice;
-
-                const resQQQ = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ');
-                const dataQQQ = await resQQQ.json();
-                qqqPrice = dataQQQ.chart.result[0].meta.regularMarketPrice;
-                
-                console.log("Live Prices Updated -> SPY:", spyPrice, "QQQ:", qqqPrice);
-                calculateStrategy(); // Refresh data presentation cleanly
+                if(dataSPY.chart.result[0].meta.regularMarketPrice) {
+                    spyPrice = dataSPY.chart.result[0].meta.regularMarketPrice;
+                    calculateStrategy(); 
+                }
             } catch (e) {
-                console.log("Using baseline fallback price models due to network constraints.", e);
+                console.log("Using baseline fallback price models.", e);
             }
         }
 
@@ -154,23 +165,37 @@
         function calculateStrategy() {
             var capital = parseFloat(document.getElementById('capital').value);
             var targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
+            var horizon = document.getElementById('horizon').value;
 
             if (isNaN(capital) || capital <= 0) {
                 document.getElementById('results').innerHTML = '<p style="text-align: center; font-size: 12px; color: #64748b; font-style: italic; padding: 20px;">Please enter a valid capital base.</p>';
                 return;
             }
 
+            // Absolute Yield Math Engine Basics
             var totalWeeklyPayout = capital * (targetYieldPercent / 100);
             var totalAnnualPayout = totalWeeklyPayout * 52;
-
+            
+            // Adjust the Top HUD Display Text to perfectly match chosen horizon label
             var fmtCompact = function(val) {
                 return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
             };
+
+            var horizonLabel = "wk";
+            var horizonPayout = totalWeeklyPayout;
+
+            if (horizon === "biweekly") {
+                horizonLabel = "2wk";
+                horizonPayout = totalWeeklyPayout * 2;
+            } else if (horizon === "monthly") {
+                horizonLabel = "mo";
+                horizonPayout = totalWeeklyPayout * (52 / 12);
+            }
             
-            document.getElementById('payoutDisplay').innerText = fmtCompact(totalWeeklyPayout) + ' / wk';
+            document.getElementById('payoutDisplay').innerText = fmtCompact(horizonPayout) + ' / ' + horizonLabel;
             document.getElementById('annualizedWarning').innerText = '(' + fmtCompact(totalAnnualPayout) + ' / yr)';
 
-            // Structural Allocation Distribution Logic Matrix
+            // Allocation Mix Logic Matrix
             var etfPct = 0.55 - (targetYieldPercent * 0.04);
             var stockPct = 0.35 - (targetYieldPercent * 0.01);
             var optionsPct = 0.05 + (targetYieldPercent * 0.04);
@@ -184,22 +209,52 @@
             var optionsPrincipal = capital * optionsPct;
             var hedgePrincipal = capital * hedgePct;
 
-            // Compute Target split matrix ratios
-            var etfYieldShare = totalWeeklyPayout * 0.15; 
-            var stockYieldShare = totalWeeklyPayout * 0.35;
-            var optionsYieldShare = totalWeeklyPayout * 0.50; 
+            // Target yields parsed relative to the selected Time Horizon multipliers
+            var horizonMultiplier = 1;
+            if (horizon === "biweekly") horizonMultiplier = 2;
+            if (horizon === "monthly") horizonMultiplier = (52 / 12);
+
+            var etfYieldShare = (totalWeeklyPayout * 0.15) * horizonMultiplier; 
+            var stockYieldShare = (totalWeeklyPayout * 0.35) * horizonMultiplier;
+            var optionsYieldShare = (totalWeeklyPayout * 0.50) * horizonMultiplier; 
 
             // Live Calculation Matrix for Covered Calls
             var requiredSpyCap = spyPrice * 100;
             var canAffordSpy = etfPrincipal >= requiredSpyCap;
             var accessibleSpyShares = Math.floor(etfPrincipal / spyPrice);
 
-            var etfRecommendationBody = "";
-            if (canAffordSpy) {
-                etfRecommendationBody = "Sell 1 out-of-the-money weekly Covered Call contract against " + accessibleSpyShares + " physical cash-held shares of SPY collateral base.";
-            } else {
-                var shortfall = requiredSpyCap - etfPrincipal;
-                etfRecommendationBody = "Allocation is short of 100 physical shares by " + fmtCompact(shortfall) + ". Deploy a <b>Poor Man's Covered Call</b> via a deep ITM LEAPS option contract, or transition to 10 micro-scale <b>XSP Index options</b>.";
+            var etfRec = "";
+            var stockRec = "";
+            var optionsRec = "";
+            var hedgeRec = "";
+
+            if (horizon === "weekly") {
+                if (canAffordSpy) {
+                    etfRec = "Sell 1 out-of-the-money weekly Covered Call contract against " + accessibleSpyShares + " physical cash-held shares of SPY collateral base.";
+                } else {
+                    etfRec = "Allocation short of 100 physical shares by " + fmtCompact(requiredSpyCap - etfPrincipal) + ". Deploy a <b>Poor Man's Covered Call</b> via a deep ITM LEAPS option contract, or transition to 10 micro-scale <b>XSP Index options</b>.";
+                }
+                stockRec = "Sell 0.20-0.30 Delta weekly Cash-Secured Puts to harvest rich high-beta Implied Volatility (IV) decay.";
+                optionsRec = "Run short-duration (0DTE-3DTE) Bull Put Spreads. High velocity theta decay; heavily drives the premium engine.";
+                hedgeRec = "Buy 60-90 days out long puts. This capital does not generate yield; it acts purely as system insurance to catch an emergency downturn.";
+            } else if (horizon === "biweekly") {
+                if (canAffordSpy) {
+                    etfRec = "Sell a 14-day cycle out-of-the-money Covered Call contract against " + accessibleSpyShares + " shares. Captures mid-term premium acceleration securely.";
+                } else {
+                    etfRec = "Short of 100 shares. Buy a high-delta LEAPS call option and write rolling 14-day contracts against it to capture safer premium cushions.";
+                }
+                stockRec = "Write 14-day Cash-Secured Puts targeting a conservative 0.20 Delta. Gives wider breathing room on high-beta names.";
+                optionsRec = "Execute 7-14 DTE Credit Spreads on the broad index. Captures more reliable premium cycles over a multi-day trend.";
+                hedgeRec = "Maintain mid-term OTM hedge protection, rolling over every 45-60 days to keep decay profile minimal.";
+            } else if (horizon === "monthly") {
+                if (canAffordSpy) {
+                    etfRec = "Sell standard 30-45 DTE monthly Covered Calls at a 0.15 Delta. Highly passive, defensive setup maximizing upside equity collection.";
+                } else {
+                    etfRec = "Short of 100 physical shares. Run a clean monthly <b>PMCC strategy</b> using deep ITM calls or deploy systematic monthly XSP index vertical credit spreads.";
+                }
+                stockRec = "Sell 30-45 DTE Cash-Secured Puts on high-quality blue chips during market dips to systematically initiate long equity exposure.";
+                optionsRec = "Deploy monthly Iron Condors or multi-week vertical spreads to profit off broad range-bound consolidation cycles.";
+                hedgeRec = "Utilize systematic, structured long VIX call spreads or LEAPS protection contracts to lock down true black-swan disaster protection.";
             }
 
             var htmlBlock = '';
@@ -229,52 +284,52 @@
             // Segment 2: Tactics Playbook Execution Layout Modules
             htmlBlock += '<div class="tactics-container">';
             
-            // Engine Card #1 - DYNAMICALLY RESOLVED VIA LIVE DATA
+            // Engine Card #1 - ETF
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
             htmlBlock += '      <span class="tactic-title color-etf">1. Core Collateral (SPY) <span class="live-ticker-price">(Live: $' + spyPrice.toFixed(2) + ')</span></span>';
             htmlBlock += '      <div style="text-align: right;">';
             htmlBlock += '        <span style="font-size: 11px; font-family: monospace; font-weight: 700; color: #f1f5f9; display: block;">' + fmtCompact(etfPrincipal) + ' Alloc</span>';
-            htmlBlock += '        <span class="color-etf" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(etfYieldShare) + '/wk</span>';
+            htmlBlock += '        <span class="color-etf" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(etfYieldShare) + '/' + horizonLabel + '</span>';
             htmlBlock += '      </div>';
             htmlBlock += '    </div>';
-            htmlBlock += '    <p class="tactic-body">' + etfRecommendationBody + '</p>';
+            htmlBlock += '    <p class="tactic-body">' + etfRec + '</p>';
             htmlBlock += '  </div>';
 
-            // Engine Card #2
+            // Engine Card #2 - STOCKS
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
-            htmlBlock += '      <span class="tactic-title color-stock">2. The Wheel Strategy (NVDA/TSLA)</span>';
+            htmlBlock += '      <span class="tactic-title color-stock">2. High Beta Strategy</span>';
             htmlBlock += '      <div style="text-align: right;">';
             htmlBlock += '        <span style="font-size: 11px; font-family: monospace; font-weight: 700; color: #f1f5f9; display: block;">' + fmtCompact(stockPrincipal) + ' Alloc</span>';
-            htmlBlock += '        <span class="color-stock" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(stockYieldShare) + '/wk</span>';
+            htmlBlock += '        <span class="color-stock" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(stockYieldShare) + '/' + horizonLabel + '</span>';
             htmlBlock += '      </div>';
             htmlBlock += '    </div>';
-            htmlBlock += '    <p class="tactic-body">Sell 0.20-0.30 Delta weekly Cash-Secured Puts to harvest rich high-beta Implied Volatility (IV) decay.</p>';
+            htmlBlock += '    <p class="tactic-body">' + stockRec + '</p>';
             htmlBlock += '  </div>';
 
-            // Engine Card #3
+            // Engine Card #3 - OPTIONS
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
-            htmlBlock += '      <span class="tactic-title color-options">3. Credit Spreads (SPX Index)</span>';
+            htmlBlock += '      <span class="tactic-title color-options">3. Spreads Engine (SPX Index)</span>';
             htmlBlock += '      <div style="text-align: right;">';
             htmlBlock += '        <span style="font-size: 11px; font-family: monospace; font-weight: 700; color: #f1f5f9; display: block;">' + fmtCompact(optionsPrincipal) + ' Alloc</span>';
-            htmlBlock += '        <span class="color-options" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(optionsYieldShare) + '/wk</span>';
+            htmlBlock += '        <span class="color-options" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(optionsYieldShare) + '/' + horizonLabel + '</span>';
             htmlBlock += '      </div>';
             htmlBlock += '    </div>';
-            htmlBlock += '    <p class="tactic-body">Run short-duration (0DTE-3DTE) Bull Put Spreads. High velocity theta decay; heavily drives the premium engine.</p>';
+            htmlBlock += '    <p class="tactic-body">' + optionsRec + '</p>';
             htmlBlock += '  </div>';
 
-            // Engine Card #4
+            // Engine Card #4 - HEDGE
             htmlBlock += '  <div class="tactic-card" style="border-left: 2px solid #f43f5e;">';
             htmlBlock += '    <div class="tactic-header">';
-            htmlBlock += '      <span class="tactic-title color-hedge">4. Macro Insurance (VIX / OTM Puts)</span>';
+            htmlBlock += '      <span class="tactic-title color-hedge">4. Macro Insurance</span>';
             htmlBlock += '      <div style="text-align: right;">';
             htmlBlock += '        <span style="font-size: 11px; font-family: monospace; font-weight: 700; color: #cbd5e1; display: block;">' + fmtCompact(hedgePrincipal) + ' Budget</span>';
             htmlBlock += '        <span class="color-hedge" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Sunk Cost</span>';
             htmlBlock += '      </div>';
             htmlBlock += '    </div>';
-            htmlBlock += '    <p class="tactic-body">Buy 60-90 days out long puts. This capital does not generate yield; it acts purely as system insurance to catch an emergency downturn.</p>';
+            htmlBlock += '    <p class="tactic-body">' + hedgeRec + '</p>';
             htmlBlock += '  </div>';
 
             htmlBlock += '</div>';
@@ -285,11 +340,13 @@
         function sharePlan() {
             var capital = document.getElementById('capital').value;
             var targetYieldPercent = document.getElementById('yieldValue').innerText;
+            var horizon = document.getElementById('horizon').options[document.getElementById('horizon').selectedIndex].text;
             var weeklyPayout = document.getElementById('payoutDisplay').innerText;
             var annualPayout = document.getElementById('annualizedWarning').innerText;
 
             var shareText = "Alpha Yield Strategy Plan:\n" +
                             "• Capital Base: $" + parseFloat(capital).toLocaleString() + "\n" +
+                            "• Time Horizon: " + horizon + "\n" +
                             "• Yield Goal: " + targetYieldPercent + "\n" +
                             "• Expected Revenue: " + weeklyPayout + " " + annualPayout + "\n" +
                             "Generated via Alpha Yield Planner Engine.";
@@ -307,7 +364,6 @@
             }
         }
 
-        // Run calculations directly on window load and fire the background data request
         window.onload = function() {
             calculateStrategy();
             fetchMarketPrices();
