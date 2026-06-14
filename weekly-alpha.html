@@ -413,14 +413,15 @@ function render(p){
 
   // Thesis
   if(p.weeklyThesis){
-    h+='<div class="info-card"><span class="info-tag" style="background:var(--bbg);color:var(--blue)">MACRO THESIS</span><div class="info-body">'+p.weeklyThesis+'</div></div>';
+    var thesis=typeof p.weeklyThesis==='object'?JSON.stringify(p.weeklyThesis):String(p.weeklyThesis);
+    h+='<div class="info-card"><span class="info-tag" style="background:var(--bbg);color:var(--blue)">MACRO THESIS</span><div class="info-body">'+thesis+'</div></div>';
   }
   // Exit rules
   if(p.exitRules){
-    h+='<div class="info-card"><span class="info-tag" style="background:var(--abg);color:var(--amber)">EXIT RULES</span><div class="info-body">'+p.exitRules+'</div></div>';
+    var exits=typeof p.exitRules==='object'?Object.entries(p.exitRules).map(function(e){return'<b>'+e[0]+':</b> '+e[1]}).join(' &nbsp;·&nbsp; '):String(p.exitRules);
+    h+='<div class="info-card"><span class="info-tag" style="background:var(--abg);color:var(--amber)">EXIT RULES</span><div class="info-body">'+exits+'</div></div>';
   }
 
-  h+='<div class="disc"><strong>⚠️ DISCLAIMER:</strong> '+(p.riskWarning||'Options trading involves substantial risk of loss.')+' Not financial advice. 5–7% weekly returns are highly speculative. You may lose your entire investment.</div>';
 
   document.getElementById('results').innerHTML=h;
   document.getElementById('results').style.display='block';
