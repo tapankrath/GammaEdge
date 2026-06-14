@@ -21,19 +21,16 @@ input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;bo
 .cap-wrap{position:relative;margin-bottom:14px}
 .cap-sign{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--grn);font-weight:700}
 .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.pre-btn{flex:1;min-width:60px;background:var(--surf);border:1px solid var(--bor);border-radius:8px;padding:8px 4px;color:var(--lbl);font-size:12px;cursor:pointer;text-align:center;-webkit-appearance:none}
+.pre-btn{flex:1;min-width:60px;background:var(--surf);border:1px solid var(--bor);border-radius:8px;padding:8px 4px;color:var(--lbl);font-size:12px;cursor:pointer;text-align:center}
 .pre-btn.on{background:rgba(0,212,161,.1);border-color:var(--grn);color:var(--grn)}
 .risks{display:flex;gap:10px;margin-bottom:16px}
 .risk-opt{flex:1;background:var(--surf);border:1.5px solid var(--bor);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer}
 .risk-opt .ri{font-size:20px;margin-bottom:3px}
 .risk-opt .rl{font-size:11px;font-weight:600;color:var(--lbl)}
-.risk-opt.sel-m{border-color:var(--blu);background:rgba(59,130,246,.1)}
-.risk-opt.sel-m .rl{color:var(--blu)}
-.risk-opt.sel-a{border-color:var(--yel);background:rgba(245,158,11,.1)}
-.risk-opt.sel-a .rl{color:var(--yel)}
-.risk-opt.sel-u{border-color:var(--red);background:rgba(239,68,68,.1)}
-.risk-opt.sel-u .rl{color:var(--red)}
-.gen-btn{width:100%;background:linear-gradient(135deg,#00d4a1,#00b887);border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;color:#050d0a;cursor:pointer;-webkit-appearance:none}
+.risk-opt.sel-m{border-color:var(--blu);background:rgba(59,130,246,.1)}.risk-opt.sel-m .rl{color:var(--blu)}
+.risk-opt.sel-a{border-color:var(--yel);background:rgba(245,158,11,.1)}.risk-opt.sel-a .rl{color:var(--yel)}
+.risk-opt.sel-u{border-color:var(--red);background:rgba(239,68,68,.1)}.risk-opt.sel-u .rl{color:var(--red)}
+.gen-btn{width:100%;background:linear-gradient(135deg,#00d4a1,#00b887);border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;color:#050d0a;cursor:pointer}
 .gen-btn:disabled{background:#1e2d42;color:var(--mut);cursor:not-allowed}
 .hint{font-size:11px;color:var(--mut);margin-top:6px}
 .err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;color:var(--red);font-size:13px;margin-bottom:14px;display:none;line-height:1.6}
@@ -107,7 +104,7 @@ input[type=number]{font-size:26px;font-weight:700;padding:12px 14px 12px 30px;bo
     <button class="gen-btn" id="btn" onclick="go()">⚡ Generate Weekly Plan</button>
   </div>
   <div class="err" id="err"></div>
-  <div id="loading"><div class="spin"></div><div style="color:var(--lbl);font-size:14px">Analyzing market conditions…</div><div style="color:var(--mut);font-size:12px;margin-top:6px">Building your trade plan</div></div>
+  <div id="loading"><div class="spin"></div><div style="color:var(--lbl);font-size:14px">Analyzing market conditions…</div></div>
   <div id="results"></div>
 </main>
 <script>
@@ -121,47 +118,73 @@ async function go(){
   var key=document.getElementById('key').value.trim();
   var cap=parseFloat(document.getElementById('cap').value)||100000;
   if(!key){showErr('Please enter your Anthropic API key.');return}
-  if(!key.startsWith('sk-ant')){showErr('Key must start with sk-ant- — check and retry.');return}
+  if(!key.startsWith('sk-ant')){showErr('Key must start with sk-ant-');return}
   document.getElementById('err').style.display='none';
   document.getElementById('results').style.display='none';
   document.getElementById('loading').style.display='block';
   document.getElementById('btn').disabled=true;
 
-  var allocs={m:'ETFs 40pct, Stocks 25pct, Options 20pct, Hedge 15pct',a:'ETFs 25pct, Stocks 30pct, Options 35pct, Hedge 10pct',u:'ETFs 10pct, Stocks 20pct, Options 60pct, Hedge 10pct'};
   var rnames={m:'Moderate',a:'Aggressive',u:'Ultra'};
-  var cap2=Math.round(cap);
-  var e2=Math.round(cap2*(selR==='m'?0.40:selR==='a'?0.25:0.10));
-  var s2=Math.round(cap2*(selR==='m'?0.25:selR==='a'?0.30:0.20));
-  var o2=Math.round(cap2*(selR==='m'?0.20:selR==='a'?0.35:0.60));
-  var h2=cap2-e2-s2-o2;
 
-  var sys='You are an expert options trader. The user wants a weekly trading plan. You must respond with ONLY a valid JSON object. No text before it. No text after it. No markdown. No backticks. No explanation. Just the JSON.';
-  var usr='Generate a weekly trading plan.\nCapital: '+cap2+'\nRisk: '+rnames[selR]+'\nAllocation: '+allocs[selR]+'\nTarget: 5 to 7 percent weekly return with hedging.\n\nRespond with ONLY this JSON structure filled in with real values:\n{\n"summary": "2 sentence overview of the strategy",\n"targetReturn": "6%",\n"targetDollar": '+Math.round(cap2*0.06)+',\n"maxDrawdown": "8%",\n"riskScore": 7,\n"weeklyThesis": "2 sentence macro thesis for this week",\n"exitRules": "Take profits at 50 percent gain on options, cut at 30 percent loss. Stop loss on stocks at 5 percent.",\n"riskWarning": "One sentence about the biggest risk this week",\n"allocation": {"etfs": {"pct": '+(selR==='m'?40:selR==='a'?25:10)+', "dollar": '+e2+'}, "stocks": {"pct": '+(selR==='m'?25:selR==='a'?30:20)+', "dollar": '+s2+'}, "options": {"pct": '+(selR==='m'?20:selR==='a'?35:60)+', "dollar": '+o2+'}, "hedge": {"pct": '+(selR==='m'?15:selR==='a'?10:10)+', "dollar": '+h2+'}},\n"etfPositions": [{"ticker": "QQQ", "name": "Invesco QQQ Trust", "dollar": '+Math.round(e2*0.6)+', "pct": '+(selR==='m'?24:selR==='a'?15:6)+', "action": "BUY", "rationale": "explain why QQQ this week"}, {"ticker": "SPY", "name": "SPDR S&P 500 ETF", "dollar": '+Math.round(e2*0.4)+', "pct": '+(selR==='m'?16:selR==='a'?10:4)+', "action": "BUY", "rationale": "explain why SPY this week"}],\n"stockPositions": [{"ticker": "NVDA", "name": "NVIDIA Corp", "dollar": '+Math.round(s2*0.5)+', "pct": '+(selR==='m'?13:selR==='a'?15:10)+', "action": "BUY", "rationale": "specific catalyst and setup"}, {"ticker": "TSLA", "name": "Tesla Inc", "dollar": '+Math.round(s2*0.5)+', "pct": '+(selR==='m'?12:selR==='a'?15:10)+', "action": "BUY", "rationale": "specific catalyst and setup"}],\n"optionPositions": [{"ticker": "SPY", "name": "SPY 595 Call expiring Jun 20 2025", "dollar": '+Math.round(o2*0.5)+', "pct": '+(selR==='m'?10:selR==='a'?17:30)+', "action": "CALL", "rationale": "explain strike and expiry choice"}, {"ticker": "QQQ", "name": "QQQ 480 Call expiring Jun 20 2025", "dollar": '+Math.round(o2*0.5)+', "pct": '+(selR==='m'?10:selR==='a'?18:30)+', "action": "CALL", "rationale": "explain strike and expiry choice"}],\n"hedgePositions": [{"ticker": "SQQQ", "name": "ProShares UltraPro Short QQQ", "dollar": '+h2+', "pct": '+(selR==='m'?15:10)+', "action": "HEDGE", "rationale": "explain what downside scenario this covers"}]\n}';
+  // Simple, clean prompt - no pre-filled template to confuse the model
+  var sys='You are an expert options trader. Respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }';
+  
+  var usr='Create a weekly trading plan for $'+cap+' capital, '+rnames[selR]+' risk profile, targeting 5-7% weekly return with hedging.\n\nRespond with a JSON object containing exactly these fields:\n- summary: string\n- targetReturn: string like "6%"\n- targetDollar: number\n- maxDrawdown: string like "8%"\n- riskScore: number 1-10\n- weeklyThesis: string\n- exitRules: string\n- riskWarning: string\n- allocation: object with etfs, stocks, options, hedge each having pct and dollar\n- etfPositions: array of positions with ticker, name, dollar, pct, action, rationale\n- stockPositions: array of positions with ticker, name, dollar, pct, action, rationale\n- optionPositions: array of positions with ticker, name, dollar, pct, action (CALL or PUT), rationale\n- hedgePositions: array of positions with ticker, name, dollar, pct, action, rationale\n\nAll dollars must sum to '+cap+'. Use SPY, QQQ, high-beta tech stocks. Specific option strikes and expiry dates. Real tickers only.';
 
   try{
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,messages:[{role:'user',content:usr}]})
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:3000,
+        system:sys,
+        messages:[{role:'user',content:usr}]
+      })
     });
+
     var data=await resp.json();
+
     if(!resp.ok){
       if(resp.status===401)throw new Error('Invalid API key. Get one at console.anthropic.com');
       if(resp.status===429)throw new Error('Rate limited — wait 30 seconds and retry');
-      throw new Error(data&&data.error&&data.error.message?data.error.message:'API error '+resp.status);
+      throw new Error((data&&data.error&&data.error.message)||'API error '+resp.status);
     }
+
     var raw='';
-    if(data.content&&data.content.length>0){raw=data.content[0].text||''}
+    if(data.content&&data.content.length>0){
+      for(var i=0;i<data.content.length;i++){
+        if(data.content[i].type==='text') raw+=data.content[i].text;
+      }
+    }
     raw=raw.trim();
-    // find first { and last }
+
+    // Strip markdown fences if present
+    if(raw.indexOf('```')!==-1){
+      raw=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+    }
+
+    // Find outermost { }
     var s=raw.indexOf('{');
     var e=raw.lastIndexOf('}');
-    if(s===-1||e===-1||e<=s)throw new Error('No JSON found in response. Try again.');
+    if(s===-1||e===-1||e<=s)throw new Error('No JSON in response. Try again.');
+    
     var jsonStr=raw.substring(s,e+1);
     var plan;
-    try{plan=JSON.parse(jsonStr)}
-    catch(pe){throw new Error('JSON parse error: '+pe.message)}
+    try{
+      plan=JSON.parse(jsonStr);
+    }catch(pe){
+      // Show raw for debugging
+      showErr('Parse error: '+pe.message+'<br><small style="opacity:0.6">Raw: '+jsonStr.substring(0,200)+'</small>');
+      return;
+    }
     render(plan);
+
   }catch(err){
     showErr(err.message||'Something went wrong. Try again.');
   }finally{
@@ -172,25 +195,46 @@ async function go(){
 
 function posHTML(arr,tc,tagC,tagBg){
   if(!arr||!arr.length)return'';
-  return arr.map(function(p){return'<div class="pos"><span class="pos-tag" style="background:'+tagBg+';color:'+tagC+'">'+p.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:'+tc+'">'+p.ticker+'</div><div class="pos-name">'+p.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(p.dollar)+'</div><div class="pos-pct">'+p.pct+'% of capital</div></div></div><div class="pos-note">'+p.rationale+'</div></div>'}).join('')
+  return arr.map(function(p){
+    return '<div class="pos"><span class="pos-tag" style="background:'+tagBg+';color:'+tagC+'">'+p.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:'+tc+'">'+p.ticker+'</div><div class="pos-name">'+p.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(p.dollar)+'</div><div class="pos-pct">'+p.pct+'% of capital</div></div></div><div class="pos-note">'+p.rationale+'</div></div>';
+  }).join('');
 }
 
 function render(p){
   var a=p.allocation||{};
   var rs=p.riskScore||7;
   var rc=rs>=8?'#ef4444':rs>=6?'#f59e0b':'#00d4a1';
-  var opts=(p.optionPositions||[]).map(function(o){var oc=o.action==='CALL'?'#f59e0b':'#ef4444';var ob=o.action==='CALL'?'rgba(245,158,11,.12)':'rgba(239,68,68,.12)';return'<div class="pos"><span class="pos-tag" style="background:'+ob+';color:'+oc+'">'+o.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:#f59e0b">'+o.ticker+'</div><div class="pos-name">'+o.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(o.dollar)+'</div><div class="pos-pct">'+o.pct+'% of capital</div></div></div><div class="pos-note">'+o.rationale+'</div></div>'}).join('');
-  var html='<div class="res-hdr"><div class="res-title">📋 Weekly Plan · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><div class="res-sum">'+(p.summary||'')+'</div></div>';
-  html+='<div class="alloc"><div class="a-card"><div class="a-pct" style="color:#3b82f6">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div><div class="a-card"><div class="a-pct" style="color:#00d4a1">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div><div class="a-card"><div class="a-pct" style="color:#f59e0b">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div></div>';
-  html+='<div class="card"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--lbl)"><span>Risk Score</span><span style="color:'+rc+';font-family:monospace;font-weight:700">'+rs+'/10</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div><div class="metrics"><div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:#00d4a1">'+(p.targetReturn||'–')+'</div></div><div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:#ef4444">'+(p.maxDrawdown||'–')+'</div></div><div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:#00d4a1">'+fmt(p.targetDollar)+'</div></div><div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:#a78bfa">'+fmt((a.hedge||{}).dollar)+'</div></div></div></div>';
-  if(p.etfPositions&&p.etfPositions.length)html+='<div class="sec-hdr"><div class="sec-dot" style="background:#3b82f6"></div><div class="sec-title" style="color:#3b82f6">ETF Positions</div></div>'+posHTML(p.etfPositions,'#3b82f6','#3b82f6','rgba(59,130,246,.12)');
-  if(p.stockPositions&&p.stockPositions.length)html+='<div class="sec-hdr"><div class="sec-dot" style="background:#00d4a1"></div><div class="sec-title" style="color:#00d4a1">Stock Positions</div></div>'+posHTML(p.stockPositions,'#00d4a1','#00d4a1','rgba(0,212,161,.12)');
-  if(p.optionPositions&&p.optionPositions.length)html+='<div class="sec-hdr"><div class="sec-dot" style="background:#f59e0b"></div><div class="sec-title" style="color:#f59e0b">Options Positions</div></div>'+opts;
-  if(p.hedgePositions&&p.hedgePositions.length)html+='<div class="sec-hdr"><div class="sec-dot" style="background:#a78bfa"></div><div class="sec-title" style="color:#a78bfa">Hedge Positions</div></div>'+posHTML(p.hedgePositions,'#a78bfa','#a78bfa','rgba(167,139,250,.12)');
-  if(p.weeklyThesis)html+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(59,130,246,.25)"><span class="pos-tag" style="background:rgba(59,130,246,.12);color:#3b82f6">MACRO THESIS</span><div style="font-size:12px;color:#e8edf5;line-height:1.6">'+p.weeklyThesis+'</div></div>';
-  if(p.exitRules)html+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(245,158,11,.2)"><span class="pos-tag" style="background:rgba(245,158,11,.12);color:#f59e0b">EXIT RULES</span><div style="font-size:12px;color:#8aa0bc;line-height:1.6">'+p.exitRules+'</div></div>';
-  html+='<div class="disc"><strong style="color:#ef4444">⚠️ DISCLAIMER:</strong> '+(p.riskWarning||'Options trading involves substantial risk.')+' Not financial advice. 5-7% weekly returns are highly speculative. You may lose your entire investment.</div>';
-  document.getElementById('results').innerHTML=html;
+
+  var opts=(p.optionPositions||[]).map(function(o){
+    var oc=o.action==='CALL'?'#f59e0b':'#ef4444';
+    var ob=o.action==='CALL'?'rgba(245,158,11,.12)':'rgba(239,68,68,.12)';
+    return '<div class="pos"><span class="pos-tag" style="background:'+ob+';color:'+oc+'">'+o.action+'</span><div class="pos-top"><div><div class="pos-tick" style="color:#f59e0b">'+o.ticker+'</div><div class="pos-name">'+o.name+'</div></div><div class="pos-r"><div class="pos-dol">'+fmt(o.dollar)+'</div><div class="pos-pct">'+o.pct+'% of capital</div></div></div><div class="pos-note">'+o.rationale+'</div></div>';
+  }).join('');
+
+  var h='';
+  h+='<div class="res-hdr"><div class="res-title">📋 Weekly Plan · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><div class="res-sum">'+(p.summary||'')+'</div></div>';
+  h+='<div class="alloc">';
+  h+='<div class="a-card"><div class="a-pct" style="color:#3b82f6">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div>';
+  h+='<div class="a-card"><div class="a-pct" style="color:#00d4a1">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div>';
+  h+='<div class="a-card"><div class="a-pct" style="color:#f59e0b">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div>';
+  h+='</div>';
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--lbl)"><span>Risk Score</span><span style="color:'+rc+';font-family:monospace;font-weight:700">'+rs+'/10</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div><div class="metrics">';
+  h+='<div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:#00d4a1">'+(p.targetReturn||'–')+'</div></div>';
+  h+='<div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:#ef4444">'+(p.maxDrawdown||'–')+'</div></div>';
+  h+='<div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:#00d4a1">'+fmt(p.targetDollar)+'</div></div>';
+  h+='<div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:#a78bfa">'+fmt((a.hedge||{}).dollar)+'</div></div>';
+  h+='</div></div>';
+
+  if((p.etfPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#3b82f6"></div><div class="sec-title" style="color:#3b82f6">ETF Positions</div></div>';h+=posHTML(p.etfPositions,'#3b82f6','#3b82f6','rgba(59,130,246,.12)');}
+  if((p.stockPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#00d4a1"></div><div class="sec-title" style="color:#00d4a1">Stock Positions</div></div>';h+=posHTML(p.stockPositions,'#00d4a1','#00d4a1','rgba(0,212,161,.12)');}
+  if((p.optionPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#f59e0b"></div><div class="sec-title" style="color:#f59e0b">Options Positions</div></div>';h+=opts;}
+  if((p.hedgePositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#a78bfa"></div><div class="sec-title" style="color:#a78bfa">Hedge Positions</div></div>';h+=posHTML(p.hedgePositions,'#a78bfa','#a78bfa','rgba(167,139,250,.12)');}
+
+  if(p.weeklyThesis)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(59,130,246,.25)"><span class="pos-tag" style="background:rgba(59,130,246,.12);color:#3b82f6">MACRO THESIS</span><div style="font-size:12px;color:#e8edf5;line-height:1.6">'+p.weeklyThesis+'</div></div>';
+  if(p.exitRules)h+='<div class="info-card" style="background:#141c2a;border:1px solid rgba(245,158,11,.2)"><span class="pos-tag" style="background:rgba(245,158,11,.12);color:#f59e0b">EXIT RULES</span><div style="font-size:12px;color:#8aa0bc;line-height:1.6">'+p.exitRules+'</div></div>';
+  h+='<div class="disc"><strong style="color:#ef4444">⚠️ DISCLAIMER:</strong> '+(p.riskWarning||'Options trading involves substantial risk.')+' Not financial advice. 5-7% weekly returns are highly speculative. You may lose your entire investment.</div>';
+
+  document.getElementById('results').innerHTML=h;
   document.getElementById('results').style.display='block';
   window.scrollTo({top:document.getElementById('results').offsetTop-20,behavior:'smooth'});
 }
