@@ -41,8 +41,8 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
 .gear-btn.active{border-color:var(--purple);background:var(--pbg)}
 
 /* API drawer */
-.api-drawer{display:none;position:absolute;top:44px;right:0;width:300px;background:var(--p1);border:1.5px solid var(--border);border-radius:14px;padding:14px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-.api-drawer.open{display:block}
+.api-drawer{display:none;position:absolute;top:44px;right:0;width:min(300px,90vw);background:var(--p1);border:1.5px solid var(--border);border-radius:14px;padding:14px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.18);pointer-events:none}
+.api-drawer.open{display:block;pointer-events:auto}
 .api-drawer .dl{font-size:10px;font-weight:800;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
 .api-drawer input{width:100%;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-size:12px;font-family:monospace}
 .api-drawer input:focus{border-color:var(--purple)}
@@ -244,23 +244,24 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
       <button class="pre-btn" onclick="setC(500000,this)">$500K</button>
     </div>
 
-    <div class="lbl">Profit Target</div>
-    <div class="target-row">
-      <div class="target-box" onclick="document.getElementById('tpct').focus()">
-        <div class="target-lbl">% Return</div>
-        <div class="target-input-wrap">
-          <input type="number" id="tpct" class="target-input" placeholder="6" min="1" max="100" inputmode="decimal" oninput="onPctChange()">
-          <span class="target-prefix">%</span>
-        </div>
-      </div>
-      <div class="target-box" onclick="document.getElementById('tdol').focus()">
-        <div class="target-lbl">$ Profit</div>
-        <div class="target-input-wrap">
-          <span class="target-prefix">$</span>
-          <input type="number" id="tdol" class="target-input" placeholder="6000" min="1" inputmode="decimal" oninput="onDolChange()">
-        </div>
+    <!-- PROFIT TARGET TOGGLE PILL -->
+    <div style="margin-bottom:14px">
+      <div class="lbl" style="margin-bottom:8px">Profit Target <span id="targetDisplay" style="color:var(--green);font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;margin-left:4px"></span></div>
+      <div style="display:flex;gap:0;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden">
+        <button id="tpill-pct" onclick="openTargetModal('pct')" style="flex:1;padding:11px 8px;font-size:13px;font-weight:800;color:var(--sub);background:transparent;border:none;border-right:1px solid var(--border);cursor:pointer;transition:all .15s" id="tpill-pct">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">% Return</div>
+          <div id="tpct-display" style="font-size:18px;font-weight:900;color:var(--sub)">— %</div>
+        </button>
+        <button id="tpill-dol" onclick="openTargetModal('dol')" style="flex:1;padding:11px 8px;font-size:13px;font-weight:800;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .15s">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">$ Profit</div>
+          <div id="tdol-display" style="font-size:18px;font-weight:900;color:var(--sub)">— $</div>
+        </button>
       </div>
     </div>
+
+    <!-- hidden inputs for values -->
+    <input type="hidden" id="tpct" value="">
+    <input type="hidden" id="tdol" value="">
 
     <div class="lbl">Risk Profile</div>
     <div class="risks">
@@ -382,23 +383,66 @@ function posCard(p,tickerColor,tagColor,tagBg){
     +'</div></div>';
 }
 
-// ── TARGET SYNC ──
-function syncTargets(){
-  var cap=parseFloat(document.getElementById('cap').value)||0;
-  var pct=parseFloat(document.getElementById('tpct').value)||0;
-  if(pct>0&&cap>0){document.getElementById('tdol').value=Math.round(cap*pct/100);}
+// ── TARGET MODAL ──
+var _tmode='pct';
+function syncTargets(){}
+function openTargetModal(mode){
+  _tmode=mode;
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var cur=parseFloat(document.getElementById(_tmode==='pct'?'tpct':'tdol').value)||0;
+  document.getElementById('tmodal-label').textContent=mode==='pct'?'Set % Return Target':'Set $ Profit Target';
+  document.getElementById('tmodal-prefix').textContent=mode==='pct'?'':'$';
+  document.getElementById('tmodal-suffix').textContent=mode==='pct'?'%':'';
+  document.getElementById('tmodal-input').value=cur||'';
+  document.getElementById('tmodal-calc').textContent='';
+  document.getElementById('targetOverlay').style.display='block';
+  document.getElementById('targetModal').style.display='block';
+  setTimeout(function(){document.getElementById('tmodal-input').focus();},100);
+  onModalInput();
 }
-function onPctChange(){
-  var cap=parseFloat(document.getElementById('cap').value)||0;
-  var pct=parseFloat(document.getElementById('tpct').value)||0;
-  if(pct>0&&cap>0){document.getElementById('tdol').value=Math.round(cap*pct/100);}
-  else if(!pct){document.getElementById('tdol').value='';}
+function onModalInput(){
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var val=parseFloat(document.getElementById('tmodal-input').value)||0;
+  var calc=document.getElementById('tmodal-calc');
+  if(!val){calc.textContent='';return;}
+  if(_tmode==='pct'){
+    var dol=Math.round(cap*val/100);
+    calc.textContent='= $'+dol.toLocaleString()+' profit on $'+cap.toLocaleString()+' capital';
+  } else {
+    var pct=(val/cap*100).toFixed(1);
+    calc.textContent='= '+pct+'% return on $'+cap.toLocaleString()+' capital';
+  }
 }
-function onDolChange(){
-  var cap=parseFloat(document.getElementById('cap').value)||0;
-  var dol=parseFloat(document.getElementById('tdol').value)||0;
-  if(dol>0&&cap>0){document.getElementById('tpct').value=parseFloat((dol/cap*100).toFixed(2));}
-  else if(!dol){document.getElementById('tpct').value='';}
+function confirmTarget(){
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var val=parseFloat(document.getElementById('tmodal-input').value)||0;
+  if(!val){closeTargetModal();return;}
+  if(_tmode==='pct'){
+    var dol=Math.round(cap*val/100);
+    document.getElementById('tpct').value=val;
+    document.getElementById('tdol').value=dol;
+    document.getElementById('tpct-display').textContent=val+'%';
+    document.getElementById('tdol-display').textContent='$'+dol.toLocaleString();
+    document.getElementById('tpill-pct').style.background='var(--gbg)';
+    document.getElementById('tpill-dol').style.background='var(--gbg)';
+    document.getElementById('tpct-display').style.color='var(--green)';
+    document.getElementById('tdol-display').style.color='var(--green)';
+  } else {
+    var pct=parseFloat((val/cap*100).toFixed(1));
+    document.getElementById('tdol').value=val;
+    document.getElementById('tpct').value=pct;
+    document.getElementById('tdol-display').textContent='$'+val.toLocaleString();
+    document.getElementById('tpct-display').textContent=pct+'%';
+    document.getElementById('tpill-pct').style.background='var(--gbg)';
+    document.getElementById('tpill-dol').style.background='var(--gbg)';
+    document.getElementById('tpct-display').style.color='var(--green)';
+    document.getElementById('tdol-display').style.color='var(--green)';
+  }
+  closeTargetModal();
+}
+function closeTargetModal(){
+  document.getElementById('targetOverlay').style.display='none';
+  document.getElementById('targetModal').style.display='none';
 }
 
 // ── SAVE / LOAD PLANS ──
@@ -608,5 +652,23 @@ function render(p){window._lastPlan=p;
   window.scrollTo({top:document.getElementById('results').offsetTop-20,behavior:'smooth'});
 }
 </script>
+
+<!-- TARGET INPUT MODAL -->
+<div id="targetOverlay" onclick="closeTargetModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;backdrop-filter:blur(3px)"></div>
+<div id="targetModal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--p1);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:501;box-shadow:0 -8px 40px rgba(0,0,0,.2)">
+  <div id="tmodal-label" style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px"></div>
+  <div style="position:relative;margin-bottom:20px">
+    <span id="tmodal-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:900;color:var(--green)"></span>
+    <input type="number" id="tmodal-input" inputmode="decimal"
+      style="width:100%;background:var(--p2);border:2px solid var(--green);border-radius:12px;padding:14px 14px 14px 36px;font-size:28px;font-weight:900;color:var(--text);outline:none;font-family:Inter,sans-serif"
+      placeholder="0" oninput="onModalInput()">
+    <span id="tmodal-suffix" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--muted)"></span>
+  </div>
+  <div id="tmodal-calc" style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:20px;min-height:20px"></div>
+  <div style="display:flex;gap:10px">
+    <button onclick="closeTargetModal()" style="flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:13px;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer">Cancel</button>
+    <button onclick="confirmTarget()" style="flex:2;background:#09101f;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:900;color:#fff;cursor:pointer">Set Target ✓</button>
+  </div>
+</div>
 </body>
 </html>
