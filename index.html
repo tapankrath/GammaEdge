@@ -945,19 +945,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button id="rfr-signal" class="btn-refresh round" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span></button>
   </div>
 
-  <!-- TOP PICKS SCANNER: AI proposes candidates, the local engine verifies on tap -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <span style="flex:1;font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.14em">&#128270; Top Picks &mdash; AI market scan</span>
-      <button onclick="geToggle('ge-scan-out')" title="Collapse/expand" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;border:1.5px solid #cbd5e1;border-radius:6px;font-size:11px;color:#334155;cursor:pointer;padding:0;flex-shrink:0"><span id="ge-scan-out-chev">&#9662;</span></button>
-      <button onclick="gePrintPicks()" style="background:#fff;color:#0f172a;border:1.5px solid #cbd5e1;border-radius:7px;padding:6px 10px;font-size:10.5px;font-weight:800;cursor:pointer">PDF</button>
-      <button onclick="geScan(true)" style="background:#0f172a;color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:10.5px;font-weight:800;cursor:pointer">Scan</button>
-    </div>
-    <div id="ge-scan-out" style="font-size:10.5px;color:#64748b;font-weight:600;line-height:1.5">Loading&hellip;</div>
-  </div>
+  <!-- TOP PICKS SCANNER REMOVED — SPY/QQQ only -->
 
   <div id="ge-signal-home"></div>
-  <div id="ge-signal-block" style="display:none">
+  <div id="ge-signal-block" style="display:block">
   <!-- Loading state -->
   <div id="g-loading" style="text-align:center;padding:30px;color:#334155;font-size:13px">
     <div class="ld" style="font-size:16px;display:block;margin-bottom:8px">Fetching market data...</div>
@@ -2673,15 +2664,8 @@ function gePrintPicks(){
   w.document.close();
 }
 
-// Re-dock the signal block to its normal (hidden) home position
 function geDockSignal(){
-  var h=document.getElementById('ge-signal-home'),b=document.getElementById('ge-signal-block');
-  if(h&&b){
-    // Always move back to home, regardless of where it currently sits
-    if(b.parentNode!==h.parentNode)h.parentNode.insertBefore(b,h.nextSibling);
-    b.style.display='none';
-    b.style.marginTop='';
-  }
+  // Signal block is always visible under SPY/QQQ cards — nothing to hide
   var cta=document.getElementById('g-deep-cta');if(cta)cta.style.display='inline-flex';
 }
 /* Dock the engine home and clear BOTH detail slots (picks + indices). Prevents a
@@ -3044,18 +3028,18 @@ function geOpenSignalPanel(t,key,targetId){
   setT4(String(t).toLowerCase());
 }
 
-/* SPY/QQQ index cards — the "Full plan" link expands the engine INLINE under the
-   card (ge-idx-detail), collapsible. Stock picks expand below the columns instead. */
+/* SPY/QQQ "Full plan" — just switches the signal block to that ticker */
 function geIndexPick(t){
-  var tk=String(t).toLowerCase(),key='IDX'+tk.toUpperCase();
-  if(GE_OPEN_PICK===key){ // collapse
-    geCloseDetails();
-    GE_OPEN_PICK=null;
-    setT4(tk); // keep data + chip marks fresh; block parks hidden
-    return;
-  }
-  geOpenSignalPanel(tk,key,'ge-idx-detail');
-  var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25B4';
+  var tk=String(t).toLowerCase();
+  setT4(tk);
+  var el=$('g-main-card');
+  if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function geOpenSignalPanel(t){
+  setT4(String(t).toLowerCase());
+  var el=$('g-main-card');
+  if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function geMarkIndexChips(){
