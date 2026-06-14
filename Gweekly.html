@@ -91,7 +91,6 @@
 
     <div class="container">
         
-        <!-- Header Section Component Layer -->
         <header>
             <div>
                 <h1 class="title">Alpha Yield Planner</h1>
@@ -103,7 +102,6 @@
             </div>
         </header>
 
-        <!-- Config Settings Panel -->
         <div class="control-panel">
             <div class="grid-2">
                 <div>
@@ -115,7 +113,6 @@
                 </div>
                 <div>
                     <label class="input-label" for="horizon">Time Horizon</label>
-                    <!-- Enhanced responsiveness with both onchange and oninput listeners -->
                     <select id="horizon" onchange="calculateStrategy()" oninput="calculateStrategy()" class="select-input">
                         <option value="weekly" selected>Weekly</option>
                         <option value="biweekly">Biweekly</option>
@@ -135,7 +132,6 @@
             <button onclick="sharePlan()" class="action-btn">Share Strategy Plan</button>
         </div>
 
-        <!-- Render Target Anchor Area -->
         <div id="results"></div>
 
     </div>
@@ -172,11 +168,9 @@
                 return;
             }
 
-            // Absolute Yield Math Engine Basics
             var totalWeeklyPayout = capital * (targetYieldPercent / 100);
             var totalAnnualPayout = totalWeeklyPayout * 52;
             
-            // Adjust the Top HUD Display Text to perfectly match chosen horizon label
             var fmtCompact = function(val) {
                 return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
             };
@@ -195,7 +189,7 @@
             document.getElementById('payoutDisplay').innerText = fmtCompact(horizonPayout) + ' / ' + horizonLabel;
             document.getElementById('annualizedWarning').innerText = '(' + fmtCompact(totalAnnualPayout) + ' / yr)';
 
-            // Allocation Mix Logic Matrix
+            // Structural Allocation Distribution Logic Matrix
             var etfPct = 0.55 - (targetYieldPercent * 0.04);
             var stockPct = 0.35 - (targetYieldPercent * 0.01);
             var optionsPct = 0.05 + (targetYieldPercent * 0.04);
@@ -209,7 +203,6 @@
             var optionsPrincipal = capital * optionsPct;
             var hedgePrincipal = capital * hedgePct;
 
-            // Target yields parsed relative to the selected Time Horizon multipliers
             var horizonMultiplier = 1;
             if (horizon === "biweekly") horizonMultiplier = 2;
             if (horizon === "monthly") horizonMultiplier = (52 / 12);
@@ -236,7 +229,16 @@
                 }
                 stockRec = "Sell 0.20-0.30 Delta weekly Cash-Secured Puts to harvest rich high-beta Implied Volatility (IV) decay.";
                 optionsRec = "Run short-duration (0DTE-3DTE) Bull Put Spreads. High velocity theta decay; heavily drives the premium engine.";
-                hedgeRec = "Buy 60-90 days out long puts. This capital does not generate yield; it acts purely as system insurance to catch an emergency downturn.";
+                
+                // Dynamic Hedging Logic for Weekly
+                if (targetYieldPercent <= 4) {
+                    hedgeRec = "Buy weekly 5% out-of-the-money protective SPY Puts. Low-cost, passive disaster insurance for a safe profile.";
+                } else if (targetYieldPercent > 4 && targetYieldPercent <= 7) {
+                    hedgeRec = "Allocate to front-month 30-delta long VIX call contracts to hedge spikes in high-beta stock volatility.";
+                } else {
+                    hedgeRec = "CRITICAL RISK: Buy back-to-back weekly SPX tail-risk Put spreads. High yield goals expose your cash-secured puts to sharp drawdowns.";
+                }
+
             } else if (horizon === "biweekly") {
                 if (canAffordSpy) {
                     etfRec = "Sell a 14-day cycle out-of-the-money Covered Call contract against " + accessibleSpyShares + " shares. Captures mid-term premium acceleration securely.";
@@ -245,7 +247,14 @@
                 }
                 stockRec = "Write 14-day Cash-Secured Puts targeting a conservative 0.20 Delta. Gives wider breathing room on high-beta names.";
                 optionsRec = "Execute 7-14 DTE Credit Spreads on the broad index. Captures more reliable premium cycles over a multi-day trend.";
-                hedgeRec = "Maintain mid-term OTM hedge protection, rolling over every 45-60 days to keep decay profile minimal.";
+                
+                // Dynamic Hedging Logic for Biweekly
+                if (targetYieldPercent <= 5) {
+                    hedgeRec = "Purchase rolling 30-day out-of-the-money puts on index assets. Holds its value well against short-duration market slips.";
+                } else {
+                    hedgeRec = "Combine out-of-the-money tracking puts with small VIX call allocations to buffer your aggressive 14-day high-beta put strategies.";
+                }
+
             } else if (horizon === "monthly") {
                 if (canAffordSpy) {
                     etfRec = "Sell standard 30-45 DTE monthly Covered Calls at a 0.15 Delta. Highly passive, defensive setup maximizing upside equity collection.";
@@ -254,7 +263,15 @@
                 }
                 stockRec = "Sell 30-45 DTE Cash-Secured Puts on high-quality blue chips during market dips to systematically initiate long equity exposure.";
                 optionsRec = "Deploy monthly Iron Condors or multi-week vertical spreads to profit off broad range-bound consolidation cycles.";
-                hedgeRec = "Utilize systematic, structured long VIX call spreads or LEAPS protection contracts to lock down true black-swan disaster protection.";
+                
+                // Dynamic Hedging Logic for Monthly
+                if (targetYieldPercent <= 4) {
+                    hedgeRec = "Purchase long-term (6-12 month) protective LEAPS put options down 10%. Highly passive, structural safety net.";
+                } else if (targetYieldPercent > 4 && targetYieldPercent <= 7) {
+                    hedgeRec = "Build systematic 60 DTE long VIX call option structures. Safely shields your broad credit spreads from rapid market trend shifts.";
+                } else {
+                    hedgeRec = "MAX RISK DEFENSE: Buy systematic 30-45 DTE out-of-the-money SPX put contracts. High leverage requires non-negotiable downside crash insurance.";
+                }
             }
 
             var htmlBlock = '';
@@ -320,7 +337,7 @@
             htmlBlock += '    <p class="tactic-body">' + optionsRec + '</p>';
             htmlBlock += '  </div>';
 
-            // Engine Card #4 - HEDGE
+            // Engine Card #4 - HEDGE (NOW DETAILED AND DYNAMIC)
             htmlBlock += '  <div class="tactic-card" style="border-left: 2px solid #f43f5e;">';
             htmlBlock += '    <div class="tactic-header">';
             htmlBlock += '      <span class="tactic-title color-hedge">4. Macro Insurance</span>';
