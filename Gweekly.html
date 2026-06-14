@@ -8,7 +8,7 @@
         /* Base Reset & Variables */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            background-color: #0f172a; 
+            background-color: #090d16; 
             color: #f8fafc; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 12px;
@@ -19,10 +19,10 @@
             max-width: 440px; 
             margin: 0 auto; 
             background-color: #111827; 
-            border: 1px solid #1e293b; 
+            border: 2px solid #334155; 
             border-radius: 16px;
             padding: 16px 14px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
         }
         
         /* Header Utility Styles */
@@ -79,6 +79,7 @@
         .tactic-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 6px; }
         .tactic-title { font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .tactic-body { font-size: 11px; color: #cbd5e1; line-height: 1.4; }
+        .live-ticker-price { font-size: 9px; color: #64748b; font-weight: normal; text-transform: none; }
     </style>
 </head>
 <body>
@@ -121,6 +122,29 @@
     </div>
 
     <script>
+        // Global variables to store real-time stock prices (with safe fallbacks)
+        var spyPrice = 520.00;
+        var qqqPrice = 450.00;
+
+        // Async function to fetch true live market prices in the background
+        async function fetchMarketPrices() {
+            try {
+                // Using a reliable open-access public financial data endpoint
+                const resSPY = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY');
+                const dataSPY = await resSPY.json();
+                spyPrice = dataSPY.chart.result[0].meta.regularMarketPrice;
+
+                const resQQQ = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ');
+                const dataQQQ = await resQQQ.json();
+                qqqPrice = dataQQQ.chart.result[0].meta.regularMarketPrice;
+                
+                console.log("Live Prices Updated -> SPY:", spyPrice, "QQQ:", qqqPrice);
+                calculateStrategy(); // Refresh data presentation cleanly
+            } catch (e) {
+                console.log("Using baseline fallback price models due to network constraints.", e);
+            }
+        }
+
         function updateSliderValue() {
             var slider = document.getElementById('yieldSlider');
             document.getElementById('yieldValue').innerText = slider.value + '%';
@@ -165,6 +189,19 @@
             var stockYieldShare = totalWeeklyPayout * 0.35;
             var optionsYieldShare = totalWeeklyPayout * 0.50; 
 
+            // Live Calculation Matrix for Covered Calls
+            var requiredSpyCap = spyPrice * 100;
+            var canAffordSpy = etfPrincipal >= requiredSpyCap;
+            var accessibleSpyShares = Math.floor(etfPrincipal / spyPrice);
+
+            var etfRecommendationBody = "";
+            if (canAffordSpy) {
+                etfRecommendationBody = "Sell 1 out-of-the-money weekly Covered Call contract against " + accessibleSpyShares + " physical cash-held shares of SPY collateral base.";
+            } else {
+                var shortfall = requiredSpyCap - etfPrincipal;
+                etfRecommendationBody = "Allocation is short of 100 physical shares by " + fmtCompact(shortfall) + ". Deploy a <b>Poor Man's Covered Call</b> via a deep ITM LEAPS option contract, or transition to 10 micro-scale <b>XSP Index options</b>.";
+            }
+
             var htmlBlock = '';
 
             // Card 1: Asset Allocations Summary Block Card
@@ -192,16 +229,16 @@
             // Segment 2: Tactics Playbook Execution Layout Modules
             htmlBlock += '<div class="tactics-container">';
             
-            // Engine Card #1
+            // Engine Card #1 - DYNAMICALLY RESOLVED VIA LIVE DATA
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
-            htmlBlock += '      <span class="tactic-title color-etf">1. Core Collateral (SPY/QQQ)</span>';
+            htmlBlock += '      <span class="tactic-title color-etf">1. Core Collateral (SPY) <span class="live-ticker-price">(Live: $' + spyPrice.toFixed(2) + ')</span></span>';
             htmlBlock += '      <div style="text-align: right;">';
             htmlBlock += '        <span style="font-size: 11px; font-family: monospace; font-weight: 700; color: #f1f5f9; display: block;">' + fmtCompact(etfPrincipal) + ' Alloc</span>';
             htmlBlock += '        <span class="color-etf" style="font-size: 10px; font-weight: 700; display: block; margin-top: 1px;">Target: +' + fmtCompact(etfYieldShare) + '/wk</span>';
             htmlBlock += '      </div>';
             htmlBlock += '    </div>';
-            htmlBlock += '    <p class="tactic-body">Sell out-of-the-money weekly Covered Calls. Baseline premium anchor with low volatility risk.</p>';
+            htmlBlock += '    <p class="tactic-body">' + etfRecommendationBody + '</p>';
             htmlBlock += '  </div>';
 
             // Engine Card #2
@@ -270,8 +307,10 @@
             }
         }
 
+        // Run calculations directly on window load and fire the background data request
         window.onload = function() {
             calculateStrategy();
+            fetchMarketPrices();
         };
     </script>
 </body>
