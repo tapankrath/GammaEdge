@@ -487,16 +487,14 @@ async function go(){
   var tpct=parseFloat(document.getElementById('tpct').value)||0;
   var tdol=parseFloat(document.getElementById('tdol').value)||(cap*0.06);
   var rnames={m:'Moderate',a:'Aggressive',u:'Ultra'};
-  try{
+  var makePrompt=function(cap,risk,tpct,tdol){
+    return 'Generate a weekly trading plan. Capital: $'+cap+'. Risk: '+risk+'.'+(tpct>0?' Profit target: '+tpct+'% ($'+Math.round(tdol)+').':' Target 5-7% weekly return.')+' Include hedging protection. Respond with a JSON object containing these exact string fields: summary, targetReturn (like "6%"), weeklyThesis, exitRules (string), riskWarning. Number fields: targetDollar, maxDrawdown (number like 8), riskScore (1-10). Object: allocation with etfs/stocks/options/hedge each having pct and dollar numbers. Arrays: etfPositions, stockPositions, optionPositions, hedgePositions — each item has ticker(string), name(string), dollar(number), pct(number), action(string), rationale(string). Use tickers like SPY QQQ NVDA TSLA AAPL META AMZN. For options include specific strike and expiry date in the name field. All dollar values must sum to '+cap+'. Keep rationale fields under 100 characters each to avoid truncation.';
+  };
+  var callAPI=async function(prompt){
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:3000,
-        system:'You are an expert options trader. Respond with ONLY a valid JSON object. Start with { and end with }. No markdown. No backticks. No text before or after.',
-        messages:[{role:'user',content:'Generate a weekly trading plan for $'+cap+' capital with '+rnames[selR]+' risk.'+(tpct>0?' Profit target: '+tpct+'% ($'+tdol+').':' Targeting 5-7% weekly return.')+' Include hedging. Return JSON with: summary, targetReturn, targetDollar, maxDrawdown, riskScore (1-10), weeklyThesis, exitRules, riskWarning, allocation (etfs/stocks/options/hedge each with pct and dollar), etfPositions, stockPositions, optionPositions, hedgePositions. Each position: ticker, name, dollar, pct, action, rationale. Use SPY QQQ NVDA TSLA AAPL META. Specific option strikes and expiry dates. All dollars sum to '+cap+'.'}]
-      })
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:'You are an expert options trader. Output ONLY a JSON object. Start with { end with }. No markdown, no backticks, no explanation.',messages:[{role:'user',content:prompt}]})
     });
     var data=await resp.json();
     if(!resp.ok){
@@ -504,14 +502,29 @@ async function go(){
       if(resp.status===429)throw new Error('Rate limited — wait 30 seconds and retry.');
       throw new Error((data&&data.error&&data.error.message)||'API error '+resp.status);
     }
-    var raw='';
-    for(var i=0;i<(data.content||[]).length;i++){if(data.content[i].type==='text')raw+=data.content[i].text;}
-    raw=raw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    return (data.content||[]).map(function(c){return c.type==='text'?c.text:'';}).join('').trim();
+  };
+  var parseJSON=function(raw){
+    raw=raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
-    if(s===-1||e===-1)throw new Error('No JSON in response. Try again.');
+    if(s===-1||e===-1)throw new Error('no_json');
+    return JSON.parse(raw.substring(s,e+1));
+  };
+  try{
+    document.getElementById('loading').querySelector('.loading-txt').textContent='Generating plan… (this takes 20-40s)';
+    var prompt=makePrompt(cap,rnames[selR],tpct,tdol);
+    var raw=await callAPI(prompt);
     var plan;
-    try{plan=JSON.parse(raw.substring(s,e+1));}
-    catch(pe){throw new Error('Parse error — try again.');}
+    try{
+      plan=parseJSON(raw);
+    }catch(pe){
+      // Auto-retry once with simpler prompt
+      document.getElementById('loading').querySelector('.loading-txt').textContent='Retrying with simplified prompt…';
+      var prompt2=makePrompt(cap,rnames[selR],tpct,tdol)+' IMPORTANT: Keep all text values very short (under 80 chars) to avoid truncation.';
+      var raw2=await callAPI(prompt2);
+      try{plan=parseJSON(raw2);}
+      catch(pe2){throw new Error('Parse failed after retry. Try again or reduce capital amount.');}
+    }
     render(plan);
     savePlan(plan,cap);
     renderActionBar();
@@ -519,6 +532,7 @@ async function go(){
     showErr(err.message||'Something went wrong. Try again.');
   }finally{
     document.getElementById('loading').style.display='none';
+    document.getElementById('loading').querySelector('.loading-txt').textContent='Analyzing market conditions…';
     document.getElementById('btn').disabled=false;
   }
 }
