@@ -2740,7 +2740,7 @@ function geScan(force){
   }
   geScanStatus('\u23F3 Scanning the market \u2014 reversion (RSI extremes) + momentum leaders\u2026 (~20\u201330s)');
   var today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var prompt='Today is '+today+'. You are a market scanner. Use web search (this week\u2019s biggest movers, RSI readings, oversold/overbought lists, sector leaders, momentum/trend leaders, names breaking down) to propose up to 15 liquid US stocks across THREE buckets for the next 1-2 weeks of options trading.\n'
+  var prompt='Today is '+today+'. You are a market scanner. Use web search (this week\u2019s biggest movers, RSI readings, oversold/overbought lists, sector leaders, momentum/trend leaders, names breaking down) to propose up to 25 liquid US stocks across THREE buckets for the next 1-2 weeks of options trading.\n'
     +'Buckets:\n'
     +'- OVERSOLD = sharp selloff / RSI roughly <30 / capitulating into support \u2192 bullish bounce (bias BULL).\n'
     +'- OVERBOUGHT = parabolic run / RSI roughly >70 / extended into resistance \u2192 bearish fade (bias BEAR).\n'
@@ -2759,7 +2759,7 @@ function geScan(force){
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
-        tools:[{type:'web_search_20250305',name:'web_search',max_uses:6}],
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:8}],
         messages:messages})
     })
     .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
@@ -2770,7 +2770,7 @@ function geScan(force){
       var a1=text.indexOf('['),a2=text.lastIndexOf(']');
       if(a1===-1||a2===-1){geScanStatus('Scan returned no list \u2014 tap Scan to retry.');return;}
       try{
-        var picks=JSON.parse(text.slice(a1,a2+1)).filter(function(p){return p&&p.ticker;}).map(geNormPick).slice(0,15);
+        var picks=JSON.parse(text.slice(a1,a2+1)).filter(function(p){return p&&p.ticker;}).map(geNormPick).slice(0,25);
         if(!picks.length)throw 0;
         try{localStorage.setItem('ge_scan',JSON.stringify({picks:picks,ts:Date.now()}));}catch(e){}
         geRenderScan(picks);
@@ -3117,7 +3117,7 @@ function geRenderScan(picks){
       var rsiUrgency=Math.abs(rsiVal-50); // 0..50, higher=more extreme
       return condScore*1000 - rsiUrgency; // lower = higher up the list
     }
-    var sorted=GE_PICKS.slice().sort(function(a,b){return pickScore(a)-pickScore(b);}).slice(0,15);
+    var sorted=GE_PICKS.slice().sort(function(a,b){return pickScore(a)-pickScore(b);}).slice(0,25);
 
     function condBadge(cond,bias){
       if(cond==='OVERSOLD')return{label:'\u25B2 Oversold',bg:'#dcfce7',c:'#166534',bd:'#86efac'};
@@ -3182,7 +3182,7 @@ function geRenderScan(picks){
   h+='<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:7px">'
     +(GE_PICKS.length
       ?'SPY/QQQ summaries are live \u2014 tap \u201cFull plan\u201d for the hedged + manual trade view. Opportunities are sorted by signal strength: oversold/overbought first (highest conviction reversions), then momentum. Tap any row to verify against the live engine. Chip color follows the ENGINE: \u2713 confirmed \u00B7 \u26A0 tape disagrees \u00B7 \u26D4 no trade. Verify earnings at your broker.'
-      :'SPY/QQQ summaries are live above. Tap Scan \u2014 AI proposes up to 15 liquid large/mid caps sorted by signal strength: oversold \u2192 bullish bounce, overbought \u2192 bearish fade, momentum \u2192 ride the trend. All use the same hedged two-leg plan.')
+      :'SPY/QQQ summaries are live above. Tap Scan \u2014 AI proposes up to 25 liquid large/mid caps sorted by signal strength: oversold \u2192 bullish bounce, overbought \u2192 bearish fade, momentum \u2192 ride the trend. All use the same hedged two-leg plan.')
     +'</div>';
   out.innerHTML=h;
   renderDualCards(); // fill the SPY/QQQ summary cards from the live engine
