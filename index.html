@@ -2872,7 +2872,7 @@ function geChipColors(dir){
 function geStyleChip(tk,on){
   var el=document.getElementById('ge-chip-'+tk);if(!el)return;
   var v=geEffView(tk);if(!v)return;
-  // Hide chips (and their row wrappers) that the engine has verified as NO TRADE
+  // Hide entire row when engine says NO TRADE
   if(v.dir==='none'){
     el.style.display='none';
     var row=document.getElementById('ge-row-'+tk);
@@ -2880,6 +2880,8 @@ function geStyleChip(tk,on){
     return;
   }
   el.style.display='';
+  var row2=document.getElementById('ge-row-'+tk);
+  if(row2)row2.style.display='';
   var cc=geChipColors(v.dir);
   if(on){
     el.style.background=cc.bg;el.style.borderColor=cc.bd;
@@ -4026,7 +4028,7 @@ function processSignal(valid,capital,target,stopPct,sym){
     .catch(function(){/* keep BS estimate */});
   }  // end if(isCall!==null&&dte)
   else {
-    // NO TRADE: hide setup grid entirely — SPY/QQQ only, no need to show "no trade" messaging
+    // NO TRADE: hide setup grid — SPY/QQQ only, no messaging needed
     G_PLAN_CTX={spot:spot,iv3:iv3,capital:capital,stopPct:stopPct,atrPct:atrPct,lean:bullPoints>=bearPoints};
     var sgEl=$('g-setup-grid');
     if(sgEl)sgEl.innerHTML='';
