@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpha Yield & Scan Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Alpha Yield Engine</title>
+    
+    <!-- iOS Home Screen App Configurations -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AlphaYield">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <!-- Web App Manifest Link -->
+    <link rel="manifest" href="manifest.json">
+
     <style>
         /* Base Reset & Variables */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,6 +22,7 @@
             color: #f8fafc; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 12px;
+            -webkit-tap-highlight-color: transparent;
         }
         
         /* Mobile App Frame Wrapper */
@@ -25,6 +36,22 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
         }
         
+        /* Brand Identity Layout */
+        .brand-container { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            color: #0f172a;
+            font-size: 16px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         /* Premium Tab Layout Module */
         .tab-navigation {
             display: flex;
@@ -126,16 +153,31 @@
         .tag-overbought { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
         .tag-oversold { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
         .ai-box { background-color: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 10.5px; line-height: 1.4; }
+        
+        /* Execution Blueprint styling module */
+        .execution-blueprint {
+            background-color: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: #e2e8f0;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         
+        <!-- Header Section Component Layer -->
         <header>
-            <div>
-                <h1 class="title">Alpha Yield Engine</h1>
-                <p class="subtitle">Systematic Options Allocation & Scanner</p>
+            <div class="brand-container">
+                <div class="logo-mark">Α</div>
+                <div>
+                    <h1 class="title">Alpha Yield</h1>
+                    <p class="subtitle">Systematic Risk & Allocation Engine</p>
+                </div>
             </div>
             <div>
                 <div id="payoutDisplay" class="grand-payout">$0 / wk</div>
@@ -143,11 +185,13 @@
             </div>
         </header>
 
+        <!-- Tab Navigation Bar Layout -->
         <div class="tab-navigation">
             <button id="plannerBtn" class="tab-btn active" onclick="switchTab('planner')">Yield Planner</button>
-            <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">AI Target Scanner</button>
+            <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">Execution Plan</button>
         </div>
 
+        <!-- TAB 1: ALLOCATION YIELD PLANNER -->
         <div id="plannerTab" class="tab-content active">
             <div class="control-panel">
                 <div class="grid-2">
@@ -179,22 +223,26 @@
                 <button onclick="sharePlan()" class="action-btn">Share Strategy Plan</button>
             </div>
 
+            <!-- Yield Target Mount Area -->
             <div id="plannerResults"></div>
         </div>
 
+        <!-- TAB 2: INTEGRATED SCANNER & EXECUTION BLUEPRINT -->
         <div id="scannerTab" class="tab-content">
             <div style="padding: 2px 2px 10px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
-                <span>Scanning High-Volume Derivatives Market Leaders</span>
+                <span>Derivatives Market Signal Integrator</span>
                 <span id="scanTimestamp" style="color: #10b981; font-weight: 700;">Live Engine Active</span>
             </div>
-            <div id="scannerResults">Loading market indicators...</div>
+            <!-- Dynamic Mounting point for scanned tickers layout metrics -->
+            <div id="scannerResults">Loading live deployment layouts...</div>
         </div>
 
     </div>
 
     <script>
         var spyPrice = 520.00;
-        
+        var currentStockAllocationPool = 35000;
+
         var marketSignals = [
             { symbol: "NVDA", price: 0, change: 0, rsi: 74, volumeRatio: 1.4, state: "OVERBOUGHT", border: "#f43f5e" },
             { symbol: "TSLA", price: 0, change: 0, rsi: 28, volumeRatio: 1.1, state: "OVERSOLD", border: "#10b981" },
@@ -202,7 +250,6 @@
             { symbol: "AMD",  price: 0, change: 0, rsi: 34, volumeRatio: 0.8, state: "OVERSOLD", border: "#10b981" }
         ];
 
-        // Explicit JavaScript Tab Toggle Handler Override Matrix
         function switchTab(tabName) {
             var plannerTab = document.getElementById('plannerTab');
             var scannerTab = document.getElementById('scannerTab');
@@ -225,8 +272,9 @@
         }
 
         async function fetchMarketPrices() {
+            const proxy = "https://corsproxy.io/?";
             try {
-                const resSPY = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY');
+                const resSPY = await fetch(proxy + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/SPY'));
                 const dataSPY = await resSPY.json();
                 if(dataSPY.chart.result[0].meta.regularMarketPrice) {
                     spyPrice = dataSPY.chart.result[0].meta.regularMarketPrice;
@@ -234,7 +282,7 @@
                 
                 for (let asset of marketSignals) {
                     try {
-                        const resAsset = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + asset.symbol);
+                        const resAsset = await fetch(proxy + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + asset.symbol));
                         const dataAsset = await resAsset.json();
                         asset.price = dataAsset.chart.result[0].meta.regularMarketPrice;
                         asset.change = dataAsset.chart.result[0].meta.chartPreviousClose 
@@ -245,14 +293,13 @@
                     }
                 }
                 
-                // Keep background caches fresh depending on which workspace is open
                 if(document.getElementById('plannerTab').classList.contains('active')) {
                     calculateStrategy();
                 } else {
                     runMarketScanner();
                 }
             } catch (e) {
-                console.log("Using system baseline fallback metrics models.", e);
+                console.log("Using fallback core model structures.", e);
             }
         }
 
@@ -305,6 +352,8 @@
             var stockPrincipal = capital * stockPct;
             var optionsPrincipal = capital * optionsPct;
             var hedgePrincipal = capital * hedgePct;
+
+            currentStockAllocationPool = stockPrincipal;
 
             var horizonMultiplier = 1;
             if (horizon === "biweekly") horizonMultiplier = 2;
@@ -375,20 +424,31 @@
 
         function runMarketScanner() {
             var html = "";
-            
+            var fmtCurrency = function(val) {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+            };
+
             marketSignals.forEach(function(asset) {
                 var badgeClass = "tag-momentum";
                 var aiAnalysisText = "";
+                var executionBlueprintText = "";
                 
+                var contractCollateralSize = asset.price > 0 ? asset.price * 100 : 1;
+                var maxContractsAllowed = Math.floor(currentStockAllocationPool / contractCollateralSize);
+                var maxPhysicalSharesAllowed = asset.price > 0 ? Math.floor(currentStockAllocationPool / asset.price) : 0;
+
                 if (asset.state === "OVERBOUGHT") {
                     badgeClass = "tag-overbought";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> Asset RSI is highly extended (" + asset.rsi + "). Topside buying pressure is exhausting. Recommends writing an <b>Out-Of-The-Money Call Credit Spread</b> or executing a defensive <b>Bearish Covered Call</b> setup to harvest rich volatility expansion.";
+                    aiAnalysisText = "<b>Rule Engine AI:</b> Asset RSI is highly extended (" + asset.rsi + "). Topside buying pressure is exhausting. Recommends writing an <b>Out-Of-The-Money Call Credit Spread</b> or executing a defensive <b>Bearish Covered Call</b> setup.";
+                    executionBlueprintText = "<b>Execution Blueprint (Using T1 Allocation):</b> With " + fmtCurrency(currentStockAllocationPool) + " allocated to High-Beta positions, write up to <b>" + maxContractsAllowed + " Covered Call contracts</b> against " + (maxContractsAllowed * 100) + " existing shares, or establish a vertical spread ring.";
                 } else if (asset.state === "OVERSOLD") {
                     badgeClass = "tag-oversold";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> Sudden local liquidations detected (RSI: " + asset.rsi + "). Downside trend fatigue set in. Prime window to sell an out-of-the-money <b>0.25-Delta Cash-Secured Put</b> or deploy a deep ITM <b>LEAPS Call (PMCC)</b> to capitalize on high premium mean reversion.";
+                    aiAnalysisText = "<b>Rule Engine AI:</b> Sudden local liquidations detected (RSI: " + asset.rsi + "). Downside trend fatigue set in. Prime window to sell an out-of-the-money <b>0.25-Delta Cash-Secured Put</b> or deploy a deep ITM <b>LEAPS Call (PMCC)</b>.";
+                    executionBlueprintText = "<b>Execution Blueprint (Using T1 Allocation):</b> Sell up to <b>" + maxContractsAllowed + " Cash-Secured Put contracts</b> using " + fmtCurrency(maxContractsAllowed * contractCollateralSize) + " collateral, leaving " + fmtCurrency(currentStockAllocationPool - (maxContractsAllowed * contractCollateralSize)) + " in reserve cash.";
                 } else {
                     badgeClass = "tag-momentum";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> High volume velocity alert (" + asset.volumeRatio + "x relative base). Trend breakout is fully active. Avoid multi-leg delta neutral grids. Recommends using a near-term <b>Bull Put Vertical Spread</b> to capture fast direction acceleration.";
+                    aiAnalysisText = "<b>Rule Engine AI:</b> High volume velocity alert (" + asset.volumeRatio + "x relative base). Trend breakout is fully active. Avoid multi-leg delta neutral grids. Recommends using a near-term <b>Bull Put Vertical Spread</b>.";
+                    executionBlueprintText = "<b>Execution Blueprint (Using T1 Allocation):</b> Deploy your " + fmtCurrency(currentStockAllocationPool) + " across momentum vertical spreads, or buy up to <b>" + maxPhysicalSharesAllowed + " straight underlying equity shares</b> to hold delta exposure.";
                 }
 
                 var priceDisplay = asset.price > 0 ? "$" + asset.price.toFixed(2) : "Fetching...";
@@ -399,6 +459,7 @@
                 html += '  <div class="flex-between" style="margin-bottom: 6px;">';
                 html += '    <div>';
                 html += '      <span style="font-size: 14px; font-weight: 800; color:#fff; margin-right: 6px;">' + asset.symbol + '</span>';
+                box_class = badgeClass;
                 html += '      <span class="scan-tag ' + badgeClass + '">' + asset.state + '</span>';
                 html += '    </div>';
                 html += '    <div style="text-align: right;">';
@@ -411,6 +472,7 @@
                 html += '     <span>Vol Multiplier: <b>' + asset.volumeRatio + 'x</b></span>';
                 html += '  </div>';
                 html += '  <div class="ai-box">' + aiAnalysisText + '</div>';
+                html += '  <div class="execution-blueprint">' + executionBlueprintText + '</div>';
                 html += '</div>';
             });
 
