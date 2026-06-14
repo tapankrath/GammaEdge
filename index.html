@@ -2872,31 +2872,45 @@ function geChipColors(dir){
 }
 
 function geStyleChip(tk,on){
-  var el=document.getElementById('ge-chip-'+tk);if(!el)return;
+  var el=document.getElementById('ge-chip-'+tk);
+  var pill=document.getElementById('ge-pill-'+tk);
   var v=geEffView(tk);if(!v)return;
   // Hide entire row when engine says NO TRADE
   if(v.dir==='none'){
-    el.style.display='none';
+    if(el)el.style.display='none';
+    if(pill)pill.style.display='none';
     var row=document.getElementById('ge-row-'+tk);
     if(row)row.style.display='none';
     return;
   }
-  el.style.display='';
-  var row2=document.getElementById('ge-row-'+tk);
-  if(row2)row2.style.display='';
   var cc=geChipColors(v.dir);
-  if(on){
-    el.style.background=cc.bg;el.style.borderColor=cc.bd;
-    el.style.borderLeftColor=cc.c;el.style.borderLeftWidth='4px';
-    el.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';
-  } else {
-    el.style.background='#fff';el.style.borderColor='#e2e8f0';
-    el.style.borderLeftWidth='1.5px';el.style.boxShadow='0 1px 3px rgba(0,0,0,.06)';
+  // Style row chip
+  if(el){
+    el.style.display='';
+    var row2=document.getElementById('ge-row-'+tk);
+    if(row2)row2.style.display='';
+    if(on){
+      el.style.background=cc.bg;el.style.borderColor=cc.bd;
+      el.style.borderLeftColor=cc.c;el.style.borderLeftWidth='4px';
+      el.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';
+    } else {
+      el.style.background='#fff';el.style.borderColor='#e2e8f0';
+      el.style.borderLeftWidth='1.5px';el.style.boxShadow='0 1px 3px rgba(0,0,0,.06)';
+    }
+    var ar=document.getElementById('ge-chip-ar-'+tk);
+    if(ar){ar.textContent=v.dir==='bull'?'\u25B2':'\u25BC';ar.style.color=cc.c;}
+    var mk=document.getElementById('ge-chip-mk-'+tk);
+    if(mk){mk.textContent=v.mark;mk.style.color=cc.c;}
   }
-  var ar=document.getElementById('ge-chip-ar-'+tk);
-  if(ar){ar.textContent=v.dir==='bull'?'\u25B2':'\u25BC';ar.style.color=cc.c;}
-  var mk=document.getElementById('ge-chip-mk-'+tk);
-  if(mk){mk.textContent=v.mark;mk.style.color=cc.c;}
+  // Style pill chip
+  if(pill){
+    pill.style.display='';
+    pill.style.background=cc.bg;pill.style.borderColor=cc.bd;pill.style.color=cc.c;
+    var par=document.getElementById('ge-pill-ar-'+tk);
+    if(par){par.textContent=v.dir==='bull'?'\u25B2':'\u25BC';}
+    var pmk=document.getElementById('ge-pill-mk-'+tk);
+    if(pmk){pmk.textContent=v.mark;}
+  }
 }
 
 function geChipActive(tk,on){
@@ -3081,9 +3095,9 @@ function geRenderScan(picks){
   GE_OPEN_PICK=null;
   function chip(p){
     var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
-    return '<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
-      +'<span id="ge-chip-ar-'+tk+'"></span>'+tk
-      +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:1px"></span>'
+    return '<div id="ge-pill-'+tk+'" onclick="geTogglePick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid;border-radius:999px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:900;white-space:nowrap;-webkit-user-select:none;user-select:none">'
+      +'<span id="ge-pill-ar-'+tk+'"></span>'+tk
+      +'<span id="ge-pill-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:1px"></span>'
       +'<span style="font-size:8px;font-weight:800;opacity:.55;margin-left:1px">\u25BE</span>'
     +'</div>';
   }
