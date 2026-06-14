@@ -301,7 +301,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
     <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
     <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
-    <a href="MoonshotAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
+    <a href="MoonshotAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
+    <a href="weekly-alpha.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">WeeklyAlpha</a>
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -950,9 +951,6 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <div id="ge-scan-out" style="font-size:10.5px;color:#64748b;font-weight:600;line-height:1.5">Loading&hellip;</div>
   </div>
-
-  <!-- SPY/QQQ full plan expands here — outside the picks list so it doesn't push picks down inside the card -->
-  <div id="ge-idx-detail" style="display:none;margin-bottom:8px"></div>
 
   <div id="ge-signal-home"></div>
   <div id="ge-signal-block" style="display:none">
@@ -2880,7 +2878,7 @@ function geStyleChip(tk,on){
     el.style.borderLeftWidth='1.5px';el.style.boxShadow='0 1px 3px rgba(0,0,0,.06)';
   }
   var ar=document.getElementById('ge-chip-ar-'+tk);
-  if(ar){ar.textContent=v.dir==='bull'?'\u25B2 ':v.dir==='bear'?'\u25BC ':'\u2500 ';ar.style.color=cc.c;}
+  if(ar){ar.textContent=v.dir==='bull'?'\u25B2':v.dir==='bear'?'\u25BC':'\u2500';ar.style.color=cc.c;}
   var mk=document.getElementById('ge-chip-mk-'+tk);
   if(mk){mk.textContent=v.mark;mk.style.color=cc.c;}
 }
@@ -3023,9 +3021,6 @@ function geIndexPick(t){
   }
   geOpenSignalPanel(tk,key,'ge-idx-detail');
   var cv=document.getElementById('ge-idx-'+tk+'-cv');if(cv)cv.textContent='\u25B4';
-  // Scroll the full-plan panel into view
-  var det=document.getElementById('ge-idx-detail');
-  if(det&&det.scrollIntoView)setTimeout(function(){det.scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 
 function geMarkIndexChips(){
@@ -3091,7 +3086,8 @@ function geRenderScan(picks){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
     +idxCard('spy','var(--purple)','var(--pbg)')
     +idxCard('qqq','var(--amber)','var(--abg)')
-    +'</div>';
+    +'</div>'
+    +'<div id="ge-idx-detail" style="display:none;margin-top:9px"></div>';
 
   // ── Cluster 2: opportunities — unified sorted list (most active, bull/bear) ──
   if(GE_PICKS.length){
@@ -3118,8 +3114,8 @@ function geRenderScan(picks){
     }
 
     function recoBadge(bias){
-      if(bias==='BULL')return{label:'CALL \u2191',bg:'#f0fdf4',c:'#14532d',bd:'#4ade80'};
-      return{label:'PUT \u2193',bg:'#fef2f2',c:'#7f1d1d',bd:'#f87171'};
+      if(bias==='BULL')return{label:'BUY CALL \u2191',bg:'#f0fdf4',c:'#14532d',bd:'#4ade80'};
+      return{label:'BUY PUT \u2193',bg:'#fef2f2',c:'#7f1d1d',bd:'#f87171'};
     }
 
     function pickRow(p,i){
@@ -3133,26 +3129,20 @@ function geRenderScan(picks){
       return '<div style="display:flex;flex-direction:column;gap:0">'
         // ── tap row ──
         +'<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" '
-        +'style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 12px;cursor:pointer;-webkit-user-select:none;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-radius .15s">'
-          // Ticker block — fixed width so all tickers left-align cleanly
-          +'<div style="flex-shrink:0;width:52px">'
-            +'<div style="font-size:14px;font-weight:900;color:#0a0f1e;line-height:1.1;letter-spacing:-.01em">'
+        +'style="display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 12px;cursor:pointer;-webkit-user-select:none;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-radius .15s">'
+          +'<div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#64748b">'+(i+1)+'</div>'
+          +'<div style="flex-shrink:0;min-width:44px">'
+            +'<div style="font-size:14px;font-weight:900;color:#0a0f1e;line-height:1">'
+              +'<span id="ge-chip-ar-'+tk+'" style="font-size:10px;margin-right:2px"></span>'
               +tk
               +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:3px"></span>'
             +'</div>'
-            +'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;margin-top:1px">'
-              +'<span id="ge-chip-ar-'+tk+'"></span>'
-              +(rsiTxt?' '+rsiTxt:'')
-            +'</div>'
+            +(rsiTxt?'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;margin-top:1px">'+rsiTxt+'</div>':'')
           +'</div>'
-          // Condition badge — fixed width keeps note column stable
-          +'<div style="flex-shrink:0;width:90px;padding:3px 6px;border-radius:5px;font-size:8px;font-weight:800;border:1px solid '+cb.bd+';background:'+cb.bg+';color:'+cb.c+';text-align:center">'+cb.label+'</div>'
-          // Note — takes remaining space, clamps to 2 lines
-          +'<div style="flex:1;font-size:9px;color:#64748b;font-weight:600;line-height:1.35;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+note+'</div>'
-          // Reco pill — fixed width so chevron stays flush right
-          +'<div style="flex-shrink:0;width:56px;padding:4px 0;border-radius:6px;font-size:9px;font-weight:900;border:1.5px solid '+rb.bd+';background:'+rb.bg+';color:'+rb.c+';text-align:center">'+rb.label+'</div>'
-          // Chevron
-          +'<div id="ge-chevron-'+tk+'" style="flex-shrink:0;color:#cbd5e1;font-size:14px;transition:transform .2s;font-weight:700">\u203A</div>'
+          +'<div style="flex-shrink:0;padding:2px 7px;border-radius:5px;font-size:8.5px;font-weight:800;border:1px solid '+cb.bd+';background:'+cb.bg+';color:'+cb.c+'">'+cb.label+'</div>'
+          +'<div style="flex:1;font-size:9.5px;color:#475569;font-weight:600;line-height:1.3;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+note+'</div>'
+          +'<div style="flex-shrink:0;padding:3px 9px;border-radius:6px;font-size:8.5px;font-weight:900;border:1.5px solid '+rb.bd+';background:'+rb.bg+';color:'+rb.c+';text-align:center;white-space:nowrap">'+rb.label+'</div>'
+          +'<div id="ge-chevron-'+tk+'" style="flex-shrink:0;color:#94a3b8;font-size:14px;transition:transform .2s;font-weight:700">\u203A</div>'
         +'</div>'
         // ── inline expand panel (hidden by default) ──
         +'<div id="ge-expand-'+tk+'" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-top:none;border-radius:0 0 11px 11px;padding:10px 12px 12px;box-shadow:0 2px 6px rgba(0,0,0,.07)">'
