@@ -89,6 +89,35 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
 .gen-btn:disabled{background:#94a3b8;cursor:not-allowed}
 .gen-btn:not(:disabled):active{opacity:.8}
 
+/* target inputs */
+.target-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.target-box{background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:text;transition:border-color .15s}
+.target-box:focus-within{border-color:var(--green)}
+.target-lbl{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.target-input-wrap{display:flex;align-items:center;gap:3px}
+.target-prefix{font-size:14px;font-weight:800;color:var(--green)}
+.target-input{width:100%;background:transparent;border:none;font-size:18px;font-weight:800;color:var(--text);padding:0}
+.target-input::placeholder{color:var(--border)}
+
+/* saved plans */
+.saved-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.saved-title{font-size:11px;font-weight:800;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.saved-list{margin-bottom:10px;display:none}
+.saved-list.open{display:block}
+.saved-item{background:var(--p1);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.saved-item:active{background:var(--p2)}
+.saved-item-l{font-size:12px;font-weight:700;color:var(--dim)}
+.saved-item-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:500}
+.saved-item-r{display:flex;align-items:center;gap:8px}
+.del-btn{font-size:11px;color:var(--red);font-weight:700;padding:3px 7px;border-radius:5px;background:var(--rbg);cursor:pointer}
+
+/* action bar */
+.action-bar{display:flex;gap:8px;margin-bottom:14px}
+.ab-btn{flex:1;border-radius:9px;padding:10px 6px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:.02em}
+.ab-save{background:var(--gbg);color:var(--green);border:1.5px solid var(--gbd)}
+.ab-pdf{background:#0f172a;color:#fff;border:none}
+.ab-clear{background:var(--rbg);color:var(--red);border:1.5px solid var(--rbd)}
+
 /* error */
 .err{background:var(--rbg);border:1.5px solid var(--rbd);border-radius:10px;padding:14px;color:var(--red);font-size:13px;margin-bottom:10px;display:none;line-height:1.6;font-weight:600}
 
@@ -205,7 +234,7 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
     <div class="lbl">Capital to Deploy</div>
     <div class="cap-wrap">
       <span class="cap-sign">$</span>
-      <input type="number" id="cap" value="100000" min="1000" inputmode="numeric">
+      <input type="number" id="cap" value="100000" min="1000" inputmode="numeric" oninput="syncTargets()">
     </div>
     <div class="presets">
       <button class="pre-btn" onclick="setC(10000,this)">$10K</button>
@@ -214,6 +243,25 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
       <button class="pre-btn" onclick="setC(250000,this)">$250K</button>
       <button class="pre-btn" onclick="setC(500000,this)">$500K</button>
     </div>
+
+    <div class="lbl">Profit Target</div>
+    <div class="target-row">
+      <div class="target-box" onclick="document.getElementById('tpct').focus()">
+        <div class="target-lbl">% Return</div>
+        <div class="target-input-wrap">
+          <input type="number" id="tpct" class="target-input" placeholder="6" min="1" max="100" inputmode="decimal" oninput="onPctChange()">
+          <span class="target-prefix">%</span>
+        </div>
+      </div>
+      <div class="target-box" onclick="document.getElementById('tdol').focus()">
+        <div class="target-lbl">$ Profit</div>
+        <div class="target-input-wrap">
+          <span class="target-prefix">$</span>
+          <input type="number" id="tdol" class="target-input" placeholder="6000" min="1" inputmode="decimal" oninput="onDolChange()">
+        </div>
+      </div>
+    </div>
+
     <div class="lbl">Risk Profile</div>
     <div class="risks">
       <div class="risk-opt" id="rm" onclick="setR('m')"><div class="ri">🛡️</div><div class="rl">Moderate</div></div>
@@ -221,6 +269,15 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
       <div class="risk-opt" id="ru" onclick="setR('u')"><div class="ri">☢️</div><div class="rl">Ultra</div></div>
     </div>
     <button class="gen-btn" id="btn" onclick="go()">⚡ Generate Weekly Plan</button>
+  </div>
+
+  <!-- SAVED PLANS -->
+  <div id="savedSection" style="display:none">
+    <div class="saved-bar">
+      <span class="saved-title">📂 Saved Plans</span>
+      <button style="font-size:11px;font-weight:700;color:var(--sub);background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;cursor:pointer" onclick="toggleSaved()">▾ Show</button>
+    </div>
+    <div class="saved-list" id="savedList"></div>
   </div>
 
   <div class="err" id="err"></div>
@@ -233,9 +290,21 @@ input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
 <script>
 var selR='a';
 
+function renderActionBar(){
+  var el=document.getElementById('actionBar');
+  if(el)el.remove();
+  var bar=document.createElement('div');
+  bar.id='actionBar';bar.className='action-bar';
+  bar.innerHTML='<button class="ab-btn ab-save" onclick="savePlan(window._lastPlan,parseFloat(document.getElementById('cap').value)||100000);alert('Plan saved! Find it in Saved Plans above.')">💾 Save Plan</button>'
+    +'<button class="ab-btn ab-pdf" onclick="savePDF()">📄 Export PDF</button>'
+    +'<button class="ab-btn ab-clear" onclick="document.getElementById('results').style.display='none';document.getElementById('actionBar').remove()">✕ Clear</button>';
+  document.getElementById('results').after(bar);
+}
+
 window.onload=function(){
   var saved=localStorage.getItem('wa_key');
   if(saved){document.getElementById('key').value=saved;updateStatus();}
+  renderSavedList();
   document.addEventListener('click',function(e){
     var d=document.getElementById('apiDrawer');
     var g=document.getElementById('gearBtn');
@@ -313,6 +382,99 @@ function posCard(p,tickerColor,tagColor,tagBg){
     +'</div></div>';
 }
 
+// ── TARGET SYNC ──
+function syncTargets(){
+  var cap=parseFloat(document.getElementById('cap').value)||0;
+  var pct=parseFloat(document.getElementById('tpct').value)||0;
+  if(pct>0&&cap>0){document.getElementById('tdol').value=Math.round(cap*pct/100);}
+}
+function onPctChange(){
+  var cap=parseFloat(document.getElementById('cap').value)||0;
+  var pct=parseFloat(document.getElementById('tpct').value)||0;
+  if(pct>0&&cap>0){document.getElementById('tdol').value=Math.round(cap*pct/100);}
+  else if(!pct){document.getElementById('tdol').value='';}
+}
+function onDolChange(){
+  var cap=parseFloat(document.getElementById('cap').value)||0;
+  var dol=parseFloat(document.getElementById('tdol').value)||0;
+  if(dol>0&&cap>0){document.getElementById('tpct').value=parseFloat((dol/cap*100).toFixed(2));}
+  else if(!dol){document.getElementById('tpct').value='';}
+}
+
+// ── SAVE / LOAD PLANS ──
+function savedPlans(){try{return JSON.parse(localStorage.getItem('wa_plans')||'[]');}catch{return[];}}
+function savePlan(plan,cap){
+  var plans=savedPlans();
+  var item={id:Date.now(),date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),cap:cap,risk:selR,targetReturn:plan.targetReturn||'',targetDollar:plan.targetDollar||0,summary:(plan.summary||'').substring(0,80),plan:plan};
+  plans.unshift(item);
+  if(plans.length>10)plans=plans.slice(0,10);
+  localStorage.setItem('wa_plans',JSON.stringify(plans));
+  renderSavedList();
+  document.getElementById('savedSection').style.display='block';
+}
+function renderSavedList(){
+  var plans=savedPlans();
+  var el=document.getElementById('savedList');
+  if(!plans.length){document.getElementById('savedSection').style.display='none';return;}
+  document.getElementById('savedSection').style.display='block';
+  el.innerHTML=plans.map(function(p){
+    return '<div class="saved-item" onclick="loadPlan('+p.id+')">'
+      +'<div><div class="saved-item-l">'+p.date+' · $'+fmt(p.cap)+' · '+(p.targetReturn||'')+'</div>'
+      +'<div class="saved-item-sub">'+p.summary+'…</div></div>'
+      +'<div class="saved-item-r">'
+      +'<span class="del-btn" onclick="event.stopPropagation();deletePlan('+p.id+')">✕</span>'
+      +'<span style="color:var(--sub);font-size:14px">›</span>'
+      +'</div></div>';
+  }).join('');
+}
+function loadPlan(id){
+  var plans=savedPlans();
+  var item=plans.find(function(p){return p.id===id;});
+  if(item){render(item.plan);}
+}
+function deletePlan(id){
+  var plans=savedPlans().filter(function(p){return p.id!==id;});
+  localStorage.setItem('wa_plans',JSON.stringify(plans));
+  renderSavedList();
+}
+function toggleSaved(){
+  var el=document.getElementById('savedList');
+  var btn=el.previousElementSibling.querySelector('button');
+  if(el.classList.contains('open')){el.classList.remove('open');btn.textContent='▾ Show';}
+  else{el.classList.add('open');btn.textContent='▴ Hide';}
+}
+
+// ── PDF EXPORT ──
+function savePDF(){
+  var results=document.getElementById('results');
+  if(results.style.display==='none'){alert('Generate a plan first, then save as PDF.');return;}
+  var date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).replace(/ /g,'-');
+  var cap=document.getElementById('cap').value;
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WeeklyAlpha · '+date+'</title><style>');
+  w.document.write('body{font-family:-apple-system,BlinkMacSystemFont,Inter,sans-serif;max-width:700px;margin:0 auto;padding:30px 24px;background:#fff;color:#09101f;font-size:13px;line-height:1.6}');
+  w.document.write('h1{font-size:22px;font-weight:900;margin-bottom:4px}h2{font-size:13px;font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.08em;color:#475569}');
+  w.document.write('.meta{font-size:11px;color:#64748b;margin-bottom:20px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}');
+  w.document.write('.box{border:1.5px solid #c8d5e8;border-radius:10px;padding:12px;text-align:center}.box-val{font-size:20px;font-weight:900}.box-lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.08em}');
+  w.document.write('.pos{border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid}');
+  w.document.write('.pos-top{display:flex;justify-content:space-between;margin-bottom:4px}.tag{font-size:9px;font-weight:800;border-radius:4px;padding:2px 6px;background:#f1f5f9;color:#475569}');
+  w.document.write('.ticker{font-weight:900;font-size:15px}.note{font-size:11px;color:#64748b;margin-top:4px}.amt{font-weight:800;font-size:14px}');
+  w.document.write('@media print{body{padding:16px}button{display:none}}');
+  w.document.write('</style></head><body>');
+  w.document.write('<h1>⚡ WeeklyAlpha Plan</h1>');
+  w.document.write('<div class="meta">Generated '+date+' · Capital $'+Number(cap).toLocaleString()+' · Risk '+(selR==='m'?'Moderate':selR==='a'?'Aggressive':'Ultra')+'</div>');
+  // Clone results
+  var clone=results.cloneNode(true);
+  // Remove expand buttons and chevrons
+  clone.querySelectorAll('.pos-chev,.act-btn,.pos-body').forEach(function(el){el.style.display='block';});
+  w.document.write(clone.innerHTML);
+  w.document.write('<br><p style="font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:20px">Generated by WeeklyAlpha · GammaEdge Suite · tapankrath.github.io · Not financial advice.</p>');
+  w.document.write('</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){w.print();},600);
+}
+
 async function go(){
   var key=(localStorage.getItem('wa_key')||'').trim()||document.getElementById('key').value.trim();
   var cap=parseFloat(document.getElementById('cap').value)||100000;
@@ -322,6 +484,8 @@ async function go(){
   document.getElementById('results').style.display='none';
   document.getElementById('loading').style.display='block';
   document.getElementById('btn').disabled=true;
+  var tpct=parseFloat(document.getElementById('tpct').value)||0;
+  var tdol=parseFloat(document.getElementById('tdol').value)||(cap*0.06);
   var rnames={m:'Moderate',a:'Aggressive',u:'Ultra'};
   try{
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -331,7 +495,7 @@ async function go(){
         model:'claude-sonnet-4-6',
         max_tokens:3000,
         system:'You are an expert options trader. Respond with ONLY a valid JSON object. Start with { and end with }. No markdown. No backticks. No text before or after.',
-        messages:[{role:'user',content:'Generate a weekly trading plan for $'+cap+' capital with '+rnames[selR]+' risk, targeting 5-7% weekly return with hedging. Return JSON with: summary, targetReturn, targetDollar, maxDrawdown, riskScore (1-10), weeklyThesis, exitRules, riskWarning, allocation (etfs/stocks/options/hedge each with pct and dollar), etfPositions, stockPositions, optionPositions, hedgePositions. Each position: ticker, name, dollar, pct, action, rationale. Use SPY QQQ NVDA TSLA AAPL META. Specific option strikes and expiry dates. All dollars sum to '+cap+'.'}]
+        messages:[{role:'user',content:'Generate a weekly trading plan for $'+cap+' capital with '+rnames[selR]+' risk.'+(tpct>0?' Profit target: '+tpct+'% ($'+tdol+').':' Targeting 5-7% weekly return.')+' Include hedging. Return JSON with: summary, targetReturn, targetDollar, maxDrawdown, riskScore (1-10), weeklyThesis, exitRules, riskWarning, allocation (etfs/stocks/options/hedge each with pct and dollar), etfPositions, stockPositions, optionPositions, hedgePositions. Each position: ticker, name, dollar, pct, action, rationale. Use SPY QQQ NVDA TSLA AAPL META. Specific option strikes and expiry dates. All dollars sum to '+cap+'.'}]
       })
     });
     var data=await resp.json();
@@ -349,6 +513,8 @@ async function go(){
     try{plan=JSON.parse(raw.substring(s,e+1));}
     catch(pe){throw new Error('Parse error — try again.');}
     render(plan);
+    savePlan(plan,cap);
+    renderActionBar();
   }catch(err){
     showErr(err.message||'Something went wrong. Try again.');
   }finally{
@@ -357,7 +523,7 @@ async function go(){
   }
 }
 
-function render(p){
+function render(p){window._lastPlan=p;
   posIdx=0;
   var a=p.allocation||{};
   var rs=p.riskScore||7;
