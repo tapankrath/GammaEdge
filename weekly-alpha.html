@@ -2,347 +2,411 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0f1e">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>WeeklyAlpha · GammaEdge</title>
 <style>
-:root{
-  --bg:#e8eef6;--p1:#ffffff;--p2:#f4f7fb;--border:#c8d5e8;
-  --text:#09101f;--dim:#1e293b;--sub:#475569;--muted:#64748b;
-  --green:#16a34a;--gbg:#dcfce7;--gbd:#4ade80;
-  --red:#dc2626;--rbg:#fee2e2;--rbd:#f87171;
-  --amber:#d97706;--abg:#fef3c7;--abd:#fbbf24;
-  --blue:#2563eb;--bbg:#dbeafe;--bbd:#60a5fa;
-  --purple:#7c3aed;--pbg:#ede9fe;--pbd:#a78bfa;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
-button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;border:none;outline:none}
-input{outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+:root{--bg:#e8eef6;--p1:#fff;--p2:#f4f7fb;--bor:#c8d5e8;--text:#09101f;--sub:#475569;--mut:#64748b;--grn:#16a34a;--gbg:#dcfce7;--gbd:#4ade80;--red:#dc2626;--rbg:#fee2e2;--rbd:#f87171;--amb:#d97706;--abg:#fef3c7;--abd:#fbbf24;--blu:#2563eb;--bbg:#dbeafe;--bbd:#60a5fa;--pur:#7c3aed;--pbg:#ede9fe;--pbd:#a78bfa}
 
-.app{max-width:480px;margin:0 auto;padding:10px 10px 80px}
+/* NAV */
+.topbar{background:#0f172a;padding:0}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
+.app-title{display:flex;flex-direction:column}
+.app-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.app-name span{color:#a78bfa}
+.app-sub{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.gear-btn{width:34px;height:34px;background:#1e293b;border:1px solid #334155;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;z-index:10;flex-shrink:0}
+.back-link{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:5px 10px 5px 14px}
+.nav-pills{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #1e293b}
+.nav-pills a{color:#fff;font-size:10px;font-weight:700;text-decoration:none;padding:8px 2px;text-align:center;border-right:1px solid #1e293b}
+.nav-pills a:last-child{border-right:none}
+.nav-pills a.cur{color:#a78bfa;background:#1e293b}
 
-/* ── STICKY HEADER ── */
-.sticky-hdr{position:sticky;top:0;z-index:100;background:var(--bg);padding:8px 10px;margin:0 -10px;box-shadow:0 3px 12px rgba(0,0,0,.12);border-bottom:1px solid var(--border)}
+/* API DRAWER */
+.api-drawer{display:none;background:#1e293b;border-top:1px solid #334155;padding:14px}
+.api-drawer.open{display:block}
+.api-drawer label{display:block;font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.api-drawer input{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:8px;padding:10px 12px;color:#fff;font-family:monospace;font-size:13px;outline:none;-webkit-appearance:none}
+.api-drawer input:focus{border-color:#a78bfa}
+.api-hint{font-size:10px;color:#64748b;margin-top:5px}
+.api-status{font-size:11px;font-weight:700;margin-top:5px}
+.api-status.ok{color:#4ade80}.api-status.no{color:#fbbf24}
+.api-save{margin-top:8px;width:100%;background:#a78bfa;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:800;color:#fff;cursor:pointer}
 
-/* top row: title + gear */
-.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 6px}
-.hdr-title{display:flex;flex-direction:column;gap:0;line-height:1.1}
-.hdr-name{font-size:22px;font-weight:900;color:#0a0f1e;letter-spacing:-.03em;white-space:nowrap}
-.hdr-name span{color:var(--purple)}
-.hdr-sub{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
-.gear-wrap{position:relative}
-.gear-btn{width:36px;height:36px;background:var(--p1);border:1.5px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);flex-shrink:0}
-.gear-btn.active{border-color:var(--purple);background:var(--pbg)}
+/* MAIN */
+.main{max-width:480px;margin:0 auto;padding:14px 12px 100px}
 
-/* API drawer */
-.api-drawer{display:none;position:absolute;top:44px;right:0;width:min(300px,90vw);background:var(--p1);border:1.5px solid var(--border);border-radius:14px;padding:14px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.18);pointer-events:none}
-.api-drawer.open{display:block;pointer-events:auto}
-.api-drawer .dl{font-size:10px;font-weight:800;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
-.api-drawer input{width:100%;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-size:12px;font-family:monospace}
-.api-drawer input:focus{border-color:var(--purple)}
-.api-hint{font-size:10px;color:var(--muted);margin-top:5px}
-.api-status{font-size:11px;margin-top:5px;font-weight:700}
-.api-status.set{color:var(--green)}.api-status.unset{color:var(--amber)}
-.save-btn{margin-top:8px;width:100%;background:#0f172a;color:#fff;border-radius:8px;padding:9px;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.03em}
+/* CARD */
+.card{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lbl{font-size:10px;font-weight:800;color:#1e293b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
 
-/* ── SUITE NAV ── */
-.suite-nav{margin:0 4px 8px;background:#0f172a;border-radius:10px;display:flex;align-items:stretch;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-shadow:0 2px 10px rgba(0,0,0,.22)}
-.suite-nav::-webkit-scrollbar{display:none}
-.suite-nav a{flex-shrink:0;color:#ffffff;padding:9px 11px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-right:1px solid #1e293b;transition:background .15s}
-.suite-nav a:last-child{border-right:none}
-.suite-nav a:hover,.suite-nav a:active{background:#1e293b}
-.suite-nav a.current{background:#1e293b;color:var(--pbd)}
-.back-btn{flex-shrink:0;color:#94a3b8!important;padding:9px 11px!important;font-size:10px!important;font-weight:800!important;letter-spacing:.03em;text-decoration:none;display:inline-flex!important;align-items:center!important;gap:4px;border-right:1px solid #1e293b!important}
-
-/* ── CARDS ── */
-.card{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
-.lbl{font-size:10px;font-weight:800;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
-
-/* capital input */
+/* CAPITAL */
 .cap-wrap{position:relative;margin-bottom:12px}
-.cap-sign{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--purple);font-weight:800}
-#cap{width:100%;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:11px 12px 11px 28px;font-size:24px;font-weight:800;color:var(--text);font-family:'Inter',sans-serif}
-#cap:focus{border-color:var(--purple)}
+.cap-sign{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:900;color:#7c3aed}
+.cap-input{width:100%;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:12px 12px 12px 30px;font-size:26px;font-weight:900;color:#09101f;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none}
+.cap-input:focus{border-color:#7c3aed}
 
-/* preset buttons */
-.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.pre-btn{flex:1;min-width:52px;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:7px 2px;color:var(--sub);font-size:11px;font-weight:700;cursor:pointer;text-align:center}
-.pre-btn.on{background:var(--pbg);border-color:var(--purple);color:var(--purple)}
+/* PRESETS */
+.presets{display:flex;gap:6px;margin-bottom:14px}
+.pre{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:8px 2px;font-size:11px;font-weight:700;color:#475569;text-align:center;cursor:pointer;-webkit-appearance:none;font-family:inherit}
+.pre.on{background:#ede9fe;border-color:#7c3aed;color:#7c3aed}
 
-/* risk */
+/* TARGET PILL */
+.target-pill{display:flex;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;overflow:hidden;margin-bottom:14px;cursor:pointer}
+.tpill-half{flex:1;padding:10px 12px;border-right:1px solid #c8d5e8;cursor:pointer;background:transparent;border-top:none;border-bottom:none;border-left:none;font-family:inherit;text-align:left}
+.tpill-half:last-child{border-right:none}
+.tpill-half.set{background:#dcfce7}
+.tpill-lbl{font-size:9px;font-weight:800;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.tpill-val{font-size:18px;font-weight:900;color:#94a3b8}
+.tpill-val.set{color:#16a34a}
+
+/* RISK */
 .risks{display:flex;gap:8px;margin-bottom:14px}
-.risk-opt{flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer}
-.risk-opt .ri{font-size:18px;margin-bottom:2px}
-.risk-opt .rl{font-size:10px;font-weight:800;color:var(--sub);letter-spacing:.04em;text-transform:uppercase}
-.risk-opt.sel-m{border-color:var(--blue);background:var(--bbg)}.risk-opt.sel-m .rl{color:var(--blue)}
-.risk-opt.sel-a{border-color:var(--amber);background:var(--abg)}.risk-opt.sel-a .rl{color:var(--amber)}
-.risk-opt.sel-u{border-color:var(--red);background:var(--rbg)}.risk-opt.sel-u .rl{color:var(--red)}
+.risk{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;-webkit-appearance:none;font-family:inherit}
+.risk .ri{font-size:20px;margin-bottom:3px}
+.risk .rl{font-size:10px;font-weight:800;color:#475569;letter-spacing:.04em;text-transform:uppercase}
+.risk.m{border-color:#2563eb;background:#dbeafe}.risk.m .rl{color:#2563eb}
+.risk.a{border-color:#d97706;background:#fef3c7}.risk.a .rl{color:#d97706}
+.risk.u{border-color:#dc2626;background:#fee2e2}.risk.u .rl{color:#dc2626}
 
-/* generate button */
-.gen-btn{width:100%;background:#09101f;color:#fff;border-radius:10px;padding:15px;font-size:15px;font-weight:900;cursor:pointer;letter-spacing:.02em;transition:opacity .15s}
-.gen-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.gen-btn:not(:disabled):active{opacity:.8}
+/* GEN BUTTON */
+.gen{width:100%;background:#09101f;color:#fff;border:none;border-radius:10px;padding:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em}
+.gen:disabled{background:#94a3b8;cursor:not-allowed}
 
-/* target inputs */
-.target-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.target-box{background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:text;transition:border-color .15s}
-.target-box:focus-within{border-color:var(--green)}
-.target-lbl{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
-.target-input-wrap{display:flex;align-items:center;gap:3px}
-.target-prefix{font-size:14px;font-weight:800;color:var(--green)}
-.target-input{width:100%;background:transparent;border:none;font-size:18px;font-weight:800;color:var(--text);padding:0}
-.target-input::placeholder{color:var(--border)}
+/* ERROR */
+.err{background:#fee2e2;border:1.5px solid #f87171;border-radius:10px;padding:14px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:12px;display:none;line-height:1.6}
 
-/* saved plans */
-.saved-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.saved-title{font-size:11px;font-weight:800;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
-.saved-list{margin-bottom:10px;display:none}
-.saved-list.open{display:block}
-.saved-item{background:var(--p1);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.saved-item:active{background:var(--p2)}
-.saved-item-l{font-size:12px;font-weight:700;color:var(--dim)}
-.saved-item-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:500}
-.saved-item-r{display:flex;align-items:center;gap:8px}
-.del-btn{font-size:11px;color:var(--red);font-weight:700;padding:3px 7px;border-radius:5px;background:var(--rbg);cursor:pointer}
-
-/* action bar */
-.action-bar{display:flex;gap:8px;margin-bottom:14px}
-.ab-btn{flex:1;border-radius:9px;padding:10px 6px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:.02em}
-.ab-save{background:var(--gbg);color:var(--green);border:1.5px solid var(--gbd)}
-.ab-pdf{background:#0f172a;color:#fff;border:none}
-.ab-clear{background:var(--rbg);color:var(--red);border:1.5px solid var(--rbd)}
-
-/* error */
-.err{background:var(--rbg);border:1.5px solid var(--rbd);border-radius:10px;padding:14px;color:var(--red);font-size:13px;margin-bottom:10px;display:none;line-height:1.6;font-weight:600}
-
-/* loading */
-#loading{display:none;text-align:center;padding:40px 20px}
+/* LOADING */
+.loading{display:none;text-align:center;padding:40px 20px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
-.loading-txt{color:var(--sub);font-size:13px;font-weight:600}
+.spinner{width:36px;height:36px;border:3px solid #c8d5e8;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.loading-msg{color:#475569;font-size:13px;font-weight:600}
 
-/* results */
-#results{display:none}
-
-/* summary header */
-.res-hdr{background:linear-gradient(135deg,var(--pbg),var(--bbg));border:1.5px solid var(--pbd);border-radius:14px;padding:16px;margin-bottom:10px}
-.res-title{font-size:10px;color:var(--purple);font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
-.res-sum{font-size:13px;line-height:1.7;color:var(--dim);font-weight:500}
-
-/* allocation grid */
-.alloc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.a-card{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+/* RESULTS */
+.results{display:none}
+.res-hdr{background:linear-gradient(135deg,#ede9fe,#dbeafe);border:1.5px solid #a78bfa;border-radius:14px;padding:16px;margin-bottom:10px}
+.res-tag{font-size:10px;color:#7c3aed;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.res-sum{font-size:13px;line-height:1.7;color:#1e293b;font-weight:500}
+.alloc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.a-box{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .a-pct{font-size:20px;font-weight:900;line-height:1;margin-bottom:2px}
-.a-type{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
-.a-dol{font-size:11px;color:var(--sub);font-weight:700}
-
-/* metrics */
-.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.met{background:var(--p2);border-radius:9px;padding:10px 12px;border:1px solid var(--border)}
-.met-l{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-.met-v{font-size:16px;font-weight:900;margin-top:2px;color:var(--text)}
-
-/* risk bar */
-.rbar-track{height:5px;background:var(--p2);border-radius:3px;overflow:hidden;margin:6px 0 10px;border:1px solid var(--border)}
+.a-type{font-size:9px;color:#64748b;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.a-dol{font-size:11px;color:#475569;font-weight:700}
+.mets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.met{background:#f4f7fb;border-radius:9px;padding:10px 12px;border:1px solid #c8d5e8}
+.met-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.met-v{font-size:16px;font-weight:900;margin-top:2px}
+.rbar{height:5px;background:#f4f7fb;border-radius:3px;overflow:hidden;margin:6px 0 10px;border:1px solid #c8d5e8}
 .rbar-fill{height:100%;border-radius:3px}
-
-/* section headers */
 .sec-hdr{display:flex;align-items:center;gap:8px;margin:16px 0 8px}
 .sec-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.sec-title{font-size:13px;font-weight:900;letter-spacing:.02em}
+.sec-ttl{font-size:13px;font-weight:900}
 
-/* COLLAPSIBLE POSITION CARDS */
-.pos{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.pos-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;gap:8px}
-.pos-hdr-l{display:flex;align-items:center;gap:10px;min-width:0}
-.pos-tag{font-size:9px;font-weight:900;border-radius:5px;padding:3px 7px;display:inline-block;flex-shrink:0;letter-spacing:.06em;text-transform:uppercase}
-.pos-tick{font-size:15px;font-weight:900;color:var(--text)}
-.pos-name-sm{font-size:10px;color:var(--muted);margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pos-hdr-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.pos-dol{font-size:14px;font-weight:800;color:var(--text)}
-.pos-pct-sm{font-size:10px;color:var(--muted);font-weight:600}
-.pos-chev{font-size:11px;color:var(--muted);transition:transform .22s;flex-shrink:0}
-.pos-chev.open{transform:rotate(180deg)}
-.pos-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+/* POSITION CARDS */
+.pos{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.pos-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;gap:8px}
+.pos-hl{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.ptag{font-size:9px;font-weight:900;border-radius:5px;padding:3px 7px;flex-shrink:0;letter-spacing:.06em;text-transform:uppercase}
+.ptick{font-size:15px;font-weight:900}
+.pname{font-size:10px;color:#64748b;margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos-hr{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pdol{font-size:14px;font-weight:800}
+.ppct{font-size:10px;color:#64748b;font-weight:600}
+.chevron{font-size:11px;color:#94a3b8;transition:transform .22s;flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+.pos-body{display:none;padding:0 14px 14px;border-top:1px solid #e2e8f0}
 .pos-body.open{display:block}
-.pos-note{font-size:12px;color:var(--sub);line-height:1.6;padding-top:10px;font-weight:500}
+.pos-note{font-size:12px;color:#475569;line-height:1.6;padding-top:10px;font-weight:500}
+.trade-btn{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#09101f;color:#fff;font-size:11px;font-weight:800;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;font-family:inherit}
 
-/* action button */
-.act-btn{display:inline-flex;align-items:center;gap:5px;margin-top:12px;background:#09101f;color:#fff;font-size:11px;font-weight:800;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
-.act-btn:active{opacity:.8}
-
-/* info cards */
-.info-card{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.info-card{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:14px;margin-bottom:8px}
 .info-tag{font-size:9px;font-weight:900;border-radius:5px;padding:3px 8px;display:inline-block;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase}
-.info-body{font-size:12px;color:var(--sub);line-height:1.6;font-weight:500}
+.info-body{font-size:12px;color:#475569;line-height:1.6;font-weight:500}
 
-/* disclaimer */
-.disc{background:var(--rbg);border:1px solid var(--rbd);border-radius:10px;padding:12px 14px;font-size:11px;color:#7f1d1d;line-height:1.6;margin-top:10px;font-weight:500}
+/* ACTION BAR */
+.action-bar{display:flex;gap:8px;margin-bottom:12px}
+.ab{flex:1;border-radius:9px;padding:10px 6px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.02em;font-family:inherit;border:none}
+.ab-save{background:#dcfce7;color:#16a34a;border:1.5px solid #4ade80}
+.ab-pdf{background:#09101f;color:#fff}
+.ab-clear{background:#fee2e2;color:#dc2626;border:1.5px solid #f87171}
 
-@supports(padding-bottom:env(safe-area-inset-bottom)){.app{padding-bottom:calc(60px + env(safe-area-inset-bottom))}}
+/* SAVED */
+.saved-section{margin-bottom:12px}
+.saved-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.saved-ttl{font-size:11px;font-weight:800;color:#1e293b;letter-spacing:.06em;text-transform:uppercase}
+.saved-toggle{font-size:11px;font-weight:700;color:#475569;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.saved-list{display:none}
+.saved-list.open{display:block}
+.saved-item{background:#fff;border:1.5px solid #c8d5e8;border-radius:10px;padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.saved-l{font-size:12px;font-weight:700;color:#1e293b}
+.saved-sub{font-size:10px;color:#64748b;margin-top:1px;font-weight:500}
+.del{font-size:11px;color:#dc2626;font-weight:700;padding:3px 7px;border-radius:5px;background:#fee2e2;cursor:pointer;border:none;font-family:inherit;margin-right:6px}
+
+/* TARGET MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900}
+.overlay.open{display:block}
+.tmodal{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 44px;z-index:901;box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+.tmodal.open{display:block}
+.tmodal-lbl{font-size:11px;font-weight:800;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.tmodal-wrap{position:relative;margin-bottom:10px}
+.tmodal-pre{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:24px;font-weight:900;color:#16a34a}
+.tmodal-suf{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#94a3b8}
+.tmodal-input{width:100%;background:#f4f7fb;border:2px solid #16a34a;border-radius:12px;padding:14px 44px;font-size:30px;font-weight:900;color:#09101f;outline:none;font-family:'Inter',sans-serif;-webkit-appearance:none;text-align:center}
+.tmodal-calc{font-size:13px;color:#475569;font-weight:600;margin-bottom:18px;min-height:18px;text-align:center}
+.tmodal-btns{display:flex;gap:10px}
+.tmodal-cancel{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:13px;font-size:14px;font-weight:800;color:#475569;cursor:pointer;font-family:inherit}
+.tmodal-ok{flex:2;background:#09101f;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:900;color:#fff;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
-<div class="app">
 
-<!-- STICKY HEADER -->
-<div class="sticky-hdr">
-  <div class="hdr-top">
-    <div class="hdr-title">
-      <span class="hdr-name">Weekly<span>Alpha</span></span>
-      <span class="hdr-sub">AI Trade Planner</span>
+<!-- TOP NAV -->
+<div class="topbar">
+  <div class="topbar-row1">
+    <div class="app-title">
+      <div class="app-name">Weekly<span>Alpha</span></div>
+      <div class="app-sub">AI Trade Planner</div>
     </div>
-    <div class="gear-wrap">
-      <div class="gear-btn" id="gearBtn" onclick="toggleGear()">⚙️</div>
-      <!-- API Drawer -->
-      <div class="api-drawer" id="apiDrawer">
-        <div class="dl">Anthropic API Key</div>
-        <input type="password" id="key" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateStatus()">
-        <div class="api-hint">🔒 Saved in browser — never sent anywhere except Anthropic</div>
-        <div class="api-status unset" id="apiStatus">⚠️ No key set</div>
-        <button class="save-btn" onclick="saveKey()">Save Key & Close</button>
-      </div>
-    </div>
+    <div class="gear-btn" onclick="toggleGear()">⚙️</div>
   </div>
 
-  <!-- BACK BUTTON — always visible -->
-  <div style="margin:0 4px 4px">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:#0f172a;color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none;text-transform:uppercase">← GammaEdge</a>
+  <!-- API DRAWER -->
+  <div class="api-drawer" id="apiDrawer">
+    <label>Anthropic API Key</label>
+    <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateStatus()">
+    <div class="api-hint">🔒 Saved in this browser only</div>
+    <div class="api-status no" id="apiStatus">⚠️ No key set</div>
+    <button class="api-save" onclick="saveKey()">Save Key & Close</button>
   </div>
 
-  <!-- SUITE NAV — scrollable pills -->
-  <div class="suite-nav">
+  <a href="index.html" class="back-link">← GammaEdge</a>
+
+  <div class="nav-pills">
     <a href="portfolioedge.html">PortfolioAI</a>
     <a href="chartedge.html">ChartAI</a>
     <a href="stockai.html">StockAI</a>
     <a href="EarningsAI.html">EarningsAI</a>
     <a href="MoonshotAI.html">MoonshotAI</a>
-    <a href="weekly-alpha.html" class="current">WeeklyAlpha</a>
   </div>
 </div>
 
-<!-- MAIN -->
-<div style="padding-top:10px">
+<!-- MAIN CONTENT -->
+<div class="main">
 
+  <!-- INPUT CARD -->
   <div class="card">
     <div class="lbl">Capital to Deploy</div>
     <div class="cap-wrap">
       <span class="cap-sign">$</span>
-      <input type="number" id="cap" value="100000" min="1000" inputmode="numeric" oninput="syncTargets()">
+      <input type="number" id="cap" class="cap-input" value="100000" min="1000" inputmode="numeric" oninput="onCapChange()">
     </div>
+
     <div class="presets">
-      <button class="pre-btn" onclick="setC(10000,this)">$10K</button>
-      <button class="pre-btn" onclick="setC(25000,this)">$25K</button>
-      <button class="pre-btn on" onclick="setC(100000,this)">$100K</button>
-      <button class="pre-btn" onclick="setC(250000,this)">$250K</button>
-      <button class="pre-btn" onclick="setC(500000,this)">$500K</button>
+      <button class="pre" onclick="setC(10000,this)">$10K</button>
+      <button class="pre" onclick="setC(25000,this)">$25K</button>
+      <button class="pre on" onclick="setC(100000,this)">$100K</button>
+      <button class="pre" onclick="setC(250000,this)">$250K</button>
+      <button class="pre" onclick="setC(500000,this)">$500K</button>
     </div>
 
-    <!-- PROFIT TARGET TOGGLE PILL -->
-    <div style="margin-bottom:14px">
-      <div class="lbl" style="margin-bottom:8px">Profit Target <span id="targetDisplay" style="color:var(--green);font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;margin-left:4px"></span></div>
-      <div style="display:flex;gap:0;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden">
-        <button id="tpill-pct" onclick="openTargetModal('pct')" style="flex:1;padding:11px 8px;font-size:13px;font-weight:800;color:var(--sub);background:transparent;border:none;border-right:1px solid var(--border);cursor:pointer;transition:all .15s" id="tpill-pct">
-          <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">% Return</div>
-          <div id="tpct-display" style="font-size:18px;font-weight:900;color:var(--sub)">— %</div>
-        </button>
-        <button id="tpill-dol" onclick="openTargetModal('dol')" style="flex:1;padding:11px 8px;font-size:13px;font-weight:800;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .15s">
-          <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">$ Profit</div>
-          <div id="tdol-display" style="font-size:18px;font-weight:900;color:var(--sub)">— $</div>
-        </button>
-      </div>
+    <div class="lbl">Profit Target <span id="targetBadge" style="font-size:11px;color:#16a34a;font-weight:700;text-transform:none;letter-spacing:0"></span></div>
+    <div class="target-pill">
+      <button class="tpill-half" id="tpill-pct" onclick="openModal('pct')">
+        <div class="tpill-lbl">% Return</div>
+        <div class="tpill-val" id="tpct-disp">— %</div>
+      </button>
+      <button class="tpill-half" id="tpill-dol" onclick="openModal('dol')">
+        <div class="tpill-lbl">$ Profit</div>
+        <div class="tpill-val" id="tdol-disp">— $</div>
+      </button>
     </div>
-
-    <!-- hidden inputs for values -->
     <input type="hidden" id="tpct" value="">
     <input type="hidden" id="tdol" value="">
 
     <div class="lbl">Risk Profile</div>
     <div class="risks">
-      <div class="risk-opt" id="rm" onclick="setR('m')"><div class="ri">🛡️</div><div class="rl">Moderate</div></div>
-      <div class="risk-opt sel-a" id="ra" onclick="setR('a')"><div class="ri">🔥</div><div class="rl">Aggressive</div></div>
-      <div class="risk-opt" id="ru" onclick="setR('u')"><div class="ri">☢️</div><div class="rl">Ultra</div></div>
+      <button class="risk" id="risk-m" onclick="setR('m')"><div class="ri">🛡️</div><div class="rl">Moderate</div></button>
+      <button class="risk a" id="risk-a" onclick="setR('a')"><div class="ri">🔥</div><div class="rl">Aggressive</div></button>
+      <button class="risk" id="risk-u" onclick="setR('u')"><div class="ri">☢️</div><div class="rl">Ultra</div></button>
     </div>
-    <button class="gen-btn" id="btn" onclick="go()">⚡ Generate Weekly Plan</button>
+
+    <button class="gen" id="genBtn" onclick="go()">⚡ Generate Weekly Plan</button>
   </div>
 
   <!-- SAVED PLANS -->
-  <div id="savedSection" style="display:none">
-    <div class="saved-bar">
-      <span class="saved-title">📂 Saved Plans</span>
-      <button style="font-size:11px;font-weight:700;color:var(--sub);background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;cursor:pointer" onclick="toggleSaved()">▾ Show</button>
+  <div class="saved-section" id="savedSection" style="display:none">
+    <div class="saved-hdr">
+      <span class="saved-ttl">📂 Saved Plans</span>
+      <button class="saved-toggle" onclick="toggleSaved()">▾ Show</button>
     </div>
     <div class="saved-list" id="savedList"></div>
   </div>
 
-  <div class="err" id="err"></div>
-  <div id="loading"><div class="spin"></div><div class="loading-txt">Analyzing market conditions…</div></div>
-  <div id="results"></div>
+  <!-- ERROR -->
+  <div class="err" id="errBox"></div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loadingBox">
+    <div class="spinner"></div>
+    <div class="loading-msg" id="loadingMsg">Generating plan… (20–40 sec)</div>
+  </div>
+
+  <!-- ACTION BAR (shown after plan) -->
+  <div class="action-bar" id="actionBar" style="display:none">
+    <button class="ab ab-save" onclick="doSave()">💾 Save</button>
+    <button class="ab ab-pdf" onclick="doPDF()">📄 PDF</button>
+    <button class="ab ab-clear" onclick="doClear()">✕ Clear</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="resultsBox"></div>
 
 </div>
+
+<!-- TARGET MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
+<div class="tmodal" id="tmodal">
+  <div class="tmodal-lbl" id="tmodal-lbl">Set % Return Target</div>
+  <div class="tmodal-wrap">
+    <span class="tmodal-pre" id="tmodal-pre"></span>
+    <input type="number" id="tmodal-in" class="tmodal-input" inputmode="decimal" placeholder="0" oninput="onModalInput()">
+    <span class="tmodal-suf" id="tmodal-suf"></span>
+  </div>
+  <div class="tmodal-calc" id="tmodal-calc"></div>
+  <div class="tmodal-btns">
+    <button class="tmodal-cancel" onclick="closeModal()">Cancel</button>
+    <button class="tmodal-ok" onclick="confirmTarget()">Set Target ✓</button>
+  </div>
 </div>
 
 <script>
 var selR='a';
+var _tmode='pct';
+var _plan=null;
 
-function renderActionBar(){
-  var el=document.getElementById('actionBar');
-  if(el)el.remove();
-  var bar=document.createElement('div');
-  bar.id='actionBar';bar.className='action-bar';
-  bar.innerHTML='<button class="ab-btn ab-save" onclick="savePlan(window._lastPlan,parseFloat(document.getElementById('cap').value)||100000);alert('Plan saved! Find it in Saved Plans above.')">💾 Save Plan</button>'
-    +'<button class="ab-btn ab-pdf" onclick="savePDF()">📄 Export PDF</button>'
-    +'<button class="ab-btn ab-clear" onclick="document.getElementById('results').style.display='none';document.getElementById('actionBar').remove()">✕ Clear</button>';
-  document.getElementById('results').after(bar);
-}
+// ── INIT ──
+window.addEventListener('load',function(){
+  var k=localStorage.getItem('wa_key');
+  if(k){document.getElementById('keyInput').value=k;updateStatus();}
+  renderSaved();
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var dol=Math.round(cap*0.05);
+  document.getElementById('tpct').value=5;
+  document.getElementById('tdol').value=dol;
+  document.getElementById('tpct-disp').textContent='5%';
+  document.getElementById('tdol-disp').textContent='$'+dol.toLocaleString();
+  document.getElementById('tpct-disp').className='tpill-val set';
+  document.getElementById('tdol-disp').className='tpill-val set';
+  document.getElementById('tpill-pct').classList.add('set');
+  document.getElementById('tpill-dol').classList.add('set');
+});
 
-window.onload=function(){
-  var saved=localStorage.getItem('wa_key');
-  if(saved){document.getElementById('key').value=saved;updateStatus();}
-  renderSavedList();
-  document.addEventListener('click',function(e){
-    var d=document.getElementById('apiDrawer');
-    var g=document.getElementById('gearBtn');
-    if(d.classList.contains('open')&&!d.contains(e.target)&&!g.contains(e.target)){
-      d.classList.remove('open');g.classList.remove('active');
-    }
-  });
-};
-
+// ── GEAR / API ──
 function toggleGear(){
-  var d=document.getElementById('apiDrawer'),g=document.getElementById('gearBtn');
-  d.classList.toggle('open');g.classList.toggle('active');
+  document.getElementById('apiDrawer').classList.toggle('open');
 }
 function saveKey(){
-  var k=document.getElementById('key').value.trim();
-  if(k){localStorage.setItem('wa_key',k);updateStatus();}
+  var k=document.getElementById('keyInput').value.trim();
+  if(k)localStorage.setItem('wa_key',k);
+  updateStatus();
   document.getElementById('apiDrawer').classList.remove('open');
-  document.getElementById('gearBtn').classList.remove('active');
 }
 function updateStatus(){
-  var k=document.getElementById('key').value.trim();
+  var k=document.getElementById('keyInput').value.trim();
   var s=document.getElementById('apiStatus');
-  if(k&&k.startsWith('sk-ant')){s.textContent='✓ Key ready';s.className='api-status set';}
-  else{s.textContent='⚠️ No valid key set';s.className='api-status unset';}
+  if(k&&k.startsWith('sk-ant')){s.textContent='✓ Key ready';s.className='api-status ok';}
+  else{s.textContent='⚠️ No valid key';s.className='api-status no';}
 }
 
-function setC(v,b){
+// ── CAPITAL ──
+function setC(v,btn){
   document.getElementById('cap').value=v;
-  document.querySelectorAll('.pre-btn').forEach(function(x){x.classList.remove('on')});
-  b.classList.add('on');
+  document.querySelectorAll('.pre').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  syncDolFromPct();
 }
+function onCapChange(){syncDolFromPct();}
+function syncDolFromPct(){
+  var cap=parseFloat(document.getElementById('cap').value)||0;
+  var pct=parseFloat(document.getElementById('tpct').value)||0;
+  if(pct>0&&cap>0){
+    var dol=Math.round(cap*pct/100);
+    document.getElementById('tdol').value=dol;
+    document.getElementById('tdol-disp').textContent='$'+dol.toLocaleString();
+    document.getElementById('tdol-disp').className='tpill-val set';
+    document.getElementById('tpill-dol').classList.add('set');
+  }
+}
+
+// ── RISK ──
 function setR(r){
   selR=r;
-  ['m','a','u'].forEach(function(x){document.getElementById('r'+x).className='risk-opt'});
-  var map={m:'sel-m',a:'sel-a',u:'sel-u'};
-  document.getElementById('r'+r).classList.add(map[r]);
+  ['m','a','u'].forEach(function(x){
+    var el=document.getElementById('risk-'+x);
+    el.className='risk';
+  });
+  document.getElementById('risk-'+r).className='risk '+r;
 }
+
+// ── TARGET MODAL ──
+function openModal(mode){
+  _tmode=mode;
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var cur=parseFloat(document.getElementById(mode==='pct'?'tpct':'tdol').value)||0;
+  document.getElementById('tmodal-lbl').textContent=mode==='pct'?'Set % Return Target':'Set $ Profit Target';
+  document.getElementById('tmodal-pre').textContent=mode==='dol'?'$':'';
+  document.getElementById('tmodal-suf').textContent=mode==='pct'?'%':'';
+  document.getElementById('tmodal-in').value=cur||'';
+  document.getElementById('tmodal-calc').textContent='';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('tmodal').classList.add('open');
+  setTimeout(function(){document.getElementById('tmodal-in').focus();},150);
+  onModalInput();
+}
+function onModalInput(){
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var val=parseFloat(document.getElementById('tmodal-in').value)||0;
+  var el=document.getElementById('tmodal-calc');
+  if(!val){el.textContent='';return;}
+  if(_tmode==='pct'){
+    el.textContent='= $'+Math.round(cap*val/100).toLocaleString()+' profit on $'+cap.toLocaleString();
+  } else {
+    el.textContent='= '+(val/cap*100).toFixed(1)+'% return on $'+cap.toLocaleString();
+  }
+}
+function confirmTarget(){
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
+  var val=parseFloat(document.getElementById('tmodal-in').value)||0;
+  if(val>0){
+    if(_tmode==='pct'){
+      var dol=Math.round(cap*val/100);
+      document.getElementById('tpct').value=val;
+      document.getElementById('tdol').value=dol;
+      document.getElementById('tpct-disp').textContent=val+'%';
+      document.getElementById('tdol-disp').textContent='$'+dol.toLocaleString();
+    } else {
+      var pct=parseFloat((val/cap*100).toFixed(1));
+      document.getElementById('tdol').value=val;
+      document.getElementById('tpct').value=pct;
+      document.getElementById('tdol-disp').textContent='$'+val.toLocaleString();
+      document.getElementById('tpct-disp').textContent=pct+'%';
+    }
+    document.getElementById('tpct-disp').className='tpill-val set';
+    document.getElementById('tdol-disp').className='tpill-val set';
+    document.getElementById('tpill-pct').classList.add('set');
+    document.getElementById('tpill-dol').classList.add('set');
+  }
+  closeModal();
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('tmodal').classList.remove('open');
+}
+
+// ── HELPERS ──
 function fmt(n){
   n=Number(n)||0;
   if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';
@@ -350,325 +414,244 @@ function fmt(n){
   return'$'+Math.round(n).toLocaleString();
 }
 function showErr(m){
-  document.getElementById('err').innerHTML='⚠️ '+m;
-  document.getElementById('err').style.display='block';
-  document.getElementById('loading').style.display='none';
-  document.getElementById('btn').disabled=false;
+  var el=document.getElementById('errBox');
+  el.innerHTML='⚠️ '+m;el.style.display='block';
+  document.getElementById('loadingBox').style.display='none';
+  document.getElementById('genBtn').disabled=false;
 }
-
-var posIdx=0;
-function togglePos(id){
-  var b=document.getElementById('b-'+id),c=document.getElementById('c-'+id);
-  if(b.classList.contains('open')){b.classList.remove('open');c.classList.remove('open');}
-  else{b.classList.add('open');c.classList.add('open');}
+function doClear(){
+  document.getElementById('resultsBox').style.display='none';
+  document.getElementById('actionBar').style.display='none';
+  document.getElementById('errBox').style.display='none';
 }
-
-function posCard(p,tickerColor,tagColor,tagBg){
-  var id='p'+(posIdx++);
-  return '<div class="pos">'
-    +'<div class="pos-hdr" onclick="togglePos(\''+id+'\')">'
-    +'<div class="pos-hdr-l">'
-    +'<span class="pos-tag" style="background:'+tagBg+';color:'+tagColor+'">'+p.action+'</span>'
-    +'<div><div class="pos-tick" style="color:'+tickerColor+'">'+p.ticker+'</div>'
-    +'<div class="pos-name-sm">'+p.name+'</div></div>'
-    +'</div>'
-    +'<div class="pos-hdr-r">'
-    +'<div style="text-align:right"><div class="pos-dol">'+fmt(p.dollar)+'</div>'
-    +'<div class="pos-pct-sm">'+p.pct+'% of capital</div></div>'
-    +'<div class="pos-chev" id="c-'+id+'">▼</div>'
-    +'</div></div>'
-    +'<div class="pos-body" id="b-'+id+'">'
-    +'<div class="pos-note">'+p.rationale+'</div>'
-    +'<button class="act-btn" onclick="alert(\''+p.action+' '+p.ticker+' · '+fmt(p.dollar)+'\\n\\nCopy this ticker to your broker app to place the trade.\')">▶ Place Trade</button>'
-    +'</div></div>';
-}
-
-// ── TARGET MODAL ──
-var _tmode='pct';
-function syncTargets(){}
-function openTargetModal(mode){
-  _tmode=mode;
+function doSave(){
+  if(!_plan)return;
   var cap=parseFloat(document.getElementById('cap').value)||100000;
-  var cur=parseFloat(document.getElementById(_tmode==='pct'?'tpct':'tdol').value)||0;
-  document.getElementById('tmodal-label').textContent=mode==='pct'?'Set % Return Target':'Set $ Profit Target';
-  document.getElementById('tmodal-prefix').textContent=mode==='pct'?'':'$';
-  document.getElementById('tmodal-suffix').textContent=mode==='pct'?'%':'';
-  document.getElementById('tmodal-input').value=cur||'';
-  document.getElementById('tmodal-calc').textContent='';
-  document.getElementById('targetOverlay').style.display='block';
-  document.getElementById('targetModal').style.display='block';
-  setTimeout(function(){document.getElementById('tmodal-input').focus();},100);
-  onModalInput();
-}
-function onModalInput(){
-  var cap=parseFloat(document.getElementById('cap').value)||100000;
-  var val=parseFloat(document.getElementById('tmodal-input').value)||0;
-  var calc=document.getElementById('tmodal-calc');
-  if(!val){calc.textContent='';return;}
-  if(_tmode==='pct'){
-    var dol=Math.round(cap*val/100);
-    calc.textContent='= $'+dol.toLocaleString()+' profit on $'+cap.toLocaleString()+' capital';
-  } else {
-    var pct=(val/cap*100).toFixed(1);
-    calc.textContent='= '+pct+'% return on $'+cap.toLocaleString()+' capital';
-  }
-}
-function confirmTarget(){
-  var cap=parseFloat(document.getElementById('cap').value)||100000;
-  var val=parseFloat(document.getElementById('tmodal-input').value)||0;
-  if(!val){closeTargetModal();return;}
-  if(_tmode==='pct'){
-    var dol=Math.round(cap*val/100);
-    document.getElementById('tpct').value=val;
-    document.getElementById('tdol').value=dol;
-    document.getElementById('tpct-display').textContent=val+'%';
-    document.getElementById('tdol-display').textContent='$'+dol.toLocaleString();
-    document.getElementById('tpill-pct').style.background='var(--gbg)';
-    document.getElementById('tpill-dol').style.background='var(--gbg)';
-    document.getElementById('tpct-display').style.color='var(--green)';
-    document.getElementById('tdol-display').style.color='var(--green)';
-  } else {
-    var pct=parseFloat((val/cap*100).toFixed(1));
-    document.getElementById('tdol').value=val;
-    document.getElementById('tpct').value=pct;
-    document.getElementById('tdol-display').textContent='$'+val.toLocaleString();
-    document.getElementById('tpct-display').textContent=pct+'%';
-    document.getElementById('tpill-pct').style.background='var(--gbg)';
-    document.getElementById('tpill-dol').style.background='var(--gbg)';
-    document.getElementById('tpct-display').style.color='var(--green)';
-    document.getElementById('tdol-display').style.color='var(--green)';
-  }
-  closeTargetModal();
-}
-function closeTargetModal(){
-  document.getElementById('targetOverlay').style.display='none';
-  document.getElementById('targetModal').style.display='none';
-}
-
-// ── SAVE / LOAD PLANS ──
-function savedPlans(){try{return JSON.parse(localStorage.getItem('wa_plans')||'[]');}catch{return[];}}
-function savePlan(plan,cap){
-  var plans=savedPlans();
-  var item={id:Date.now(),date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),cap:cap,risk:selR,targetReturn:plan.targetReturn||'',targetDollar:plan.targetDollar||0,summary:(plan.summary||'').substring(0,80),plan:plan};
-  plans.unshift(item);
+  var plans=getSaved();
+  plans.unshift({id:Date.now(),date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),cap:cap,risk:selR,targetReturn:_plan.targetReturn||'',summary:(_plan.summary||'').substring(0,80),plan:_plan});
   if(plans.length>10)plans=plans.slice(0,10);
   localStorage.setItem('wa_plans',JSON.stringify(plans));
-  renderSavedList();
-  document.getElementById('savedSection').style.display='block';
+  renderSaved();
+  alert('Plan saved! Tap "Saved Plans" to reload it anytime.');
 }
-function renderSavedList(){
-  var plans=savedPlans();
-  var el=document.getElementById('savedList');
-  if(!plans.length){document.getElementById('savedSection').style.display='none';return;}
-  document.getElementById('savedSection').style.display='block';
-  el.innerHTML=plans.map(function(p){
-    return '<div class="saved-item" onclick="loadPlan('+p.id+')">'
-      +'<div><div class="saved-item-l">'+p.date+' · $'+fmt(p.cap)+' · '+(p.targetReturn||'')+'</div>'
-      +'<div class="saved-item-sub">'+p.summary+'…</div></div>'
-      +'<div class="saved-item-r">'
-      +'<span class="del-btn" onclick="event.stopPropagation();deletePlan('+p.id+')">✕</span>'
-      +'<span style="color:var(--sub);font-size:14px">›</span>'
-      +'</div></div>';
+function doPDF(){
+  if(!_plan){alert('Generate a plan first.');return;}
+  var cap=document.getElementById('cap').value;
+  var date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var rname=selR==='m'?'Moderate':selR==='a'?'Aggressive':'Ultra';
+  var content=document.getElementById('resultsBox').innerHTML;
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WeeklyAlpha '+date+'</title>');
+  w.document.write('<style>');
+  w.document.write('*{box-sizing:border-box;margin:0;padding:0}');
+  w.document.write('body{font-family:-apple-system,Inter,sans-serif;max-width:700px;margin:0 auto;padding:16px;font-size:13px;color:#09101f;line-height:1.6;background:#fff}');
+  w.document.write('.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 0 14px;border-bottom:2px solid #09101f;margin-bottom:16px}');
+  w.document.write('.topbar h1{font-size:20px;font-weight:900}.topbar .meta{font-size:11px;color:#64748b;margin-top:2px}');
+  w.document.write('.close-btn{background:#09101f;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0}');
+  w.document.write('.share-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0;margin-right:8px}');
+  w.document.write('.pos-body{display:block!important}.chevron{display:none!important}.trade-btn{display:none!important}.action-bar{display:none!important}');
+  w.document.write('.pos-hdr{cursor:default}');
+  w.document.write('.res-hdr{background:#f5f3ff;border:1.5px solid #a78bfa;border-radius:12px;padding:14px;margin-bottom:10px}');
+  w.document.write('.res-tag{font-size:10px;color:#7c3aed;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}');
+  w.document.write('.res-sum{font-size:13px;line-height:1.6;color:#1e293b}');
+  w.document.write('.alloc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}');
+  w.document.write('.a-box{border:1.5px solid #c8d5e8;border-radius:10px;padding:10px 8px;text-align:center}');
+  w.document.write('.a-pct{font-size:18px;font-weight:900;line-height:1;margin-bottom:2px}.a-type{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase}.a-dol{font-size:11px;color:#475569;font-weight:700}');
+  w.document.write('.card{border:1.5px solid #c8d5e8;border-radius:10px;padding:12px;margin-bottom:10px}');
+  w.document.write('.mets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}');
+  w.document.write('.met{background:#f4f7fb;border-radius:8px;padding:8px 10px}.met-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase}.met-v{font-size:15px;font-weight:900;margin-top:1px}');
+  w.document.write('.rbar{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin:5px 0 8px}.rbar-fill{height:100%;border-radius:2px}');
+  w.document.write('.sec-hdr{display:flex;align-items:center;gap:8px;margin:14px 0 6px}.sec-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}.sec-ttl{font-size:13px;font-weight:900}');
+  w.document.write('.pos{border:1.5px solid #c8d5e8;border-radius:10px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid}');
+  w.document.write('.pos-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;gap:8px}');
+  w.document.write('.pos-hl{display:flex;align-items:center;gap:8px;min-width:0;flex:1}');
+  w.document.write('.ptag{font-size:9px;font-weight:900;border-radius:4px;padding:2px 6px;flex-shrink:0;text-transform:uppercase}');
+  w.document.write('.ptick{font-size:14px;font-weight:900}.pname{font-size:10px;color:#64748b;font-weight:600}');
+  w.document.write('.pos-hr{display:flex;align-items:center;gap:6px;flex-shrink:0}.pdol{font-size:13px;font-weight:800}.ppct{font-size:10px;color:#64748b}');
+  w.document.write('.pos-body{padding:0 12px 12px;border-top:1px solid #e2e8f0}.pos-note{font-size:12px;color:#475569;line-height:1.5;padding-top:8px}');
+  w.document.write('.info-card{border:1.5px solid #c8d5e8;border-radius:10px;padding:12px;margin-bottom:8px;page-break-inside:avoid}');
+  w.document.write('.info-tag{font-size:9px;font-weight:900;border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:6px;text-transform:uppercase}');
+  w.document.write('.info-body{font-size:12px;color:#475569;line-height:1.5}');
+  w.document.write('.footer{font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px;margin-top:16px}');
+  w.document.write('@media print{.topbar .close-btn,.topbar .share-btn{display:none!important}}');
+  w.document.write('</style></head><body>');
+  w.document.write('<div class="topbar">');
+  w.document.write('<div><h1>⚡ WeeklyAlpha Plan</h1><div class="meta">'+date+' · $'+Number(cap).toLocaleString()+' · '+rname+'</div></div>');
+  w.document.write('<div style="display:flex"><button class="share-btn" onclick="window.print()">⬆ Share / Save PDF</button><button class="close-btn" onclick="window.close()">✕ Close</button></div>');
+  w.document.write('</div>');
+  w.document.write(content);
+  w.document.write('<div class="footer">WeeklyAlpha · GammaEdge · tapankrath.github.io · Not financial advice.</div>');
+  w.document.write('</body></html>');
+  w.document.close();
+}
+
+// ── SAVED PLANS ──
+function getSaved(){try{return JSON.parse(localStorage.getItem('wa_plans')||'[]');}catch{return[];}}
+function renderSaved(){
+  var plans=getSaved();
+  var sec=document.getElementById('savedSection');
+  if(!plans.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('savedList').innerHTML=plans.map(function(p){
+    return '<div class="saved-item" onclick="loadSaved('+p.id+')">'
+      +'<div><div class="saved-l">'+p.date+' · '+fmt(p.cap)+' · '+(p.targetReturn||'')+'</div>'
+      +'<div class="saved-sub">'+p.summary+'…</div></div>'
+      +'<div style="display:flex;align-items:center">'
+      +'<button class="del" onclick="event.stopPropagation();delSaved('+p.id+')">✕</button>'
+      +'<span style="color:#94a3b8;font-size:16px">›</span></div></div>';
   }).join('');
 }
-function loadPlan(id){
-  var plans=savedPlans();
-  var item=plans.find(function(p){return p.id===id;});
-  if(item){render(item.plan);}
+function loadSaved(id){
+  var p=getSaved().find(function(x){return x.id===id;});
+  if(p){_plan=p.plan;render(p.plan);document.getElementById('actionBar').style.display='flex';}
 }
-function deletePlan(id){
-  var plans=savedPlans().filter(function(p){return p.id!==id;});
-  localStorage.setItem('wa_plans',JSON.stringify(plans));
-  renderSavedList();
+function delSaved(id){
+  localStorage.setItem('wa_plans',JSON.stringify(getSaved().filter(function(x){return x.id!==id;})));
+  renderSaved();
 }
 function toggleSaved(){
   var el=document.getElementById('savedList');
-  var btn=el.previousElementSibling.querySelector('button');
+  var btn=el.parentElement.querySelector('.saved-toggle');
   if(el.classList.contains('open')){el.classList.remove('open');btn.textContent='▾ Show';}
   else{el.classList.add('open');btn.textContent='▴ Hide';}
 }
 
-// ── PDF EXPORT ──
-function savePDF(){
-  var results=document.getElementById('results');
-  if(results.style.display==='none'){alert('Generate a plan first, then save as PDF.');return;}
-  var date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).replace(/ /g,'-');
-  var cap=document.getElementById('cap').value;
-  var w=window.open('','_blank');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WeeklyAlpha · '+date+'</title><style>');
-  w.document.write('body{font-family:-apple-system,BlinkMacSystemFont,Inter,sans-serif;max-width:700px;margin:0 auto;padding:30px 24px;background:#fff;color:#09101f;font-size:13px;line-height:1.6}');
-  w.document.write('h1{font-size:22px;font-weight:900;margin-bottom:4px}h2{font-size:13px;font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.08em;color:#475569}');
-  w.document.write('.meta{font-size:11px;color:#64748b;margin-bottom:20px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}');
-  w.document.write('.box{border:1.5px solid #c8d5e8;border-radius:10px;padding:12px;text-align:center}.box-val{font-size:20px;font-weight:900}.box-lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.08em}');
-  w.document.write('.pos{border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid}');
-  w.document.write('.pos-top{display:flex;justify-content:space-between;margin-bottom:4px}.tag{font-size:9px;font-weight:800;border-radius:4px;padding:2px 6px;background:#f1f5f9;color:#475569}');
-  w.document.write('.ticker{font-weight:900;font-size:15px}.note{font-size:11px;color:#64748b;margin-top:4px}.amt{font-weight:800;font-size:14px}');
-  w.document.write('@media print{body{padding:16px}button{display:none}}');
-  w.document.write('</style></head><body>');
-  w.document.write('<h1>⚡ WeeklyAlpha Plan</h1>');
-  w.document.write('<div class="meta">Generated '+date+' · Capital $'+Number(cap).toLocaleString()+' · Risk '+(selR==='m'?'Moderate':selR==='a'?'Aggressive':'Ultra')+'</div>');
-  // Clone results
-  var clone=results.cloneNode(true);
-  // Remove expand buttons and chevrons
-  clone.querySelectorAll('.pos-chev,.act-btn,.pos-body').forEach(function(el){el.style.display='block';});
-  w.document.write(clone.innerHTML);
-  w.document.write('<br><p style="font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:20px">Generated by WeeklyAlpha · GammaEdge Suite · tapankrath.github.io · Not financial advice.</p>');
-  w.document.write('</body></html>');
-  w.document.close();
-  w.focus();
-  setTimeout(function(){w.print();},600);
-}
-
+// ── GENERATE ──
 async function go(){
-  var key=(localStorage.getItem('wa_key')||'').trim()||document.getElementById('key').value.trim();
-  var cap=parseFloat(document.getElementById('cap').value)||100000;
-  if(!key){showErr('Tap ⚙️ to enter your Anthropic API key first.');return;}
+  var key=(localStorage.getItem('wa_key')||document.getElementById('keyInput').value||'').trim();
+  if(!key){showErr('Tap ⚙️ at the top to enter your Anthropic API key.');return;}
   if(!key.startsWith('sk-ant')){showErr('API key must start with sk-ant-');return;}
-  document.getElementById('err').style.display='none';
-  document.getElementById('results').style.display='none';
-  document.getElementById('loading').style.display='block';
-  document.getElementById('btn').disabled=true;
+  var cap=parseFloat(document.getElementById('cap').value)||100000;
   var tpct=parseFloat(document.getElementById('tpct').value)||0;
   var tdol=parseFloat(document.getElementById('tdol').value)||(cap*0.06);
   var rnames={m:'Moderate',a:'Aggressive',u:'Ultra'};
-  var makePrompt=function(cap,risk,tpct,tdol){
-    return 'Generate a weekly trading plan. Capital: $'+cap+'. Risk: '+risk+'.'+(tpct>0?' Profit target: '+tpct+'% ($'+Math.round(tdol)+').':' Target 5-7% weekly return.')+' Include hedging protection. Respond with a JSON object containing these exact string fields: summary, targetReturn (like "6%"), weeklyThesis, exitRules (string), riskWarning. Number fields: targetDollar, maxDrawdown (number like 8), riskScore (1-10). Object: allocation with etfs/stocks/options/hedge each having pct and dollar numbers. Arrays: etfPositions, stockPositions, optionPositions, hedgePositions — each item has ticker(string), name(string), dollar(number), pct(number), action(string), rationale(string). Use tickers like SPY QQQ NVDA TSLA AAPL META AMZN. For options include specific strike and expiry date in the name field. All dollar values must sum to '+cap+'. Keep rationale fields under 100 characters each to avoid truncation.';
+  document.getElementById('errBox').style.display='none';
+  document.getElementById('resultsBox').style.display='none';
+  document.getElementById('actionBar').style.display='none';
+  document.getElementById('loadingBox').style.display='block';
+  document.getElementById('genBtn').disabled=true;
+
+  var makePrompt=function(){
+    return 'Generate a weekly trading plan. Capital: $'+cap+'. Risk: '+rnames[selR]+'.'
+      +(tpct>0?' Profit target: '+tpct+'% ($'+Math.round(tdol)+').':' Target 5-7% weekly return.')
+      +' Include hedging. Return a JSON object with these fields:'
+      +' summary(string), targetReturn(string like "6%"), targetDollar(number), maxDrawdown(string), riskScore(number 1-10),'
+      +' weeklyThesis(string), exitRules(string), riskWarning(string),'
+      +' allocation with etfs/stocks/options/hedge each having pct(number) and dollar(number),'
+      +' etfPositions array, stockPositions array, optionPositions array, hedgePositions array.'
+      +' Each position: ticker, name, dollar, pct, action, rationale(keep under 120 chars).'
+      +' Use tickers: SPY QQQ NVDA TSLA AAPL META AMZN. Include specific option strikes and expiry dates.'
+      +' All dollars must sum to '+cap+'.';
   };
+
   var callAPI=async function(prompt){
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:'You are an expert options trader. Output ONLY a JSON object. Start with { end with }. No markdown, no backticks, no explanation.',messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
+        system:'You are an expert options trader. Output ONLY a JSON object. Start with { and end with }. No markdown, no backticks, no explanation text.',
+        messages:[{role:'user',content:prompt}]})
     });
-    var data=await resp.json();
-    if(!resp.ok){
-      if(resp.status===401)throw new Error('Invalid API key. Tap ⚙️ to update it.');
-      if(resp.status===429)throw new Error('Rate limited — wait 30 seconds and retry.');
-      throw new Error((data&&data.error&&data.error.message)||'API error '+resp.status);
+    var d=await r.json();
+    if(!r.ok){
+      if(r.status===401)throw new Error('Invalid API key. Tap ⚙️ to fix it.');
+      if(r.status===429)throw new Error('Rate limited — wait 30 seconds.');
+      throw new Error(d?.error?.message||'API error '+r.status);
     }
-    return (data.content||[]).map(function(c){return c.type==='text'?c.text:'';}).join('').trim();
+    return (d.content||[]).map(function(x){return x.type==='text'?x.text:'';}).join('').trim();
   };
-  var parseJSON=function(raw){
+
+  var parseIt=function(raw){
     raw=raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
     if(s===-1||e===-1)throw new Error('no_json');
     return JSON.parse(raw.substring(s,e+1));
   };
+
   try{
-    document.getElementById('loading').querySelector('.loading-txt').textContent='Generating plan… (this takes 20-40s)';
-    var prompt=makePrompt(cap,rnames[selR],tpct,tdol);
-    var raw=await callAPI(prompt);
+    document.getElementById('loadingMsg').textContent='Generating plan… (20–40 sec)';
+    var raw=await callAPI(makePrompt());
     var plan;
-    try{
-      plan=parseJSON(raw);
-    }catch(pe){
-      // Auto-retry once with simpler prompt
-      document.getElementById('loading').querySelector('.loading-txt').textContent='Retrying with simplified prompt…';
-      var prompt2=makePrompt(cap,rnames[selR],tpct,tdol)+' IMPORTANT: Keep all text values very short (under 80 chars) to avoid truncation.';
-      var raw2=await callAPI(prompt2);
-      try{plan=parseJSON(raw2);}
-      catch(pe2){throw new Error('Parse failed after retry. Try again or reduce capital amount.');}
+    try{plan=parseIt(raw);}
+    catch(e){
+      document.getElementById('loadingMsg').textContent='Retrying…';
+      var raw2=await callAPI(makePrompt()+' Keep all rationale fields under 80 characters.');
+      plan=parseIt(raw2);
     }
+    _plan=plan;
     render(plan);
-    savePlan(plan,cap);
-    renderActionBar();
-  }catch(err){
-    showErr(err.message||'Something went wrong. Try again.');
+    document.getElementById('actionBar').style.display='flex';
+  }catch(e){
+    showErr(e.message||'Something went wrong. Try again.');
   }finally{
-    document.getElementById('loading').style.display='none';
-    document.getElementById('loading').querySelector('.loading-txt').textContent='Analyzing market conditions…';
-    document.getElementById('btn').disabled=false;
+    document.getElementById('loadingBox').style.display='none';
+    document.getElementById('loadingMsg').textContent='Generating plan… (20–40 sec)';
+    document.getElementById('genBtn').disabled=false;
   }
 }
 
-function render(p){window._lastPlan=p;
-  posIdx=0;
-  var a=p.allocation||{};
-  var rs=p.riskScore||7;
-  var rc=rs>=8?'#dc2626':rs>=6?'#d97706':'#16a34a';
+// ── RENDER ──
+var _pidx=0;
+function togglePos(id){
+  document.getElementById('pb-'+id).classList.toggle('open');
+  document.getElementById('pc-'+id).classList.toggle('open');
+}
+function posCard(p,tc,tagC,tagBg){
+  var id='p'+(++_pidx);
+  return '<div class="pos">'
+    +'<div class="pos-hdr" onclick="togglePos(\''+id+'\')">'
+    +'<div class="pos-hl">'
+    +'<span class="ptag" style="background:'+tagBg+';color:'+tagC+'">'+p.action+'</span>'
+    +'<div><div class="ptick" style="color:'+tc+'">'+p.ticker+'</div>'
+    +'<div class="pname">'+p.name+'</div></div></div>'
+    +'<div class="pos-hr">'
+    +'<div style="text-align:right"><div class="pdol">'+fmt(p.dollar)+'</div>'
+    +'<div class="ppct">'+p.pct+'%</div></div>'
+    +'<div class="chevron" id="pc-'+id+'">▼</div>'
+    +'</div></div>'
+    +'<div class="pos-body" id="pb-'+id+'">'
+    +'<div class="pos-note">'+p.rationale+'</div>'
+    +'<button class="trade-btn" onclick="alert(\''+p.action+' · '+p.ticker+' · '+fmt(p.dollar)+'\\nCopy ticker to your broker app.\')">▶ Place Trade</button>'
+    +'</div></div>';
+}
 
+function render(p){
+  _pidx=0;
+  var a=p.allocation||{};
+  var rs=Number(p.riskScore)||7;
+  var rc=rs>=8?'#dc2626':rs>=6?'#d97706':'#16a34a';
   var h='';
 
-  // Summary
-  h+='<div class="res-hdr"><div class="res-title">📋 Weekly Plan · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><div class="res-sum">'+(p.summary||'')+'</div></div>';
+  h+='<div class="res-hdr"><div class="res-tag">📋 Weekly Plan · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><div class="res-sum">'+(p.summary||'')+'</div></div>';
 
-  // Allocation
   h+='<div class="alloc">';
-  h+='<div class="a-card"><div class="a-pct" style="color:var(--blue)">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div>';
-  h+='<div class="a-card"><div class="a-pct" style="color:var(--green)">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div>';
-  h+='<div class="a-card"><div class="a-pct" style="color:var(--amber)">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div>';
+  h+='<div class="a-box"><div class="a-pct" style="color:#2563eb">'+((a.etfs||{}).pct||0)+'%</div><div class="a-type">ETFs</div><div class="a-dol">'+fmt((a.etfs||{}).dollar)+'</div></div>';
+  h+='<div class="a-box"><div class="a-pct" style="color:#16a34a">'+((a.stocks||{}).pct||0)+'%</div><div class="a-type">Stocks</div><div class="a-dol">'+fmt((a.stocks||{}).dollar)+'</div></div>';
+  h+='<div class="a-box"><div class="a-pct" style="color:#d97706">'+((a.options||{}).pct||0)+'%</div><div class="a-type">Options</div><div class="a-dol">'+fmt((a.options||{}).dollar)+'</div></div>';
   h+='</div>';
 
-  // Metrics
   h+='<div class="card">';
-  h+='<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--sub)"><span>Risk Score</span><span style="color:'+rc+';font-weight:900">'+rs+'/10</span></div>';
-  h+='<div class="rbar-track"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div>';
-  h+='<div class="metrics-grid">';
-  h+='<div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:var(--green)">'+(p.targetReturn||'–')+'</div></div>';
-  h+='<div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:var(--red)">'+(p.maxDrawdown||'–')+'</div></div>';
-  h+='<div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:var(--green)">'+fmt(p.targetDollar)+'</div></div>';
-  h+='<div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:var(--purple)">'+fmt((a.hedge||{}).dollar)+'</div></div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#475569"><span>Risk Score</span><span style="color:'+rc+';font-weight:900">'+rs+'/10</span></div>';
+  h+='<div class="rbar"><div class="rbar-fill" style="width:'+(rs*10)+'%;background:'+rc+'"></div></div>';
+  h+='<div class="mets">';
+  h+='<div class="met"><div class="met-l">Target Return</div><div class="met-v" style="color:#16a34a">'+(p.targetReturn||'–')+'</div></div>';
+  h+='<div class="met"><div class="met-l">Max Drawdown</div><div class="met-v" style="color:#dc2626">'+(p.maxDrawdown||'–')+'</div></div>';
+  h+='<div class="met"><div class="met-l">Target Profit</div><div class="met-v" style="color:#16a34a">'+fmt(p.targetDollar)+'</div></div>';
+  h+='<div class="met"><div class="met-l">Hedge Cushion</div><div class="met-v" style="color:#7c3aed">'+fmt((a.hedge||{}).dollar)+'</div></div>';
   h+='</div></div>';
 
-  // ETFs
-  if((p.etfPositions||[]).length){
-    h+='<div class="sec-hdr"><div class="sec-dot" style="background:var(--blue)"></div><div class="sec-title" style="color:var(--blue)">ETF Positions</div></div>';
-    p.etfPositions.forEach(function(pos){h+=posCard(pos,'var(--blue)','var(--blue)','var(--bbg)');});
-  }
-  // Stocks
-  if((p.stockPositions||[]).length){
-    h+='<div class="sec-hdr"><div class="sec-dot" style="background:var(--green)"></div><div class="sec-title" style="color:var(--green)">Stock Positions</div></div>';
-    p.stockPositions.forEach(function(pos){h+=posCard(pos,'var(--green)','var(--green)','var(--gbg)');});
-  }
-  // Options
-  if((p.optionPositions||[]).length){
-    h+='<div class="sec-hdr"><div class="sec-dot" style="background:var(--amber)"></div><div class="sec-title" style="color:var(--amber)">Options Positions</div></div>';
-    p.optionPositions.forEach(function(pos){
-      var tc=pos.action==='CALL'?'var(--amber)':'var(--red)';
-      var bg=pos.action==='CALL'?'var(--abg)':'var(--rbg)';
-      h+=posCard(pos,'var(--amber)',tc,bg);
-    });
-  }
-  // Hedges
-  if((p.hedgePositions||[]).length){
-    h+='<div class="sec-hdr"><div class="sec-dot" style="background:var(--purple)"></div><div class="sec-title" style="color:var(--purple)">Hedge Positions</div></div>';
-    p.hedgePositions.forEach(function(pos){h+=posCard(pos,'var(--purple)','var(--purple)','var(--pbg)');});
-  }
+  if((p.etfPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#2563eb"></div><div class="sec-ttl" style="color:#2563eb">ETF Positions</div></div>';p.etfPositions.forEach(function(x){h+=posCard(x,'#2563eb','#2563eb','#dbeafe');});}
+  if((p.stockPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#16a34a"></div><div class="sec-ttl" style="color:#16a34a">Stock Positions</div></div>';p.stockPositions.forEach(function(x){h+=posCard(x,'#16a34a','#16a34a','#dcfce7');});}
+  if((p.optionPositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#d97706"></div><div class="sec-ttl" style="color:#d97706">Options Positions</div></div>';p.optionPositions.forEach(function(x){var tc=x.action==='CALL'?'#d97706':'#dc2626';var bg=x.action==='CALL'?'#fef3c7':'#fee2e2';h+=posCard(x,'#d97706',tc,bg);});}
+  if((p.hedgePositions||[]).length){h+='<div class="sec-hdr"><div class="sec-dot" style="background:#7c3aed"></div><div class="sec-ttl" style="color:#7c3aed">Hedge Positions</div></div>';p.hedgePositions.forEach(function(x){h+=posCard(x,'#7c3aed','#7c3aed','#ede9fe');});}
 
-  // Thesis
-  if(p.weeklyThesis){
-    var thesis=typeof p.weeklyThesis==='object'?JSON.stringify(p.weeklyThesis):String(p.weeklyThesis);
-    h+='<div class="info-card"><span class="info-tag" style="background:var(--bbg);color:var(--blue)">MACRO THESIS</span><div class="info-body">'+thesis+'</div></div>';
-  }
-  // Exit rules
-  if(p.exitRules){
-    var exits=typeof p.exitRules==='object'?Object.entries(p.exitRules).map(function(e){return'<b>'+e[0]+':</b> '+e[1]}).join(' &nbsp;·&nbsp; '):String(p.exitRules);
-    h+='<div class="info-card"><span class="info-tag" style="background:var(--abg);color:var(--amber)">EXIT RULES</span><div class="info-body">'+exits+'</div></div>';
-  }
+  if(p.weeklyThesis){var t=typeof p.weeklyThesis==='object'?JSON.stringify(p.weeklyThesis):String(p.weeklyThesis);h+='<div class="info-card"><span class="info-tag" style="background:#dbeafe;color:#2563eb">MACRO THESIS</span><div class="info-body">'+t+'</div></div>';}
+  if(p.exitRules){var ex=typeof p.exitRules==='object'?Object.entries(p.exitRules).map(function(e){return'<b>'+e[0]+':</b> '+e[1]}).join(' · '):String(p.exitRules);h+='<div class="info-card"><span class="info-tag" style="background:#fef3c7;color:#d97706">EXIT RULES</span><div class="info-body">'+ex+'</div></div>';}
 
-
-  document.getElementById('results').innerHTML=h;
-  document.getElementById('results').style.display='block';
-  window.scrollTo({top:document.getElementById('results').offsetTop-20,behavior:'smooth'});
+  document.getElementById('resultsBox').innerHTML=h;
+  document.getElementById('resultsBox').style.display='block';
+  document.getElementById('resultsBox').scrollIntoView({behavior:'smooth',block:'start'});
 }
 </script>
-
-<!-- TARGET INPUT MODAL -->
-<div id="targetOverlay" onclick="closeTargetModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;backdrop-filter:blur(3px)"></div>
-<div id="targetModal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--p1);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:501;box-shadow:0 -8px 40px rgba(0,0,0,.2)">
-  <div id="tmodal-label" style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px"></div>
-  <div style="position:relative;margin-bottom:20px">
-    <span id="tmodal-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:900;color:var(--green)"></span>
-    <input type="number" id="tmodal-input" inputmode="decimal"
-      style="width:100%;background:var(--p2);border:2px solid var(--green);border-radius:12px;padding:14px 14px 14px 36px;font-size:28px;font-weight:900;color:var(--text);outline:none;font-family:Inter,sans-serif"
-      placeholder="0" oninput="onModalInput()">
-    <span id="tmodal-suffix" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--muted)"></span>
-  </div>
-  <div id="tmodal-calc" style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:20px;min-height:20px"></div>
-  <div style="display:flex;gap:10px">
-    <button onclick="closeTargetModal()" style="flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:13px;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer">Cancel</button>
-    <button onclick="confirmTarget()" style="flex:2;background:#09101f;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:900;color:#fff;cursor:pointer">Set Target ✓</button>
-  </div>
-</div>
 </body>
 </html>
