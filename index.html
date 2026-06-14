@@ -3222,19 +3222,16 @@ function geTrend(closes,spot){
 }
 
 // One-step downgrade per triggered filter: BUY → LEAN → NO TRADE. Never upgrades.
-function geRegimeFilter(action,bull,bear,trend,rsi){
+function geRegimeFilter(action,bull,bear,trend,rsi,isIndividual){
   var notes=[],a=action;
   function down(reason){
     notes.push(reason);
     if(a.indexOf('BUY')===0)a=a.replace('BUY','LEAN');
-    else if(a.indexOf('LEAN')===0)a='NO TRADE';
+    else if(a.indexOf('LEAN')===0&&!isIndividual)a='NO TRADE'; // individual stocks: never LEAN→NO TRADE
   }
   var isCall=a.indexOf('CALL')>-1,isPut=a.indexOf('PUT')>-1;
-  // An RSI extreme IS the mean-reversion thesis — a stretched tape is not "fighting"
-  // the 50MA, it's fading exhaustion. Exempt the counter-trend downgrade when the
-  // extreme lines up with the trade direction. Hedging/sizing/legs all unchanged.
-  var obExempt=(rsi!=null&&rsi>=65); // overbought → short fade ok even above an uptrend MA
-  var osExempt=(rsi!=null&&rsi<=35); // oversold  → long bounce ok even below a downtrend MA
+  var obExempt=(rsi!=null&&rsi>=65);
+  var osExempt=(rsi!=null&&rsi<=35);
   // 1. Trend filter — don't fight the 50MA unless score is overwhelming (≥7) or RSI is stretched
   if(trend==='UP'&&isPut&&bear<7&&!obExempt)down('Counter-trend: price above 50MA uptrend');
   if(trend==='DOWN'&&isCall&&bull<7&&!osExempt)down('Counter-trend: price below 50MA downtrend');
@@ -3309,12 +3306,8 @@ function quickSignal(sym){
   var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
   // Same regime filter as processSignal — dual cards must agree with main signal
   var regT=geTrend(closes,spot);
-  var regF=geRegimeFilter(action,bull,bear,regT.trend,rsi);
-  if(regF.changed){
-    action=regF.action;
-    color=geActionColor(action);
-    conf='Low (regime)';
-  }
+  var regF=geRegimeFilter(action,bull,bear,regT.trend,rsi,true);
+  if(regF.changed){action=regF.action;color=geActionColor(action);conf='Low (regime)';}
   var sub=action.indexOf('CALL')>-1?'↑ Bullish':action.indexOf('PUT')>-1?'↓ Bearish':'─ Wait';
   var detail='RSI '+rsi.toFixed(0)+' · '+(aboveMA?'Above':'Below')+' MA · '+(mom3>=0?'+':'')+mom3.toFixed(1)+'% 3d';
   if(regF.changed)detail+=' · ⛔ '+regF.notes[0];
