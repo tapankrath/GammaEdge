@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact High-Yield Strategy Planner</title>
+    <!-- Tailwind CSS for mobile-optimized utility styling -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- html2pdf.js Library for client-side PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased">
+
+    <div class="max-w-md mx-auto px-3 py-4 bg-gray-900">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+            <div>
+                <h1 class="text-lg font-bold text-emerald-400 tracking-tight">Alpha Yield Planner</h1>
+                <p class="text-[10px] text-gray-400">Interactive Allocation & Hedging Engine</p>
+            </div>
+            <div class="text-right">
+                <span id="payoutDisplay" class="text-lg font-black text-emerald-400 block">$5,000</span>
+                <span id="annualizedWarning" class="text-[9px] text-amber-400 block font-medium">~260% simple annual</span>
+            </div>
+        </header>
+
+        <!-- Fixed Layout Control Panel -->
+        <div class="bg-gray-800 rounded-xl p-3.5 shadow-xl border border-gray-700/50 mb-4 space-y-3.5">
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Capital Input -->
+                <div>
+                    <label for="capital" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Capital</label>
+                    <div class="relative rounded-lg shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                            <span class="text-gray-400 text-xs">$</span>
+                        </div>
+                        <input type="number" id="capital" value="100000" oninput="calculateStrategy()" class="block w-full rounded-lg border-0 bg-gray-700/80 py-1.5 pl-5 pr-1.5 text-white font-bold placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 text-xs transition-all">
+                    </div>
+                </div>
+
+                <!-- Target Yield Picker -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="yieldSlider" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide">Yield</label>
+                        <span id="yieldValue" class="text-xs font-black text-emerald-400">5%</span>
+                    </div>
+                    <div class="flex items-center h-7">
+                        <input type="range" id="yieldSlider" min="1" max="10" value="5" step="0.5" oninput="updateSliderValue()" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-width cleanly integrated button -->
+            <div data-html2pdf-ignore="true">
+                <button onclick="exportToPDF()" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-gray-900 font-bold py-2 px-4 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer text-center">
+                    Save Current Plan to PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Capture Container -->
+        <div id="capture-area" class="space-y-3 bg-gray-900">
+            <!-- Results Breakdown Container -->
+            <div id="results" class="space-y-3">
+                <!-- Dynamic Content Injected Here by JS -->
+            </div>
+
+            <!-- Hidden Timestamp footer -->
+            <div id="pdf-footer" class="hidden text-center text-[9px] text-gray-500 pt-3 border-t border-gray-800">
+                Generated via Alpha Yield Planner on <span id="pdf-timestamp"></span>
+            </div>
+        </div>
+
+        <!-- Saved Logs Table Component -->
+        <div data-html2pdf-ignore="true" class="mt-5 pt-4 border-t border-gray-800">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Saved Plan History</h3>
+                <button onclick="clearHistory()" id="clearBtn" class="hidden text-[10px] text-rose-400 hover:text-rose-300 font-bold uppercase tracking-wide cursor-pointer">
+                    Clear History
+                </button>
+            </div>
+            
+            <div class="bg-gray-800 rounded-xl border border-gray-700/50 overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-700/40 border-b border-gray-700 text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                                <th class="py-2 px-3">Date/Time</th>
+                                <th class="py-2 px-2 text-right">Capital</th>
+                                <th class="py-2 px-2 text-center">Yield</th>
+                                <th class="py-2 px-3 text-right">Weekly Return</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-rows" class="text-[11px] text-gray-300 divide-y divide-gray-700/40">
+                            <tr id="empty-row">
+                                <td colspan="4" class="py-4 px-3 text-center text-gray-500 text-xs italic">No saved plans recorded yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'alpha_yield_planner_history_v2';
+
+        function updateSliderValue() {
+            const slider = document.getElementById('yieldSlider');
+            document.getElementById('yieldValue').innerText = slider.value + '%';
+            calculateStrategy();
+        }
+
+        function calculateStrategy() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            const targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
+
+            if (isNaN(capital) || capital <= 0) {
+                document.getElementById('results').innerHTML = '<p class="text-center text-xs text-gray-500">Enter valid capital.</p>';
+                return;
+            }
+
+            const weeklyPayout = capital * (targetYieldPercent / 100);
+            const annualEquivalent = targetYieldPercent * 52; 
+
+            const fmtCompact = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+            document.getElementById('payoutDisplay').innerText = fmtCompact(weeklyPayout);
+            document.getElementById('annualizedWarning').innerText = `~${annualEquivalent}% simple annual`;
+
+            let etfPct = 0.55 - (targetYieldPercent * 0.04);
+            let stockPct = 0.35 - (targetYieldPercent * 0.01);
+            let optionsPct = 0.05 + (targetYieldPercent * 0.04);
+            let hedgePct = 0.05 + (targetYieldPercent * 0.01);
+
+            const totalWeight = etfPct + stockPct + optionsPct + hedgePct;
+            etfPct /= totalWeight; stockPct /= totalWeight; optionsPct /= totalWeight; hedgePct /= totalWeight;
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <!-- Allocation Overview Card -->
+                <div class="bg-gray-800 rounded-xl p-3.5 border border-gray-700/50 shadow-xl">
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">ETFs (Collateral)</span>
+                                <span class="font-bold text-emerald-400">${fmtCompact(capital * etfPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-emerald-400 h-1 rounded-full transition-all" style="width: ${etfPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">High-Beta Stocks</span>
+                                <span class="font-bold text-teal-400">${fmtCompact(capital * stockPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-teal-400 h-1 rounded-full transition-all" style="width: ${stockPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">Spreads Engine</span>
+                                <span class="font-bold text-purple-400">${fmtCompact(capital * optionsPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-purple-400 h-1 rounded-full transition-all" style="width: ${optionsPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">Tail-Risk Hedge</span>
+                                <span class="font-bold text-rose-400">${fmtCompact(capital * hedgePct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-rose-400 h-1 rounded-full transition-all" style="width: ${hedgePct * 100}%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tactics Playbook -->
+                <div class="space-y-2">
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wide">1. Core Collateral (SPY/QQQ)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * etfPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Sell out-of-the-money weekly Covered Calls. Serves as your baseline volatility anchor.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-teal-400 uppercase tracking-wide">2. The Wheel Strategy (NVDA/TSLA)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * stockPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Sell 0.20-0.30 Delta weekly Cash-Secured Puts to skim inflated Implied Volatility (IV) premiums.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wide">3. Credit Spreads (SPX Index)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * optionsPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Run short-duration (0DTE-3DTE) Bull Put Spreads. This is your primary engine for theta velocity.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30 border-l-2 border-l-rose-500">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wide">4. Macro Insurance (VIX / OTM Puts)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * hedgePct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Buy 60-90 days out long puts. Treat this as insurance premium expected to decay to absorb tail risk.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function exportToPDF() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            const targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
+
+            if (isNaN(capital) || capital <= 0) return;
+
+            const weeklyPayout = capital * (targetYieldPercent / 100);
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const dateString = `${year}-${month}-${day}`;
+            const timeString = `${hours}:${minutes}`;
+            const fullStamp = `${dateString} ${timeString}`;
+
+            const footer = document.getElementById('pdf-footer');
+            document.getElementById('pdf-timestamp').innerText = fullStamp;
+            footer.classList.remove('hidden');
+
+            const element = document.getElementById('capture-area');
+            const opt = {
+                margin:       0.3,
+                filename:     `Alpha_Plan_${dateString}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#111827' }, 
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                footer.classList.add('hidden');
+                saveToHistory(fullStamp, capital, targetYieldPercent, weeklyPayout);
+            });
+        }
+
+        function saveToHistory(timestamp, capital, targetYield, returnVal) {
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            history.unshift({ timestamp, capital, targetYield, returnVal });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const rowsContainer = document.getElementById('history-rows');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            if (history.length === 0) {
+                rowsContainer.innerHTML = `
+                    <tr id="empty-row">
+                        <td colspan="4" class="py-4 px-3 text-center text-gray-500 text-xs italic">No saved plans recorded yet.</td>
+                    </tr>`;
+                clearBtn.classList.add('hidden');
+                return;
+            }
+
+            clearBtn.classList.remove('hidden');
+            const fmtCompact = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+
+            rowsContainer.innerHTML = history.map(item => `
+                <tr class="hover:bg-gray-700/20 transition-colors">
+                    <td class="py-2.5 px-3 font-mono text-[10px] text-gray-400">\${item.timestamp}</td>
+                    <td class="py-2.5 px-2 text-right font-semibold text-gray-200">\${fmtCompact(item.capital)}</td>
+                    <td class="py-2.5 px-2 text-center font-bold text-emerald-400">\${item.targetYield}%</td>
+                    <td class="py-2.5 px-3 text-right font-black text-emerald-400">\${fmtCompact(item.returnVal)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if (confirm("Are you sure you want to completely wipe out your saved plan history logs?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderHistoryTable();
+            }
+        }
+
+        window.onload = function() {
+            calculateStrategy();
+            renderHistoryTable();
+        };
+    </script>
+</body>
+</html>
