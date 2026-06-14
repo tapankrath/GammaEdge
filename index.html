@@ -2872,6 +2872,14 @@ function geChipColors(dir){
 function geStyleChip(tk,on){
   var el=document.getElementById('ge-chip-'+tk);if(!el)return;
   var v=geEffView(tk);if(!v)return;
+  // Hide chips (and their row wrappers) that the engine has verified as NO TRADE
+  if(v.dir==='none'){
+    el.style.display='none';
+    var row=document.getElementById('ge-row-'+tk);
+    if(row)row.style.display='none';
+    return;
+  }
+  el.style.display='';
   var cc=geChipColors(v.dir);
   if(on){
     el.style.background=cc.bg;el.style.borderColor=cc.bd;
@@ -2882,7 +2890,7 @@ function geStyleChip(tk,on){
     el.style.borderLeftWidth='1.5px';el.style.boxShadow='0 1px 3px rgba(0,0,0,.06)';
   }
   var ar=document.getElementById('ge-chip-ar-'+tk);
-  if(ar){ar.textContent=v.dir==='bull'?'\u25B2':v.dir==='bear'?'\u25BC':'\u2500';ar.style.color=cc.c;}
+  if(ar){ar.textContent=v.dir==='bull'?'\u25B2':'\u25BC';ar.style.color=cc.c;}
   var mk=document.getElementById('ge-chip-mk-'+tk);
   if(mk){mk.textContent=v.mark;mk.style.color=cc.c;}
 }
@@ -3130,7 +3138,7 @@ function geRenderScan(picks){
       var rb=recoBadge(bias);
       var rsiTxt=(p.rsi!=null&&p.rsi!=='')?'RSI '+p.rsi:'';
       var note=p.note||'';
-      return '<div style="display:flex;flex-direction:column;gap:0">'
+      return '<div id="ge-row-'+tk+'" style="display:flex;flex-direction:column;gap:0">'
         // ── tap row ──
         +'<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" '
         +'style="display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 12px;cursor:pointer;-webkit-user-select:none;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-radius .15s">'
@@ -4019,15 +4027,10 @@ function processSignal(valid,capital,target,stopPct,sym){
     .catch(function(){/* keep BS estimate */});
   }  // end if(isCall!==null&&dte)
   else {
-    // NO TRADE: engine says wait, but keep the position calculator reachable
-    // for discretionary planning (and for testing the manual-premium flow).
+    // NO TRADE: hide setup grid entirely — SPY/QQQ only, no need to show "no trade" messaging
     G_PLAN_CTX={spot:spot,iv3:iv3,capital:capital,stopPct:stopPct,atrPct:atrPct,lean:bullPoints>=bearPoints};
     var sgEl=$('g-setup-grid');
-    if(sgEl)sgEl.innerHTML='<div style="grid-column:1/-1;padding:10px;font-size:12px;color:#1e293b;font-weight:600">No trade recommended — wait for stronger signal'
-      +'<div id="ge-plan-area" style="margin-top:9px;">'
-        +'<div onclick="gePlanDefault()" style="text-align:center;background:#0f172a;color:#fff;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:800;cursor:pointer;">📋 Plan a trade</div>'
-      +'</div>'
-      +'<div style="font-size:9px;color:#64748b;font-weight:600;margin-top:5px;">Manual planning — your discretion, engine still says wait</div></div>';
+    if(sgEl)sgEl.innerHTML='';
     if($('g-rows'))$('g-rows').innerHTML='';
     if($('g-stdl-context'))$('g-stdl-context').innerHTML='';
     $('g-pnl-label').textContent='P&L by Day';
