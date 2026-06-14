@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact High-Yield Strategy Planner</title>
+    <!-- Tailwind CSS for mobile-optimized utility styling -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased">
+
+    <div class="max-w-md mx-auto px-3 py-4">
+        <!-- Header (Compressed for screen real estate) -->
+        <header class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+            <div>
+                <h1 class="text-lg font-bold text-emerald-400 tracking-tight">Alpha Yield Planner</h1>
+                <p class="text-[10px] text-gray-400">Interactive Allocation & Hedging Engine</p>
+            </div>
+            <div class="text-right">
+                <span id="payoutDisplay" class="text-lg font-black text-emerald-400 block">$5,000</span>
+                <span id="annualizedWarning" class="text-[9px] text-amber-400 block font-medium">~260% simple annual</span>
+            </div>
+        </header>
+
+        <!-- Compressed Side-by-Side Control Panel -->
+        <div class="grid grid-cols-12 gap-3 bg-gray-800 rounded-xl p-3 shadow-xl border border-gray-700/50 mb-4">
+            <!-- Capital Input (5 Cols) -->
+            <div class="col-span-5">
+                <label for="capital" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Capital</label>
+                <div class="relative rounded-lg shadow-sm">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                        <span class="text-gray-400 text-xs">$</span>
+                    </div>
+                    <input type="number" id="capital" value="100000" oninput="calculateStrategy()" class="block w-full rounded-lg border-0 bg-gray-700/80 py-1.5 pl-5 pr-1.5 text-white font-bold placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 text-sm transition-all">
+                </div>
+            </div>
+
+            <!-- Target Yield Slider Input (7 Cols) -->
+            <div class="col-span-7 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-1">
+                    <label for="yieldSlider" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide">Target Yield</label>
+                    <span id="yieldValue" class="text-sm font-black text-emerald-400">5%</span>
+                </div>
+                <div class="flex items-center h-full pb-1">
+                    <input type="range" id="yieldSlider" min="1" max="10" value="5" step="0.5" oninput="updateSliderValue()" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Breakdown Container -->
+        <div id="results" class="space-y-3">
+            <!-- Dynamic Content Injected Here by JS -->
+        </div>
+    </div>
+
+    <script>
+        function updateSliderValue() {
+            const slider = document.getElementById('yieldSlider');
+            document.getElementById('yieldValue').innerText = slider.value + '%';
+            calculateStrategy();
+        }
+
+        function calculateStrategy() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            const targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
+
+            if (isNaN(capital) || capital <= 0) {
+                document.getElementById('results').innerHTML = '<p class="text-center text-xs text-gray-500">Enter valid capital.</p>';
+                return;
+            }
+
+            const weeklyPayout = capital * (targetYieldPercent / 100);
+            const annualEquivalent = targetYieldPercent * 52; 
+
+            // Update Header Metrics smoothly
+            const fmtCompact = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+            document.getElementById('payoutDisplay').innerText = fmtCompact(weeklyPayout);
+            document.getElementById('annualizedWarning').innerText = `~${annualEquivalent}% simple annual`;
+
+            // Core Rebalancing Logic
+            let etfPct = 0.55 - (targetYieldPercent * 0.04);
+            let stockPct = 0.35 - (targetYieldPercent * 0.01);
+            let optionsPct = 0.05 + (targetYieldPercent * 0.04);
+            let hedgePct = 0.05 + (targetYieldPercent * 0.01);
+
+            const totalWeight = etfPct + stockPct + optionsPct + hedgePct;
+            etfPct /= totalWeight; stockPct /= totalWeight; optionsPct /= totalWeight; hedgePct /= totalWeight;
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <!-- Allocation Overview Card -->
+                <div class="bg-gray-800 rounded-xl p-3.5 border border-gray-700/50 shadow-xl">
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">ETFs (Collateral)</span>
+                                <span class="font-bold text-emerald-400">${fmtCompact(capital * etfPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-emerald-400 h-1 rounded-full transition-all" style="width: ${etfPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">High-Beta Stocks</span>
+                                <span class="font-bold text-teal-400">${fmtCompact(capital * stockPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-teal-400 h-1 rounded-full transition-all" style="width: ${stockPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">Spreads Engine</span>
+                                <span class="font-bold text-purple-400">${fmtCompact(capital * optionsPct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-purple-400 h-1 rounded-full transition-all" style="width: ${optionsPct * 100}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-0.5">
+                                <span class="text-gray-400">Tail-Risk Hedge</span>
+                                <span class="font-bold text-rose-400">${fmtCompact(capital * hedgePct)}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-1 rounded-full"><div class="bg-rose-400 h-1 rounded-full transition-all" style="width: ${hedgePct * 100}%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tactics Playbook -->
+                <div class="space-y-2">
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wide">1. Core Collateral (SPY/QQQ)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * etfPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Sell out-of-the-money weekly Covered Calls. Serves as your baseline volatility anchor.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-teal-400 uppercase tracking-wide">2. The Wheel Strategy (NVDA/TSLA)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * stockPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Sell 0.20-0.30 Delta weekly Cash-Secured Puts to skim inflated Implied Volatility (IV) premiums.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wide">3. Credit Spreads (SPX Index)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * optionsPct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Run short-duration (0DTE-3DTE) Bull Put Spreads. This is your primary engine for theta velocity.</p>
+                    </div>
+
+                    <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700/30 border-l-2 border-l-rose-500">
+                        <div class="flex justify-between items-center border-b border-gray-700/50 pb-1 mb-1">
+                            <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wide">4. Macro Insurance (VIX / OTM Puts)</span>
+                            <span class="text-xs font-mono font-bold">${fmtCompact(capital * hedgePct)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300">Buy 60-90 days out long puts. Treat this as insurance premium expected to decay to absorb tail risk.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = calculateStrategy;
+    </script>
+</body>
+</html>
