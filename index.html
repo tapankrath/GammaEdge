@@ -295,18 +295,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <!-- SUITE LINKS ROW — 2 rows of 3 -->
-  <div style="margin:0 4px 8px;background:#0f172a;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.22);">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #1e293b;">
-      <a href="portfolioedge.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
-      <a href="chartedge.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
-      <a href="stockai.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;">
-      <a href="EarningsAI.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
-      <a href="MoonshotAI.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
-      <a href="weekly-alpha.html" target="_blank" rel="noopener" style="color:#ffffff;padding:9px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">WeeklyAlpha</a>
-    </div>
+  <!-- SUITE LINKS ROW -->
+  <div style="margin:0 4px 8px;background:#0f172a;border-radius:10px;display:flex;align-items:stretch;justify-content:center;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.22);">
+    <a href="portfolioedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">PortfolioAI</a>
+    <a href="chartedge.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">ChartAI</a>
+    <a href="stockai.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">StockAI</a>
+    <a href="EarningsAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;border-right:1px solid #1e293b;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">EarningsAI</a>
+    <a href="MoonshotAI.html" target="_blank" rel="noopener" style="flex:1;color:#ffffff;padding:9px 2px;font-size:10px;font-weight:700;letter-spacing:.03em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',-apple-system,sans-serif;white-space:nowrap;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">MoonshotAI</a>
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -2873,18 +2868,12 @@ function geStyleChip(tk,on){
   var el=document.getElementById('ge-chip-'+tk);if(!el)return;
   var v=geEffView(tk);if(!v)return;
   var cc=geChipColors(v.dir);
-  if(on){
-    el.style.background=cc.bg;el.style.borderColor=cc.bd;
-    el.style.borderLeftColor=cc.c;el.style.borderLeftWidth='4px';
-    el.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';
-  } else {
-    el.style.background='#fff';el.style.borderColor='#e2e8f0';
-    el.style.borderLeftWidth='1.5px';el.style.boxShadow='0 1px 3px rgba(0,0,0,.06)';
-  }
+  if(on){el.style.background=cc.c;el.style.borderColor=cc.c;el.style.color='#fff';}
+  else{el.style.background=cc.bg;el.style.borderColor=cc.bd;el.style.color=cc.c;}
   var ar=document.getElementById('ge-chip-ar-'+tk);
-  if(ar){ar.textContent=v.dir==='bull'?'\u25B2':v.dir==='bear'?'\u25BC':'\u2500';ar.style.color=cc.c;}
+  if(ar)ar.textContent=v.dir==='bull'?'\u25B2':v.dir==='bear'?'\u25BC':'\u2500';
   var mk=document.getElementById('ge-chip-mk-'+tk);
-  if(mk){mk.textContent=v.mark;mk.style.color=cc.c;}
+  if(mk)mk.textContent=v.mark;
 }
 
 function geChipActive(tk,on){
@@ -2914,9 +2903,8 @@ function geBuildPickReco(p){
 /* Reconciles the AI scan bias with the live engine's final action.
    The engine is the verifier — on conflict it wins, never the scan. */
 function geUpdatePickVerdict(sym,action){
-  if(!GE_OPEN_PICK||String(sym).toUpperCase()!==GE_OPEN_PICK)return;
-  var v=document.getElementById('ge-reco-verdict-'+GE_OPEN_PICK);
-  if(!v)return;
+  var v=document.getElementById('ge-reco-verdict');
+  if(!v||!GE_OPEN_PICK||String(sym).toUpperCase()!==GE_OPEN_PICK)return;
   var p=geFindPick(GE_OPEN_PICK);if(!p)return;
   var bull=String(p.bias).toUpperCase()==='BULL';
   var a=String(action||'');
@@ -2937,64 +2925,25 @@ function geUpdatePickVerdict(sym,action){
 
 function geTogglePick(tk){
   tk=String(tk||'').replace(/[^A-Za-z.]/g,'').toUpperCase();if(!tk)return;
-  var expandEl=document.getElementById('ge-expand-'+tk);
-  var chipEl=document.getElementById('ge-chip-'+tk);
-  var chevEl=document.getElementById('ge-chevron-'+tk);
-  // Collapse previously open pick (different ticker)
-  if(GE_OPEN_PICK&&GE_OPEN_PICK!==tk){
-    var prevExp=document.getElementById('ge-expand-'+GE_OPEN_PICK);
-    var prevChip=document.getElementById('ge-chip-'+GE_OPEN_PICK);
-    var prevChev=document.getElementById('ge-chevron-'+GE_OPEN_PICK);
-    if(prevExp){prevExp.style.display='none';}
-    if(prevChip){prevChip.style.borderRadius='11px';}
-    if(prevChev){prevChev.style.transform='';}
-    geChipActive(GE_OPEN_PICK,false);
-    // Park the live signal block back home
+  var det=document.getElementById('ge-pick-detail');if(!det)return;
+  // Tapping the open chip again collapses it — block parks hidden at home.
+  if(GE_OPEN_PICK===tk){
     geCloseDetails();
-    GE_OPEN_PICK=null;
-  }
-  // Toggle current
-  if(!expandEl)return;
-  var isOpen=(expandEl.style.display!=='none'&&expandEl.style.display!=='');
-  if(isOpen){
-    // Collapse this one
-    expandEl.style.display='none';
-    if(chipEl)chipEl.style.borderRadius='11px';
-    if(chevEl)chevEl.style.transform='';
     geChipActive(tk,false);
-    geCloseDetails();
     GE_OPEN_PICK=null;
-    setT4(GE_LAST_IDX);
+    setT4(GE_LAST_IDX); // keep index data + chip marks fresh
     return;
   }
-  // Expand inline
+  // Switching from any open panel (chip OR index card): reset old chip, clear both slots.
+  if(GE_OPEN_PICK)geChipActive(GE_OPEN_PICK,false);
+  geCloseDetails();
+  GE_OPEN_PICK=null;
   var p=geFindPick(tk);if(!p)return;
   GE_OPEN_PICK=tk;
   geChipActive(tk,true);
-  if(chipEl)chipEl.style.borderRadius='11px 11px 0 0';
-  if(chevEl)chevEl.style.transform='rotate(90deg)';
-  // Reset verdict
-  var verd=document.getElementById('ge-reco-verdict-'+tk);
-  if(verd){verd.style.background='#fff';verd.style.borderColor='#cbd5e1';verd.style.color='#64748b';verd.innerHTML='\u23F3 Checking thesis against live tape\u2026';}
-  expandEl.style.display='block';
-  geScanPickInline(tk);
-}
-
-function geScanPickInline(t){
-  t=String(t||'').toLowerCase();if(!t)return;
-  var tk=t.toUpperCase();
-  if(!DEFS[t])DEFS[t]={spot:0,iv:32,cost:10};
-  G4_CACHE[tk]=null;
-  fetchP(tk);
-  // Move live signal block into this row's slot
-  var slot=document.getElementById('ge-slot-live-'+tk);
-  var block=document.getElementById('ge-signal-block');
-  if(slot&&block){slot.appendChild(block);block.style.display='';block.style.marginTop='6px';}
-  var cta=document.getElementById('g-deep-cta');if(cta)cta.style.display='none';
-  setT4(t);
-  // Smooth scroll to bring expand panel into view
-  var expandEl=document.getElementById('ge-expand-'+tk);
-  if(expandEl&&expandEl.scrollIntoView)setTimeout(function(){expandEl.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+  det.innerHTML=geBuildPickReco(p)+'<div id="ge-slot-live"></div>';
+  det.style.display='';
+  geScanPick(tk);
 }
 
 /* Opens the shared panel with ONLY the live signal block inside (no thesis card).
@@ -3093,87 +3042,34 @@ function geRenderScan(picks){
     +'</div>'
     +'<div id="ge-idx-detail" style="display:none;margin-top:9px"></div>';
 
-  // ── Cluster 2: opportunities — unified sorted list (most active, bull/bear) ──
+  // ── Cluster 2: opportunities — oversold / overbought / momentum as 3 columns ──
   if(GE_PICKS.length){
-    // Score picks: OVERBOUGHT/OVERSOLD = high conviction reversion; MOMENTUM = trend follow
-    // Sort: BUY signals first, then LEAN, then NO TRADE; within tier: OVERSOLD/OVERBOUGHT before MOMENTUM
-    function pickScore(p){
-      var cond=String(p.condition).toUpperCase();
-      var bias=String(p.bias).toUpperCase();
-      // Reversion buckets (OVERSOLD/OVERBOUGHT) = most active/extreme = top priority
-      var condScore=(cond==='OVERSOLD'||cond==='OVERBOUGHT')?0:1;
-      // RSI extremity adds urgency (closer to 0 or 100 = more active)
-      var rsiVal=parseFloat(p.rsi)||50;
-      var rsiUrgency=Math.abs(rsiVal-50); // 0..50, higher=more extreme
-      return condScore*1000 - rsiUrgency; // lower = higher up the list
-    }
-    var sorted=GE_PICKS.slice().sort(function(a,b){return pickScore(a)-pickScore(b);}).slice(0,15);
-
-    function condBadge(cond,bias){
-      if(cond==='OVERSOLD')return{label:'\u25B2 Oversold',bg:'#dcfce7',c:'#166534',bd:'#86efac'};
-      if(cond==='OVERBOUGHT')return{label:'\u25BC Overbought',bg:'#fee2e2',c:'#991b1b',bd:'#fca5a5'};
-      // MOMENTUM — direction from bias
-      if(bias==='BULL')return{label:'\uD83D\uDD25 Momentum \u25B2',bg:'#fff7ed',c:'#9a3412',bd:'#fdba74'};
-      return{label:'\uD83D\uDD25 Momentum \u25BC',bg:'#fdf2f8',c:'#86198f',bd:'#e879f9'};
-    }
-
-    function recoBadge(bias){
-      if(bias==='BULL')return{label:'BUY CALL \u2191',bg:'#f0fdf4',c:'#14532d',bd:'#4ade80'};
-      return{label:'BUY PUT \u2193',bg:'#fef2f2',c:'#7f1d1d',bd:'#f87171'};
-    }
-
-    function pickRow(p,i){
-      var tk=String(p.ticker).replace(/[^A-Za-z.]/g,'').toUpperCase();
-      var cond=String(p.condition).toUpperCase();
-      var bias=String(p.bias).toUpperCase();
-      var cb=condBadge(cond,bias);
-      var rb=recoBadge(bias);
-      var rsiTxt=(p.rsi!=null&&p.rsi!=='')?'RSI '+p.rsi:'';
-      var note=p.note||'';
-      return '<div style="display:flex;flex-direction:column;gap:0">'
-        // ── tap row ──
-        +'<div id="ge-chip-'+tk+'" onclick="geTogglePick(\''+tk+'\')" '
-        +'style="display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 12px;cursor:pointer;-webkit-user-select:none;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-radius .15s">'
-          +'<div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#64748b">'+(i+1)+'</div>'
-          +'<div style="flex-shrink:0;min-width:44px">'
-            +'<div style="font-size:14px;font-weight:900;color:#0a0f1e;line-height:1">'
-              +'<span id="ge-chip-ar-'+tk+'" style="font-size:10px;margin-right:2px"></span>'
-              +tk
-              +'<span id="ge-chip-mk-'+tk+'" style="font-size:9px;font-weight:900;margin-left:3px"></span>'
-            +'</div>'
-            +(rsiTxt?'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;margin-top:1px">'+rsiTxt+'</div>':'')
-          +'</div>'
-          +'<div style="flex-shrink:0;padding:2px 7px;border-radius:5px;font-size:8.5px;font-weight:800;border:1px solid '+cb.bd+';background:'+cb.bg+';color:'+cb.c+'">'+cb.label+'</div>'
-          +'<div style="flex:1;font-size:9.5px;color:#475569;font-weight:600;line-height:1.3;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+note+'</div>'
-          +'<div style="flex-shrink:0;padding:3px 9px;border-radius:6px;font-size:8.5px;font-weight:900;border:1.5px solid '+rb.bd+';background:'+rb.bg+';color:'+rb.c+';text-align:center;white-space:nowrap">'+rb.label+'</div>'
-          +'<div id="ge-chevron-'+tk+'" style="flex-shrink:0;color:#94a3b8;font-size:14px;transition:transform .2s;font-weight:700">\u203A</div>'
-        +'</div>'
-        // ── inline expand panel (hidden by default) ──
-        +'<div id="ge-expand-'+tk+'" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-top:none;border-radius:0 0 11px 11px;padding:10px 12px 12px;box-shadow:0 2px 6px rgba(0,0,0,.07)">'
-          +'<div id="ge-reco-verdict-'+tk+'" style="font-size:10px;font-weight:800;border:1.5px solid #cbd5e1;background:#fff;color:#64748b;border-radius:7px;padding:7px 10px;margin-bottom:8px">\u23F3 Checking thesis against live tape\u2026</div>'
-          +'<div id="ge-slot-live-'+tk+'"></div>'
-          +'<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-            +'<div onclick="openInStockAI()" style="display:inline-flex;align-items:center;gap:6px;background:#0e7490;color:#fff;border-radius:999px;padding:6px 13px;font-size:10px;font-weight:800;cursor:pointer">\uD83D\uDCCA Deep Analysis in StockAI \u2192</div>'
-            +'<span style="font-size:8.5px;color:#94a3b8;font-weight:600">Check no earnings before expiry</span>'
-          +'</div>'
-        +'</div>'
+    var byCond=function(k){return function(p){return String(p.condition).toUpperCase()===k;};};
+    var os=GE_PICKS.filter(byCond('OVERSOLD'));
+    var ob=GE_PICKS.filter(byCond('OVERBOUGHT'));
+    var mo=GE_PICKS.filter(byCond('MOMENTUM'));
+    var none='<span style="font-size:8.5px;color:#94a3b8;font-weight:700">none this scan</span>';
+    function colCard(bd,bg,tc,sc,title,subt,arr){
+      return '<div style="border:1.5px solid '+bd+';background:'+bg+';border-radius:10px;padding:8px 7px">'
+        +'<div style="font-size:8.5px;font-weight:900;color:'+tc+';text-transform:uppercase;letter-spacing:.04em">'+title+'</div>'
+        +'<div style="font-size:7.5px;color:'+sc+';font-weight:700;margin:1px 0 7px">'+subt+'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:5px">'+(arr.length?arr.map(chip).join(''):none)+'</div>'
       +'</div>';
     }
-
-    h+='<div style="height:1px;background:var(--border);margin:10px 0 8px"></div>'
-      +'<div style="text-align:center;margin-bottom:8px">'
-        +'<div style="font-size:10px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.12em">Opportunities</div>'
-        +'<div style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:2px">Most active \u00B7 sorted by signal strength</div>'
-      +'</div>'
-      +'<div style="display:flex;flex-direction:column;gap:6px">'
-        +sorted.map(pickRow).join('')
+    h+='<div style="height:1px;background:var(--border);margin:10px 0 7px"></div>'
+      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Opportunities</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start">'
+        +colCard('#bbf7d0','#f0fdf4','#166534','#15803d','\u25B2 Oversold','bounce \u00B7 bull + put hedge',os)
+        +colCard('#fecaca','#fef2f2','#991b1b','#b91c1c','\u25BC Overbought','fade \u00B7 bear + call hedge',ob)
+        +colCard('#fed7aa','#fff7ed','#9a3412','#c2410c','\uD83D\uDD25 Momentum','ride trend \u00B7 + hedge',mo)
       +'</div>';
   }
 
-  h+='<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:7px">'
+  h+='<div id="ge-pick-detail" style="display:none;margin-top:9px"></div>'
+    +'<div id="ge-scan-note" style="font-size:8.5px;color:#94a3b8;font-weight:600;margin-top:7px">'
     +(GE_PICKS.length
-      ?'SPY/QQQ summaries are live \u2014 tap \u201cFull plan\u201d for the hedged + manual trade view. Opportunities are sorted by signal strength: oversold/overbought first (highest conviction reversions), then momentum. Tap any row to verify against the live engine. Chip color follows the ENGINE: \u2713 confirmed \u00B7 \u26A0 tape disagrees \u00B7 \u26D4 no trade. Verify earnings at your broker.'
-      :'SPY/QQQ summaries are live above. Tap Scan \u2014 AI proposes up to 15 liquid large/mid caps sorted by signal strength: oversold \u2192 bullish bounce, overbought \u2192 bearish fade, momentum \u2192 ride the trend. All use the same hedged two-leg plan.')
+      ?'SPY/QQQ summaries are live \u2014 tap \u201cFull plan\u201d for the hedged + manual trade view. Opportunities are AI candidates in three buckets: oversold (bounce), overbought (fade), and momentum (ride the trend). Tap any to verify against the live engine \u2014 same hedged two-leg plan. Chip color follows the ENGINE: \u2713 confirmed \u00B7 \u26A0 tape disagrees \u00B7 \u26D4 no trade. Verify earnings at your broker.'
+      :'SPY/QQQ summaries are live above. Tap Scan \u2014 AI proposes liquid large/mid caps in three buckets: oversold \u2192 bullish bounce, overbought \u2192 bearish fade, momentum \u2192 ride the trend. All use the same hedged two-leg plan.')
     +'</div>';
   out.innerHTML=h;
   renderDualCards(); // fill the SPY/QQQ summary cards from the live engine
