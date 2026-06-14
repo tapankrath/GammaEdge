@@ -309,9 +309,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
-    <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)">Backtest</button>
+  <div class="tabs" style="grid-template-columns:repeat(4,1fr)">
+    <button class="tab on" id="tab2" onclick="showTab(2)">Backtest</button>
     <button class="tab" id="tab3" onclick="showTab(3)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Planner</button>
     <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
@@ -917,101 +916,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div class="note">OTM options · Black-Scholes · ~25% IV crush Day 1 · Total loss possible if move doesn't happen</div>
 </div>
 
-<!-- TAB 4: SIGNAL -->
-<div class="pane on" id="pane4" style="padding-top:8px">
-
-  <!-- Dual SPY/QQQ signal cards removed — SPY/QQQ now live in the Top Picks
-       scanner chips, which verify against the same engine. renderDualCards()
-       no-ops on the missing ds-* elements but still drives the MKT NOW pill. -->
-
-  <!-- Condensed controls row -->
-  <div style="background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:5px 6px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:1fr auto auto auto;align-items:stretch;gap:4px">
-    <!-- Capital -->
-    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--gbd);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box">
-      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Cap $</label>
-      <input type="number" id="g1" value="20000" step="100" inputmode="decimal" oninput="go4()" style="width:100%;min-width:0;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
-    </div>
-    <!-- Stop -->
-    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
-      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Stop %</label>
-      <input type="number" id="g3" value="30" step="10" min="10" max="100" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--orange);line-height:1"/>
-    </div>
-    <!-- Target -->
-    <div style="display:flex;flex-direction:column;justify-content:center;border:1.5px solid var(--border);border-radius:7px;padding:3px 8px;background:var(--p2);height:36px;box-sizing:border-box;width:62px">
-      <label style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:1px">Tgt %</label>
-      <input type="number" id="g4" value="50" step="10" min="10" max="500" inputmode="decimal" oninput="go4()" style="width:100%;background:transparent;border:none;padding:0;font-size:13px;font-weight:800;color:var(--green);line-height:1"/>
-    </div>
-    <!-- Refresh -->
-    <button id="rfr-signal" class="btn-refresh round" onclick="refreshSignal()" title="Refresh market data"><span class="rfr-ico">↻</span></button>
-  </div>
-
-  <!-- TOP PICKS SCANNER REMOVED — SPY/QQQ only -->
-
-  <div id="ge-signal-home"></div>
-  <div id="ge-signal-block" style="display:block">
-  <!-- Loading state -->
-  <div id="g-loading" style="text-align:center;padding:30px;color:#334155;font-size:13px">
-    <div class="ld" style="font-size:16px;display:block;margin-bottom:8px">Fetching market data...</div>
-    <div style="font-size:11px">Calculating trend signals</div>
-  </div>
-
-  <!-- Gap / pre-market alert banner -->
-  <div id="g-gap-banner" style="display:none"></div>
-
-  <!-- Signal card -->
-  <div id="g-signal" style="display:none">
-    <!-- Main signal -->
-    <div id="g-main-card" style="border-radius:14px;padding:16px;margin-bottom:10px;border:1.5px solid">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;margin-bottom:4px" id="g-sig-lbl">Signal</div>
-      <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:6px" id="g-sig-ts"></div>
-      <div style="font-size:34px;font-weight:800;margin-bottom:4px;line-height:1" id="g-sig-action">-</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:14px" id="g-sig-sub">-</div>
-      <!-- Setup recommendation -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px" id="g-setup-grid"></div>
-      <!-- Equivalent strangle/straddle context strip -->
-      <div id="g-stdl-context" style="margin-bottom:12px"></div>
-      <!-- Reasoning -->
-      <div style="background:rgba(0,0,0,.04);border-radius:8px;padding:10px 12px" id="g-reason"></div>
-      <!-- Deep dive CTA — last step after reading the signal -->
-      <div id="g-deep-cta" onclick="openInStockAI()" style="display:inline-flex;align-items:center;gap:6px;background:#0e7490;color:#fff;border-radius:999px;padding:6px 13px;font-size:10.5px;font-weight:800;cursor:pointer;margin-top:12px">&#128202; Deep Analysis in StockAI &#8594;</div>
-    </div>
-
-    <!-- Technical indicators -->
-    <div class="card">
-      <div class="card-title" style="display:flex;align-items:center;gap:6px"><span style="flex:1">Technical Indicators</span><button onclick="geToggle('g-indicators')" title="Collapse/expand" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;border:1.5px solid #cbd5e1;border-radius:6px;font-size:11px;color:#334155;cursor:pointer;padding:0;flex-shrink:0"><span id="g-indicators-chev">&#9662;</span></button></div>
-      <div id="g-indicators"></div>
-    </div>
-
-    <!-- IV Percentile meter -->
-    <div class="card" id="g-iv-card">
-      <div class="card-title">IV Assessment</div>
-      <div id="g-iv-meter"></div>
-    </div>
-
-    <!-- P&L table for the recommended trade -->
-    <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;font-weight:700;background:#f1f5f9;border-radius:5px;padding:3px 8px"><span id="g-pnl-label" style="flex:1">P&L by Day</span><button onclick="geToggle('ge-pnl-wrap')" title="Collapse/expand" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;border:1.5px solid #cbd5e1;border-radius:6px;font-size:11px;color:#334155;cursor:pointer;padding:0;flex-shrink:0"><span id="ge-pnl-wrap-chev">&#9662;</span></button></div>
-    <div id="ge-pnl-wrap">
-    <div class="stbl">
-      <div class="stbl-hd" id="g-stbl-hd">
-        <div class="shd">Move</div>
-        <div class="shd dr">D1</div>
-        <div class="shd mo">D2</div>
-        <div class="shd ex">D3</div>
-      </div>
-      <div id="g-rows"></div>
-    </div>
-    <div class="note">Based on 30-day price history · RSI-14 · 20-day MA · Signals are indicative only</div>
-    </div>
-
-
-  </div>
-
-  <div id="g-error" style="display:none;background:var(--rbg);border:1px solid var(--rbd);border-radius:10px;padding:14px;color:var(--red);font-size:12px;line-height:1.6"></div>
-  </div><!-- /ge-signal-block -->
-</div>
-
 <!-- PANE 5: BACKTEST TABLE -->
-<div class="pane" id="pane5" style="padding-top:8px">
+<div class="pane on" id="pane5" style="padding-top:8px">
 
   <!-- ── SETTINGS (collapsible, collapsed by default) ── -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
@@ -1267,15 +1173,13 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  // Tab mapping: 1=Signal(4), 2=Backtest(5), 3=Allocation(7), 4=Planner(6), 5=Lottery(3)
-  var paneMap={1:4,2:5,3:7,4:6,5:3};
-  for(var i=1;i<=5;i++){
+  var paneMap={2:5,3:7,4:6,5:3};
+  for(var i=2;i<=5;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
     var pid=paneMap[i];
     var pel=$('pane'+pid);
     if(pel)pel.className='pane'+(i===n?' on':'');
   }
-  if(n===1)go4();
   if(n===2){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===3){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===4)renderPortfolio();
@@ -2703,12 +2607,6 @@ function geApplyCollapse(){
 }
 setTimeout(function(){
   geApplyCollapse();
-  // Always render the chip row: SPY/QQQ index chips + last cached scan (no API call)
-  try{
-    var c=JSON.parse(localStorage.getItem('ge_scan')||'null');
-    geRenderScan((c&&c.picks)||[]);
-  }catch(e){geRenderScan([]);}
-  geVerifyPicks(); // chips turn engine-current in the background, no taps needed
 },400);
 
 function geScan(force){
@@ -3028,9 +2926,17 @@ function geOpenSignalPanel(t,key,targetId){
   setT4(String(t).toLowerCase());
 }
 
-/* SPY/QQQ "Full plan" — just switches the signal block to that ticker */
+/* Tap SPY or QQQ card to switch the signal below */
 function geIndexPick(t){
   var tk=String(t).toLowerCase();
+  // Highlight active card, dim the other
+  var accents={spy:'var(--purple)',qqq:'var(--amber)'};
+  ['spy','qqq'].forEach(function(k){
+    var card=document.getElementById('ge-idx-'+k);
+    if(!card)return;
+    card.style.borderColor=k===tk?accents[k]:'var(--border)';
+    card.style.boxShadow=k===tk?'0 0 0 2px '+accents[k]+'33':'none';
+  });
   setT4(tk);
   var el=$('g-main-card');
   if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -3088,15 +2994,14 @@ function geRenderScan(picks){
   // Always-on index summary card (auto-shown, no tap). Manual link docks the full engine.
   function idxCard(tk,accent,accentBg){
     var T=tk.toUpperCase();
-    return '<div id="ge-idx-'+tk+'" style="border-radius:12px;padding:11px 12px;border:1.5px solid var(--border);background:var(--p2)">'
+    return '<div id="ge-idx-'+tk+'" onclick="geIndexPick(\''+tk+'\')" style="border-radius:12px;padding:11px 12px;border:1.5px solid var(--border);background:var(--p2);cursor:pointer;-webkit-user-select:none;user-select:none">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">'
         +'<span style="font-size:10px;font-weight:900;color:'+accent+';text-transform:uppercase;letter-spacing:.1em">'+T+'</span>'
         +'<span style="font-size:8px;color:#94a3b8;font-weight:600" id="ge-idx-'+tk+'-ts">\u2014</span>'
       +'</div>'
       +'<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;line-height:1.1" id="ge-idx-'+tk+'-action">\u2014</div>'
       +'<div style="font-size:10px;font-weight:800;margin:1px 0 3px" id="ge-idx-'+tk+'-sub">Loading\u2026</div>'
-      +'<div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:8px" id="ge-idx-'+tk+'-detail"></div>'
-      +'<div onclick="geIndexPick(\''+tk+'\')" style="display:inline-flex;align-items:center;gap:5px;background:'+accentBg+';color:'+accent+';border:1.5px solid '+accent+';border-radius:999px;padding:5px 11px;font-size:9.5px;font-weight:800;cursor:pointer;-webkit-user-select:none;user-select:none">\u2197 Full plan &amp; manual trade <span id="ge-idx-'+tk+'-cv" style="font-size:8px">\u25BE</span></div>'
+      +'<div style="font-size:9px;font-weight:700;color:#64748b" id="ge-idx-'+tk+'-detail"></div>'
     +'</div>';
   }
 
@@ -5088,28 +4993,8 @@ function renderBtSummary(){
   body.innerHTML=html;
 }
 
-/* ── BACKTEST → SIGNAL TAB BRIDGE ── */
-function btGoToSignal(tk){
-  showTab(1);
-  setTimeout(function(){
-    if(tk==='spy'||tk==='qqq'){
-      if(GE_OPEN_PICK!=='IDX'+tk.toUpperCase())geIndexPick(tk); // open (not toggle-close)
-    }else if(tk){
-      if(GE_OPEN_PICK!==String(tk).toUpperCase())geOpenSignalPanel(tk,String(tk).toUpperCase());
-    }else if(!GE_OPEN_PICK){
-      geIndexPick(GE_LAST_IDX); // nothing open — show the last index so the flash lands
-    }
-    // Scroll to top of signal pane
-    var pane=$('pane4');
-    if(pane)pane.scrollIntoView({behavior:'smooth',block:'start'});
-    // Flash the main signal card so user knows what to look at
-    var card=$('g-main-card');
-    if(card){
-      var orig=card.style.outline||'';
-      card.style.outline='3px solid #3b82f6';
-      card.style.transition='outline .3s';
-      setTimeout(function(){card.style.outline=orig;},1800);
-    }
+/* Signal tab removed — btGoToSignal is a no-op */
+function btGoToSignal(tk){}
   },150);
 }
 
@@ -6734,35 +6619,22 @@ go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
 $('pane2').className='pane';
-$('pane5').className='pane';
+$('pane5').className='pane on';
 $('pane6').className='pane';
 $('pane7').className='pane';
-$('pane4').className='pane on';
 fetchAll();setInterval(fetchAll,60000);
-geWarmIdxHist(); // both index cards get real history from the start
 
 // ── RESUME REFRESH ──
-// iOS suspends timers while backgrounded/locked. Quotes catch up within a
-// minute of resume, but the RENDERED signal stays frozen at its last compute.
-// If the app was away >2 min, force-refresh everything so what you see on
-// open is current — same as tapping the ⟳ button.
 var GE_LAST_SEEN=Date.now();
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'){
     var away=Date.now()-GE_LAST_SEEN;
     GE_LAST_SEEN=Date.now();
-    if(away>2*60*1000){
-      G4_CACHE={};LIVE_CHG={};
-      fetchAll();
-      if(typeof go4==='function')go4(); // recomputes the open panel + "as of" stamp
-      if(typeof geWarmIdxHist==='function')geWarmIdxHist(); // both dual cards current
-      if(typeof geVerifyPicks==='function')geVerifyPicks(true); // chips re-verify too
-    }
+    if(away>2*60*1000){G4_CACHE={};LIVE_CHG={};fetchAll();}
   }else{
     GE_LAST_SEEN=Date.now();
   }
 });
-setTimeout(function(){go4();},800);
 if($('b-dte-note'))$('b-dte-note').textContent=BT_DTE_NOTES[0];
 </script>
 </body>
