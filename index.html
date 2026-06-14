@@ -2673,13 +2673,15 @@ function gePrintPicks(){
   w.document.close();
 }
 
-// Re-dock the signal block to its normal position (above the scan results)
+// Re-dock the signal block to its normal (hidden) home position
 function geDockSignal(){
   var h=document.getElementById('ge-signal-home'),b=document.getElementById('ge-signal-block');
-  if(h&&b&&b.parentNode!==h.parentNode){h.parentNode.insertBefore(b,h.nextSibling);}
-  // Home = parked and HIDDEN — the dual SPY/QQQ cards at the top cover the glance;
-  // the full block only shows inside an expanded chip panel
-  if(b){b.style.display='none';b.style.marginTop='';}
+  if(h&&b){
+    // Always move back to home, regardless of where it currently sits
+    if(b.parentNode!==h.parentNode)h.parentNode.insertBefore(b,h.nextSibling);
+    b.style.display='none';
+    b.style.marginTop='';
+  }
   var cta=document.getElementById('g-deep-cta');if(cta)cta.style.display='inline-flex';
 }
 /* Dock the engine home and clear BOTH detail slots (picks + indices). Prevents a
@@ -2994,12 +2996,17 @@ function geScanPickInline(t){
   t=String(t||'').toLowerCase();if(!t)return;
   var tk=t.toUpperCase();
   if(!DEFS[t])DEFS[t]={spot:0,iv:32,cost:10};
-  G4_CACHE[tk]=null;
+  // Don't null the cache — background verification may have already populated it.
+  // Only fetch live price if we don't have one yet.
   fetchP(tk);
-  // Move live signal block into this row's slot
+  // Move live signal block into this row's slot and make it visible
   var slot=document.getElementById('ge-slot-live-'+tk);
   var block=document.getElementById('ge-signal-block');
-  if(slot&&block){slot.appendChild(block);block.style.display='';block.style.marginTop='6px';}
+  if(slot&&block){
+    slot.appendChild(block);
+    block.style.display='block';
+    block.style.marginTop='6px';
+  }
   var cta=document.getElementById('g-deep-cta');if(cta)cta.style.display='none';
   setT4(t);
   // Smooth scroll to bring expand panel into view
