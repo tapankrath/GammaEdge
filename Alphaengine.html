@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alpha Vol Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body { 
+            font-family: 'JetBrains Mono', monospace; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" id="status-indicator"></div>
+            <h1 class="text-xs font-bold tracking-wider uppercase text-slate-300">Alpha // Options Engine</h1>
+        </div>
+        <div class="text-[10px] text-slate-400 font-medium" id="live-clock"></div>
+    </header>
+
+    <main class="flex-1 p-3 space-y-3 max-w-md mx-auto w-full pb-8">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                <h2 class="text-[11px] font-bold text-cyan-400 uppercase tracking-widest">Target Configuration</h2>
+                <div class="flex items-center space-x-1">
+                    <span class="text-[10px] text-slate-500 uppercase">Preset:</span>
+                    <select id="asset-preset" onchange="applyPreset()" class="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-cyan-400 font-bold text-[11px] focus:outline-none">
+                        <option value="QQQ">QQQ</option>
+                        <option value="SPY">SPY</option>
+                        <option value="CUSTOM">Custom</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-slate-400 text-[10px] uppercase tracking-wider">Spot Price ($)</label>
+                        <span id="price-status-tag" class="text-[9px] text-emerald-400 font-bold bg-emerald-950/50 px-1 rounded">LIVE</span>
+                    </div>
+                    <input type="number" id="underlying-price" value="721.34" step="0.01" oninput="setCustomMode()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 font-bold focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1 text-[10px] uppercase tracking-wider">Implied Vol (IV %)</label>
+                    <input type="number" id="implied-volatility" value="18.0" step="0.1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 font-bold focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1 text-[10px] uppercase tracking-wider">Days to Expiry (DTE)</label>
+                    <input type="number" id="dte-input" value="7" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 font-bold focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1 text-[10px] uppercase tracking-wider">Options Strategy</label>
+                    <select id="strategy-type" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 text-[11px] font-medium focus:outline-none focus:border-cyan-500">
+                        <option value="straddle">Straddle (ATM Call+Put)</option>
+                        <option value="strangle">Strangle (OOM Wings)</option>
+                        <option value="collar">Risk Collar (Hedging)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="executePathSimulation()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 active:from-cyan-700 active:to-blue-700 text-slate-950 font-bold py-3.5 rounded-lg transition text-[11px] uppercase tracking-wider font-bold">
+                Run Volatility Analytics
+            </button>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+            <h2 class="text-[11px] font-bold text-cyan-400 uppercase tracking-widest border-b border-slate-800/60 pb-2">1-Sigma Implied Limits</h2>
+            
+            <div class="grid grid-cols-2 gap-2 text-center">
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/60">
+                    <div class="text-[9px] text-emerald-500 uppercase font-bold tracking-wider">Upper Price Band</div>
+                    <div id="upper-sigma-display" class="text-sm font-bold text-emerald-400 mt-1">--</div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/60">
+                    <div class="text-[9px] text-rose-500 uppercase font-bold tracking-wider">Lower Price Band</div>
+                    <div id="lower-sigma-display" class="text-sm font-bold text-rose-400 mt-1">--</div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800/50 text-[10px] text-slate-400 text-center">
+                Expected mathematical move envelope calculation: <span id="move-percentage-display" class="text-cyan-400 font-bold">±0.00%</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+            <h2 class="text-[11px] font-bold text-cyan-400 uppercase tracking-widest border-b border-slate-800/60 pb-2">Calculated Trade Layouts</h2>
+            
+            <div class="space-y-2" id="strategy-cards-container">
+                <div class="p-4 bg-slate-950 rounded-lg border border-slate-800 text-center text-slate-500 italic text-xs">
+                    Execute analytics framework to display structural options architecture.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const cachedPrices = { "QQQ": 721.34, "SPY": 741.75 };
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toISOString().replace('T', ' ').substring(11, 19) + ' UTC';
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function fetchLivePrice(ticker) {
+            const indicator = document.getElementById('status-indicator');
+            const tag = document.getElementById('price-status-tag');
+            indicator.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse";
+            if(tag) tag.innerText = "FETCHING";
+
+            try {
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`);
+                const data = await res.json();
+                const price = data.chart.result[0].meta.regularMarketPrice;
+                if (price) {
+                    cachedPrices[ticker] = parseFloat(price);
+                    indicator.className = "h-2.5 w-2.5 rounded-full bg-emerald-400";
+                    if(tag) tag.innerText = "LIVE";
+                    return parseFloat(price);
+                }
+            } catch (err) {
+                indicator.className = "h-2.5 w-2.5 rounded-full bg-rose-500";
+                if(tag) tag.innerText = "CACHED";
+            }
+            return cachedPrices[ticker];
+        }
+
+        async function applyPreset() {
+            const preset = document.getElementById('asset-preset').value;
+            if (preset === 'CUSTOM') return;
+
+            const targetPrice = await fetchLivePrice(preset);
+            document.getElementById('underlying-price').value = targetPrice.toFixed(2);
+            document.getElementById('implied-volatility').value = preset === 'QQQ' ? '18.0' : '16.5';
+            
+            executePathSimulation();
+        }
+
+        function setCustomMode() {
+            document.getElementById('asset-preset').value = 'CUSTOM';
+            const tag = document.getElementById('price-status-tag');
+            if(tag) tag.innerText = "MANUAL";
+        }
+
+        function executePathSimulation() {
+            const S = parseFloat(document.getElementById('underlying-price').value) || 0;
+            const ivRaw = parseFloat(document.getElementById('implied-volatility').value) || 0;
+            const dte = parseFloat(document.getElementById('dte-input').value) || 0;
+            const strat = document.getElementById('strategy-type').value;
+
+            if (S <= 0 || ivRaw <= 0 || dte <= 0) return;
+
+            const sigma = ivRaw / 100;
+            const timeFactor = Math.sqrt(dte / 365);
+            const expectedMove = S * sigma * timeFactor;
+            
+            const upperSigma = S + expectedMove;
+            const lowerSigma = S - expectedMove;
+            const pctMove = (expectedMove / S) * 100;
+
+            document.getElementById('upper-sigma-display').innerText = `$${upperSigma.toFixed(2)}`;
+            document.getElementById('lower-sigma-display').innerText = `$${lowerSigma.toFixed(2)}`;
+            document.getElementById('move-percentage-display').innerText = `±${pctMove.toFixed(2)}%`;
+
+            const container = document.getElementById('strategy-cards-container');
+            container.innerHTML = '';
+
+            if (strat === 'straddle') {
+                const premiumEst = expectedMove * 0.85; 
+                createOutputCard(container, "Estimated Net Cost", `$${premiumEst.toFixed(2)}`, "Theoretical combined premium debit required for deployment.");
+                createOutputCard(container, "Upper Break Node", `$${(S + premiumEst).toFixed(2)}`, "Spot value required at expiration to cross into clear profitability.");
+                createOutputCard(container, "Lower Break Node", `$${(S - premiumEst).toFixed(2)}`, "Spot value required at expiration to cross into clear profitability.");
+            } else if (strat === 'strangle') {
+                const callStrike = S + (expectedMove * 0.5);
+                const putStrike = S - (expectedMove * 0.5);
+                const premiumEst = (expectedMove * 0.45); 
+                createOutputCard(container, "Recommended Strikes", `C: $${callStrike.toFixed(2)} \| P: $${putStrike.toFixed(2)}`, "Out-of-the-money targets calculated outside peak volatility noise.");
+                createOutputCard(container, "Breakeven Profile", `+$${(callStrike+premiumEst).toFixed(2)} \| -$${(putStrike-premiumEst).toFixed(2)}`, "Expiration price nodes required to outrun decay curves.");
+            } else if (strat === 'collar') {
+                createOutputCard(container, "Protective Put Strike", `$${(S - (expectedMove * 0.4)).toFixed(2)}`, "Hard protective floor strike to defend against unexpected macro collapse.");
+                createOutputCard(container, "Covered Call Strike", `$${(S + (expectedMove * 0.6)).toFixed(2)}`, "Ceiling assignment node target to offset financing costs.");
+            }
+        }
+
+        function createOutputCard(targetContainer, title, mainValue, description) {
+            const div = document.createElement('div');
+            div.className = "p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center gap-4 text-xs";
+            div.innerHTML = `
+                <div class="space-y-0.5 max-w-[65%]">
+                    <div class="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">${title}</div>
+                    <div class="text-[10px] text-slate-400 leading-tight">${description}</div>
+                </div>
+                <div class="text-right font-bold text-slate-200 text-sm whitespace-nowrap">${mainValue}</div>
+            `;
+            targetContainer.appendChild(div);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { applyPreset(); });
+    </script>
+</body>
+</html>
