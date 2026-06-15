@@ -8,9 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaYield">
-    <link rel="apple-touch-icon" href="icon.png">
-    
-    <link rel="manifest" href="manifest.json">
 
     <style>
         /* Base Reset & Variables */
@@ -231,11 +228,6 @@
     <div class="container">
         
         <div class="sticky-header-container">
-            <div style="margin-bottom:8px">
-                <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;color:#64748b;font-size:11px;font-weight:700;text-decoration:none;letter-spacing:.03em;-webkit-tap-highlight-color:transparent" onmouseover="this.style.color='#34d399'" onmouseout="this.style.color='#64748b'">
-                    <span>&#8592;</span> GammaEdge
-                </a>
-            </div>
             <header>
                 <div class="brand-container">
                     <div class="logo-mark">Α</div>
@@ -444,7 +436,8 @@
         function renderMacroTrendWorkspace() {
             var html = generateTrendMetrics("SPY (S&P 500 Index)", spyChange, spyPrice) + 
                        generateTrendMetrics("QQQ (Nasdaq 100 Index)", qqqChange, qqqPrice);
-            document.getElementById('trendResults').innerHTML = html;
+            var targetEl = document.getElementById('trendResults');
+            if (targetEl) targetEl.innerHTML = html;
         }
 
         async function fetchMarketPrices() {
@@ -482,12 +475,13 @@
                     }
                 });
 
-                document.getElementById('trendTimestamp').innerText = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                var timeEl = document.getElementById('trendTimestamp');
+                if (timeEl) timeEl.innerText = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             } catch (e) {
-                console.warn("Proxy intercept handled. Running native insulated strategy fallback matrix.");
-                document.getElementById('trendTimestamp').innerText = "Insulated Mode (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
+                console.warn("Proxy handle caught. Running native layout fallback execution framework.");
+                var timeEl = document.getElementById('trendTimestamp');
+                if (timeEl) timeEl.innerText = "Insulated Mode (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
             } finally {
-                // Ensure UI components refresh regardless of data stream status to prevent blank frames
                 if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
                 else if (currentActiveTab === 'planner') calculateStrategy();
                 else if (currentActiveTab === 'scanner') runMarketScanner();
@@ -495,14 +489,22 @@
         }
 
         function updateSliderValue() {
-            document.getElementById('yieldValue').innerText = document.getElementById('yieldSlider').value + '%';
+            var slider = document.getElementById('yieldSlider');
+            var badge = document.getElementById('yieldValue');
+            if (slider && badge) {
+                badge.innerText = slider.value + '%';
+            }
             calculateStrategy();
         }
 
         function calculateStrategy() {
-            var capital = parseFloat(document.getElementById('capital').value) || 0;
-            var targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
-            var horizon = document.getElementById('horizon').value;
+            var capEl = document.getElementById('capital');
+            var sliderEl = document.getElementById('yieldSlider');
+            var horizEl = document.getElementById('horizon');
+            
+            var capital = capEl ? (parseFloat(capEl.value) || 0) : 100000;
+            var targetYieldPercent = sliderEl ? parseFloat(sliderEl.value) : 5;
+            var horizon = horizEl ? horizEl.value : "weekly";
 
             var totalWeeklyPayout = capital * (targetYieldPercent / 100);
             var totalAnnualPayout = totalWeeklyPayout * 52;
@@ -513,8 +515,10 @@
             if (horizon === "biweekly") { horizonLabel = "2wk"; horizonMultiplier = 2; }
             else if (horizon === "monthly") { horizonLabel = "mo"; horizonMultiplier = (52 / 12); }
             
-            document.getElementById('payoutDisplay').innerText = fmtCompact(totalWeeklyPayout * horizonMultiplier) + ' / ' + horizonLabel;
-            document.getElementById('annualizedWarning').innerText = '(' + fmtCompact(totalAnnualPayout) + ' / yr)';
+            var payDisp = document.getElementById('payoutDisplay');
+            var annWarn = document.getElementById('annualizedWarning');
+            if (payDisp) payDisp.innerText = fmtCompact(totalWeeklyPayout * horizonMultiplier) + ' / ' + horizonLabel;
+            if (annWarn) annWarn.innerText = '(' + fmtCompact(totalAnnualPayout) + ' / yr)';
 
             var etfPct = 0.50, stockPct = 0.35, optionsPct = 0.10, hedgePct = 0.05;
             globalAllocations.etf = capital * etfPct;
@@ -537,7 +541,8 @@
                 <div class="tactic-card"><span class="tactic-title color-stock">2. High Beta Strategy</span><p class="tactic-body">Write Cash-Secured Puts targeting underlying asset matrices under momentum deviation limits.</p></div>
             </div>`;
 
-            document.getElementById('plannerResults').innerHTML = htmlBlock;
+            var planRes = document.getElementById('plannerResults');
+            if (planRes) planRes.innerHTML = htmlBlock;
         }
 
         function runMarketScanner() {
@@ -647,18 +652,26 @@
                 });
             }
 
-            document.getElementById('scannerResults').innerHTML = html;
+            var scanRes = document.getElementById('scannerResults');
+            if (scanRes) scanRes.innerHTML = html;
             
             var refreshTimeString = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            document.getElementById('scanTimestamp').innerText = refreshTimeString;
+            var scanTimeEl = document.getElementById('scanTimestamp');
+            if (scanTimeEl) scanTimeEl.innerText = refreshTimeString;
         }
 
         function sharePlan() {
-            var capital = document.getElementById('capital').value;
-            var targetYieldPercent = document.getElementById('yieldValue').innerText;
-            var horizon = document.getElementById('horizon').options[document.getElementById('horizon').selectedIndex].text;
-            var weeklyPayout = document.getElementById('payoutDisplay').innerText;
-            var annualPayout = document.getElementById('annualizedWarning').innerText;
+            var capEl = document.getElementById('capital');
+            var yieldEl = document.getElementById('yieldValue');
+            var horizEl = document.getElementById('horizon');
+            var payEl = document.getElementById('payoutDisplay');
+            var annEl = document.getElementById('annualizedWarning');
+
+            var capital = capEl ? capEl.value : "100000";
+            var targetYieldPercent = yieldEl ? yieldEl.innerText : "5%";
+            var horizon = horizEl ? horizEl.options[horizEl.selectedIndex].text : "Weekly";
+            var weeklyPayout = payEl ? payEl.innerText : "$0";
+            var annualPayout = annEl ? annEl.innerText : "($0)";
 
             var shareText = "Alpha Yield Strategy Plan:\n" +
                             "• Capital Base: $" + parseFloat(capital).toLocaleString() + "\n" +
@@ -679,7 +692,7 @@
             renderMacroTrendWorkspace();
             calculateStrategy();
             fetchMarketPrices();
-            setInterval(fetchMarketPrices, 30000); // 30-second automated sequence check
+            setInterval(fetchMarketPrices, 30000); // 30-second loop
         };
     </script>
 </body>
