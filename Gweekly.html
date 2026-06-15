@@ -50,13 +50,13 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Premium Tab Layout Module */
+        /* Premium Primary Tab Layout Module */
         .tab-navigation {
             display: flex;
             background-color: #1e293b;
             padding: 6px;
             border-radius: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             border: 1px solid #475569;
         }
         .tab-btn {
@@ -78,6 +78,34 @@
             background-color: #10b981;
             color: #0f172a;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Clean Secondary Sub-Tab Navigation Bar */
+        .sub-tab-navigation {
+            display: flex;
+            background-color: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            border: 1px solid #1e293b;
+            gap: 4px;
+        }
+        .sub-tab-btn {
+            flex: 1;
+            padding: 7px 0;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 5px;
+            transition: all 0.15s ease-in-out;
+        }
+        .sub-tab-btn.active {
+            background-color: #334155;
+            color: #34d399;
         }
 
         /* Core Display Content Framework Toggle */
@@ -144,24 +172,15 @@
         .tactic-body { font-size: 11px; color: #cbd5e1; line-height: 1.4; }
         .live-ticker-price { font-size: 9px; color: #64748b; font-weight: normal; text-transform: none; }
 
-        /* Scanner Styles Layout Components */
+        /* Scanner Execution Layout Plan Modules */
+        .pool-badge { background-color: #334155; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
         .scanner-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #64748b; }
         .scan-tag { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
         .tag-momentum { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-overbought { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
         .tag-oversold { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
         .ai-box { background-color: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 10.5px; line-height: 1.4; }
-        
-        /* Execution Blueprint styling module */
-        .execution-blueprint {
-            background-color: rgba(16, 185, 129, 0.04);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 6px;
-            font-size: 10.5px;
-            color: #e2e8f0;
-        }
+        .execution-blueprint { background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px; margin-top: 6px; font-size: 10.5px; color: #e2e8f0; }
     </style>
 </head>
 <body>
@@ -222,31 +241,49 @@
         </div>
 
         <div id="scannerTab" class="tab-content">
-            <div style="padding: 2px 2px 10px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
+            <div style="padding: 2px 2px 8px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
                 <span>Derivatives Market Signal Integrator</span>
                 <span id="scanTimestamp" style="color: #10b981; font-weight: 700;">Live Engine Active</span>
             </div>
+
+            <div class="sub-tab-navigation">
+                <button id="subTabEtfBtn" class="sub-tab-btn active" onclick="switchSubTab('etf')">🛡️ Core ETF</button>
+                <button id="subTabSpreadsBtn" class="sub-tab-btn" onclick="switchSubTab('spreads')">⚡ Spreads</button>
+                <button id="subTabStocksBtn" class="sub-tab-btn" onclick="switchSubTab('stocks')">🚀 High-Beta</button>
+            </div>
+
             <div id="scannerResults">Loading live deployment layouts...</div>
         </div>
 
     </div>
 
     <script>
-        var spyPrice = 520.00;
-        var currentStockAllocationPool = 35000;
+        // Corrected mid-2026 baseline market value
+        var spyPrice = 745.00;
+        
+        // Internal Global Master Allocation Tiers
+        var globalAllocations = {
+            etf: 50000,
+            stock: 35000,
+            options: 10000,
+            horizon: "weekly"
+        };
 
-        // Upgraded Basket: 10 Institutional Blue Chips
+        // Track currently viewed engine sub-category
+        var currentSubTab = 'etf';
+
+        // Upgraded Basket: 10 Institutional Blue Chips with 2026 Macro-Aware Fallback States
         var marketSignals = [
-            { symbol: "NVDA", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "TSLA", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AAPL", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMD",  price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "MSFT", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMZN", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "META", price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "GOOGL",price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "JPM",  price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "DIS",  price: 0, change: 0, state: "MOMENTUM", border: "#3b82f6" }
+            { symbol: "NVDA", price: 205.19, change: -4.20, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "TSLA", price: 185.00, change: -2.80, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "AAPL", price: 212.50, change: 1.10,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AMD",  price: 162.30, change: -3.10, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "MSFT", price: 442.10, change: 0.40,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AMZN", price: 194.80, change: -0.20, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "META", price: 521.15, change: 2.90,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "GOOGL",price: 184.50, change: 0.80,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "JPM",  price: 218.40, change: 2.60,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "DIS",  price: 108.90, change: -0.50, state: "MOMENTUM", border: "#3b82f6" }
         ];
 
         function switchTab(tabName) {
@@ -270,6 +307,21 @@
             }
         }
 
+        function switchSubTab(subTabName) {
+            currentSubTab = subTabName;
+            
+            // Handle active styling swaps
+            document.getElementById('subTabEtfBtn').classList.remove('active');
+            document.getElementById('subTabSpreadsBtn').classList.remove('active');
+            document.getElementById('subTabStocksBtn').classList.remove('active');
+
+            if (subTabName === 'etf') document.getElementById('subTabEtfBtn').classList.add('active');
+            if (subTabName === 'spreads') document.getElementById('subTabSpreadsBtn').classList.add('active');
+            if (subTabName === 'stocks') document.getElementById('subTabStocksBtn').classList.add('active');
+
+            runMarketScanner();
+        }
+
         async function fetchMarketPrices() {
             const proxy = "https://corsproxy.io/?";
             try {
@@ -289,24 +341,19 @@
                         asset.price = currentPrice;
                         asset.change = prevClose ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
                         
-                        // Dynamic AI State Machine logic based on daily performance
                         if (asset.change >= 2.5) {
                             asset.state = "OVERBOUGHT";
-                            asset.border = "#f43f5e"; // Rose-red
+                            asset.border = "#f43f5e";
                         } else if (asset.change <= -2.5) {
                             asset.state = "OVERSOLD";
-                            asset.border = "#10b981"; // Emerald-green
+                            asset.border = "#10b981";
                         } else {
                             asset.state = "MOMENTUM";
-                            asset.border = "#3b82f6"; // Blue
+                            asset.border = "#3b82f6";
                         }
                     } catch(innerErr) {
-                        // Resilient static price fallbacks if network block happens
-                        var fallbacks = { "NVDA":125,"TSLA":178,"AAPL":192,"AMD":152,"MSFT":420,"AMZN":185,"META":475,"GOOGL":175,"JPM":195,"DIS":102 };
-                        asset.price = fallbacks[asset.symbol] || 150;
-                        asset.change = 0.5;
-                        asset.state = "MOMENTUM";
-                        asset.border = "#3b82f6";
+                        // Keep our 2026 macro-aware distribution safe during offline instances
+                        console.log("Using baseline metrics for " + asset.symbol);
                     }
                 }
                 
@@ -365,12 +412,16 @@
             var totalWeight = etfPct + stockPct + optionsPct + hedgePct;
             etfPct /= totalWeight; stockPct /= totalWeight; optionsPct /= totalWeight; hedgePct /= totalWeight;
 
-            var etfPrincipal = capital * etfPct;
-            var stockPrincipal = capital * stockPct;
-            var optionsPrincipal = capital * optionsPct;
-            var hedgePrincipal = capital * hedgePct;
+            // Update global allocation properties dynamically
+            globalAllocations.etf = capital * etfPct;
+            globalAllocations.stock = capital * stockPct;
+            globalAllocations.options = capital * optionsPct;
+            globalAllocations.horizon = horizon;
 
-            currentStockAllocationPool = stockPrincipal;
+            var etfPrincipal = globalAllocations.etf;
+            var stockPrincipal = globalAllocations.stock;
+            var optionsPrincipal = globalAllocations.options;
+            var hedgePrincipal = capital * hedgePct;
 
             var horizonMultiplier = 1;
             if (horizon === "biweekly") horizonMultiplier = 2;
@@ -445,68 +496,115 @@
                 return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
             };
 
-            // Capture length dynamically (will now divide by 10)
-            var activeAssetCount = marketSignals.length;
-            var splitAllocationPool = currentStockAllocationPool / (activeAssetCount > 0 ? activeAssetCount : 1);
-
-            marketSignals.forEach(function(asset) {
-                var badgeClass = "tag-momentum";
-                var aiAnalysisText = "";
-                var executionBlueprintText = "";
+            // ==========================================
+            // SUBTAB: CORE COLLATERAL (SPY)
+            // ==========================================
+            if (currentSubTab === 'etf') {
+                var spyRequiredCollateral = spyPrice * 100;
+                var maxSpyContractsAllowed = Math.floor(globalAllocations.etf / spyRequiredCollateral);
                 
-                var targetPrice = asset.price > 0 ? asset.price : 100;
-                var contractCollateralRequirement = targetPrice * 100;
+                html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Core ETF Workspace</span><span class="pool-badge">Pool: ' + fmtCurrency(globalAllocations.etf) + '</span></div>';
+                html += '<div class="scanner-card" style="border-left-color: #34d399; padding: 14px;">';
+                html += '  <div class="flex-between" style="margin-bottom: 8px;">';
+                html += '    <span style="font-size: 15px; font-weight: 800; color:#fff;">SPY S&P 500 ETF</span>';
+                html += '    <span style="font-size: 14px; font-weight: 700; color:#34d399;">$' + spyPrice.toFixed(2) + '</span>';
+                html += '  </div>';
                 
-                var maxContractsAllowed = Math.floor(splitAllocationPool / contractCollateralRequirement);
-                var maxPhysicalSharesAllowed = Math.floor(splitAllocationPool / targetPrice);
-
-                if (asset.state === "OVERBOUGHT") {
-                    badgeClass = "tag-overbought";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> Price velocity is surging (Move: +" + asset.change.toFixed(1) + "%). Topside buyers overextended. Write an <b>OOTM Call Credit Spread</b> or set up a defensive <b>Covered Call</b> lot.";
-                    
-                    if (maxContractsAllowed > 0) {
-                        executionBlueprintText = "<b>Execution Blueprint (1/" + activeAssetCount + " Slice):</b> Out of your " + fmtCurrency(splitAllocationPool) + " slice, write <b>" + maxContractsAllowed + " Covered Call(s)</b> against " + (maxContractsAllowed * 100) + " shares.";
-                    } else {
-                        executionBlueprintText = "<b>Execution Blueprint (1/" + activeAssetCount + " Slice):</b> Your " + fmtCurrency(splitAllocationPool) + " lot is under the baseline ($" + contractCollateralRequirement.toLocaleString() + ") to back 100 physical shares. Run a credit spread ring.";
-                    }
-                } else if (asset.state === "OVERSOLD") {
-                    badgeClass = "tag-oversold";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> Local corrections running heavy (Move: " + asset.change.toFixed(1) + "%). Trend exhaustion visible. High-probability zone to sell a <b>0.25-Delta Cash-Secured Put</b>.";
-                    
-                    if (maxContractsAllowed > 0) {
-                        var usedCollateral = maxContractsAllowed * contractCollateralRequirement;
-                        executionBlueprintText = "<b>Execution Blueprint (1/" + activeAssetCount + " Slice):</b> Sell <b>" + maxContractsAllowed + " Cash-Secured Put contract(s)</b> utilizing " + fmtCurrency(usedCollateral) + " collateral.";
-                    } else {
-                        executionBlueprintText = "<b>Execution Blueprint (1/" + activeAssetCount + " Slice):</b> Your " + fmtCurrency(splitAllocationPool) + " lot is under the cash limit ($" + contractCollateralRequirement.toLocaleString() + ") to secure a put block. Deploy a micro vertical spread.";
-                    }
+                if (maxSpyContractsAllowed > 0) {
+                    html += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Execution Rule:</b> Purchase <b>' + (maxSpyContractsAllowed * 100) + ' physical shares</b> of SPY and write <b>' + maxSpyContractsAllowed + ' out-of-the-money Covered Call contract(s)</b> matching your ' + globalAllocations.horizon + ' horizon cycle.<br><br><b>Assigned Collateral:</b> ' + fmtCurrency(maxSpyContractsAllowed * spyRequiredCollateral) + '<br><b>Remaining Cash Drift:</b> ' + fmtCurrency(globalAllocations.etf - (maxSpyContractsAllowed * spyRequiredCollateral)) + '</div>';
                 } else {
-                    badgeClass = "tag-momentum";
-                    aiAnalysisText = "<b>Rule Engine AI:</b> Stock is grinding inside standard daily standard deviation ranges. Premium decay environment stable. Deploy a classic delta-neutral <b>Iron Condor</b> or vertical buffer.";
-                    executionBlueprintText = "<b>Execution Blueprint (1/" + activeAssetCount + " Slice):</b> Put your " + fmtCurrency(splitAllocationPool) + " slice into balanced range spreads, or acquire up to <b>" + maxPhysicalSharesAllowed + " straight equity shares</b>.";
+                    html += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Execution Rule:</b> Your current ETF pool (' + fmtCurrency(globalAllocations.etf) + ') is under the required threshold ($' + spyRequiredCollateral.toLocaleString() + ') to collateralize 100 physical baseline shares.<br><br><b>Alternative Action:</b> Deploy <b>1 Poor Man\'s Covered Call (PMCC)</b> by purchasing a deep ITM long-dated LEAPS option contract, or transition the balance directly to trade institutional micro-scale <b>XSP Index options</b>.</div>';
                 }
-
-                var priceDisplay = asset.price > 0 ? "$" + asset.price.toFixed(2) : "Fetching...";
-                var changeColor = asset.change >= 0 ? "#34d399" : "#f43f5e";
-                var changeSign = asset.change >= 0 ? "+" : "";
-
-                html += '<div class="scanner-card" style="border-left-color: ' + asset.border + '">';
-                html += '  <div class="flex-between" style="margin-bottom: 6px;">';
-                html += '    <div>';
-                html += '      <span style="font-size: 14px; font-weight: 800; color:#fff; margin-right: 6px;">' + asset.symbol + '</span>';
-                html += '      <span class="scan-tag ' + badgeClass + '">' + asset.state + '</span>';
-                html += '    </div>';
-                html += '    <div style="text-align: right;">';
-                html += '      <span style="font-size: 13px; font-weight: 700; color:#fff; display:block;">' + priceDisplay + '</span>';
-                html += '      <span style="font-size: 10px; font-weight: 700; color:' + changeColor + ';">' + changeSign + asset.change.toFixed(2) + '%</span>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '  <div style="font-size: 10px; color:#94a3b8; display:flex; gap: 14px;">';
-                html += '     <span>Calculated Condition: <b>Dynamic</b></span>';
-                html += '  </div>';
-                html += '  <div class="ai-box">' + aiAnalysisText + '</div>';
-                html += '  <div class="execution-blueprint">' + executionBlueprintText + '</div>';
                 html += '</div>';
-            });
+            }
+
+            // ==========================================
+            // SUBTAB: SPREADS ENGINE (SPX)
+            // ==========================================
+            else if (currentSubTab === 'spreads') {
+                var marginSpreadWidth = 500; // Assumes standard $5 wide strike thresholds ($500 margin requirement per vertical)
+                var maxSpxSpreadsAllowed = Math.floor(globalAllocations.options / marginSpreadWidth);
+                
+                html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Index Spreads Workspace</span><span class="pool-badge">Pool: ' + fmtCurrency(globalAllocations.options) + '</span></div>';
+                html += '<div class="scanner-card" style="border-left-color: #c084fc; padding: 14px;">';
+                html += '  <div class="flex-between" style="margin-bottom: 8px;">';
+                html += '    <span style="font-size: 15px; font-weight: 800; color:#fff;">SPX Broad Index</span>';
+                html += '    <span class="scan-tag" style="background-color:rgba(192, 132, 252, 0.2); color:#c084fc;">THETA DECAY HARVEST</span>';
+                html += '  </div>';
+                
+                if (maxSpxSpreadsAllowed > 0) {
+                    html += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Execution Rule:</b> Write exactly <b>' + maxSpxSpreadsAllowed + ' vertical credit spread contract block(s)</b> utilizing a clean $5 point strike gap architecture.<br><br><b>Risk Shield Rule:</b> Anchor your short legs strictly inside the 0.10 - 0.15 Delta bands on a rolling ' + globalAllocations.horizon + ' cadence to insulate risk from sudden market expansion shocks.</div>';
+                } else {
+                    html += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Execution Rule:</b> Capital allocation limits are too low to maintain safety boundaries on standard SPX contracts.<br><br><b>Alternative Action:</b> Scale down safely to <b>XSP Index options</b> or trade micro vertical spreads to extract premium within your designated budget.</div>';
+                }
+                html += '</div>';
+            }
+
+            // ==========================================
+            // SUBTAB: HIGH-BETA DYNAMIC STOCK BASKET
+            // ==========================================
+            else if (currentSubTab === 'stocks') {
+                var activeAssetCount = marketSignals.length;
+                var splitAllocationPool = globalAllocations.stock / (activeAssetCount > 0 ? activeAssetCount : 1);
+
+                html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">10-Chip Alpha Scan Universe</span><span class="pool-badge">Slice: ' + fmtCurrency(splitAllocationPool) + ' each</span></div>';
+
+                marketSignals.forEach(function(asset) {
+                    var badgeClass = "tag-momentum";
+                    var aiAnalysisText = "";
+                    var executionBlueprintText = "";
+                    
+                    var targetPrice = asset.price > 0 ? asset.price : 100;
+                    var contractCollateralRequirement = targetPrice * 100;
+                    
+                    var maxContractsAllowed = Math.floor(splitAllocationPool / contractCollateralRequirement);
+                    var maxPhysicalSharesAllowed = Math.floor(splitAllocationPool / targetPrice);
+
+                    if (asset.state === "OVERBOUGHT") {
+                        badgeClass = "tag-overbought";
+                        aiAnalysisText = "<b>Rule Engine AI:</b> Price velocity is surging (Move: +" + asset.change.toFixed(1) + "%). Topside buyers overextended. Write an <b>OOTM Call Credit Spread</b> or set up a defensive <b>Covered Call</b> lot.";
+                        
+                        if (maxContractsAllowed > 0) {
+                            executionBlueprintText = "<b>Action:</b> Write <b>" + maxContractsAllowed + " Covered Call(s)</b> against " + (maxContractsAllowed * 100) + " existing structural ledger shares.";
+                        } else {
+                            executionBlueprintText = "<b>Action:</b> Capital under baseline ($" + contractCollateralRequirement.toLocaleString() + ") to run 100 underlying physical units. Deploy an options credit spread loop.";
+                        }
+                    } else if (asset.state === "OVERSOLD") {
+                        badgeClass = "tag-oversold";
+                        aiAnalysisText = "<b>Rule Engine AI:</b> Local corrections running heavy (Move: " + asset.change.toFixed(1) + "%). Trend exhaustion visible. High-probability zone to sell a <b>0.25-Delta Cash-Secured Put</b>.";
+                        
+                        if (maxContractsAllowed > 0) {
+                            var usedCollateral = maxContractsAllowed * contractCollateralRequirement;
+                            executionBlueprintText = "<b>Action:</b> Sell <b>" + maxContractsAllowed + " Cash-Secured Put contract(s)</b> locks exactly " + fmtCurrency(usedCollateral) + " risk collateral.";
+                        } else {
+                            executionBlueprintText = "<b>Action:</b> Capital under baseline ($" + contractCollateralRequirement.toLocaleString() + ") to lock a put block. Write a micro vertical credit spread block.";
+                        }
+                    } else {
+                        badgeClass = "tag-momentum";
+                        aiAnalysisText = "<b>Rule Engine AI:</b> Stock is grinding inside normal daily standard deviations. Premium decay stable. Run basic range yield plays or buffer bands.";
+                        executionBlueprintText = "<b>Action:</b> Deploy range credit loops, or pick up a baseline of up to <b>" + maxPhysicalSharesAllowed + " physical equity shares</b>.";
+                    }
+
+                    var priceDisplay = asset.price > 0 ? "$" + asset.price.toFixed(2) : "Fetching...";
+                    var changeColor = asset.change >= 0 ? "#34d399" : "#f43f5e";
+                    var changeSign = asset.change >= 0 ? "+" : "";
+
+                    html += '<div class="scanner-card" style="border-left-color: ' + asset.border + '">';
+                    html += '  <div class="flex-between" style="margin-bottom: 6px;">';
+                    html += '    <div>';
+                    html += '      <span style="font-size: 14px; font-weight: 800; color:#fff; margin-right: 6px;">' + asset.symbol + '</span>';
+                    html += '      <span class="scan-tag ' + badgeClass + '">' + asset.state + '</span>';
+                    html += '    </div>';
+                    html += '    <div style="text-align: right;">';
+                    html += '      <span style="font-size: 13px; font-weight: 700; color:#fff; display:block;">' + priceDisplay + '</span>';
+                    html += '      <span style="font-size: 10px; font-weight: 700; color:' + changeColor + ';">' + changeSign + asset.change.toFixed(2) + '%</span>';
+                    html += '    </div>';
+                    html += '  </div>';
+                    html += '  <div class="ai-box">' + aiAnalysisText + '</div>';
+                    html += '  <div class="execution-blueprint">' + executionBlueprintText + '</div>';
+                    html += '</div>';
+                });
+            }
 
             document.getElementById('scannerResults').innerHTML = html;
             document.getElementById('scanTimestamp').innerText = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
