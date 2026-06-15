@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaYield">
-    <link class="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     
     <link rel="manifest" href="manifest.json">
 
@@ -133,7 +133,7 @@
         }
         .sub-tab-btn {
             flex: 1;
-            padding: 8px 4px;
+            padding: 7px 0;
             background: none;
             border: none;
             color: #64748b;
@@ -143,7 +143,6 @@
             text-align: center;
             border-radius: 5px;
             transition: all 0.15s ease-in-out;
-            white-space: nowrap;
         }
         .sub-tab-btn.active {
             background-color: #334155;
@@ -198,8 +197,6 @@
         /* Allocations Summary Card Component */
         .card-summary { background-color: #1e293b; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; font-size: 11px; }
-        .progress-container { width: 100%; background-color: #334155; height: 4px; border-radius: 2px; margin-top: 3px; overflow: hidden; }
-        .progress-bar { height: 100%; border-radius: 2px; transition: width 0.2s ease; }
         
         /* Structural Strategy Colors */
         .color-etf { color: #34d399; } .bg-etf { background-color: #34d399; }
@@ -209,10 +206,8 @@
 
         .tactics-container { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
         .tactic-card { background-color: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
-        .tactic-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 6px; }
-        .tactic-title { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .tactic-title { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .tactic-body { font-size: 11px; color: #cbd5e1; line-height: 1.4; }
-        .live-ticker-price { font-size: 9px; color: #64748b; font-weight: normal; text-transform: none; }
 
         /* Scanner Execution Layout Plan Modules */
         .pool-badge { background-color: #334155; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
@@ -248,7 +243,7 @@
                         <h1 class="title">Alpha Yield</h1>
                         <div class="subtitle-row">
                             <p class="subtitle">Systematic Risk & Allocation Engine</p>
-                            <button id="masterRefreshBtn" onclick="triggerManualDataFetch()" class="refresh-trigger-btn">🔄 Refresh</button>
+                            <button onclick="triggerManualDataFetch()" class="refresh-trigger-btn">🔄 Refresh</button>
                         </div>
                     </div>
                 </div>
@@ -285,7 +280,7 @@
                     </div>
                     <div>
                         <label class="input-label" for="horizon">Time Horizon</label>
-                        <select id="horizon" onchange="calculateStrategy()" oninput="calculateStrategy()" class="select-input">
+                        <select id="horizon" onchange="calculateStrategy()" class="select-input">
                             <option value="weekly" selected>Weekly</option>
                             <option value="biweekly">Biweekly</option>
                             <option value="monthly">Monthly</option>
@@ -325,28 +320,22 @@
     </div>
 
     <script>
-        // Solid mid-2026 baseline fallback parameters
+        // Baseline Parameters (Updated fallback structures)
         var spyPrice = 756.16;
         var qqqPrice = 743.90;
         var spyChange = 1.94;
         var qqqChange = 3.13;
         
-        var globalAllocations = {
-            etf: 50000,
-            stock: 35000,
-            options: 10000,
-            horizon: "weekly"
-        };
-
+        var globalAllocations = { etf: 50000, stock: 35000, options: 10000, horizon: "weekly" };
         var currentSubTab = 'etf';
         var currentActiveTab = 'trend';
 
         var marketSignals = [
-            { symbol: "NVDA", price: 215.40, change: 1.20, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "TSLA", price: 198.50, change: -0.40, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AAPL", price: 224.15, change: 2.10,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMD",  price: 171.80, change: -2.95, state: "OVERSOLD", border: "#10b981" },
-            { symbol: "MSFT", price: 458.60, change: 0.85,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "NVDA", price: 214.98, change: 1.16, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "TSLA", price: 198.04, change: -0.45, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AAPL", price: 223.97, change: 2.08,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "AMD",  price: 171.34, change: -3.00, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "MSFT", price: 458.65, change: 0.86,  state: "MOMENTUM", border: "#3b82f6" },
             { symbol: "AMZN", price: 202.30, change: 1.15,  state: "MOMENTUM", border: "#3b82f6" },
             { symbol: "META", price: 539.40, change: 3.10,  state: "OVERBOUGHT", border: "#f43f5e" },
             { symbol: "GOOGL",price: 191.25, change: 0.60,  state: "MOMENTUM", border: "#3b82f6" },
@@ -355,41 +344,30 @@
         ];
 
         function triggerManualDataFetch() {
-            var btn = document.getElementById('masterRefreshBtn');
-            if (btn) btn.innerText = "⏳ Loading...";
+            console.log("Manual refresh triggered.");
             fetchMarketPrices();
         }
 
         function switchTab(tabName) {
             currentActiveTab = tabName;
-            
-            var trendTab = document.getElementById('trendTab');
-            var plannerTab = document.getElementById('plannerTab');
-            var scannerTab = document.getElementById('scannerTab');
-            
-            var trendBtn = document.getElementById('trendBtn');
-            var plannerBtn = document.getElementById('plannerBtn');
-            var scannerBtn = document.getElementById('scannerBtn');
-
-            trendTab.classList.remove('active');
-            plannerTab.classList.remove('active');
-            scannerTab.classList.remove('active');
-            
-            trendBtn.classList.remove('active');
-            plannerBtn.classList.remove('active');
-            scannerBtn.classList.remove('active');
+            document.getElementById('trendTab').classList.remove('active');
+            document.getElementById('plannerTab').classList.remove('active');
+            document.getElementById('scannerTab').classList.remove('active');
+            document.getElementById('trendBtn').classList.remove('active');
+            document.getElementById('plannerBtn').classList.remove('active');
+            document.getElementById('scannerBtn').classList.remove('active');
 
             if (tabName === 'trend') {
-                trendTab.classList.add('active');
-                trendBtn.classList.add('active');
+                document.getElementById('trendTab').classList.add('active');
+                document.getElementById('trendBtn').classList.add('active');
                 renderMacroTrendWorkspace();
             } else if (tabName === 'planner') {
-                plannerTab.classList.add('active');
-                plannerBtn.classList.add('active');
+                document.getElementById('plannerTab').classList.add('active');
+                document.getElementById('plannerBtn').classList.add('active');
                 calculateStrategy();
             } else if (tabName === 'scanner') {
-                scannerTab.classList.add('active');
-                scannerBtn.classList.add('active');
+                document.getElementById('scannerTab').classList.add('active');
+                document.getElementById('scannerBtn').classList.add('active');
                 runMarketScanner();
             }
         }
@@ -407,75 +385,72 @@
             runMarketScanner();
         }
 
-        function generateTrendMetrics(symbol, change, price) {
-            var state = "MEAN REVERSION / RANGE BOUND";
-            var badgeClass = "tag-trend-neutral";
-            var strategyTitle = "";
-            var dteRecommendation = "";
-            var alphaInstruction = "";
-            var borderStyle = "#eab308";
-
-            if (change >= 1.25) {
-                state = "AGGRESSIVE BREAKOUT";
-                badgeClass = "tag-trend-bull";
-                strategyTitle = "BUY CALL OPTIONS (MOMENTUM CONVICTION)";
-                dteRecommendation = "4 DTE to 7 DTE (Short-term Delta Acceleration)";
-                alphaInstruction = "Momentum breakout parameters confirmed. Look to acquire **0.40 Delta Long Calls** on intra-day retests of the VWAP band. Capitalize on high velocity gamma pricing expansion.";
-                borderStyle = "#10b981";
-            } else if (change <= -1.25) {
-                state = "DEEP CAPITULATION ZONE";
-                badgeClass = "tag-trend-bear";
-                strategyTitle = "BUY PUT OPTIONS (SHORT SQUEEZE / VELOCITY PROTECT)";
-                dteRecommendation = "2 DTE to 5 DTE (High Velocity Vega Spike)";
-                alphaInstruction = "Heavy systemic distribution confirmed. Execute directional **0.45 Delta Long Puts** at near-term supply walls. Monitor closely for short-squeeze mean reversion signals.";
-                borderStyle = "#f43f5e";
+        function determineStateAndStrategy(symbol, change) {
+            if (change >= 1.50) {
+                return {
+                    state: "AGGRESSIVE BREAKOUT",
+                    badge: "tag-trend-bull",
+                    strategy: "BUY CALL OPTIONS (MOMENTUM CONVICTION)",
+                    duration: "4 DTE to 7 DTE (Short-term Delta Acceleration)",
+                    directive: "Momentum breakout parameters confirmed. Look to acquire **0.40 Delta Long Calls** on intra-day retests of the VWAP band.",
+                    border: "#10b981"
+                };
+            } else if (change <= -1.50) {
+                return {
+                    state: "DEEP CAPITULATION ZONE",
+                    badge: "tag-trend-bear",
+                    strategy: "BUY PUT OPTIONS (SHORT SQUEEZE / VELOCITY PROTECT)",
+                    duration: "2 DTE to 5 DTE (High Velocity Vega Spike)",
+                    directive: "Heavy systemic distribution confirmed. Execute directional **0.45 Delta Long Puts** at near-term supply walls.",
+                    border: "#f43f5e"
+                };
             } else {
-                state = "MEAN REVERSION / RANGE BOUND";
-                badgeClass = "tag-trend-neutral";
-                strategyTitle = "CREDIT INTERVAL SPREADS (SELLER BIAS)";
-                dteRecommendation = "0 DTE to 3 DTE (Rapid Absolute Theta Decay)";
-                alphaInstruction = "Index velocity is contained inside standard deviation ranges. **Do not chase raw directional calls or puts**. Deploy Iron Condors or multi-strike vertical credit spreads to capture predictable premium decay.";
-                borderStyle = "#eab308";
+                return {
+                    state: "MEAN REVERSION / RANGE BOUND",
+                    badge: "tag-trend-neutral",
+                    strategy: "CREDIT INTERVAL SPREADS (SELLER BIAS)",
+                    duration: "0 DTE to 3 DTE (Rapid Absolute Theta Decay)",
+                    directive: "Index velocity is contained inside standard deviation ranges. Deploy Iron Condors or vertical credit spreads to capture premium decay.",
+                    border: "#eab308"
+                };
             }
+        }
 
+        function generateTrendMetrics(symbol, change, price) {
+            var matrix = determineStateAndStrategy(symbol, change);
             var changeColor = change >= 0 ? "#34d399" : "#f43f5e";
             var changeSign = change >= 0 ? "+" : "";
 
-            var block = '';
-            block += '<div class="scanner-card" style="border-left-color: ' + borderStyle + '; padding: 14px; margin-bottom:12px;">';
-            block += '  <div class="flex-between" style="margin-bottom: 8px;">';
-            block += '    <div>';
-            block += '      <span style="font-size: 16px; font-weight: 800; color:#fff; margin-right:6px;">' + symbol + '</span>';
-            block += '      <span class="scan-tag ' + badgeClass + '">' + state + '</span>';
-            block += '    </div>';
-            block += '    <div style="text-align: right;">';
-            block += '      <span style="font-size: 14px; font-weight: 700; color:#fff; display:block;">$' + price.toFixed(2) + '</span>';
-            block += '      <span style="font-size: 11px; font-weight: 700; color:' + changeColor + ';">' + changeSign + change.toFixed(2) + '%</span>';
-            block += '    </div>';
-            block += '  </div>';
-            block += '  <div class="ai-box" style="color: #cbd5e1; border-color: rgba(255,255,255,0.1);">';
-            block += '    <div style="font-weight:800; color:#fbbf24; text-transform:uppercase; font-size:10px; margin-bottom:4px;">🎯 Core Strategy Recommendation:</div>';
-            block += '    <div style="font-size:12px; font-weight:700; color:#f8fafc; margin-bottom:4px;">' + strategyTitle + '</div>';
-            block += '    <div style="font-size:11px; color:#94a3b8;"><span style="font-weight:700; color:#3b82f6;">Target Duration:</span> ' + dteRecommendation + '</div>';
-            block += '  </div>';
-            block += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Tactical Directive:</b> ' + alphaInstruction + '</div>';
-            block += '</div>';
-            
-            return block;
+            return `<div class="scanner-card" style="border-left-color: ${matrix.border}; padding: 14px; margin-bottom:12px;">
+                <div class="flex-between" style="margin-bottom: 8px;">
+                    <div>
+                        <span style="font-size: 15px; font-weight: 800; color:#fff; margin-right:6px;">${symbol}</span>
+                        <span class="scan-tag ${matrix.badge}">${matrix.state}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 14px; font-weight: 700; color:#fff; display:block;">$${price.toFixed(2)}</span>
+                        <span style="font-size: 11px; font-weight: 700; color:${changeColor};">${changeSign}${change.toFixed(2)}%</span>
+                    </div>
+                </div>
+                <div class="ai-box" style="color: #cbd5e1; border-color: rgba(255,255,255,0.1);">
+                    <div style="font-weight:800; color:#fbbf24; text-transform:uppercase; font-size:10px; margin-bottom:4px;">🎯 Core Strategy Recommendation:</div>
+                    <div style="font-size:12px; font-weight:700; color:#f8fafc; margin-bottom:4px;">${matrix.strategy}</div>
+                    <div style="font-size:11px; color:#94a3b8;"><span style="font-weight:700; color:#3b82f6;">Target Duration:</span> ${matrix.duration}</div>
+                </div>
+                <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Tactical Directive:</b> ${matrix.directive}</div>
+            </div>`;
         }
 
         function renderMacroTrendWorkspace() {
-            var html = "";
-            html += generateTrendMetrics("SPY (S&P 500 Index)", spyChange, spyPrice);
-            html += generateTrendMetrics("QQQ (Nasdaq 100 Index)", qqqChange, qqqPrice);
+            var html = generateTrendMetrics("SPY (S&P 500 Index)", spyChange, spyPrice) + 
+                       generateTrendMetrics("QQQ (Nasdaq 100 Index)", qqqChange, qqqPrice);
             document.getElementById('trendResults').innerHTML = html;
         }
 
         async function fetchMarketPrices() {
-            var isLiveSuccess = false;
             try {
                 const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quotes?symbols=SPY,QQQ,NVDA,TSLA,AAPL,AMD,MSFT,AMZN,META,GOOGL,JPM,AVGO'));
-                if (!res.ok) throw new Error("Proxy connection dropped");
+                if (!res.ok) throw new Error("Stream connection throttled.");
                 
                 const outerData = await res.json();
                 const data = JSON.parse(outerData.contents);
@@ -486,195 +461,73 @@
                     var price = quote.regularMarketPrice;
                     var change = quote.regularMarketChangePercent;
 
-                    if (symbol === "SPY" && price) {
-                        spyPrice = price; spyChange = change;
-                    } else if (symbol === "QQQ" && price) {
-                        qqqPrice = price; qqqChange = change;
-                    } else {
+                    if (symbol === "SPY") { spyPrice = price; spyChange = change; }
+                    else if (symbol === "QQQ") { qqqPrice = price; qqqChange = change; }
+                    else {
                         var asset = marketSignals.find(a => a.symbol === symbol);
-                        if (asset && price) {
+                        if (asset) {
                             asset.price = price;
                             asset.change = change;
-                            if (change >= 2.0) {
-                                asset.state = "OVERBOUGHT"; asset.border = "#f43f5e";
-                            } else if (change <= -2.0) {
-                                asset.state = "OVERSOLD"; asset.border = "#10b981";
-                            } else {
-                                asset.state = "MOMENTUM"; asset.border = "#3b82f6";
-                            }
+                            if (change >= 1.5) { asset.state = "OVERBOUGHT"; asset.border = "#f43f5e"; }
+                            else if (change <= -1.5) { asset.state = "OVERSOLD"; asset.border = "#10b981"; }
+                            else { asset.state = "MOMENTUM"; asset.border = "#3b82f6"; }
                         }
                     }
                 });
-                isLiveSuccess = true;
+
+                document.getElementById('trendTimestamp').innerText = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             } catch (e) {
-                console.log("Network restriction handled. Running variance micro-fluctuations on fallback layers.");
-                
-                // Introduce lightweight mock fluctuations to indicate an active refresh trigger visually
-                var baselineVariance = (Math.random() * 0.8) - 0.4;
-                spyPrice += baselineVariance;
-                qqqPrice += (baselineVariance * 1.1);
-                spyChange += (baselineVariance * 0.02);
-                qqqChange += (baselineVariance * 0.04);
-
-                marketSignals.forEach(function(asset) {
-                    var varianceToken = (Math.random() * 0.6) - 0.3;
-                    asset.price += varianceToken;
-                    asset.change += (varianceToken * 0.1);
-                });
+                console.warn("Proxy intercept encountered. Re-routing through local evaluation layer.");
+                document.getElementById('trendTimestamp').innerText = "Local Matrix Active (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
             } finally {
-                // Guaranteed Execution Block to repaint UI viewports and return refresh state cleanly
-                var btn = document.getElementById('masterRefreshBtn');
-                if (btn) btn.innerText = "🔄 Refresh";
-
-                var currentTime = new Date();
-                var timeString = currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-
-                var trendTimestampElem = document.getElementById('trendTimestamp');
-                var scanTimestampElem = document.getElementById('scanTimestamp');
-
-                if (isLiveSuccess) {
-                    if (trendTimestampElem) {
-                        trendTimestampElem.innerText = "Live: " + timeString;
-                        trendTimestampElem.style.color = "#34d399";
-                    }
-                    if (scanTimestampElem) scanTimestampElem.innerText = "Live Engine Active";
-                } else {
-                    if (trendTimestampElem) {
-                        trendTimestampElem.innerText = "Insulated Mode (" + timeString.slice(0, 5) + " " + timeString.slice(-2) + ")";
-                        trendTimestampElem.style.color = "#3b82f6";
-                    }
-                    if (scanTimestampElem) scanTimestampElem.innerText = "Refreshed: " + timeString;
-                }
-
-                // Force layout recalculations across target panels
-                refreshActiveViewports();
+                if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
+                else if (currentActiveTab === 'planner') calculateStrategy();
+                else if (currentActiveTab === 'scanner') runMarketScanner();
             }
         }
 
-        function refreshActiveViewports() {
-            if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
-            else if (currentActiveTab === 'planner') calculateStrategy();
-            else if (currentActiveTab === 'scanner') runMarketScanner();
-        }
-
         function updateSliderValue() {
-            var slider = document.getElementById('yieldSlider');
-            document.getElementById('yieldValue').innerText = slider.value + '%';
+            document.getElementById('yieldValue').innerText = document.getElementById('yieldSlider').value + '%';
             calculateStrategy();
         }
 
         function calculateStrategy() {
-            var capital = parseFloat(document.getElementById('capital').value);
+            var capital = parseFloat(document.getElementById('capital').value) || 0;
             var targetYieldPercent = parseFloat(document.getElementById('yieldSlider').value);
             var horizon = document.getElementById('horizon').value;
-
-            if (isNaN(capital) || capital <= 0) {
-                document.getElementById('plannerResults').innerHTML = '<p style="text-align: center; font-size: 12px; color: #64748b; font-style: italic; padding: 20px;">Please enter a valid capital base.</p>';
-                return;
-            }
 
             var totalWeeklyPayout = capital * (targetYieldPercent / 100);
             var totalAnnualPayout = totalWeeklyPayout * 52;
             
-            var fmtCompact = function(val) {
-                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-            };
+            var fmtCompact = val => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-            var horizonLabel = "wk";
-            var horizonPayout = totalWeeklyPayout;
-
-            if (horizon === "biweekly") {
-                horizonLabel = "2wk";
-                horizonPayout = totalWeeklyPayout * 2;
-            } else if (horizon === "monthly") {
-                horizonLabel = "mo";
-                horizonPayout = totalWeeklyPayout * (52 / 12);
-            }
+            var horizonLabel = "wk", horizonMultiplier = 1;
+            if (horizon === "biweekly") { horizonLabel = "2wk"; horizonMultiplier = 2; }
+            else if (horizon === "monthly") { horizonLabel = "mo"; horizonMultiplier = (52 / 12); }
             
-            document.getElementById('payoutDisplay').innerText = fmtCompact(horizonPayout) + ' / ' + horizonLabel;
+            document.getElementById('payoutDisplay').innerText = fmtCompact(totalWeeklyPayout * horizonMultiplier) + ' / ' + horizonLabel;
             document.getElementById('annualizedWarning').innerText = '(' + fmtCompact(totalAnnualPayout) + ' / yr)';
 
-            var etfPct = 0.55 - (targetYieldPercent * 0.04);
-            var stockPct = 0.35 - (targetYieldPercent * 0.01);
-            var optionsPct = 0.05 + (targetYieldPercent * 0.04);
-            var hedgePct = 0.05 + (targetYieldPercent * 0.01);
-
-            var totalWeight = etfPct + stockPct + optionsPct + hedgePct;
-            etfPct /= totalWeight; stockPct /= totalWeight; optionsPct /= totalWeight; hedgePct /= totalWeight;
-
+            var etfPct = 0.50, stockPct = 0.35, optionsPct = 0.10, hedgePct = 0.05;
             globalAllocations.etf = capital * etfPct;
             globalAllocations.stock = capital * stockPct;
             globalAllocations.options = capital * optionsPct;
             globalAllocations.horizon = horizon;
 
-            var etfPrincipal = globalAllocations.etf;
-            var stockPrincipal = globalAllocations.stock;
-            var optionsPrincipal = globalAllocations.options;
-            var hedgePrincipal = capital * hedgePct;
+            var accessibleSpyShares = Math.floor(globalAllocations.etf / spyPrice);
 
-            var horizonMultiplier = 1;
-            if (horizon === "biweekly") horizonMultiplier = 2;
-            if (horizon === "monthly") horizonMultiplier = (52 / 12);
-
-            var etfYieldShare = (totalWeeklyPayout * 0.15) * horizonMultiplier; 
-            var stockYieldShare = (totalWeeklyPayout * 0.35) * horizonMultiplier;
-            var optionsYieldShare = (totalWeeklyPayout * 0.50) * horizonMultiplier; 
-
-            var requiredSpyCap = spyPrice * 100;
-            var canAffordSpy = etfPrincipal >= requiredSpyCap;
-            var accessibleSpyShares = Math.floor(etfPrincipal / spyPrice);
-
-            var etfRec = ""; var stockRec = ""; var optionsRec = ""; var hedgeRec = "";
-
-            if (horizon === "weekly") {
-                if (canAffordSpy) {
-                    etfRec = "Sell 1 out-of-the-money weekly Covered Call contract against " + accessibleSpyShares + " physical cash-held shares of SPY collateral base.";
-                } else {
-                    etfRec = "Allocation short of 100 physical shares by " + fmtCompact(requiredSpyCap - etfPrincipal) + ". Deploy a <b>Poor Man's Covered Call</b> via a deep ITM LEAPS option contract, or transition to 10 micro-scale <b>XSP Index options</b>.";
-                }
-                stockRec = "Sell 0.20-0.30 Delta weekly Cash-Secured Puts to harvest rich high-beta Implied Volatility (IV) decay.";
-                optionsRec = "Run short-duration (0DTE-3DTE) Bull Put Spreads. High velocity theta decay; heavily drives the premium engine.";
-                if (targetYieldPercent <= 4) hedgeRec = "Buy weekly 5% out-of-the-money protective SPY Puts. Low-cost system safety.";
-                else if (targetYieldPercent > 4 && targetYieldPercent <= 7) hedgeRec = "Allocate to front-month 30-delta long VIX call contracts to hedge unexpected spikes in volatility.";
-                else hedgeRec = "CRITICAL RISK: Buy structural weekly SPX tail-risk Put spreads to offset high-beta volatility.";
-            } else if (horizon === "biweekly") {
-                if (canAffordSpy) {
-                    etfRec = "Sell a 14-day cycle out-of-the-money Covered Call contract against " + accessibleSpyShares + " shares.";
-                } else {
-                    etfRec = "Short of 100 shares. Buy high-delta LEAPS call and write rolling 14-day contracts against it.";
-                }
-                stockRec = "Write 14-day Cash-Secured Puts targeting a conservative 0.20 Delta.";
-                optionsRec = "Execute 7-14 DTE Credit Spreads on the broad index for more reliable premium insulation.";
-                if (targetYieldPercent <= 5) hedgeRec = "Purchase rolling 30-day out-of-the-money puts on index assets.";
-                else hedgeRec = "Combine out-of-the-money tracking index puts with small systematic VIX call allocations.";
-            } else if (horizon === "monthly") {
-                if (canAffordSpy) {
-                    etfRec = "Sell standard 30-45 DTE monthly Covered Calls at a 0.15 Delta to maximize passive upside growth.";
-                } else {
-                    etfRec = "Short of 100 physical shares. Run a clean monthly <b>PMCC strategy</b> using deep ITM LEAPS contracts.";
-                }
-                stockRec = "Sell 30-45 DTE Cash-Secured Puts on high-quality blue chips during market dips to systematically buy at a discount.";
-                optionsRec = "Deploy monthly Iron Condors or multi-week vertical credit spreads to maximize theta inside range bounds.";
-                if (targetYieldPercent <= 4) hedgeRec = "Purchase long-term (6-12 month) protective LEAPS put options down 10%. Structural safety.";
-                else hedgeRec = "Build systematic 60 DTE long VIX call option structures to absorb systematic corrections.";
-            }
-
-            var htmlBlock = '';
-            htmlBlock += '<div class="card-summary">';
-            htmlBlock += '  <div class="summary-grid">';
-            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">ETFs (Collateral)</span><span style="font-weight:700;" class="color-etf">' + fmtCompact(etfPrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-etf" style="width: ' + (etfPct * 100) + '%"></div></div></div>';
-            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">High-Beta Stocks</span><span style="font-weight:700;" class="color-stock">' + fmtCompact(stockPrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-stock" style="width: ' + (stockPct * 100) + '%"></div></div></div>';
-            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">Spreads Engine</span><span style="font-weight:700;" class="color-options">' + fmtCompact(optionsPrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-options" style="width: ' + (optionsPct * 100) + '%"></div></div></div>';
-            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">Tail-Risk Hedge</span><span style="font-weight:700;" class="color-hedge">' + fmtCompact(hedgePrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-hedge" style="width: ' + (hedgePct * 100) + '%"></div></div></div>';
-            htmlBlock += '  </div>';
-            htmlBlock += '</div>';
-
-            htmlBlock += '<div class="tactics-container">';
-            htmlBlock += '  <div class="tactic-card"><div class="tactic-header"><span class="tactic-title color-etf">1. Core Collateral (SPY) <span class="live-ticker-price">(Live: $' + spyPrice.toFixed(2) + ')</span></span><div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#f1f5f9;">' + fmtCompact(etfPrincipal) + '</span><span class="color-etf" style="font-size:10px; font-weight:700;">+' + fmtCompact(etfYieldShare) + '/' + horizonLabel + '</span></div></div><p class="tactic-body">' + etfRec + '</p></div>';
-            htmlBlock += '  <div class="tactic-card"><div class="tactic-header"><span class="tactic-title color-stock">2. High Beta Strategy</span><div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#f1f5f9;">' + fmtCompact(stockPrincipal) + '</span><span class="color-stock" style="font-size:10px; font-weight:700;">+' + fmtCompact(stockYieldShare) + '/' + horizonLabel + '</span></div></div><p class="tactic-body">' + stockRec + '</p></div>';
-            htmlBlock += '  <div class="tactic-card"><div class="tactic-header"><span class="tactic-title color-options">3. Spreads Engine (SPX)</span><div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#f1f5f9;">' + fmtCompact(optionsPrincipal) + '</span><span class="color-options" style="font-size:10px; font-weight:700;">+' + fmtCompact(optionsYieldShare) + '/' + horizonLabel + '</span></div></div><p class="tactic-body">' + optionsRec + '</p></div>';
-            htmlBlock += '  <div class="tactic-card" style="border-left: 2px solid #f43f5e;"><div class="tactic-header"><span class="tactic-title color-hedge">4. Macro Insurance</span><div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#cbd5e1;">' + fmtCompact(hedgePrincipal) + '</span><span class="color-hedge" style="font-size:10px; font-weight:700;">Insurance</span></div></div><p class="tactic-body">' + hedgeRec + '</p></div>';
-            htmlBlock += '</div>';
+            var htmlBlock = `<div class="card-summary">
+                <div class="summary-grid">
+                    <div><div class="flex-between"><span>ETFs (Collateral)</span><span class="color-etf">${fmtCompact(globalAllocations.etf)}</span></div></div>
+                    <div><div class="flex-between"><span>High-Beta Stocks</span><span class="color-stock">${fmtCompact(globalAllocations.stock)}</span></div></div>
+                    <div><div class="flex-between"><span>Spreads Engine</span><span class="color-options">${fmtCompact(globalAllocations.options)}</span></div></div>
+                    <div><div class="flex-between"><span>Tail Hedge</span><span class="color-hedge">${fmtCompact(capital * hedgePct)}</span></div></div>
+                </div>
+            </div>
+            <div class="tactics-container">
+                <div class="tactic-card"><span class="tactic-title color-etf">1. Core Collateral (SPY)</span><p class="tactic-body">Can collateralize ${accessibleSpyShares} units. Sell OOTM contracts to harvest baseline volatility cash flow.</p></div>
+                <div class="tactic-card"><span class="tactic-title color-stock">2. High Beta Strategy</span><p class="tactic-body">Write Cash-Secured Puts targeting underlying asset matrices under momentum deviation limits.</p></div>
+            </div>`;
 
             document.getElementById('plannerResults').innerHTML = htmlBlock;
         }
@@ -747,7 +600,7 @@
                         if (maxContractsAllowed > 0) {
                             executionBlueprintText = "<b>Action:</b> Write <b>" + maxContractsAllowed + " Covered Call(s)</b> against " + (maxContractsAllowed * 100) + " existing structural ledger shares.";
                         } else {
-                            executionBlueprintText = "<b>Action:</b> Capital under baseline ($" + contractCollateralRequirement.toLocaleString() + ") to run 100 underlying physical units. Deploy an options credit spread loop.";
+                            executionBlueprintText = "<b>Action:</b> Capital under baseline (" + fmtCurrency(contractCollateralRequirement) + ") to run 100 underlying physical units. Deploy an options credit spread loop.";
                         }
                     } else if (asset.state === "OVERSOLD") {
                         badgeClass = "tag-oversold";
@@ -757,7 +610,7 @@
                             var usedCollateral = maxContractsAllowed * contractCollateralRequirement;
                             executionBlueprintText = "<b>Action:</b> Sell <b>" + maxContractsAllowed + " Cash-Secured Put contract(s)</b> locks exactly " + fmtCurrency(usedCollateral) + " risk collateral.";
                         } else {
-                            executionBlueprintText = "<b>Action:</b> Capital under baseline ($" + contractCollateralRequirement.toLocaleString() + ") to lock a put block. Write a micro vertical credit spread block.";
+                            executionBlueprintText = "<b>Action:</b> Capital under baseline (" + fmtCurrency(contractCollateralRequirement) + ") to lock a put block. Write a micro vertical credit spread block.";
                         }
                     } else {
                         badgeClass = "tag-momentum";
@@ -787,6 +640,9 @@
             }
 
             document.getElementById('scannerResults').innerHTML = html;
+            
+            var refreshTimeString = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            document.getElementById('scanTimestamp').innerText = refreshTimeString;
         }
 
         function sharePlan() {
@@ -812,14 +668,10 @@
         }
 
         window.onload = function() {
-            // First Priority: Mount workspace visual elements instantly from secure fallbacks
             renderMacroTrendWorkspace();
             calculateStrategy();
-            runMarketScanner();
-
-            // Second Priority: Initialize background async connection stream updates safely
             fetchMarketPrices();
-            setInterval(fetchMarketPrices, 60000);
+            setInterval(fetchMarketPrices, 30000); // 30-second polling cycle
         };
     </script>
 </body>
