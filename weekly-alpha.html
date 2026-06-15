@@ -20,10 +20,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .app-sub{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
 .gear-btn{width:34px;height:34px;background:#1e293b;border:1px solid #334155;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;z-index:10;flex-shrink:0}
 .back-link{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:5px 10px 5px 14px}
-.nav-pills{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #1e293b}
-.nav-pills a{color:#fff;font-size:10px;font-weight:700;text-decoration:none;padding:8px 2px;text-align:center;border-right:1px solid #1e293b}
-.nav-pills a:last-child{border-right:none}
-.nav-pills a.cur{color:#a78bfa;background:#1e293b}
+
 
 /* API DRAWER */
 .api-drawer{display:none;background:#1e293b;border-top:1px solid #334155;padding:14px}
@@ -213,13 +210,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 
   <a href="index.html" class="back-link">← GammaEdge</a>
 
-  <div class="nav-pills">
-    <a href="portfolioedge.html">PortfolioAI</a>
-    <a href="chartedge.html">ChartAI</a>
-    <a href="stockai.html">StockAI</a>
-    <a href="EarningsAI.html">EarningsAI</a>
-    <a href="MoonshotAI.html">MoonshotAI</a>
-  </div>
+
 </div>
 
 <!-- MAIN CONTENT -->
@@ -322,7 +313,7 @@ var selR='a';
 var _tmode='pct';
 var _plan=null;
 var _quotes={};  // live prices keyed by ticker
-var TICKERS=['SPY','QQQ','NVDA','TSLA','AAPL','META','AMZN'];
+var TICKERS=['SPY','QQQ'];
 
 // ── TOPBAR HEIGHT ──
 function setTopbarH(){
@@ -593,9 +584,25 @@ function toggleSaved(){
 
 // ── GENERATE ──
 async function go(){
+  // ── KEY CHECKS ──
   var key=(localStorage.getItem('wa_key')||document.getElementById('keyInput').value||'').trim();
-  if(!key){showErr('Tap ⚙️ to enter your Anthropic API key.');return;}
+  if(!key){
+    document.getElementById('apiDrawer').classList.add('open');
+    setTimeout(setTopbarH,50);
+    showErr('Tap ⚙️ to enter your Anthropic API key.');
+    return;
+  }
   if(!key.startsWith('sk-ant')){showErr('API key must start with sk-ant-');return;}
+
+  var fhKey=(localStorage.getItem('fh_key')||'').trim();
+  if(!fhKey){
+    document.getElementById('apiDrawer').classList.add('open');
+    setTimeout(setTopbarH,50);
+    document.getElementById('fhKeyInput').focus();
+    showErr('A free Finnhub API key is required for live prices. Get one at finnhub.io then enter it above.');
+    return;
+  }
+
   var cap=parseFloat(document.getElementById('cap').value)||100000;
   var tpct=parseFloat(document.getElementById('tpct').value)||0;
   var tdol=parseFloat(document.getElementById('tdol').value)||(cap*0.06);
@@ -607,29 +614,33 @@ async function go(){
   document.getElementById('loadingBox').style.display='block';
   document.getElementById('genBtn').disabled=true;
 
-  // ── STEP 1: Fetch live market data from Finnhub ──
-  document.getElementById('loadingMsg').textContent='📡 Fetching live market data…';
+  // ── STEP 1: Fetch live prices from Finnhub ──
+  document.getElementById('loadingMsg').textContent='📡 Fetching live prices from Finnhub…';
   var marketData='';
   try{
-    var fk=(localStorage.getItem('fh_key')||'').trim();
-    if(fk){
-      // Refresh quotes
-      await fetchQuotes();
-
-      // Build market context string for the prompt
-      var lines=[];
-      for(var t in _quotes){
-        var q=_quotes[t];
-        var chg=q.dp>=0?'+'+q.dp.toFixed(2)+'%':q.dp.toFixed(2)+'%';
-        lines.push(t+': $'+q.c.toFixed(2)+' ('+chg+' today, prev close $'+q.pc.toFixed(2)+', high $'+q.h.toFixed(2)+', low $'+q.l.toFixed(2)+')');
-      }
-      if(lines.length){
-        marketData='LIVE MARKET DATA (right now):\n'+lines.join('\n')+'\n\n';
-      }
+    await fetchQuotes();
+    var lines=[];
+    for(var t in _quotes){
+      var q=_quotes[t];
+      var chg=q.dp>=0?'+'+q.dp.toFixed(2)+'%':q.dp.toFixed(2)+'%';
+      lines.push(t+': $'+q.c.toFixed(2)+' ('+chg+', high $'+q.h.toFixed(2)+', low $'+q.l.toFixed(2)+', prev close $'+q.pc.toFixed(2)+')');
     }
-  }catch(e){console.warn('market data fetch failed',e);}
+    if(lines.length){
+      marketData='=== LIVE PRICES RIGHT NOW — YOU MUST USE THESE FOR ALL STRIKES ===\n'+lines.join('\n')+'\n=== END LIVE PRICES ===\n\n';
+    } else {
+      showErr('Finnhub returned no data. Check your Finnhub key in ⚙️.');
+      document.getElementById('loadingBox').style.display='none';
+      document.getElementById('genBtn').disabled=false;
+      return;
+    }
+  }catch(e){
+    showErr('Finnhub fetch failed: '+e.message+'. Check your key in ⚙️.');
+    document.getElementById('loadingBox').style.display='none';
+    document.getElementById('genBtn').disabled=false;
+    return;
+  }
 
-  // ── STEP 2: Build prompt with real data ──
+  // ── STEP 2: Build prompt ──
   var today=new Date();
   var todayStr=today.toISOString().slice(0,10);
   var nextFri=new Date(today);
@@ -644,14 +655,18 @@ async function go(){
       +'Today is '+todayStr+'. Generate a weekly trading plan for the week of '+todayStr+'.\n'
       +'Capital: $'+cap+'. Risk profile: '+rnames[selR]+'.\n'
       +(tpct>0?'Profit target: '+tpct+'% ($'+Math.round(tdol)+').\n':'Target 5-7% weekly return.\n')
-      +'Use the LIVE MARKET DATA above to recommend realistic strikes and entries based on actual current prices.\n'
-      +'Option expiry dates MUST be between '+nextFriStr+' and '+fri4wStr+' — future dates only, never past.\n'
-      +'Include hedging. Return a JSON object with:\n'
-      +'summary(string), targetReturn(string like "6%"), targetDollar(number), maxDrawdown(string), riskScore(number 1-10),\n'
-      +'weeklyThesis(string), exitRules(string), riskWarning(string),\n'
-      +'allocation with etfs/stocks/options/hedge each having pct(number) and dollar(number),\n'
-      +'etfPositions array, stockPositions array, optionPositions array, hedgePositions array.\n'
-      +'Each position: ticker, name, dollar, pct, action, strike(number for options), expiry(YYYY-MM-DD), rationale(max 120 chars).\n'
+      +'CRITICAL STRIKE RULE: Every option strike MUST be derived from the live prices above. '
+      +'If NVDA=$212, use strikes like $210/$220/$225 — never $140/$145/$155. '
+      +'A strike more than 15% away from the live price is an error.\n'
+      +'Option expiry dates MUST be between '+nextFriStr+' and '+fri4wStr+'.\n'
+      +'Include hedging. Return a JSON object with: '
+      +'summary, targetReturn(e.g."6%"), targetDollar, maxDrawdown, riskScore(1-10), '
+      +'weeklyThesis, exitRules, riskWarning, '
+      +'allocation{etfs{pct,dollar}, stocks{pct,dollar}, options{pct,dollar}, hedge{pct,dollar}}, '
+      +'etfPositions[], stockPositions[], optionPositions[], hedgePositions[]. '
+      +'Each position: ticker, name, dollar, pct, action, strike(long leg), strikeShort(short leg for spreads), expiry(YYYY-MM-DD), rationale(max 120 chars), '
+      +'entryPrice(number: suggested limit price to enter), stopLoss(number: stop loss price or strike), takeProfit(number: target exit price), '
+      +'contractsOrShares(number: how many contracts or shares based on dollar allocation), actionSteps(array of 3 short strings: exact steps to execute this trade). '
       +'All dollars must sum to '+cap+'.';
   };
 
@@ -660,12 +675,12 @@ async function go(){
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
-        system:'You are an expert options trader. Today is '+todayStr+'. All option expiry dates must be AFTER '+todayStr+'. Output ONLY valid JSON. Start with { end with }. No markdown, no backticks, no preamble.',
+        system:'You are an expert options trader with real-time market access. Today is '+todayStr+'. Use ONLY the live prices provided — never use prices from memory or training data. All option strikes must be near current market prices. Expiry dates must be after '+todayStr+'. Output ONLY valid JSON starting with { and ending with }. No markdown, no backticks.',
         messages:[{role:'user',content:prompt}]})
     });
     var d=await r.json();
     if(!r.ok){
-      if(r.status===401)throw new Error('Invalid API key. Tap ⚙️ to fix.');
+      if(r.status===401)throw new Error('Invalid Anthropic API key.');
       if(r.status===429)throw new Error('Rate limited — wait 30 sec.');
       throw new Error(d?.error?.message||'API error '+r.status);
     }
@@ -685,8 +700,8 @@ async function go(){
     var plan;
     try{plan=parseIt(raw);}
     catch(e){
-      document.getElementById('loadingMsg').textContent='Retrying…';
-      var raw2=await callAPI(makePrompt()+'\nKeep rationale fields under 80 chars.');
+      document.getElementById('loadingMsg').textContent='Retrying parse…';
+      var raw2=await callAPI(makePrompt()+' Keep rationale under 80 chars.');
       plan=parseIt(raw2);
     }
     _plan=plan;
@@ -700,6 +715,7 @@ async function go(){
     document.getElementById('genBtn').disabled=false;
   }
 }
+
 
 // ── RENDER ──
 var _pidx=0;
@@ -728,7 +744,8 @@ function posCard(p,tc,tagC,tagBg){
   // Strike + expiry badge for options
   var strikeBadge='';
   if(p.strike&&p.expiry){
-    strikeBadge='<div style="font-size:10px;color:#d97706;font-weight:800;margin-top:2px">$'+p.strike+' · '+p.expiry+'</div>';
+    var strikeLabel=p.strikeShort?'$'+p.strike+'/$'+p.strikeShort:'$'+p.strike;
+    strikeBadge='<div style="font-size:10px;color:#d97706;font-weight:800;margin-top:2px">'+strikeLabel+' · '+p.expiry+'</div>';
   }
 
   return '<div class="pos">'
@@ -746,6 +763,32 @@ function posCard(p,tc,tagC,tagBg){
     +'<div class="pos-body" id="pb-'+id+'">'
     +liveHtml
     +'<div class="pos-note">'+p.rationale+'</div>'
+    +(function(){
+        var rows='';
+        // Entry / Stop / Target / Qty row
+        var hasEntry=p.entryPrice||p.stopLoss||p.takeProfit||p.contractsOrShares;
+        if(hasEntry){
+          rows+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:10px">';
+          rows+='<div style="background:#f4f7fb;border-radius:7px;padding:7px 6px;text-align:center;border:1px solid #e2e8f0"><div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Entry</div><div style="font-size:12px;font-weight:900;color:#09101f;margin-top:2px">'+(p.entryPrice?'$'+p.entryPrice:'–')+'</div></div>';
+          rows+='<div style="background:#fee2e2;border-radius:7px;padding:7px 6px;text-align:center;border:1px solid #fecaca"><div style="font-size:9px;color:#dc2626;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Stop</div><div style="font-size:12px;font-weight:900;color:#dc2626;margin-top:2px">'+(p.stopLoss?'$'+p.stopLoss:'–')+'</div></div>';
+          rows+='<div style="background:#dcfce7;border-radius:7px;padding:7px 6px;text-align:center;border:1px solid #bbf7d0"><div style="font-size:9px;color:#16a34a;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Target</div><div style="font-size:12px;font-weight:900;color:#16a34a;margin-top:2px">'+(p.takeProfit?'$'+p.takeProfit:'–')+'</div></div>';
+          rows+='<div style="background:#ede9fe;border-radius:7px;padding:7px 6px;text-align:center;border:1px solid #ddd6fe"><div style="font-size:9px;color:#7c3aed;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Qty</div><div style="font-size:12px;font-weight:900;color:#7c3aed;margin-top:2px">'+(p.contractsOrShares||'–')+'</div></div>';
+          rows+='</div>';
+        }
+        // Action steps
+        if(p.actionSteps&&p.actionSteps.length){
+          rows+='<div style="margin-top:10px;background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid #e2e8f0">';
+          rows+='<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">▶ How to Execute</div>';
+          p.actionSteps.forEach(function(s,i){
+            rows+='<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:'+(i<p.actionSteps.length-1?'6px':'0')+'">'
+              +'<span style="background:#09101f;color:#fff;border-radius:4px;font-size:9px;font-weight:900;padding:2px 5px;flex-shrink:0;margin-top:1px">'+(i+1)+'</span>'
+              +'<span style="font-size:11px;color:#475569;font-weight:600;line-height:1.5">'+s+'</span>'
+              +'</div>';
+          });
+          rows+='</div>';
+        }
+        return rows;
+      }())
     +'</div></div>';
 }
 
