@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Alpha Yield Engine</title>
     
+    <!-- iOS Home Screen App Configurations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaYield">
     <link rel="apple-touch-icon" href="icon.png">
     
+    <!-- Web App Manifest Link -->
     <link rel="manifest" href="manifest.json">
 
     <style>
@@ -30,8 +32,21 @@
             background-color: #111827; 
             border: 2px solid #334155; 
             border-radius: 16px;
-            padding: 16px 14px;
+            padding: 0 14px 16px 14px; /* Removed top padding to allow sticky area to flush mount */
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        /* NEW STICKY SECTION WRAPPER */
+        .sticky-header-container {
+            position: sticky;
+            top: 0;
+            background-color: #111827; /* Matches container background to block content underneath */
+            z-index: 100;
+            padding-top: 16px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 14px;
         }
         
         /* Brand Identity Layout */
@@ -56,7 +71,7 @@
             background-color: #1e293b;
             padding: 6px;
             border-radius: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             border: 1px solid #475569;
         }
         .tab-btn {
@@ -114,7 +129,7 @@
 
         /* Header Utility Styles */
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        header { border-bottom: 1px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        header { padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .title { font-size: 18px; font-weight: 700; color: #34d399; }
         .subtitle { font-size: 10px; color: #94a3b8; margin-top: 2px; }
         .grand-payout { font-size: 20px; font-weight: 900; color: #34d399; text-align: right; }
@@ -187,25 +202,31 @@
 
     <div class="container">
         
-        <header>
-            <div class="brand-container">
-                <div class="logo-mark">Α</div>
-                <div>
-                    <h1 class="title">Alpha Yield</h1>
-                    <p class="subtitle">Systematic Risk & Allocation Engine</p>
+        <!-- NEW STICKY MATRIX HEAD FOR OUTLINE PROFILE -->
+        <div class="sticky-header-container">
+            <!-- Header Section Component Layer -->
+            <header>
+                <div class="brand-container">
+                    <div class="logo-mark">Α</div>
+                    <div>
+                        <h1 class="title">Alpha Yield</h1>
+                        <p class="subtitle">Systematic Risk & Allocation Engine</p>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div id="payoutDisplay" class="grand-payout">$0 / wk</div>
-                <div id="annualizedWarning" class="annualized-text">($0 / yr)</div>
-            </div>
-        </header>
+                <div>
+                    <div id="payoutDisplay" class="grand-payout">$0 / wk</div>
+                    <div id="annualizedWarning" class="annualized-text">($0 / yr)</div>
+                </div>
+            </header>
 
-        <div class="tab-navigation">
-            <button id="plannerBtn" class="tab-btn active" onclick="switchTab('planner')">Yield Planner</button>
-            <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">Execution Plan</button>
+            <!-- Tab Navigation Bar Layout -->
+            <div class="tab-navigation">
+                <button id="plannerBtn" class="tab-btn active" onclick="switchTab('planner')">Yield Planner</button>
+                <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">Execution Plan</button>
+            </div>
         </div>
 
+        <!-- TAB 1: ALLOCATION YIELD PLANNER -->
         <div id="plannerTab" class="tab-content active">
             <div class="control-panel">
                 <div class="grid-2">
@@ -237,21 +258,25 @@
                 <button onclick="sharePlan()" class="action-btn">Share Strategy Plan</button>
             </div>
 
+            <!-- Yield Target Mount Area -->
             <div id="plannerResults"></div>
         </div>
 
+        <!-- TAB 2: INTEGRATED SCANNER & EXECUTION BLUEPRINT -->
         <div id="scannerTab" class="tab-content">
             <div style="padding: 2px 2px 8px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
                 <span>Derivatives Market Signal Integrator</span>
                 <span id="scanTimestamp" style="color: #10b981; font-weight: 700;">Live Engine Active</span>
             </div>
 
+            <!-- New Sub-Tab Navigation Bar Module -->
             <div class="sub-tab-navigation">
                 <button id="subTabEtfBtn" class="sub-tab-btn active" onclick="switchSubTab('etf')">🛡️ Core ETF</button>
                 <button id="subTabSpreadsBtn" class="sub-tab-btn" onclick="switchSubTab('spreads')">⚡ Spreads</button>
                 <button id="subTabStocksBtn" class="sub-tab-btn" onclick="switchSubTab('stocks')">🚀 High-Beta</button>
             </div>
 
+            <!-- Dynamic Mounting point for all active subtabs -->
             <div id="scannerResults">Loading live deployment layouts...</div>
         </div>
 
@@ -352,7 +377,6 @@
                             asset.border = "#3b82f6";
                         }
                     } catch(innerErr) {
-                        // Keep our 2026 macro-aware distribution safe during offline instances
                         console.log("Using baseline metrics for " + asset.symbol);
                     }
                 }
