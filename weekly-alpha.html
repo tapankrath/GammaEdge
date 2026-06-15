@@ -101,7 +101,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .met-v{font-size:16px;font-weight:900;margin-top:2px}
 .rbar{height:5px;background:#f4f7fb;border-radius:3px;overflow:hidden;margin:6px 0 10px;border:1px solid #c8d5e8}
 .rbar-fill{height:100%;border-radius:3px}
-.sec-hdr{display:flex;align-items:center;gap:8px;margin:16px 0 8px}
+.sec-hdr{display:flex;align-items:center;gap:8px;margin:16px 0 8px;position:sticky;top:0;z-index:50;background:#e8eef6;padding:6px 4px;margin-left:-4px;margin-right:-4px;border-radius:8px}
 .sec-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sec-ttl{font-size:13px;font-weight:900}
 
@@ -611,7 +611,6 @@ function posCard(p,tc,tagC,tagBg){
     +'</div></div>'
     +'<div class="pos-body" id="pb-'+id+'">'
     +'<div class="pos-note">'+p.rationale+'</div>'
-    +'<button class="trade-btn" onclick="alert(\''+p.action+' · '+p.ticker+' · '+fmt(p.dollar)+'\\nCopy ticker to your broker app.\')">▶ Place Trade</button>'
     +'</div></div>';
 }
 
