@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Alpha Yield Engine</title>
     
-    <!-- iOS Home Screen App Configurations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaYield">
     <link rel="apple-touch-icon" href="icon.png">
     
-    <!-- Web App Manifest Link -->
     <link rel="manifest" href="manifest.json">
 
     <style>
@@ -23,6 +21,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 12px;
             -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
         }
         
         /* Mobile App Frame Wrapper */
@@ -32,18 +31,21 @@
             background-color: #111827; 
             border: 2px solid #334155; 
             border-radius: 16px;
-            padding: 0 14px 16px 14px;
+            padding: 0 14px 16px 14px; 
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
-            /* overflow must NOT be hidden — it breaks position:sticky on children */
+            /* overflow:hidden removed — breaks position:sticky on children */
+            display: flex;
+            flex-direction: column;
         }
 
-        /* NEW STICKY SECTION WRAPPER */
+        /* Premium Sticky Header Component Layer */
         .sticky-header-container {
             position: sticky;
-            top: -1px; /* sit flush under any body padding */
-            background-color: #111827;
+            top: 0;
+            background-color: #111827; 
             z-index: 100;
-            padding: 16px 0 2px;
+            padding-top: 12px;
+            padding-bottom: 2px;
             border-bottom: 1px solid #1e293b;
             margin-bottom: 14px;
             margin-left: -14px;
@@ -68,14 +70,36 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Premium Primary Tab Layout Module */
+        /* Mini Header Refresh Interactive Token Elements */
+        .subtitle-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+        .refresh-trigger-btn {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            color: #34d399;
+            font-size: 8.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 1.5px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: all 0.1s ease-in-out;
+        }
+        .refresh-trigger-btn:active {
+            transform: scale(0.93);
+            background-color: #334155;
+            border-color: #10b981;
+        }
+
+        /* Three Tab Primary Layout Grid */
         .tab-navigation {
             display: flex;
             background-color: #1e293b;
-            padding: 6px;
+            padding: 4px;
             border-radius: 10px;
             margin-bottom: 12px;
             border: 1px solid #475569;
+            gap: 2px;
         }
         .tab-btn {
             flex: 1;
@@ -83,13 +107,13 @@
             background: none;
             border: none;
             color: #94a3b8;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             cursor: pointer;
             text-align: center;
             border-radius: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
             transition: all 0.2s ease-in-out;
         }
         .tab-btn.active {
@@ -134,7 +158,7 @@
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         header { padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .title { font-size: 18px; font-weight: 700; color: #34d399; }
-        .subtitle { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+        .subtitle { font-size: 10px; color: #94a3b8; }
         .grand-payout { font-size: 20px; font-weight: 900; color: #34d399; text-align: right; }
         .annualized-text { font-size: 11px; color: #fbbf24; font-weight: 600; text-align: right; margin-top: 2px; }
 
@@ -148,7 +172,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; tracking: 0.05em; }
+        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.05em; }
         
         .input-wrapper { position: relative; display: flex; align-items: center; }
         .currency-symbol { position: absolute; left: 8px; color: #94a3b8; font-size: 12px; font-weight: 600; }
@@ -194,33 +218,39 @@
         .pool-badge { background-color: #334155; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
         .scanner-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #64748b; }
         .scan-tag { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+        
+        /* Tactical State Colors */
         .tag-momentum { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-overbought { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
         .tag-oversold { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .tag-trend-bull { background-color: rgba(16, 185, 129, 0.25); color: #10b981; border: 1px solid #10b981; }
+        .tag-trend-bear { background-color: rgba(244, 63, 94, 0.25); color: #f43f5e; border: 1px solid #f43f5e; }
+        .tag-trend-neutral { background-color: rgba(234, 179, 8, 0.25); color: #eab308; border: 1px solid #eab308; }
+
         .ai-box { background-color: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 10.5px; line-height: 1.4; }
         .execution-blueprint { background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px; margin-top: 6px; font-size: 10.5px; color: #e2e8f0; }
     </style>
 </head>
 <body>
 
-    <!-- Back to GammaEdge Navigation Pill -->
-    <div style="max-width:440px;margin:0 auto 10px;">
-        <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;background:#0f172a;color:#94a3b8;padding:7px 14px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid #1e293b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:all .2s;" onmouseover="this.style.background='#1e293b';this.style.color='#f8fafc'" onmouseout="this.style.background='#0f172a';this.style.color='#94a3b8'">
-            <span style="font-size:12px">&#8592;</span> GammaEdge
-        </a>
-    </div>
-
     <div class="container">
         
-        <!-- NEW STICKY MATRIX HEAD FOR OUTLINE PROFILE -->
         <div class="sticky-header-container">
-            <!-- Header Section Component Layer -->
+            <!-- Back to GammaEdge -->
+            <div style="margin-bottom:8px">
+                <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;color:#64748b;font-size:11px;font-weight:700;text-decoration:none;letter-spacing:.03em;-webkit-tap-highlight-color:transparent" onmouseover="this.style.color='#34d399'" onmouseout="this.style.color='#64748b'">
+                    <span style="font-size:13px">&#8592;</span> GammaEdge
+                </a>
+            </div>
             <header>
                 <div class="brand-container">
                     <div class="logo-mark">Α</div>
                     <div>
                         <h1 class="title">Alpha Yield</h1>
-                        <p class="subtitle">Systematic Risk & Allocation Engine</p>
+                        <div class="subtitle-row">
+                            <p class="subtitle">Systematic Risk & Allocation Engine</p>
+                            <button onclick="triggerManualDataFetch()" class="refresh-trigger-btn">🔄 Refresh</button>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -229,19 +259,26 @@
                 </div>
             </header>
 
-            <!-- Tab Navigation Bar Layout -->
             <div class="tab-navigation">
-                <button id="plannerBtn" class="tab-btn active" onclick="switchTab('planner')">Yield Planner</button>
-                <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">Execution Plan</button>
+                <button id="trendBtn" class="tab-btn active" onclick="switchTab('trend')">📈 Macro Trend</button>
+                <button id="plannerBtn" class="tab-btn" onclick="switchTab('planner')">💰 Yield Planner</button>
+                <button id="scannerBtn" class="tab-btn" onclick="switchTab('scanner')">⚡ Execution Plan</button>
             </div>
         </div>
 
-        <!-- TAB 1: ALLOCATION YIELD PLANNER -->
-        <div id="plannerTab" class="tab-content active">
+        <div id="trendTab" class="tab-content active">
+            <div style="padding: 2px 2px 8px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
+                <span>Index Momentum & Directional Signal Matrix</span>
+                <span id="trendTimestamp" style="color: #3b82f6; font-weight: 700;">Initializing Stream...</span>
+            </div>
+            <div id="trendResults">Loading structural index feeds...</div>
+        </div>
+
+        <div id="plannerTab" class="tab-content">
             <div class="control-panel">
                 <div class="grid-2">
                     <div>
-                        <label class="input-label" for="capital">Capital</label>
+                        <label class="input-label" for="capital">Capital Base</label>
                         <div class="input-wrapper">
                             <span class="currency-symbol">$</span>
                             <input type="number" id="capital" value="100000" oninput="calculateStrategy()" class="capital-input">
@@ -268,35 +305,34 @@
                 <button onclick="sharePlan()" class="action-btn">Share Strategy Plan</button>
             </div>
 
-            <!-- Yield Target Mount Area -->
             <div id="plannerResults"></div>
         </div>
 
-        <!-- TAB 2: INTEGRATED SCANNER & EXECUTION BLUEPRINT -->
         <div id="scannerTab" class="tab-content">
             <div style="padding: 2px 2px 8px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
                 <span>Derivatives Market Signal Integrator</span>
                 <span id="scanTimestamp" style="color: #10b981; font-weight: 700;">Live Engine Active</span>
             </div>
 
-            <!-- New Sub-Tab Navigation Bar Module -->
             <div class="sub-tab-navigation">
                 <button id="subTabEtfBtn" class="sub-tab-btn active" onclick="switchSubTab('etf')">🛡️ Core ETF</button>
                 <button id="subTabSpreadsBtn" class="sub-tab-btn" onclick="switchSubTab('spreads')">⚡ Spreads</button>
                 <button id="subTabStocksBtn" class="sub-tab-btn" onclick="switchSubTab('stocks')">🚀 High-Beta</button>
             </div>
 
-            <!-- Dynamic Mounting point for all active subtabs -->
             <div id="scannerResults">Loading live deployment layouts...</div>
         </div>
 
     </div>
 
     <script>
-        // Corrected mid-2026 baseline market value
-        var spyPrice = 745.00;
+        // Mid-2026 baseline fallback structural parameters
+        var spyPrice = 756.16;
+        var qqqPrice = 743.90;
         
-        // Internal Global Master Allocation Tiers
+        var spyChange = 1.94;
+        var qqqChange = 3.13;
+        
         var globalAllocations = {
             etf: 50000,
             stock: 35000,
@@ -304,48 +340,64 @@
             horizon: "weekly"
         };
 
-        // Track currently viewed engine sub-category
         var currentSubTab = 'etf';
+        var currentActiveTab = 'trend';
 
-        // Upgraded Basket: 10 Institutional Blue Chips with 2026 Macro-Aware Fallback States
         var marketSignals = [
-            { symbol: "NVDA", price: 205.19, change: -4.20, state: "OVERSOLD", border: "#10b981" },
-            { symbol: "TSLA", price: 185.00, change: -2.80, state: "OVERSOLD", border: "#10b981" },
-            { symbol: "AAPL", price: 212.50, change: 1.10,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMD",  price: 162.30, change: -3.10, state: "OVERSOLD", border: "#10b981" },
-            { symbol: "MSFT", price: 442.10, change: 0.40,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMZN", price: 194.80, change: -0.20, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "META", price: 521.15, change: 2.90,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "GOOGL",price: 184.50, change: 0.80,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "JPM",  price: 218.40, change: 2.60,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "DIS",  price: 108.90, change: -0.50, state: "MOMENTUM", border: "#3b82f6" }
+            { symbol: "NVDA", price: 215.40, change: 1.20, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "TSLA", price: 198.50, change: -0.40, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AAPL", price: 224.15, change: 2.10,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AMD",  price: 171.80, change: -2.95, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "MSFT", price: 458.60, change: 0.85,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AMZN", price: 202.30, change: 1.15,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "META", price: 539.40, change: 3.10,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "GOOGL",price: 191.25, change: 0.60,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "JPM",  price: 226.70, change: 2.85,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "AVGO", price: 1485.00, change: -1.40, state: "MOMENTUM", border: "#3b82f6" }
         ];
 
+        // Explicit wrapper function for the new header refresh button element
+        function triggerManualDataFetch() {
+            console.log("Manual price stream request initialized by user.");
+            fetchMarketPrices();
+        }
+
         function switchTab(tabName) {
+            currentActiveTab = tabName;
+            
+            var trendTab = document.getElementById('trendTab');
             var plannerTab = document.getElementById('plannerTab');
             var scannerTab = document.getElementById('scannerTab');
+            
+            var trendBtn = document.getElementById('trendBtn');
             var plannerBtn = document.getElementById('plannerBtn');
             var scannerBtn = document.getElementById('scannerBtn');
 
-            if (tabName === 'planner') {
+            trendTab.classList.remove('active');
+            plannerTab.classList.remove('active');
+            scannerTab.classList.remove('active');
+            
+            trendBtn.classList.remove('active');
+            plannerBtn.classList.remove('active');
+            scannerBtn.classList.remove('active');
+
+            if (tabName === 'trend') {
+                trendTab.classList.add('active');
+                trendBtn.classList.add('active');
+                renderMacroTrendWorkspace();
+            } else if (tabName === 'planner') {
                 plannerTab.classList.add('active');
-                scannerTab.classList.remove('active');
                 plannerBtn.classList.add('active');
-                scannerBtn.classList.remove('active');
                 calculateStrategy();
-            } else {
+            } else if (tabName === 'scanner') {
                 scannerTab.classList.add('active');
-                plannerTab.classList.remove('active');
                 scannerBtn.classList.add('active');
-                plannerBtn.classList.remove('active');
                 runMarketScanner();
             }
         }
 
         function switchSubTab(subTabName) {
             currentSubTab = subTabName;
-            
-            // Handle active styling swaps
             document.getElementById('subTabEtfBtn').classList.remove('active');
             document.getElementById('subTabSpreadsBtn').classList.remove('active');
             document.getElementById('subTabStocksBtn').classList.remove('active');
@@ -357,47 +409,114 @@
             runMarketScanner();
         }
 
+        function generateTrendMetrics(symbol, change, price) {
+            var state = "MEAN REVERSION / RANGE BOUND";
+            var badgeClass = "tag-trend-neutral";
+            var strategyTitle = "";
+            var dteRecommendation = "";
+            var alphaInstruction = "";
+            var borderStyle = "#eab308";
+
+            if (change >= 1.25) {
+                state = "AGGRESSIVE BREAKOUT";
+                badgeClass = "tag-trend-bull";
+                strategyTitle = "BUY CALL OPTIONS (MOMENTUM CONVICTION)";
+                dteRecommendation = "4 DTE to 7 DTE (Short-term Delta Acceleration)";
+                alphaInstruction = "Momentum breakout parameters confirmed. Look to acquire **0.40 Delta Long Calls** on intra-day retests of the VWAP band. Capitalize on high velocity gamma pricing expansion.";
+                borderStyle = "#10b981";
+            } else if (change <= -1.25) {
+                state = "DEEP CAPITULATION ZONE";
+                badgeClass = "tag-trend-bear";
+                strategyTitle = "BUY PUT OPTIONS (SHORT SQUEEZE / VELOCITY PROTECT)";
+                dteRecommendation = "2 DTE to 5 DTE (High Velocity Vega Spike)";
+                alphaInstruction = "Heavy systemic distribution confirmed. Execute directional **0.45 Delta Long Puts** at near-term supply walls. Monitor closely for short-squeeze mean reversion signals.";
+                borderStyle = "#f43f5e";
+            } else {
+                state = "MEAN REVERSION / RANGE BOUND";
+                badgeClass = "tag-trend-neutral";
+                strategyTitle = "CREDIT INTERVAL SPREADS (SELLER BIAS)";
+                dteRecommendation = "0 DTE to 3 DTE (Rapid Absolute Theta Decay)";
+                alphaInstruction = "Index velocity is contained inside standard deviation ranges. **Do not chase raw directional calls or puts**. Deploy Iron Condors or multi-strike vertical credit spreads to capture predictable premium decay.";
+            }
+
+            var changeColor = change >= 0 ? "#34d399" : "#f43f5e";
+            var changeSign = change >= 0 ? "+" : "";
+
+            var block = '';
+            block += '<div class="scanner-card" style="border-left-color: ' + borderStyle + '; padding: 14px; margin-bottom:12px;">';
+            block += '  <div class="flex-between" style="margin-bottom: 8px;">';
+            block += '    <div>';
+            block += '      <span style="font-size: 16px; font-weight: 800; color:#fff; margin-right:6px;">' + symbol + '</span>';
+            block += '      <span class="scan-tag ' + badgeClass + '">' + state + '</span>';
+            block += '    </div>';
+            block += '    <div style="text-align: right;">';
+            block += '      <span style="font-size: 14px; font-weight: 700; color:#fff; display:block;">$' + price.toFixed(2) + '</span>';
+            block += '      <span style="font-size: 11px; font-weight: 700; color:' + changeColor + ';">' + changeSign + change.toFixed(2) + '%</span>';
+            block += '    </div>';
+            block += '  </div>';
+            block += '  <div class="ai-box" style="color: #cbd5e1; border-color: rgba(255,255,255,0.1);">';
+            block += '    <div style="font-weight:800; color:#fbbf24; text-transform:uppercase; font-size:10px; margin-bottom:4px;">🎯 Core Strategy Recommendation:</div>';
+            block += '    <div style="font-size:12px; font-weight:700; color:#f8fafc; margin-bottom:4px;">' + strategyTitle + '</div>';
+            block += '    <div style="font-size:11px; color:#94a3b8;"><span style="font-weight:700; color:#3b82f6;">Target Duration:</span> ' + dteRecommendation + '</div>';
+            block += '  </div>';
+            block += '  <div class="execution-blueprint" style="font-size:11px; line-height:1.4;"><b>Tactical Directive:</b> ' + alphaInstruction + '</div>';
+            block += '</div>';
+            
+            return block;
+        }
+
+        function renderMacroTrendWorkspace() {
+            var html = "";
+            html += generateTrendMetrics("SPY (S&P 500 Index)", spyChange, spyPrice);
+            html += generateTrendMetrics("QQQ (Nasdaq 100 Index)", qqqChange, qqqPrice);
+            document.getElementById('trendResults').innerHTML = html;
+        }
+
         async function fetchMarketPrices() {
-            const proxy = "https://corsproxy.io/?";
             try {
-                const resSPY = await fetch(proxy + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/SPY'));
-                const dataSPY = await resSPY.json();
-                if(dataSPY.chart.result[0].meta.regularMarketPrice) {
-                    spyPrice = dataSPY.chart.result[0].meta.regularMarketPrice;
-                }
-                
-                for (let asset of marketSignals) {
-                    try {
-                        const resAsset = await fetch(proxy + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + asset.symbol));
-                        const dataAsset = await resAsset.json();
-                        var currentPrice = dataAsset.chart.result[0].meta.regularMarketPrice;
-                        var prevClose = dataAsset.chart.result[0].meta.chartPreviousClose;
-                        
-                        asset.price = currentPrice;
-                        asset.change = prevClose ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
-                        
-                        if (asset.change >= 2.5) {
-                            asset.state = "OVERBOUGHT";
-                            asset.border = "#f43f5e";
-                        } else if (asset.change <= -2.5) {
-                            asset.state = "OVERSOLD";
-                            asset.border = "#10b981";
-                        } else {
-                            asset.state = "MOMENTUM";
-                            asset.border = "#3b82f6";
+                const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quotes?symbols=SPY,QQQ,NVDA,TSLA,AAPL,AMD,MSFT,AMZN,META,GOOGL,JPM,AVGO'));
+                const outerData = await res.json();
+                const data = JSON.parse(outerData.contents);
+                const quotes = data.quoteResponse.result;
+
+                quotes.forEach(quote => {
+                    var symbol = quote.symbol;
+                    var price = quote.regularMarketPrice;
+                    var change = quote.regularMarketChangePercent;
+
+                    if (symbol === "SPY") {
+                        spyPrice = price; spyChange = change;
+                    } else if (symbol === "QQQ") {
+                        qqqPrice = price; qqqChange = change;
+                    } else {
+                        var asset = marketSignals.find(a => a.symbol === symbol);
+                        if (asset) {
+                            asset.price = price;
+                            asset.change = change;
+                            if (change >= 2.0) {
+                                asset.state = "OVERBOUGHT"; asset.border = "#f43f5e";
+                            } else if (change <= -2.0) {
+                                asset.state = "OVERSOLD"; asset.border = "#10b981";
+                            } else {
+                                asset.state = "MOMENTUM"; asset.border = "#3b82f6";
+                            }
                         }
-                    } catch(innerErr) {
-                        console.log("Using baseline metrics for " + asset.symbol);
                     }
-                }
+                });
+
+                if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
+                else if (currentActiveTab === 'planner') calculateStrategy();
+                else if (currentActiveTab === 'scanner') runMarketScanner();
                 
-                if(document.getElementById('plannerTab').classList.contains('active')) {
-                    calculateStrategy();
-                } else {
-                    runMarketScanner();
-                }
+                document.getElementById('trendTimestamp').innerText = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             } catch (e) {
-                console.log("Fallback structures activated.", e);
+                console.log("Network interception encountered. Processing locally insulated matrix layers.");
+                var timestampString = "Insulated Mode (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
+                document.getElementById('trendTimestamp').innerText = timestampString;
+                
+                if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
+                else if (currentActiveTab === 'planner') calculateStrategy();
+                else if (currentActiveTab === 'scanner') runMarketScanner();
             }
         }
 
@@ -446,7 +565,6 @@
             var totalWeight = etfPct + stockPct + optionsPct + hedgePct;
             etfPct /= totalWeight; stockPct /= totalWeight; optionsPct /= totalWeight; hedgePct /= totalWeight;
 
-            // Update global allocation properties dynamically
             globalAllocations.etf = capital * etfPct;
             globalAllocations.stock = capital * stockPct;
             globalAllocations.options = capital * optionsPct;
@@ -530,9 +648,6 @@
                 return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
             };
 
-            // ==========================================
-            // SUBTAB: CORE COLLATERAL (SPY)
-            // ==========================================
             if (currentSubTab === 'etf') {
                 var spyRequiredCollateral = spyPrice * 100;
                 var maxSpyContractsAllowed = Math.floor(globalAllocations.etf / spyRequiredCollateral);
@@ -552,11 +667,8 @@
                 html += '</div>';
             }
 
-            // ==========================================
-            // SUBTAB: SPREADS ENGINE (SPX)
-            // ==========================================
             else if (currentSubTab === 'spreads') {
-                var marginSpreadWidth = 500; // Assumes standard $5 wide strike thresholds ($500 margin requirement per vertical)
+                var marginSpreadWidth = 500; 
                 var maxSpxSpreadsAllowed = Math.floor(globalAllocations.options / marginSpreadWidth);
                 
                 html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Index Spreads Workspace</span><span class="pool-badge">Pool: ' + fmtCurrency(globalAllocations.options) + '</span></div>';
@@ -574,9 +686,6 @@
                 html += '</div>';
             }
 
-            // ==========================================
-            // SUBTAB: HIGH-BETA DYNAMIC STOCK BASKET
-            // ==========================================
             else if (currentSubTab === 'stocks') {
                 var activeAssetCount = marketSignals.length;
                 var splitAllocationPool = globalAllocations.stock / (activeAssetCount > 0 ? activeAssetCount : 1);
@@ -641,7 +750,9 @@
             }
 
             document.getElementById('scannerResults').innerHTML = html;
-            document.getElementById('scanTimestamp').innerText = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            
+            var refreshTimeString = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            document.getElementById('scanTimestamp').innerText = refreshTimeString;
         }
 
         function sharePlan() {
@@ -667,6 +778,7 @@
         }
 
         window.onload = function() {
+            renderMacroTrendWorkspace();
             calculateStrategy();
             fetchMarketPrices();
             setInterval(fetchMarketPrices, 60000);
