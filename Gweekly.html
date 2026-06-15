@@ -150,8 +150,8 @@
         }
 
         /* Core Display Content Framework Toggle */
-        .tab-content { display: none !important; }
-        .tab-content.active { display: block !important; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         /* Header Utility Styles */
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
@@ -321,26 +321,26 @@
 
     <script>
         // Baseline Parameters (Updated fallback structures)
-        var spyPrice = 756.16;
-        var qqqPrice = 743.90;
-        var spyChange = 1.94;
-        var qqqChange = 3.13;
+        var spyPrice = 542.44;
+        var qqqPrice = 478.20;
+        var spyChange = 0.45;
+        var qqqChange = 0.68;
         
         var globalAllocations = { etf: 50000, stock: 35000, options: 10000, horizon: "weekly" };
         var currentSubTab = 'etf';
         var currentActiveTab = 'trend';
 
         var marketSignals = [
-            { symbol: "NVDA", price: 214.98, change: 1.16, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "TSLA", price: 198.04, change: -0.45, state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AAPL", price: 223.97, change: 2.08,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "AMD",  price: 171.34, change: -3.00, state: "OVERSOLD", border: "#10b981" },
-            { symbol: "MSFT", price: 458.65, change: 0.86,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "AMZN", price: 202.30, change: 1.15,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "META", price: 539.40, change: 3.10,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "GOOGL",price: 191.25, change: 0.60,  state: "MOMENTUM", border: "#3b82f6" },
-            { symbol: "JPM",  price: 226.70, change: 2.85,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "AVGO", price: 1485.00, change: -1.40, state: "MOMENTUM", border: "#3b82f6" }
+            { symbol: "NVDA", price: 127.40, change: 1.16, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "TSLA", price: 187.44, change: -0.45, state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AAPL", price: 214.32, change: 2.08,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "AMD",  price: 159.10, change: -3.00, state: "OVERSOLD", border: "#10b981" },
+            { symbol: "MSFT", price: 442.12, change: 0.86,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AMZN", price: 189.08, change: 1.15,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "META", price: 504.20, change: 3.10,  state: "OVERBOUGHT", border: "#f43f5e" },
+            { symbol: "GOOGL",price: 176.50, change: 0.60,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "JPM",  price: 198.40, change: 1.10,  state: "MOMENTUM", border: "#3b82f6" },
+            { symbol: "AVGO", price: 172.50, change: -1.40, state: "MOMENTUM", border: "#3b82f6" }
         ];
 
         function triggerManualDataFetch() {
@@ -449,7 +449,6 @@
 
         async function fetchMarketPrices() {
             try {
-                // Instantiated timestamp engine to bust the intermediary network proxy's stale cache structure
                 var cacheBuster = new Date().getTime();
                 var yahooUrl = 'https://query1.finance.yahoo.com/v7/finance/quotes?symbols=SPY,QQQ,NVDA,TSLA,AAPL,AMD,MSFT,AMZN,META,GOOGL,JPM,AVGO&_cx=' + cacheBuster;
                 
@@ -457,7 +456,11 @@
                 if (!res.ok) throw new Error("Stream connection throttled.");
                 
                 const outerData = await res.json();
+                if (!outerData || !outerData.contents) throw new Error("Invalid proxy payload structures.");
+                
                 const data = JSON.parse(outerData.contents);
+                if (!data || !data.quoteResponse || !data.quoteResponse.result) throw new Error("Yahoo endpoint parsing layout exception.");
+                
                 const quotes = data.quoteResponse.result;
 
                 quotes.forEach(quote => {
@@ -481,9 +484,10 @@
 
                 document.getElementById('trendTimestamp').innerText = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             } catch (e) {
-                console.warn("Proxy intercept encountered. Re-routing through local evaluation layer.");
-                document.getElementById('trendTimestamp').innerText = "Local Matrix Active (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
+                console.warn("Proxy intercept handled. Running native insulated strategy fallback matrix.");
+                document.getElementById('trendTimestamp').innerText = "Insulated Mode (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
             } finally {
+                // Ensure UI components refresh regardless of data stream status to prevent blank frames
                 if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
                 else if (currentActiveTab === 'planner') calculateStrategy();
                 else if (currentActiveTab === 'scanner') runMarketScanner();
