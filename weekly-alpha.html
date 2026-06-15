@@ -12,7 +12,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 :root{--bg:#e8eef6;--p1:#fff;--p2:#f4f7fb;--bor:#c8d5e8;--text:#09101f;--sub:#475569;--mut:#64748b;--grn:#16a34a;--gbg:#dcfce7;--gbd:#4ade80;--red:#dc2626;--rbg:#fee2e2;--rbd:#f87171;--amb:#d97706;--abg:#fef3c7;--abd:#fbbf24;--blu:#2563eb;--bbg:#dbeafe;--bbd:#60a5fa;--pur:#7c3aed;--pbg:#ede9fe;--pbd:#a78bfa}
 
 /* NAV */
-.topbar{background:#0f172a;padding:0}
+.topbar{background:#0f172a;padding:0;position:sticky;top:0;z-index:100}
 .topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
 .app-title{display:flex;flex-direction:column}
 .app-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em}
@@ -101,7 +101,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .met-v{font-size:16px;font-weight:900;margin-top:2px}
 .rbar{height:5px;background:#f4f7fb;border-radius:3px;overflow:hidden;margin:6px 0 10px;border:1px solid #c8d5e8}
 .rbar-fill{height:100%;border-radius:3px}
-.sec-hdr{display:flex;align-items:center;gap:8px;margin:16px 0 8px;position:sticky;top:0;z-index:50;background:#e8eef6;padding:6px 4px;margin-left:-4px;margin-right:-4px;border-radius:8px}
+.sec-hdr{display:flex;align-items:center;gap:8px;margin:16px 0 8px;position:sticky;top:var(--topbar-h,0px);z-index:50;background:#e8eef6;padding:6px 4px;margin-left:-4px;margin-right:-4px;border-radius:8px}
 .sec-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sec-ttl{font-size:13px;font-weight:900}
 
@@ -287,8 +287,18 @@ var selR='a';
 var _tmode='pct';
 var _plan=null;
 
+// ── TOPBAR HEIGHT ──
+function setTopbarH(){
+  var h=document.querySelector('.topbar').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--topbar-h',h+'px');
+}
+// also update when gear drawer opens/closes
+var _origToggleGear;
+
 // ── INIT ──
 window.addEventListener('load',function(){
+  setTopbarH();
+  window.addEventListener('resize',setTopbarH);
   var k=localStorage.getItem('wa_key');
   if(k){document.getElementById('keyInput').value=k;updateStatus();}
   renderSaved();
@@ -307,6 +317,7 @@ window.addEventListener('load',function(){
 // ── GEAR / API ──
 function toggleGear(){
   document.getElementById('apiDrawer').classList.toggle('open');
+  setTimeout(setTopbarH,50);
 }
 function saveKey(){
   var k=document.getElementById('keyInput').value.trim();
@@ -532,7 +543,15 @@ async function go(){
   document.getElementById('genBtn').disabled=true;
 
   var makePrompt=function(){
-    return 'Generate a weekly trading plan. Capital: $'+cap+'. Risk: '+rnames[selR]+'.'
+    var today=new Date();
+    var todayStr=today.toISOString().slice(0,10);
+    var nextFri=new Date(today);
+    nextFri.setDate(today.getDate()+(5-today.getDay()+7)%7||7);
+    var nextFriStr=nextFri.toISOString().slice(0,10);
+    var fri4w=new Date(today);
+    fri4w.setDate(today.getDate()+((5-today.getDay()+7)%7||7)+21);
+    var fri4wStr=fri4w.toISOString().slice(0,10);
+    return 'Today is '+todayStr+'. Generate a weekly trading plan for the week starting '+todayStr+'. Capital: $'+cap+'. Risk: '+rnames[selR]+'.'
       +(tpct>0?' Profit target: '+tpct+'% ($'+Math.round(tdol)+').':' Target 5-7% weekly return.')
       +' Include hedging. Return a JSON object with these fields:'
       +' summary(string), targetReturn(string like "6%"), targetDollar(number), maxDrawdown(string), riskScore(number 1-10),'
@@ -540,7 +559,7 @@ async function go(){
       +' allocation with etfs/stocks/options/hedge each having pct(number) and dollar(number),'
       +' etfPositions array, stockPositions array, optionPositions array, hedgePositions array.'
       +' Each position: ticker, name, dollar, pct, action, rationale(keep under 120 chars).'
-      +' Use tickers: SPY QQQ NVDA TSLA AAPL META AMZN. Include specific option strikes and expiry dates.'
+      +' Use tickers: SPY QQQ NVDA TSLA AAPL META AMZN. Option expiry dates must be between '+nextFriStr+' and '+fri4wStr+' — use ONLY future dates relative to today '+todayStr+'.'
       +' All dollars must sum to '+cap+'.';
   };
 
@@ -549,7 +568,7 @@ async function go(){
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
-        system:'You are an expert options trader. Output ONLY a JSON object. Start with { and end with }. No markdown, no backticks, no explanation text.',
+        system:'You are an expert options trader. Today is '+todayStr+'. All option expiry dates you generate must be AFTER '+todayStr+' — never use past dates. Output ONLY a JSON object. Start with { and end with }. No markdown, no backticks, no explanation text.',
         messages:[{role:'user',content:prompt}]})
     });
     var d=await r.json();
