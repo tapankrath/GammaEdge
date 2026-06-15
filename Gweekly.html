@@ -149,9 +149,9 @@
             color: #34d399;
         }
 
-        /* FIXED: Removed !important conflict so JavaScript can toggle tabs smoothly */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        /* Core Display Content Framework Toggle */
+        .tab-content { display: none !important; }
+        .tab-content.active { display: block !important; }
 
         /* Header Utility Styles */
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
@@ -324,8 +324,10 @@
     </div>
 
     <script>
+        // Mid-2026 calibrated baseline structural parameters
         var spyPrice = 756.16;
         var qqqPrice = 743.90;
+        
         var spyChange = 1.94;
         var qqqChange = 3.13;
         
@@ -339,6 +341,7 @@
         var currentSubTab = 'etf';
         var currentActiveTab = 'trend';
 
+        // Calibrated baseline prices reflecting post-split realities (AVGO adjusted to ~$175)
         var marketSignals = [
             { symbol: "NVDA", price: 215.40, change: 1.20, state: "MOMENTUM", border: "#3b82f6" },
             { symbol: "TSLA", price: 198.50, change: -0.40, state: "MOMENTUM", border: "#3b82f6" },
@@ -349,7 +352,7 @@
             { symbol: "META", price: 539.40, change: 3.10,  state: "OVERBOUGHT", border: "#f43f5e" },
             { symbol: "GOOGL",price: 191.25, change: 0.60,  state: "MOMENTUM", border: "#3b82f6" },
             { symbol: "JPM",  price: 226.70, change: 2.85,  state: "OVERBOUGHT", border: "#f43f5e" },
-            { symbol: "AVGO", price: 1485.00, change: -1.40, state: "MOMENTUM", border: "#3b82f6" }
+            { symbol: "AVGO", price: 175.20, change: -1.40, state: "MOMENTUM", border: "#3b82f6" }
         ];
 
         function triggerManualDataFetch() {
@@ -479,6 +482,11 @@
                     var price = quote.regularMarketPrice;
                     var change = quote.regularMarketChangePercent;
 
+                    // Absolute validation gate to prevent massive historical split variance calculations
+                    if (symbol === "AVGO" && change < -40) {
+                        change = 0.00; 
+                    }
+
                     if (symbol === "SPY") {
                         spyPrice = price; spyChange = change;
                     } else if (symbol === "QQQ") {
@@ -507,7 +515,7 @@
             } catch (e) {
                 console.log("Network interception encountered. Processing locally insulated matrix layers.");
                 var timestampString = "Insulated Mode (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
-                document.getElementById('trendTimestamp').innerText = timestampString;
+                if(document.getElementById('trendTimestamp')) document.getElementById('trendTimestamp').innerText = timestampString;
                 
                 if (currentActiveTab === 'trend') renderMacroTrendWorkspace();
                 else if (currentActiveTab === 'planner') calculateStrategy();
@@ -747,7 +755,7 @@
             document.getElementById('scannerResults').innerHTML = html;
             
             var refreshTimeString = "Refreshed: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            document.getElementById('scanTimestamp').innerText = refreshTimeString;
+            if(document.getElementById('scanTimestamp')) document.getElementById('scanTimestamp').innerText = refreshTimeString;
         }
 
         function sharePlan() {
