@@ -310,12 +310,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
-    <button class="tab on" id="tab1" onclick="showTab(1)">Signal</button>
-    <button class="tab" id="tab2" onclick="showTab(2)">Backtest</button>
-    <button class="tab" id="tab3" onclick="showTab(3)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
-    <button class="tab" id="tab4" onclick="showTab(4)">Planner</button>
-    <button class="tab" id="tab5" onclick="showTab(5)">Lottery</button>
+  <div class="tabs" style="grid-template-columns:repeat(4,1fr)">
+    <button class="tab on" id="tab1" onclick="showTab(1)">Backtest</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
+    <button class="tab" id="tab3" onclick="showTab(3)">Planner</button>
+    <button class="tab" id="tab4" onclick="showTab(4)">Lottery</button>
   </div>
 
   <!-- MKT STATUS -->
@@ -919,7 +918,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- TAB 4: SIGNAL -->
-<div class="pane on" id="pane4" style="padding-top:8px">
+<div class="pane" id="pane4" style="padding-top:8px">
 
   <!-- Dual SPY/QQQ signal cards removed — SPY/QQQ now live in the Top Picks
        scanner chips, which verify against the same engine. renderDualCards()
@@ -1021,7 +1020,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 </div>
 
 <!-- PANE 5: BACKTEST TABLE -->
-<div class="pane" id="pane5" style="padding-top:8px">
+<div class="pane on" id="pane5" style="padding-top:8px">
 
   <!-- ── SETTINGS (collapsible, collapsed by default) ── -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
@@ -1277,18 +1276,17 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  // Tab mapping: 1=Signal(4), 2=Backtest(5), 3=Allocation(7), 4=Planner(6), 5=Lottery(3)
-  var paneMap={1:4,2:5,3:7,4:6,5:3};
-  for(var i=1;i<=5;i++){
+  // Tab mapping: 1=Backtest(5), 2=Allocation(7), 3=Planner(6), 4=Lottery(3)
+  var paneMap={1:5,2:7,3:6,4:3};
+  for(var i=1;i<=4;i++){
     $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
     var pid=paneMap[i];
     var pel=$('pane'+pid);
     if(pel)pel.className='pane'+(i===n?' on':'');
   }
-  if(n===1)go4();
-  if(n===2){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
-  if(n===3){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
-  if(n===4)renderPortfolio();
+  if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
+  if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
+  if(n===3)renderPortfolio();
 }
 
 /* ── MATH ── */
@@ -6733,10 +6731,12 @@ go1();go2();go3();
 renderDayInputs();
 $('pane1').className='pane';
 $('pane2').className='pane';
-$('pane5').className='pane';
+$('pane3').className='pane';
+$('pane4').className='pane';
 $('pane6').className='pane';
 $('pane7').className='pane';
-$('pane4').className='pane on';
+$('pane5').className='pane on';
+go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);
 fetchAll();setInterval(fetchAll,60000);
 geWarmIdxHist(); // both index cards get real history from the start
 
@@ -6761,7 +6761,6 @@ document.addEventListener('visibilitychange',function(){
     GE_LAST_SEEN=Date.now();
   }
 });
-setTimeout(function(){go4();},800);
 if($('b-dte-note'))$('b-dte-note').textContent=BT_DTE_NOTES[0];
 </script>
 </body>
