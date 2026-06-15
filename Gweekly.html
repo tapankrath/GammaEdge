@@ -32,21 +32,24 @@
             background-color: #111827; 
             border: 2px solid #334155; 
             border-radius: 16px;
-            padding: 0 14px 16px 14px; /* Removed top padding to allow sticky area to flush mount */
+            padding: 0 14px 16px 14px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
-            overflow: hidden;
+            /* overflow must NOT be hidden — it breaks position:sticky on children */
         }
 
         /* NEW STICKY SECTION WRAPPER */
         .sticky-header-container {
             position: sticky;
-            top: 0;
-            background-color: #111827; /* Matches container background to block content underneath */
+            top: -1px; /* sit flush under any body padding */
+            background-color: #111827;
             z-index: 100;
-            padding-top: 16px;
-            padding-bottom: 2px;
+            padding: 16px 0 2px;
             border-bottom: 1px solid #1e293b;
             margin-bottom: 14px;
+            margin-left: -14px;
+            margin-right: -14px;
+            padding-left: 14px;
+            padding-right: 14px;
         }
         
         /* Brand Identity Layout */
