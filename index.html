@@ -310,9 +310,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
-  <div class="tabs" style="grid-template-columns:repeat(4,1fr)">
+  <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
+    <button class="tab" id="tab0" onclick="showTab(0)" style="font-size:10px">StratEdge</button>
     <button class="tab on" id="tab1" onclick="showTab(1)">Backtest</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:11px;letter-spacing:.02em">Allocation</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px">Alloc</button>
     <button class="tab" id="tab3" onclick="showTab(3)">Planner</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Lottery</button>
   </div>
@@ -340,6 +341,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
 </div><!-- end sticky header -->
+
+
+<div class="pane" id="pane0" style="padding:0;margin:0 -10px">
+  <iframe src="StrategyLens.html" style="width:100%;height:calc(100vh - 220px);border:none;display:block" scrolling="yes" allowtransparency="true"></iframe>
+</div>
 
 <!-- TAB 1: P&L CALC -->
 <div class="pane" id="pane1" style="padding-top:8px">
@@ -1276,14 +1282,8 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  // Tab mapping: 1=Backtest(5), 2=Allocation(7), 3=Planner(6), 4=Lottery(3)
-  var paneMap={1:5,2:7,3:6,4:3};
-  for(var i=1;i<=4;i++){
-    $('tab'+i)&&($('tab'+i).className='tab'+(i===n?' on':''));
-    var pid=paneMap[i];
-    var pel=$('pane'+pid);
-    if(pel)pel.className='pane'+(i===n?' on':'');
-  }
+  var paneMap={0:0,1:5,2:7,3:6,4:3};
+  for(var i=0;i<=4;i++){var tb=$('tab'+i);if(tb)tb.className='tab'+(i===n?' on':'');var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
@@ -6729,6 +6729,7 @@ window.onerror=function(msg,src,line,col,err){
 };
 go1();go2();go3();
 renderDayInputs();
+$('pane0').className='pane';
 $('pane1').className='pane';
 $('pane2').className='pane';
 $('pane3').className='pane';
