@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>StrategyLens · GammaEdge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:#0f172a;position:sticky;top:0;z-index:100}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
+.app-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.app-name span{color:#a78bfa}
+.app-sub{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.gear-btn{width:34px;height:34px;background:#1e293b;border:1px solid #334155;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;flex-shrink:0}
+.back-link{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:5px 10px 5px 14px}
+
+/* GEAR DRAWER */
+.api-drawer{display:none;background:#1e293b;border-top:1px solid #334155;padding:14px}
+.api-drawer.open{display:block}
+.api-drawer label{display:block;font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.api-drawer input{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:8px;padding:10px 12px;color:#fff;font-family:monospace;font-size:13px;outline:none}
+.api-drawer input:focus{border-color:#a78bfa}
+.api-hint{font-size:10px;color:#64748b;margin-top:5px}
+.api-status{font-size:11px;font-weight:700;margin-top:5px}
+.api-status.ok{color:#4ade80}.api-status.no{color:#fbbf24}
+.api-save{margin-top:8px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
+
+/* MAIN */
+.main{max-width:480px;margin:0 auto;padding:14px 12px 100px}
+
+/* QUOTE BANNER */
+.quote-banner{display:none;background:#0f172a;border-radius:12px;padding:14px 16px;margin-bottom:14px;text-align:center}
+.quote-banner.loaded{display:block}
+.quote-chips{display:flex;gap:10px;justify-content:center}
+.qc{flex:0 0 auto;width:130px;background:#1e293b;border-radius:10px;padding:12px 14px;text-align:center;border:1.5px solid #334155;transition:border-color .2s}
+.qc.active{border-color:#a78bfa}
+.qc-tick{font-size:10px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.qc-price{font-size:22px;font-weight:900;color:#fff;line-height:1;margin-bottom:3px}
+.qc-chg{font-size:11px;font-weight:800}
+.qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
+.quote-ts{font-size:9px;color:#475569;margin-top:10px;letter-spacing:.04em}
+
+/* TICKER SELECTOR */
+.card{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lbl{font-size:10px;font-weight:800;color:#1e293b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+
+.ticker-row{display:flex;gap:8px;margin-bottom:12px}
+.tick-preset{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
+.tick-preset.on{background:#ede9fe;border-color:#7c3aed}
+.tick-preset .tp-sym{font-size:16px;font-weight:900;color:#1e293b}
+.tick-preset.on .tp-sym{color:#7c3aed}
+.tick-preset .tp-name{font-size:9px;color:#64748b;font-weight:600;margin-top:2px}
+.tick-preset.on .tp-name{color:#7c3aed}
+.tick-custom{flex:1.2;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.tick-custom label{font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em}
+.tick-custom input{background:transparent;border:none;outline:none;font-size:16px;font-weight:900;color:#1e293b;font-family:inherit;width:100%;text-transform:uppercase}
+.tick-custom input::placeholder{color:#c8d5e8;font-weight:700}
+.tick-custom.on{background:#ede9fe;border-color:#7c3aed}
+.tick-custom.on input{color:#7c3aed}
+
+/* DTE TOGGLE */
+.dte-row{display:flex;gap:8px}
+.dte-btn{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:11px 6px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
+.dte-btn.on{background:#09101f;border-color:#09101f}
+.dte-btn .dw{font-size:18px;font-weight:900;color:#475569;line-height:1}
+.dte-btn.on .dw{color:#fff}
+.dte-btn .dl{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.dte-btn.on .dl{color:#a78bfa}
+
+/* ANALYZE BUTTON */
+.go-btn{width:100%;background:#09101f;color:#fff;border:none;border-radius:10px;padding:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em;margin-top:12px}
+.go-btn:disabled{background:#94a3b8;cursor:not-allowed}
+
+/* ERROR */
+.err-box{background:#fee2e2;border:1.5px solid #f87171;border-radius:10px;padding:14px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:12px;display:none;line-height:1.6}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:40px 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:36px;height:36px;border:3px solid #c8d5e8;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.loading-msg{color:#475569;font-size:13px;font-weight:600}
+
+/* RESULTS */
+.results{display:none}
+
+/* TICKER HEADER */
+.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.th-left{}
+.th-sym{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.th-name{font-size:11px;color:#64748b;font-weight:600;margin-top:2px}
+.th-right{text-align:right}
+.th-price{font-size:28px;font-weight:900;color:#fff}
+.th-chg{font-size:13px;font-weight:800;margin-top:2px}
+.th-chg.up{color:#4ade80}.th-chg.dn{color:#f87171}
+.th-iv{font-size:10px;color:#64748b;font-weight:700;margin-top:4px}
+.th-meta{display:flex;gap:8px;margin-top:12px}
+.th-pill{flex:1;background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+.th-pill-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.th-pill-v{font-size:14px;font-weight:900;color:#fff}
+
+/* STRATEGY CARDS */
+.strat-card{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.strat-hdr{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.strat-left{display:flex;align-items:center;gap:12px}
+.strat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.strat-name{font-size:15px;font-weight:900;color:#1e293b}
+.strat-tag{font-size:9px;font-weight:800;border-radius:5px;padding:2px 7px;display:inline-block;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.strat-right{text-align:right;flex-shrink:0}
+.strat-pl{font-size:20px;font-weight:900}
+.strat-pl.pos{color:#16a34a}.strat-pl.neg{color:#dc2626}.strat-pl.neu{color:#d97706}
+.strat-pl-l{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.chevron{font-size:11px;color:#94a3b8;transition:transform .22s;margin-left:8px}
+.chevron.open{transform:rotate(180deg)}
+
+.strat-body{display:none;border-top:1.5px solid #f1f5f9}
+.strat-body.open{display:block}
+
+/* P&L GRID */
+.pl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#f1f5f9}
+.pl-cell{background:#fff;padding:12px 10px;text-align:center}
+.pl-cell-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.pl-cell-v{font-size:16px;font-weight:900}
+.pl-cell-v.pos{color:#16a34a}.pl-cell-v.neg{color:#dc2626}.pl-cell-v.neu{color:#d97706}
+.pl-cell-sub{font-size:10px;color:#94a3b8;font-weight:600;margin-top:2px}
+
+/* LEGS */
+.legs-section{padding:14px 16px;border-top:1px solid #f1f5f9}
+.legs-lbl{font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.leg{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:9px 12px;border-radius:8px}
+.leg:last-child{margin-bottom:0}
+.leg-l{display:flex;align-items:center;gap:8px}
+.leg-action{font-size:9px;font-weight:900;border-radius:5px;padding:2px 7px;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+.leg-desc{font-size:12px;font-weight:700;color:#1e293b}
+.leg-sub{font-size:10px;color:#64748b;font-weight:500;margin-top:1px}
+.leg-price{font-size:13px;font-weight:900;color:#1e293b;flex-shrink:0}
+
+/* BREAKEVENS */
+.be-section{padding:12px 16px;border-top:1px solid #f1f5f9;background:#fafbfc}
+.be-lbl{font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.be-row{display:flex;gap:8px}
+.be-item{flex:1;text-align:center;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 6px}
+.be-item-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.be-item-v{font-size:14px;font-weight:900;color:#09101f}
+.be-item-d{font-size:10px;font-weight:700;margin-top:2px}
+
+/* THESIS */
+.thesis-section{padding:12px 16px;border-top:1px solid #f1f5f9}
+.thesis-txt{font-size:12px;color:#475569;line-height:1.7;font-weight:500}
+
+/* RECOMMENDATION BADGE */
+.rec-badge{display:inline-flex;align-items:center;gap:6px;background:#09101f;border-radius:8px;padding:8px 14px;margin:0 16px 14px}
+.rec-dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+.rec-txt{font-size:11px;font-weight:800;color:#fff;letter-spacing:.04em}
+
+/* SCORE BAR */
+.score-section{padding:12px 16px;border-top:1px solid #f1f5f9}
+.score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.score-lbl{font-size:10px;font-weight:700;color:#64748b}
+.score-val{font-size:11px;font-weight:900}
+.score-bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row1">
+    <div>
+      <div class="app-name">Strategy<span>Lens</span></div>
+      <div class="app-sub">Options P&L Analyzer</div>
+    </div>
+    <div class="gear-btn" onclick="toggleGear()">⚙️</div>
+  </div>
+
+  <div class="api-drawer" id="apiDrawer">
+    <label>Finnhub API Key</label>
+    <input type="password" id="fhKey" placeholder="your finnhub key…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateFhStatus()">
+    <div class="api-hint">🔒 Free at finnhub.io · Real-time quotes + IV</div>
+    <div class="api-status no" id="fhStatus">⚠️ No key set</div>
+    <button class="api-save" onclick="saveFhKey()">Save & Close</button>
+  </div>
+
+  <a href="index.html" class="back-link">← GammaEdge</a>
+</div>
+
+<div class="main">
+
+  <!-- QUOTE BANNER (SPY + QQQ) -->
+  <div class="quote-banner" id="quoteBanner">
+    <div class="quote-chips" id="quoteChips"></div>
+    <div class="quote-ts" id="quoteTs"></div>
+  </div>
+
+  <!-- INPUT CARD -->
+  <div class="card">
+    <div class="lbl">Ticker</div>
+    <div class="ticker-row">
+      <button class="tick-preset on" id="tp-SPY" onclick="selectPreset('SPY',this)">
+        <div class="tp-sym">SPY</div>
+        <div class="tp-name">S&P 500</div>
+      </button>
+      <button class="tick-preset" id="tp-QQQ" onclick="selectPreset('QQQ',this)">
+        <div class="tp-sym">QQQ</div>
+        <div class="tp-name">Nasdaq 100</div>
+      </button>
+      <div class="tick-custom" id="tc-wrap" onclick="selectCustom()">
+        <label>Custom</label>
+        <input type="text" id="customTick" placeholder="NVDA" maxlength="6"
+          oninput="onCustomInput()" onfocus="selectCustom()">
+      </div>
+    </div>
+
+    <div class="lbl">Days to Expiry</div>
+    <div class="dte-row">
+      <button class="dte-btn on" id="dte-7" onclick="setDTE(7,this)">
+        <div class="dw">1W</div>
+        <div class="dl">~7 days</div>
+      </button>
+      <button class="dte-btn" id="dte-14" onclick="setDTE(14,this)">
+        <div class="dw">2W</div>
+        <div class="dl">~14 days</div>
+      </button>
+      <button class="dte-btn" id="dte-21" onclick="setDTE(21,this)">
+        <div class="dw">3W</div>
+        <div class="dl">~21 days</div>
+      </button>
+    </div>
+
+    <button class="go-btn" id="goBtn" onclick="analyze()">⚡ Analyze Strategies</button>
+  </div>
+
+  <div class="err-box" id="errBox"></div>
+
+  <div class="loading" id="loadingBox">
+    <div class="spinner"></div>
+    <div class="loading-msg" id="loadingMsg">Fetching live data…</div>
+  </div>
+
+  <div class="results" id="resultsBox"></div>
+
+</div>
+
+<script>
+var selTicker='SPY';
+var selDTE=7;
+var _liveData={};  // ticker -> {c,dp,h,l,pc,o}
+var _ivData={};    // ticker -> iv (0-1)
+
+// ── INIT ──
+window.addEventListener('load',function(){
+  var fk=localStorage.getItem('fh_key')||'';
+  if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
+  setTopbarH();
+  window.addEventListener('resize',setTopbarH);
+  if(fk) loadBannerQuotes();
+});
+
+function setTopbarH(){
+  var h=document.querySelector('.topbar').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--topbar-h',h+'px');
+}
+
+// ── GEAR ──
+function toggleGear(){
+  document.getElementById('apiDrawer').classList.toggle('open');
+  setTimeout(setTopbarH,50);
+}
+function saveFhKey(){
+  var k=document.getElementById('fhKey').value.trim();
+  if(k){localStorage.setItem('fh_key',k);updateFhStatus();loadBannerQuotes();}
+  document.getElementById('apiDrawer').classList.remove('open');
+  setTimeout(setTopbarH,50);
+}
+function updateFhStatus(){
+  var k=document.getElementById('fhKey').value.trim();
+  var s=document.getElementById('fhStatus');
+  if(k){s.textContent='✓ Key set';s.className='api-status ok';}
+  else{s.textContent='⚠️ No key set';s.className='api-status no';}
+}
+
+// ── TICKER SELECTION ──
+function selectPreset(sym,btn){
+  selTicker=sym;
+  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('tc-wrap').classList.remove('on');
+  btn.classList.add('on');
+  // highlight matching quote chip
+  document.querySelectorAll('.qc').forEach(function(c){
+    c.classList.toggle('active',c.dataset.sym===sym);
+  });
+}
+function selectCustom(){
+  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('tc-wrap').classList.add('on');
+  var v=document.getElementById('customTick').value.trim().toUpperCase();
+  if(v) selTicker=v;
+  document.querySelectorAll('.qc').forEach(function(c){c.classList.remove('active');});
+}
+function onCustomInput(){
+  var v=document.getElementById('customTick').value.trim().toUpperCase();
+  document.getElementById('customTick').value=v;
+  if(v){selTicker=v;selectCustom();}
+}
+
+// ── DTE ──
+function setDTE(d,btn){
+  selDTE=d;
+  document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+// ── BANNER: load SPY + QQQ quotes ──
+async function loadBannerQuotes(){
+  var fk=(localStorage.getItem('fh_key')||'').trim();
+  if(!fk) return;
+  try{
+    var syms=['SPY','QQQ'];
+    var results=await Promise.all(syms.map(function(s){
+      return fetch('https://finnhub.io/api/v1/quote?symbol='+s+'&token='+fk)
+        .then(function(r){return r.json();})
+        .then(function(d){return{sym:s,c:d.c,dp:d.dp,h:d.h,l:d.l,pc:d.pc};})
+        .catch(function(){return{sym:s,c:null};});
+    }));
+    var valid=results.filter(function(r){return r.c;});
+    if(!valid.length) return;
+    valid.forEach(function(r){_liveData[r.sym]=r;});
+    var chips=document.getElementById('quoteChips');
+    chips.innerHTML=valid.map(function(r){
+      var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
+      var sign=r.dp>0?'+':'';
+      var active=r.sym===selTicker?' active':'';
+      return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectPreset(\''+r.sym+'\',document.getElementById(\'tp-'+r.sym+'\'))">'
+        +'<div class="qc-tick">'+r.sym+'</div>'
+        +'<div class="qc-price">$'+r.c.toFixed(r.c>=100?0:2)+'</div>'
+        +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
+        +'</div>';
+    }).join('');
+    document.getElementById('quoteTs').textContent='Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('quoteBanner').classList.add('loaded');
+  }catch(e){console.warn('banner quotes failed',e);}
+}
+
+// ── FINNHUB: fetch quote + IV for any ticker ──
+async function fetchTickerData(sym){
+  var fk=(localStorage.getItem('fh_key')||'').trim();
+  if(!fk) throw new Error('No Finnhub key');
+
+  // Quote
+  var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
+  var q=await qRes.json();
+  if(!q||!q.c) throw new Error('No quote data for '+sym+'. Check the ticker.');
+
+  // Company name
+  var name=sym;
+  try{
+    var pRes=await fetch('https://finnhub.io/api/v1/stock/profile2?symbol='+sym+'&token='+fk);
+    var p=await pRes.json();
+    if(p&&p.name) name=p.name;
+  }catch(e){}
+
+  // Option chain for IV — pick nearest expiry
+  var iv=null;
+  try{
+    var today=new Date();
+    var expDate=new Date(today);
+    expDate.setDate(today.getDate()+selDTE);
+    // round to nearest Friday
+    var day=expDate.getDay();
+    var diff=day<=5?5-day:6;
+    expDate.setDate(expDate.getDate()+diff);
+    var expStr=expDate.toISOString().slice(0,10);
+
+    var oRes=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
+    var oData=await oRes.json();
+    if(oData&&oData.data&&oData.data.length){
+      // Find closest expiry to our target
+      var best=oData.data.reduce(function(a,b){
+        return Math.abs(new Date(b.expirationDate)-expDate)<Math.abs(new Date(a.expirationDate)-expDate)?b:a;
+      });
+      // Get ATM call IV
+      var spot=q.c;
+      var calls=(best.options||{}).CALL||[];
+      var atm=calls.reduce(function(a,b){
+        return Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a;
+      },{strike:0,impliedVolatility:0.3});
+      iv=atm.impliedVolatility||0.3;
+    }
+  }catch(e){iv=0.3;}
+
+  return {sym:sym,name:name,c:q.c,dp:q.dp,h:q.h,l:q.l,pc:q.pc,o:q.o,iv:iv||0.3};
+}
+
+// ── MATH HELPERS ──
+function normCDF(x){
+  var t=1/(1+.2316419*Math.abs(x));
+  var d=.3989422820*Math.exp(-x*x/2);
+  var p=d*t*(.3193815+t*(-.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));
+  return x>=0?1-p:p;
+}
+function bsCall(S,K,T,r,v){
+  if(T<=0)return Math.max(S-K,0);
+  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
+  var d2=d1-v*Math.sqrt(T);
+  return S*normCDF(d1)-K*Math.exp(-r*T)*normCDF(d2);
+}
+function bsPut(S,K,T,r,v){
+  if(T<=0)return Math.max(K-S,0);
+  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
+  var d2=d1-v*Math.sqrt(T);
+  return K*Math.exp(-r*T)*normCDF(-d2)-S*normCDF(-d1);
+}
+function roundStrike(s,spacing){return Math.round(s/spacing)*spacing;}
+function strikeSpacing(price){
+  if(price<20)return 0.5;
+  if(price<50)return 1;
+  if(price<100)return 2;
+  if(price<200)return 5;
+  if(price<500)return 5;
+  return 10;
+}
+function fmt$(n){return'$'+Math.abs(n).toFixed(2);}
+function fmtSign(n){return(n>=0?'+':'-')+'$'+Math.abs(n).toFixed(2);}
+function fmtPct(n){return(n>=0?'+':'')+n.toFixed(1)+'%';}
+
+// ── COMPUTE STRATEGIES ──
+function computeStrategies(d){
+  var S=d.c, iv=d.iv, T=selDTE/365, r=0.045;
+  var sp=strikeSpacing(S);
+
+  // ATM strike
+  var K=roundStrike(S,sp);
+
+  // Wing strikes (for strangle/condor) — ~1 std dev away
+  var stdMove=S*iv*Math.sqrt(T);
+  var Kc=roundStrike(S+stdMove*0.5,sp);   // OTM call
+  var Kp=roundStrike(S-stdMove*0.5,sp);   // OTM put
+  var Kcc=roundStrike(S+stdMove*1.0,sp);  // far OTM call (condor short)
+  var Kpp=roundStrike(S-stdMove*1.0,sp);  // far OTM put (condor short)
+
+  // Premiums
+  var atmCall=bsCall(S,K,T,r,iv);
+  var atmPut=bsPut(S,K,T,r,iv);
+  var otmCall=bsCall(S,Kc,T,r,iv);
+  var otmPut=bsPut(S,Kp,T,r,iv);
+  var farCall=bsCall(S,Kcc,T,r,iv);
+  var farPut=bsPut(S,Kpp,T,r,iv);
+
+  // ── STRADDLE: buy ATM call + ATM put ──
+  var straddleCost=(atmCall+atmPut)*100;
+  var straddleBEup=K+atmCall+atmPut;
+  var straddleBEdn=K-atmCall-atmPut;
+  var straddleMaxLoss=-straddleCost;
+  var straddleMaxGain=Infinity;
+  // P&L at +/-1 std dev move
+  var straddlePLup=((bsCall(S*(1+iv*Math.sqrt(T)),K,0.001,r,iv)+Math.max(0,K-S*(1+iv*Math.sqrt(T))))-(atmCall+atmPut))*100;
+  var straddlePLdn=((Math.max(0,K-S*(1-iv*Math.sqrt(T)))+bsCall(S*(1-iv*Math.sqrt(T)),K,0.001,r,iv))-(atmCall+atmPut))*100;
+
+  // ── STRANGLE: buy OTM call + OTM put ──
+  var strangleCost=(otmCall+otmPut)*100;
+  var strangleBEup=Kc+otmCall+otmPut;
+  var strangleBEdn=Kp-otmCall-otmPut;
+  var strangleMaxLoss=-strangleCost;
+  var stranglePLup=((bsCall(S*(1+iv*Math.sqrt(T)),Kc,0.001,r,iv)+Math.max(0,Kp-S*(1+iv*Math.sqrt(T))))-(otmCall+otmPut))*100;
+  var stranglePLdn=((Math.max(0,Kp-S*(1-iv*Math.sqrt(T)))+bsCall(S*(1-iv*Math.sqrt(T)),Kc,0.001,r,iv))-(otmCall+otmPut))*100;
+
+  // ── IRON CONDOR: sell Kp/Kc, buy Kpp/Kcc ──
+  var condorCredit=((otmCall-farCall)+(otmPut-farPut))*100;
+  var condorWingWidth=Math.min(Kc-Kcc<0?Kcc-Kc:Kc-Kcc, Kp-Kpp<0?Kp-Kpp:Kpp-Kp)*100; // max loss per side
+  var condorWingW=(Kcc-Kc)*100; // max loss = wing width - credit
+  var condorMaxLoss=-(condorWingW-condorCredit);
+  var condorMaxGain=condorCredit;
+  var condorBEup=Kc+otmCall-farCall+otmPut-farPut;
+  var condorBEdn=Kp-(otmCall-farCall)-(otmPut-farPut);
+
+  return{
+    spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
+    straddle:{
+      name:'Straddle', icon:'🎯', tag:'Neutral · High IV Play',
+      tagColor:'#7c3aed', tagBg:'#ede9fe', iconBg:'#ede9fe',
+      cost:straddleCost,
+      maxGain:null, maxLoss:straddleMaxLoss,
+      BEup:straddleBEup, BEdn:straddleBEdn,
+      PLup:straddlePLup, PLdn:straddlePLdn,
+      netCredit:false,
+      legs:[
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'ATM Call',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmCall},
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'ATM Put',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmPut},
+      ],
+      thesis:'Profits from a large move in either direction. Best when you expect volatility but are directionally neutral. Max loss is the premium paid if stock stays pinned at '+K+' through expiry.',
+      scoreVol:85, scoreRisk:40, scoreProb:35,
+    },
+    strangle:{
+      name:'Strangle', icon:'📐', tag:'Wider Wings · Cheaper Entry',
+      tagColor:'#2563eb', tagBg:'#dbeafe', iconBg:'#dbeafe',
+      cost:strangleCost,
+      maxGain:null, maxLoss:strangleMaxLoss,
+      BEup:strangleBEup, BEdn:strangleBEdn,
+      PLup:stranglePLup, PLdn:stranglePLdn,
+      netCredit:false,
+      legs:[
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'OTM Call',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'OTM Put',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
+      ],
+      thesis:'Cheaper than a straddle but needs a bigger move to profit. Long call at $'+Kc+', long put at $'+Kp+'. Breakevens are wider so requires ~'+fmtPct(Math.abs(strangleBEup-S)/S*100)+' move up or '+fmtPct(Math.abs(strangleBEdn-S)/S*100)+' move down.',
+      scoreVol:75, scoreRisk:50, scoreProb:28,
+    },
+    condor:{
+      name:'Iron Condor', icon:'🦅', tag:'Income · Range Bound',
+      tagColor:'#d97706', tagBg:'#fef3c7', iconBg:'#fef3c7',
+      cost:-condorCredit, // negative = credit received
+      maxGain:condorMaxGain, maxLoss:condorMaxLoss,
+      BEup:condorBEup, BEdn:condorBEdn,
+      PLup:null, PLdn:null,
+      netCredit:true,
+      creditReceived:condorCredit,
+      wingWidth:(Kcc-Kc),
+      legs:[
+        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
+         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'Far OTM Call (hedge)',sub:'Strike $'+Kcc+' · Exp '+getExpiry(),price:farCall},
+        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
+         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
+        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'Far OTM Put (hedge)',sub:'Strike $'+Kpp+' · Exp '+getExpiry(),price:farPut},
+      ],
+      thesis:'Collect premium by selling the $'+Kp+'/$'+Kc+' strangle, hedged with long $'+Kpp+'/$'+Kcc+' wings. Max gain is the credit received if '+d.sym+' stays between $'+Kp+' and $'+Kc+' through expiry.',
+      scoreVol:30, scoreRisk:75, scoreProb:65,
+    }
+  };
+}
+
+function getExpiry(){
+  var d=new Date();
+  d.setDate(d.getDate()+selDTE);
+  var day=d.getDay();
+  var diff=day<=5?5-day:6;
+  d.setDate(d.getDate()+diff);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+// ── ANALYZE ──
+async function analyze(){
+  var fk=(localStorage.getItem('fh_key')||'').trim();
+  if(!fk){
+    document.getElementById('apiDrawer').classList.add('open');
+    setTimeout(setTopbarH,50);
+    document.getElementById('fhKey').focus();
+    showErr('Enter your Finnhub API key above to fetch live prices.');
+    return;
+  }
+
+  document.getElementById('errBox').style.display='none';
+  document.getElementById('resultsBox').style.display='none';
+  document.getElementById('loadingBox').style.display='block';
+  document.getElementById('goBtn').disabled=true;
+  document.getElementById('loadingMsg').textContent='📡 Fetching '+selTicker+' live data…';
+
+  try{
+    var data=await fetchTickerData(selTicker);
+    _liveData[selTicker]=data;
+    var strats=computeStrategies(data);
+    render(data,strats);
+  }catch(e){
+    showErr(e.message||'Failed to fetch data. Check ticker and Finnhub key.');
+  }finally{
+    document.getElementById('loadingBox').style.display='none';
+    document.getElementById('goBtn').disabled=false;
+  }
+}
+
+function showErr(m){
+  var el=document.getElementById('errBox');
+  el.innerHTML='⚠️ '+m;el.style.display='block';
+  document.getElementById('loadingBox').style.display='none';
+  document.getElementById('goBtn').disabled=false;
+}
+
+// ── RENDER ──
+var _openStrat=null;
+function toggleStrat(id){
+  var body=document.getElementById('sb-'+id);
+  var chev=document.getElementById('sc-'+id);
+  var isOpen=body.classList.contains('open');
+  // close all
+  document.querySelectorAll('.strat-body').forEach(function(b){b.classList.remove('open');});
+  document.querySelectorAll('.chevron').forEach(function(c){c.classList.remove('open');});
+  if(!isOpen){body.classList.add('open');chev.classList.add('open');}
+}
+
+function render(d,s){
+  var ivPct=(d.iv*100).toFixed(1);
+  var chgCls=d.dp>0?'up':'dn';
+  var sign=d.dp>0?'+':'';
+  var stdPct=(s.straddle.stdMove/d.c*100).toFixed(1);
+
+  var h='';
+
+  // Ticker header
+  h+='<div class="ticker-hdr">'
+    +'<div class="th-left"><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
+    +'<div class="th-right"><div class="th-price">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
+    +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
+    +'<div class="th-iv">IV: '+ivPct+'%</div>'
+    +'</div>'
+    +'<div class="th-meta" style="grid-column:1/-1">'
+    +'<div class="th-pill"><div class="th-pill-l">DTE</div><div class="th-pill-v">'+selDTE+'d</div></div>'
+    +'<div class="th-pill"><div class="th-pill-l">IV Rank</div><div class="th-pill-v">'+ivPct+'%</div></div>'
+    +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
+    +'<div class="th-pill"><div class="th-pill-l">Exp Move</div><div class="th-pill-v">±'+stdPct+'%</div></div>'
+    +'</div>'
+    +'</div>';
+
+  // Strategy cards
+  var strats=[s.straddle,s.strangle,s.condor];
+  strats.forEach(function(st,i){
+    var sid='s'+i;
+    var topPL=st.netCredit?st.maxGain:st.maxLoss;
+    var topPLcls=st.netCredit?'pos':'neg';
+    var topPLlbl=st.netCredit?'Max Gain':'Max Loss';
+    var topVal=st.netCredit?'+$'+st.maxGain.toFixed(2):'-$'+Math.abs(st.maxLoss).toFixed(2);
+
+    h+='<div class="strat-card">'
+      // header
+      +'<div class="strat-hdr" onclick="toggleStrat(\''+sid+'\')">'
+      +'<div class="strat-left">'
+      +'<div class="strat-icon" style="background:'+st.iconBg+'">'+st.icon+'</div>'
+      +'<div><div class="strat-name">'+st.name+'</div>'
+      +'<span class="strat-tag" style="background:'+st.tagBg+';color:'+st.tagColor+'">'+st.tag+'</span>'
+      +'</div></div>'
+      +'<div style="display:flex;align-items:center">'
+      +'<div class="strat-right">'
+      +'<div class="strat-pl-l">'+topPLlbl+' /contract</div>'
+      +'<div class="strat-pl '+topPLcls+'">'+topVal+'</div>'
+      +'</div>'
+      +'<div class="chevron" id="sc-'+sid+'">▼</div>'
+      +'</div></div>'
+
+      // body
+      +'<div class="strat-body" id="sb-'+sid+'">'
+
+      // P&L grid
+      +'<div class="pl-grid">'
+      +(st.netCredit
+        ?'<div class="pl-cell"><div class="pl-cell-l">Credit In</div><div class="pl-cell-v pos">+$'+st.creditReceived.toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
+        :'<div class="pl-cell"><div class="pl-cell-l">Cost / Contract</div><div class="pl-cell-v neg">-$'+Math.abs(st.cost).toFixed(2)+'</div><div class="pl-cell-sub">debit paid</div></div>')
+      +'<div class="pl-cell"><div class="pl-cell-l">Max Gain</div><div class="pl-cell-v pos">'+(st.maxGain===null?'Unlimited':'+$'+st.maxGain.toFixed(2))+'</div><div class="pl-cell-sub">per contract</div></div>'
+      +'<div class="pl-cell"><div class="pl-cell-l">Max Loss</div><div class="pl-cell-v neg">-$'+Math.abs(st.maxLoss).toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
+      +'</div>'
+
+      // Breakevens
+      +'<div class="be-section">'
+      +'<div class="be-lbl">Breakeven Prices</div>'
+      +'<div class="be-row">'
+      +'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(st.BEdn>=100?0:2)+'</div>'
+      +'<div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>'
+      +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
+      +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
+      +'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(st.BEup>=100?0:2)+'</div>'
+      +'<div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>'
+      +'</div></div>'
+
+      // Legs
+      +'<div class="legs-section">'
+      +'<div class="legs-lbl">Position Legs</div>'
+      +st.legs.map(function(lg){
+        return '<div class="leg" style="background:'+lg.legBg+';border:1px solid '+lg.actionBg+'">'
+          +'<div class="leg-l"><span class="leg-action" style="background:'+lg.actionBg+';color:'+lg.actionC+'">'+lg.action+'</span>'
+          +'<div><div class="leg-desc">'+lg.desc+'</div><div class="leg-sub">'+lg.sub+'</div></div></div>'
+          +'<div class="leg-price">$'+lg.price.toFixed(2)+'</div>'
+          +'</div>';
+      }).join('')
+      +'</div>'
+
+      // Scores
+      +'<div class="score-section">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">'
+      +scoreBar('Vol Needed',st.scoreVol,'#7c3aed')
+      +scoreBar('Risk Defined',st.scoreRisk,'#16a34a')
+      +scoreBar('Win Prob',st.scoreProb,'#2563eb')
+      +'</div></div>'
+
+      // Thesis
+      +'<div class="thesis-section">'
+      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Strategy Notes</div>'
+      +'<div class="thesis-txt">'+st.thesis+'</div>'
+      +'</div>'
+
+      +'</div></div>';
+  });
+
+  document.getElementById('resultsBox').innerHTML=h;
+  document.getElementById('resultsBox').style.display='block';
+  // auto-open first card
+  toggleStrat('s0');
+  document.getElementById('resultsBox').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function scoreBar(label,val,color){
+  return '<div>'
+    +'<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+label+'</div>'
+    +'<div style="font-size:14px;font-weight:900;color:'+color+';margin-bottom:4px">'+val+'%</div>'
+    +'<div class="score-bar"><div class="score-fill" style="width:'+val+'%;background:'+color+'"></div></div>'
+    +'</div>';
+}
+</script>
+</body>
+</html>
