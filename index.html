@@ -311,34 +311,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
   <div class="tabs" style="grid-template-columns:repeat(5,1fr)">
-    <button class="tab" id="tab0" onclick="showTab(0)" style="font-size:10px">StratEdge</button>
-    <button class="tab on" id="tab1" onclick="showTab(1)">Backtest</button>
+    <button class="tab on" id="tab0" onclick="showTab(0)" style="font-size:10px">StratEdge</button>
+    <button class="tab" id="tab1" onclick="showTab(1)">Backtest</button>
     <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:10px">Alloc</button>
     <button class="tab" id="tab3" onclick="showTab(3)">Planner</button>
     <button class="tab" id="tab4" onclick="showTab(4)">Lottery</button>
   </div>
 
-  <!-- MKT STATUS -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;margin-bottom:6px;flex-wrap:wrap">
-    <span class="mkt-pill wait" id="mktPill">MKT NOW</span>
-    <span id="sp-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-    <span id="dow-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-    <span id="nas-pill" style="display:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap"></span>
-  </div>
 
-  <!-- LIVE PRICES -->
-  <div class="price-bar" style="margin-bottom:0">
-    <div class="price-card spy" onclick="setT1('spy')">
-      <div class="pc-name">SPY</div>
-      <div class="pc-price" id="px-spy"><span class="ld">...</span></div>
-      <div class="pc-chg" id="pc-spy"></div>
-    </div>
-    <div class="price-card qqq" onclick="setT1('qqq')">
-      <div class="pc-name">QQQ</div>
-      <div class="pc-price" id="px-qqq"><span class="ld">...</span></div>
-      <div class="pc-chg" id="pc-qqq"></div>
-    </div>
-  </div>
 
 </div><!-- end sticky header -->
 
@@ -6729,14 +6709,14 @@ window.onerror=function(msg,src,line,col,err){
 };
 go1();go2();go3();
 renderDayInputs();
-$('pane0').className='pane';
+$('pane0').className='pane on';
 $('pane1').className='pane';
 $('pane2').className='pane';
 $('pane3').className='pane';
 $('pane4').className='pane';
 $('pane6').className='pane';
 $('pane7').className='pane';
-$('pane5').className='pane on';
+$('pane5').className='pane';
 go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);
 fetchAll();setInterval(fetchAll,60000);
 geWarmIdxHist(); // both index cards get real history from the start
