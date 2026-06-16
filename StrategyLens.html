@@ -89,19 +89,20 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .results{display:none}
 
 /* TICKER HEADER */
-.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;flex-direction:column;gap:0}
+.th-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
 .th-left{}
-.th-sym{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em}
-.th-name{font-size:11px;color:#64748b;font-weight:600;margin-top:2px}
+.th-sym{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1}
+.th-name{font-size:11px;color:#64748b;font-weight:600;margin-top:4px}
 .th-right{text-align:right}
-.th-price{font-size:28px;font-weight:900;color:#fff}
-.th-chg{font-size:13px;font-weight:800;margin-top:2px}
+.th-price{font-size:26px;font-weight:900;color:#fff;line-height:1}
+.th-chg{font-size:12px;font-weight:800;margin-top:4px}
 .th-chg.up{color:#4ade80}.th-chg.dn{color:#f87171}
-.th-iv{font-size:10px;color:#64748b;font-weight:700;margin-top:4px}
-.th-meta{display:flex;gap:8px;margin-top:12px}
-.th-pill{flex:1;background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+.th-iv{font-size:10px;color:#475569;font-weight:700;margin-top:3px}
+.th-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.th-pill{background:rgba(255,255,255,.06);border-radius:8px;padding:8px 6px;text-align:center;border:1px solid rgba(255,255,255,.08)}
 .th-pill-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.th-pill-v{font-size:14px;font-weight:900;color:#fff}
+.th-pill-v{font-size:13px;font-weight:900;color:#fff}
 
 /* STRATEGY CARDS */
 .strat-card{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -607,12 +608,13 @@ function render(d,s){
 
   // Ticker header
   h+='<div class="ticker-hdr">'
+    +'<div class="th-top">'
     +'<div class="th-left"><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
     +'<div class="th-right"><div class="th-price">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
     +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
     +'<div class="th-iv">IV: '+ivPct+'%</div>'
-    +'</div>'
-    +'<div class="th-meta" style="grid-column:1/-1">'
+    +'</div></div>'
+    +'<div class="th-meta">'
     +'<div class="th-pill"><div class="th-pill-l">DTE</div><div class="th-pill-v">'+selDTE+'d</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">IV Rank</div><div class="th-pill-v">'+ivPct+'%</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
