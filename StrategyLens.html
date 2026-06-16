@@ -37,16 +37,18 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .api-save{margin-top:7px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
 
 /* QUOTE BANNER — inside sticky header */
-.quote-banner{display:none;border-top:1px solid #1e293b;padding:7px 12px}
+.quote-banner{display:none;border-top:1px solid #1e293b;padding:6px 12px}
 .quote-banner.loaded{display:block}
-.quote-chips{display:flex;gap:8px;align-items:center}
+.quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.quote-ts{font-size:9px;color:#475569;letter-spacing:.04em}
+.quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
+.quote-chips{display:flex;gap:8px}
 .qc{display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:7px;padding:5px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s}
 .qc.active{border-color:#a78bfa}
 .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
 .qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
 .qc-chg{font-size:10px;font-weight:800}
 .qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
-.quote-ts{font-size:8px;color:#475569;letter-spacing:.04em;margin-left:auto;white-space:nowrap}
 
 /* CONTROLS — inside sticky header */
 .controls-wrap{background:#e8eef6;padding:8px 12px 8px}
@@ -400,17 +402,22 @@ async function loadBannerQuotes(){
     valid.forEach(function(r){_liveData[r.sym]=r;});
     var banner=document.getElementById('quoteBanner');
     var chips=document.getElementById('quoteChips');
-    chips.innerHTML=valid.map(function(r){
-      var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
-      var sign=r.dp>0?'+':'';
-      var active=r.sym===selTicker?' active':'';
-      return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
-        +'<div class="qc-tick">'+r.sym+'</div>'
-        +'<div class="qc-price">$'+r.c.toFixed(2)+'</div>'
-        +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
-        +'</div>';
-    }).join('')
-    +'<div class="quote-ts" style="display:flex;align-items:center;gap:6px"><span>Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span><button onclick="loadBannerQuotes()" style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:2px 8px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1">↻</button></div>';
+    var ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    chips.innerHTML=
+      '<div class="quote-banner-top">'
+      +'<span class="quote-ts">Live · '+ts+'</span>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
+      +'</div>'
+      +valid.map(function(r){
+        var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
+        var sign=r.dp>0?'+':'';
+        var active=r.sym===selTicker?' active':'';
+        return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
+          +'<div class="qc-tick">'+r.sym+'</div>'
+          +'<div class="qc-price">$'+r.c.toFixed(2)+'</div>'
+          +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
+          +'</div>';
+      }).join('');
     banner.classList.add('loaded');
     setTopbarH();
   }catch(e){console.warn('banner quotes failed',e);}
