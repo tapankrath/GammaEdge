@@ -80,6 +80,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 
 /* MAIN */
 .main{max-width:480px;margin:0 auto;padding:14px 12px 100px}
+.results{scroll-margin-top:calc(var(--sticky-total-h, 160px) + 8px)}
 
 /* ERROR */
 .err-box{background:#fee2e2;border:1.5px solid #f87171;border-radius:10px;padding:12px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:12px;display:none;line-height:1.6}
@@ -278,6 +279,14 @@ window.addEventListener('load',function(){
   if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
   setTopbarH();
   window.addEventListener('resize',setTopbarH);
+  window.addEventListener('scroll',function(){},true);
+  // Keep sticky height accurate as controls resize
+  if(window.ResizeObserver){
+    var ro=new ResizeObserver(function(){setTopbarH();});
+    ro.observe(document.getElementById('topbar'));
+    ro.observe(document.getElementById('quoteBanner'));
+    ro.observe(document.getElementById('stickyControls'));
+  }
   if(fk) loadBannerQuotes();
 });
 
@@ -285,7 +294,12 @@ function setTopbarH(){
   var topH=document.getElementById('topbar').getBoundingClientRect().height;
   var bannerEl=document.getElementById('quoteBanner');
   var bannerH=bannerEl.classList.contains('loaded')?bannerEl.getBoundingClientRect().height:0;
-  document.documentElement.style.setProperty('--topbar-h',(topH+bannerH)+'px');
+  var totalSticky=topH+bannerH;
+  document.documentElement.style.setProperty('--topbar-h',totalSticky+'px');
+  // Also compute full sticky height (topbar + banner + controls) for scroll offsets
+  var ctrlEl=document.getElementById('stickyControls');
+  var ctrlH=ctrlEl?ctrlEl.getBoundingClientRect().height:0;
+  document.documentElement.style.setProperty('--sticky-total-h',(totalSticky+ctrlH)+'px');
 }
 
 // ── GEAR ──
@@ -633,6 +647,15 @@ function switchTab(idx){
   document.querySelectorAll('.strat-panel').forEach(function(p,i){
     p.classList.toggle('active',i===idx);
   });
+  // Scroll tab bar into view below sticky controls
+  var tabsWrap=document.querySelector('.strat-tabs-wrap');
+  if(tabsWrap){
+    var stickyH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-total-h'))||160;
+    var rect=tabsWrap.getBoundingClientRect();
+    if(rect.top < stickyH+4){
+      window.scrollTo({top:window.pageYOffset+rect.top-stickyH-8,behavior:'smooth'});
+    }
+  }
 }
 
 // ── RENDER ──
@@ -761,7 +784,12 @@ function render(d,s){
   var box=document.getElementById('resultsBox');
   box.innerHTML=h;
   box.style.display='block';
-  box.scrollIntoView({behavior:'smooth',block:'start'});
+  // Use setTimeout to ensure layout is painted before scrolling
+  setTimeout(function(){
+    var stickyH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-total-h'))||160;
+    var boxTop=box.getBoundingClientRect().top+window.pageYOffset;
+    window.scrollTo({top:boxTop-stickyH-8,behavior:'smooth'});
+  },60);
 }
 
 function scoreBar(label,val,color){
