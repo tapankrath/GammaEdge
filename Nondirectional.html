@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Alpha Volatility & P&L Terminal</title>
+    
+    <style>
+        /* Base Styling & Dark UI Frame */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: #090d16; 
+            color: #f8fafc; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 12px;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+        }
+        
+        .container { 
+            max-width: 440px; 
+            margin: 0 auto; 
+            background-color: #111827; 
+            border: 2px solid #334155; 
+            border-radius: 16px;
+            padding: 14px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+        .title-area { display: flex; flex-direction: column; }
+        .title { font-size: 16px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.03em; }
+        
+        .actions-area { display: flex; align-items: center; gap: 8px; }
+        
+        /* Settings Gear Button */
+        .settings-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+        .settings-btn:hover, .settings-btn:active {
+            color: #34d399;
+        }
+
+        /* Interactive Input Form Blocks */
+        .control-section {
+            background-color: #1e293b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        
+        /* Ticker Selector Row Component Layout */
+        .ticker-row { display: flex; gap: 6px; margin-bottom: 12px; }
+        .btn-ticker {
+            flex: 1; padding: 10px; background-color: #0f172a; border: 1px solid #475569;
+            color: #cbd5e1; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; transition: all 0.15s ease;
+        }
+        .btn-ticker.active {
+            background-color: #10b981; color: #0f172a; border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+        .custom-input-wrapper { display: flex; flex: 1.5; gap: 4px; }
+        .ticker-input {
+            width: 100%; background-color: #0f172a; border: 1px solid #475569; color: #fff;
+            padding: 8px; border-radius: 6px; font-weight: 700; font-size: 12px; text-transform: uppercase; text-align: center; outline: none;
+        }
+        .ticker-input:focus { border-color: #10b981; }
+
+        /* Duration Selection Grid System */
+        .duration-grid { display: flex; gap: 6px; margin-bottom: 4px; }
+        .btn-duration {
+            flex: 1; padding: 8px 0; background-color: #0f172a; border: 1px solid #334155;
+            color: #94a3b8; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
+        }
+        .btn-duration.active {
+            background-color: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 800;
+        }
+
+        /* Ticker Banner Component */
+        .ticker-banner {
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+            padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; border-left: 4px solid #10b981;
+        }
+        .banner-symbol { font-size: 18px; font-weight: 900; color: #fff; }
+        .banner-price { font-size: 16px; font-weight: 800; color: #34d399; }
+
+        /* Strategy Tab Structure Layout */
+        .strat-nav { display: flex; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 2px; border: 1px solid #1e293b; }
+        .strat-btn { flex: 1; padding: 8px 0; background: none; border: none; color: #64748b; font-size: 10.5px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; }
+        .strat-btn.active { background-color: #1e293b; color: #34d399; font-weight: 800; }
+
+        .strat-panel { display: none; }
+        .strat-panel.active { display: block; }
+
+        /* Mathematical Matrix Cards */
+        .matrix-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .matrix-item { background-color: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); }
+        .matrix-lbl { font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .matrix-val { font-size: 12.5px; font-weight: 700; }
+
+        /* Multi-zone ASCII Curve Visualizer */
+        .visualizer-container { background-color: #0f172a; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; border: 1px solid #1e293b; }
+        .vis-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.03); }
+        .lbl-green { color: #34d399; font-weight: bold; }
+        .lbl-red { color: #f87171; font-weight: bold; }
+
+        /* Token Missing Alerts UI */
+        .alert-bar { background-color: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.3); color: #f59e0b; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 12px; cursor: pointer; }
+
+        /* Secure Settings Modal Overlay Drawer */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .settings-modal {
+            background-color: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 380px;
+            padding: 18px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .settings-input {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 10px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 6px;
+            margin-bottom: 14px;
+            outline: none;
+        }
+        .settings-input:focus { border-color: #10b981; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-secondary { background-color: #334155; color: #cbd5e1; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-primary { background-color: #10b981; color: #0f172a; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="top-bar">
+            <div class="title-area">
+                <h1 class="title">Volatility & P&L Engine</h1>
+            </div>
+            <div class="actions-area">
+                <span id="liveIndicator" style="font-size: 9px; background-color: #1e293b; color: #64748b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">WORKSPACE ACTIVE</span>
+                
+                <button class="settings-btn" onclick="toggleModal(true)" title="Configure API Token">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="tokenAlert" class="alert-bar" style="display: none;" onclick="toggleModal(true)">
+            ⚠️ Finnhub token absent. Click here to configure real-time metrics.
+        </div>
+
+        <div class="control-section">
+            <label class="input-label">Select Active Ticker Target</label>
+            <div class="ticker-row">
+                <button id="btn-spy" class="btn-ticker active" onclick="selectPresetTicker('SPY')">SPY</button>
+                <button id="btn-qqq" class="btn-ticker" onclick="selectPresetTicker('QQQ')">QQQ</button>
+                <div class="custom-input-wrapper">
+                    <input type="text" id="customTickerInput" class="ticker-input" placeholder="OTHER" maxlength="5">
+                    <button class="btn-ticker" style="padding: 0 10px; max-width: 50px;" onclick="commitCustomTicker()">GO</button>
+                </div>
+            </div>
+
+            <label class="input-label">Derivatives Horizon Window (DTE)</label>
+            <div class="duration-grid">
+                <button id="dte-7" class="btn-duration active" onclick="selectDte(7)">1 Week (7d)</button>
+                <button id="dte-14" class="btn-duration" onclick="selectDte(14)">2 Weeks (14d)</button>
+                <button id="dte-21" class="btn-duration" onclick="selectDte(21)">3 Weeks (21d)</button>
+            </div>
+        </div>
+
+        <div class="ticker-banner">
+            <div>
+                <div id="displaySymbol" class="banner-symbol">SPY</div>
+                <div style="font-size: 9px; color: #64748b; font-weight: bold; margin-top: 1px;" id="impliedVolDisplay">Implied Volatility: ~16.5%</div>
+            </div>
+            <div style="text-align: right;">
+                <div id="displayPrice" class="banner-price">$756.16</div>
+                <div id="displayChange" style="font-size: 10px; font-weight: 700; color: #34d399;">+1.94%</div>
+            </div>
+        </div>
+
+        <div class="strat-nav">
+            <button id="tab-straddle" class="strat-btn active" onclick="switchStratTab('straddle')">Straddle</button>
+            <button id="tab-strangle" class="strat-btn" onclick="switchStratTab('strangle')">Strangle</button>
+            <button id="tab-condor" class="strat-btn" onclick="switchStratTab('condor')">Iron Condor</button>
+        </div>
+
+        <div id="panel-straddle" class="strat-panel active">
+            <div class="matrix-card">
+                <div class="matrix-grid">
+                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#3b82f6;">Long Straddle</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Net Debit Cost</div><div class="matrix-val" id="straddle-cost">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Risk Limit</div><div class="matrix-val" id="straddle-risk">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Ceiling</div><div class="matrix-val" style="color:#34d399;">Unlimited</div></div>
+                </div>
+                <div class="visualizer-container" id="straddle-vis"></div>
+            </div>
+        </div>
+
+        <div id="panel-strangle" class="strat-panel">
+            <div class="matrix-card">
+                <div class="matrix-grid">
+                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#c084fc;">Short Strangle</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Net Credit Harvest</div><div class="matrix-val" id="strangle-credit" style="color:#34d399;">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Ceiling</div><div class="matrix-val" id="strangle-profit">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Risk Exposure</div><div class="matrix-val" style="color:#f43f5e;">Undefined</div></div>
+                </div>
+                <div class="visualizer-container" id="strangle-vis"></div>
+            </div>
+        </div>
+
+        <div id="panel-condor" class="strat-panel">
+            <div class="matrix-card">
+                <div class="matrix-grid">
+                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#fb923c;">Iron Condor</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Net Credit Collected</div><div class="matrix-val" id="condor-credit" style="color:#34d399;">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Cap</div><div class="matrix-val" id="condor-profit">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Margin Defined Risk</div><div class="matrix-val" id="condor-risk" style="color:#f43f5e;">$0.00</div></div>
+                </div>
+                <div class="visualizer-container" id="condor-vis"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="settingsModalOverlay" class="modal-overlay">
+        <div class="settings-modal">
+            <h3 style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;">Engine Configuration</h3>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 12px;">Enter your free Finnhub.io API key below. The token is securely isolated inside your personal browser storage layer.</p>
+            
+            <label class="input-label" style="font-size: 9px;">Finnhub API Token</label>
+            <input type="password" id="apiKeyInput" placeholder="e.g. c1234567890abcdefg" class="settings-input">
+            
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="toggleModal(false)">Cancel</button>
+                <button class="btn-primary" onclick="saveApiKey()">Save Token</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mid-2026 calibrated structural runtime parameters
+        var activeTicker = "SPY";
+        var activeDte = 7;
+        var activeStratTab = "straddle";
+        var underlyingPrice = 756.16;
+        var percentChange = 1.94;
+
+        // Static backup data layer if finnhub token is absent
+        var baseAssetRegistry = {
+            "SPY": { price: 756.16, change: 1.94, iv: 0.165 },
+            "QQQ": { price: 743.90, change: 3.13, iv: 0.210 },
+            "DEFAULT": { price: 200.00, change: 0.50, iv: 0.250 }
+        };
+
+        // Storage Layer Modal Handlers
+        function toggleModal(show) {
+            var overlay = document.getElementById('settingsModalOverlay');
+            var input = document.getElementById('apiKeyInput');
+            if (show) {
+                input.value = localStorage.getItem('finnhub_api_key') || '';
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function saveApiKey() {
+            var value = document.getElementById('apiKeyInput').value.trim();
+            if (value) {
+                localStorage.setItem('finnhub_api_key', value);
+            } else {
+                localStorage.removeItem('finnhub_api_key');
+            }
+            toggleModal(false);
+            checkTokenPresence();
+            synchronizePriceFeed();
+        }
+
+        function checkTokenPresence() {
+            var token = localStorage.getItem('finnhub_api_key');
+            document.getElementById('tokenAlert').style.display = token ? 'none' : 'block';
+            var liveIndicator = document.getElementById('liveIndicator');
+            if (token) {
+                liveIndicator.innerText = "STREAM LIVE";
+                liveIndicator.style.backgroundColor = "#10b981";
+                liveIndicator.style.color = "#0f172a";
+            } else {
+                liveIndicator.innerText = "LOCAL SIMULATION";
+                liveIndicator.style.backgroundColor = "#334155";
+                liveIndicator.style.color = "#cbd5e1";
+            }
+        }
+
+        function selectPresetTicker(symbol) {
+            activeTicker = symbol;
+            document.getElementById('btn-spy').classList.remove('active');
+            document.getElementById('btn-qqq').classList.remove('active');
+            document.getElementById('customTickerInput').value = "";
+
+            if (symbol === 'SPY') document.getElementById('btn-spy').classList.add('active');
+            if (symbol === 'QQQ') document.getElementById('btn-qqq').classList.add('active');
+
+            synchronizePriceFeed();
+        }
+
+        function commitCustomTicker() {
+            var rawInput = document.getElementById('customTickerInput').value.trim().toUpperCase();
+            if (!rawInput) return;
+            
+            activeTicker = rawInput;
+            document.getElementById('btn-spy').classList.remove('active');
+            document.getElementById('btn-qqq').classList.remove('active');
+            
+            synchronizePriceFeed();
+        }
+
+        function selectDte(days) {
+            activeDte = days;
+            document.getElementById('dte-7').classList.remove('active');
+            document.getElementById('dte-14').classList.remove('active');
+            document.getElementById('dte-21').classList.remove('active');
+
+            document.getElementById('dte-' + days).classList.add('active');
+            processCalculations();
+        }
+
+        function switchStratTab(stratName) {
+            activeStratTab = stratName;
+            document.getElementById('tab-straddle').classList.remove('active');
+            document.getElementById('tab-strangle').classList.remove('active');
+            document.getElementById('tab-condor').classList.remove('active');
+
+            document.getElementById('panel-straddle').classList.remove('active');
+            document.getElementById('panel-strangle').classList.remove('active');
+            document.getElementById('panel-condor').classList.remove('active');
+
+            document.getElementById('tab-' + stratName).classList.add('active');
+            document.getElementById('panel-' + stratName).classList.add('active');
+            processCalculations();
+        }
+
+        async function synchronizePriceFeed() {
+            var token = localStorage.getItem('finnhub_api_key');
+            
+            if (!token) {
+                var staticAsset = baseAssetRegistry[activeTicker] || baseAssetRegistry["DEFAULT"];
+                underlyingPrice = staticAsset.price;
+                percentChange = staticAsset.change;
+                if (!baseAssetRegistry[activeTicker]) {
+                    underlyingPrice = 150.00 + (Math.random() * 100);
+                    percentChange = (Math.random() * 4) - 2;
+                }
+                updateTickerBannerDisplay();
+                processCalculations();
+                return;
+            }
+
+            try {
+                var response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${activeTicker}&token=${token}`);
+                if (!response.ok) throw new Error("API Exception Layer triggered.");
+                var data = await response.json();
+                
+                if (data && data.c !== 0) {
+                    underlyingPrice = data.c;
+                    percentChange = data.dp;
+                } else {
+                    console.warn("Fallback fallback matrix mapped for unknown assets.");
+                    underlyingPrice = 250.00;
+                    percentChange = 0.00;
+                }
+            } catch (err) {
+                console.error("Pricing stream anomaly caught:", err);
+            }
+            
+            updateTickerBannerDisplay();
+            processCalculations();
+        }
+
+        function updateTickerBannerDisplay() {
+            document.getElementById('displaySymbol').innerText = activeTicker;
+            document.getElementById('displayPrice').innerText = "$" + underlyingPrice.toFixed(2);
+            
+            var changeElement = document.getElementById('displayChange');
+            var sign = percentChange >= 0 ? "+" : "";
+            changeElement.innerText = sign + percentChange.toFixed(2) + "%";
+            changeElement.style.color = percentChange >= 0 ? "#34d399" : "#f43f5e";
+
+            var calculatedIv = activeTicker === "SPY" ? 0.165 : (activeTicker === "QQQ" ? 0.210 : 0.245);
+            document.getElementById('impliedVolDisplay').innerText = "Implied Volatility: ~" + (calculatedIv * 100).toFixed(1) + "%";
+        }
+
+        function processCalculations() {
+            var spot = underlyingPrice;
+            var iv = activeTicker === "SPY" ? 0.165 : (activeTicker === "QQQ" ? 0.210 : 0.245);
+            
+            var timeFactor = Math.sqrt(activeDte / 365);
+            var expectedMove = spot * iv * timeFactor;
+
+            // 1. Long Straddle Matrix Outputs
+            var straddlePremium = expectedMove * 0.85; 
+            var straddleCost = straddlePremium * 100;
+            var straddleUpperBe = spot + straddlePremium;
+            var straddleLowerBe = spot - straddlePremium;
+
+            document.getElementById('straddle-cost').innerText = "$" + straddleCost.toFixed(2);
+            document.getElementById('straddle-risk').innerText = "$" + straddleCost.toFixed(2);
+            renderStraddleAscii(spot, straddlePremium, straddleLowerBe, straddleUpperBe);
+
+            // 2. Short Strangle Matrix Outputs
+            var strangleStrikeGap = expectedMove * 1.2;
+            var strangleCallStrike = Math.ceil(spot + strangleStrikeGap);
+            var stranglePutStrike = Math.floor(spot - strangleStrikeGap);
+            var stranglePremiumCollected = expectedMove * 0.32;
+            var strangleCreditTotal = stranglePremiumCollected * 100;
+            var strangleLowerBe = stranglePutStrike - stranglePremiumCollected;
+            var strangleUpperBe = strangleCallStrike + stranglePremiumCollected;
+
+            document.getElementById('strangle-credit').innerText = "$" + strangleCreditTotal.toFixed(2);
+            document.getElementById('strangle-profit').innerText = "$" + strangleCreditTotal.toFixed(2);
+            renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumCollected);
+
+            // 3. Iron Condor Matrix Outputs
+            var condorWingWidth = Math.max(5, Math.round(spot * 0.015));
+            var condorCallShort = strangleCallStrike;
+            var condorCallLong = condorCallShort + condorWingWidth;
+            var condorPutShort = stranglePutStrike;
+            var condorPutLong = condorPutShort - condorWingWidth;
+            
+            var condorCreditPerShare = stranglePremiumCollected * 0.70; 
+            var condorMaxProfit = condorCreditPerShare * 100;
+            var condorMaxRisk = (condorWingWidth - condorCreditPerShare) * 100;
+            var condorLowerBe = condorPutShort - condorCreditPerShare;
+            var condorUpperBe = condorCallShort + condorCreditPerShare;
+
+            document.getElementById('condor-credit').innerText = "$" + condorMaxProfit.toFixed(2);
+            document.getElementById('condor-profit').innerText = "$" + condorMaxProfit.toFixed(2);
+            document.getElementById('condor-risk').innerText = "$" + condorMaxRisk.toFixed(2);
+            renderCondorAscii(spot, condorPutLong, condorPutShort, condorCallShort, condorCallLong, condorLowerBe, condorUpperBe, condorMaxProfit);
+        }
+
+        function renderStraddleAscii(spot, premium, lowBe, upBe) {
+            var steps = [
+                { label: "Target Spot +" + (premium*1.5).toFixed(0), price: spot + (premium*1.5), state: "WIN" },
+                { label: "Upper Breakeven Threshold", price: upBe, state: "BE" },
+                { label: "ATM Strike Pin (Max Loss Center)", price: spot, state: "LOSS" },
+                { label: "Lower Breakeven Threshold", price: lowBe, state: "BE" },
+                { label: "Target Spot -" + (premium*1.5).toFixed(0), price: lowBe - (premium * 0.5), state: "WIN" }
+            ];
+            
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Projection Horizon Matrix</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "WIN") { lineStyle = "lbl-green"; stateTag = "[🎁 PROFIT]"; }
+                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🔥 MAX LOSS]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('straddle-vis').innerHTML = html;
+        }
+
+        function renderStrangleAscii(spot, putStk, callStk, lowBe, upBe, premium) {
+            var steps = [
+                { label: "Topside Breakout Expansion Zone", price: upBe + (premium * 0.5), state: "LOSS" },
+                { label: "Upper Breakeven Barrier", price: upBe, state: "BE" },
+                { label: "Short Call Boundary Strike", price: callStk, state: "WIN" },
+                { label: "Current Underlying Price Axis", price: spot, state: "WIN_MAX" },
+                { label: "Short Put Boundary Strike", price: putStk, state: "WIN" },
+                { label: "Lower Breakeven Barrier", price: lowBe, state: "BE" },
+                { label: "Downside Expansion Vulnerability", price: lowBe - (premium * 0.5), state: "LOSS" }
+            ];
+
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Boundary Ranges</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "WIN_MAX") { lineStyle = "lbl-green"; stateTag = "[💰 MAX PAYOUT]"; }
+                else if (s.state === "WIN") { lineStyle = "color:#2dd4bf; font-weight:bold;"; stateTag = "[🛡️ SAFE YIELD]"; }
+                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🚨 LOSS ZONE]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('strangle-vis').innerHTML = html;
+        }
+
+        function renderCondorAscii(spot, pLong, pShort, cShort, cLong, lowBe, upBe, maxProfit) {
+            var steps = [
+                { label: "Outmost Call Long Protection", price: cLong, state: "MAX_LOSS" },
+                { label: "Upper Breakeven Wall", price: upBe, state: "BE" },
+                { label: "Short Call Strike Anchor", price: cShort, state: "MAX_PROFIT" },
+                { label: "Current Underlying Spot Index", price: spot, state: "MAX_PROFIT" },
+                { label: "Short Put Strike Anchor", price: pShort, state: "MAX_PROFIT" },
+                { label: "Lower Breakeven Wall", price: lowBe, state: "BE" },
+                { label: "Outmost Put Long Protection", price: pLong, state: "MAX_LOSS" }
+            ];
+
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">Risk-Isolated Spread Boundaries</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "MAX_PROFIT") { lineStyle = "lbl-green"; stateTag = "[💰 FULL PREMIUM]"; }
+                else if (s.state === "MAX_LOSS") { lineStyle = "lbl-red"; stateTag = "[🛡️ DEFINED CAP]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('condor-vis').innerHTML = html;
+        }
+
+        window.onload = function() {
+            checkTokenPresence();
+            synchronizePriceFeed();
+            setInterval(synchronizePriceFeed, 60000);
+        };
+    </script>
+</body>
+</html>
