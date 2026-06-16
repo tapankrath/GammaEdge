@@ -8,7 +8,7 @@
 <title>StrategyLens · GammaEdge</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;width:100%}
 
 /* ── SINGLE STICKY HEADER BLOCK ── */
 #stickyHeader{
@@ -19,7 +19,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 }
 
 /* TOPBAR */
-.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;gap:8px}
 .app-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.02em}
 .app-name span{color:#a78bfa}
 .app-sub{font-size:8px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
@@ -42,8 +42,8 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .quote-ts{font-size:9px;color:#475569;letter-spacing:.04em}
 .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
-.quote-chips{display:flex;gap:8px}
-.qc{display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:7px;padding:5px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s}
+.quote-chips{display:flex;gap:8px;overflow-x:hidden}
+.qc{display:flex;align-items:center;gap:6px;background:#1e293b;border-radius:7px;padding:5px 8px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
 .qc.active{border-color:#a78bfa}
 .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
 .qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
@@ -53,7 +53,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 /* CONTROLS — inside sticky header */
 .controls-wrap{background:#e8eef6;padding:8px 12px 8px}
 .controls-inner{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:10px 12px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
-.controls-row{display:flex;gap:8px;align-items:flex-end}
+.controls-row{display:flex;gap:8px;align-items:flex-end;min-width:0}
 .ctrl-group{display:flex;flex-direction:column}
 .ctrl-label{font-size:8px;font-weight:900;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
 .ticker-group{flex:1}
