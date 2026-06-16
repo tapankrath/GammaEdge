@@ -510,4 +510,89 @@
         }
 
         function renderStraddleAscii(spot, premium, lowBe, upBe, contracts) {
-            var steps =
+            var steps = [
+                { label: "Target Spot +" + (premium*1.5).toFixed(0), price: spot + (premium*1.5), state: "WIN" },
+                { label: "Upper Breakeven Threshold", price: upBe, state: "BE" },
+                { label: "ATM Strike Pin (Max Loss Center)", price: spot, state: "LOSS" },
+                { label: "Lower Breakeven Threshold", price: lowBe, state: "BE" },
+                { label: "Target Spot -" + (premium*1.5).toFixed(0), price: lowBe - (premium * 0.5), state: "WIN" }
+            ];
+            
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Horizon Profile ('+contracts+' Contracts)</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "WIN") { lineStyle = "lbl-green"; stateTag = "[🎁 PROFIT]"; }
+                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🔥 MAX RISK]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('straddle-vis').innerHTML = html;
+        }
+
+        function renderStrangleAscii(spot, putStk, callStk, lowBe, upBe, premium, contracts) {
+            var steps = [
+                { label: "Topside Volatility Breakout", price: upBe + (premium * 0.5), state: "WIN" },
+                { label: "Upper Breakeven Barrier", price: upBe, state: "BE" },
+                { label: "Long Call Strike (OTM)", price: callStk, state: "LOSS" },
+                { label: "Current Underlying Spot Axis", price: spot, state: "LOSS" },
+                { label: "Long Put Strike (OTM)", price: putStk, state: "LOSS" },
+                { label: "Lower Breakeven Barrier", price: lowBe, state: "BE" },
+                { label: "Downside Volatility Breakout", price: lowBe - (premium * 0.5), state: "WIN" }
+            ];
+
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Horizon Profile ('+contracts+' Contracts)</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "WIN") { lineStyle = "lbl-green"; stateTag = "[🎁 PROFIT]"; }
+                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🔥 MAX RISK]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('strangle-vis').innerHTML = html;
+        }
+
+        function renderCondorAscii(spot, pLong, pShort, cShort, cLong, lowBe, upBe, contracts) {
+            var steps = [
+                { label: "Outmost Call Long Protection", price: cLong, state: "MAX_LOSS" },
+                { label: "Upper Breakeven Wall", price: upBe, state: "BE" },
+                { label: "Short Call Strike Anchor", price: cShort, state: "MAX_PROFIT" },
+                { label: "Current Underlying Spot Index", price: spot, state: "MAX_PROFIT" },
+                { label: "Short Put Strike Anchor", price: pShort, state: "MAX_PROFIT" },
+                { label: "Lower Breakeven Wall", price: lowBe, state: "BE" },
+                { label: "Outmost Put Long Protection", price: pLong, state: "MAX_LOSS" }
+            ];
+
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">Margin Spread Boundaries ('+contracts+' Contracts)</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "MAX_PROFIT") { lineStyle = "lbl-green"; stateTag = "[💰 FULL PREMIUM]"; }
+                else if (s.state === "MAX_LOSS") { lineStyle = "lbl-red"; stateTag = "[🛡️ DEFINED CAP]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('condor-vis').innerHTML = html;
+        }
+
+        window.onload = function() {
+            checkTokenPresence();
+            synchronizePriceFeed();
+            setInterval(synchronizePriceFeed, 60000);
+        };
+    </script>
+</body>
+</html>
