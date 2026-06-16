@@ -89,19 +89,21 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .results{display:none}
 
 /* TICKER HEADER */
-.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;flex-direction:column;align-items:stretch}
-.th-left{}
-.th-sym{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1}
-.th-name{font-size:11px;color:#64748b;font-weight:600;margin-top:4px}
-.th-right{text-align:right}
-.th-price{font-size:26px;font-weight:900;color:#fff;line-height:1}
-.th-chg{font-size:12px;font-weight:800;margin-top:4px}
+.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:16px;margin-bottom:12px}
+.th-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.th-sym{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.01em;line-height:1}
+.th-name{font-size:10px;color:#64748b;font-weight:600;margin-top:3px}
+.th-price{font-size:20px;font-weight:900;color:#fff;line-height:1}
+.th-chg{font-size:11px;font-weight:800;margin-top:3px;text-align:right}
 .th-chg.up{color:#4ade80}.th-chg.dn{color:#f87171}
-.th-iv{font-size:10px;color:#475569;font-weight:700;margin-top:3px}
-.th-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.th-pill{background:rgba(255,255,255,.06);border-radius:8px;padding:8px 6px;text-align:center;border:1px solid rgba(255,255,255,.08)}
-.th-pill-l{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.th-pill-v{font-size:13px;font-weight:900;color:#fff}
+.th-iv{font-size:10px;color:#475569;font-weight:600;margin-top:2px;text-align:right}
+.th-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.th-pill{background:rgba(255,255,255,.07);border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+.th-pill-l{font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.th-pill-v{font-size:12px;font-weight:900;color:#fff}
+.th-footer{display:flex;align-items:center;justify-content:space-between}
+.th-ts{font-size:10px;color:#475569;font-weight:600}
+.th-refresh{background:#1e293b;border:1px solid #334155;border-radius:7px;padding:6px 14px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.04em}
 
 /* STRATEGY CARDS */
 .strat-card{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -232,11 +234,6 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
     </div>
 
     <button class="go-btn" id="goBtn" onclick="analyze()">⚡ Analyze Strategies</button>
-  </div>
-
-  <div id="refreshBar" style="display:none;justify-content:space-between;align-items:center;background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:10px 14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
-    <div style="font-size:11px;color:#64748b;font-weight:700" id="refreshTs">📡 Last updated —</div>
-    <button onclick="reAnalyze()" style="background:#09101f;border:none;border-radius:8px;padding:7px 16px;color:#a78bfa;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.04em">↻ Refresh</button>
   </div>
 
   <div class="err-box" id="errBox"></div>
@@ -575,9 +572,7 @@ async function analyze(){
     _liveData[selTicker]=data;
     var strats=computeStrategies(data);
     render(data,strats);
-    var rb=document.getElementById('refreshBar');
-    rb.style.display='flex';
-    document.getElementById('refreshTs').textContent='📡 Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
   }catch(e){
     showErr(e.message||'Failed to fetch data. Check ticker and Finnhub key.');
   }finally{
@@ -620,31 +615,27 @@ function render(d,s){
   var h='';
 
   // Ticker header
+  var _ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   h+='<div class="ticker-hdr">'
-
-    // Row 1: symbol left, price right
-    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%;margin-bottom:14px">'
-    +'<div>'
-    +'<div class="th-sym">'+d.sym+'</div>'
-    +'<div class="th-name">'+d.name+'</div>'
-    +'</div>'
-    +'<div style="text-align:right">'
-    +'<div class="th-price">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
+    // Row 1: symbol | price
+    +'<div class="th-row1">'
+    +'<div><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
+    +'<div><div class="th-price">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
     +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
-    +'<div class="th-iv">IV '+ivPct+'%</div>'
+    +'<div class="th-iv">IV '+ivPct+'%</div></div>'
     +'</div>'
-    +'</div>'
-
-    // Row 2: 4 pills full width
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;margin-bottom:12px">'
+    // Row 2: pills
+    +'<div class="th-pills">'
     +'<div class="th-pill"><div class="th-pill-l">DTE</div><div class="th-pill-v">'+selDTE+'d</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">IV</div><div class="th-pill-v">'+ivPct+'%</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">±Move</div><div class="th-pill-v">'+stdPct+'%</div></div>'
     +'</div>'
-
-
-
+    // Row 3: timestamp + refresh
+    +'<div class="th-footer">'
+    +'<div class="th-ts">📡 Live · '+_ts+'</div>'
+    +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
+    +'</div>'
     +'</div>';
 
   // Strategy cards
