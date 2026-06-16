@@ -10,17 +10,23 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
 
+/* ── SINGLE STICKY HEADER BLOCK ── */
+#stickyHeader{
+  position:sticky;
+  top:0;
+  z-index:200;
+  background:#0f172a;
+}
+
 /* TOPBAR */
-.topbar{background:#0f172a;position:sticky;top:0;z-index:200}
-.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px}
-.app-name{font-size:17px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
+.app-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.02em}
 .app-name span{color:#a78bfa}
 .app-sub{font-size:8px;font-weight:700;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
-.gear-btn{width:30px;height:30px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0}
-.back-link{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:3px 10px 3px 14px}
+.gear-btn{width:32px;height:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
 
 /* GEAR DRAWER */
-.api-drawer{display:none;background:#1e293b;border-top:1px solid #334155;padding:12px}
+.api-drawer{display:none;background:#1e293b;border-top:1px solid #334155;padding:12px 14px}
 .api-drawer.open{display:block}
 .api-drawer label{display:block;font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
 .api-drawer input{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:8px;padding:9px 12px;color:#fff;font-family:monospace;font-size:13px;outline:none}
@@ -30,14 +36,28 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .api-status.ok{color:#4ade80}.api-status.no{color:#fbbf24}
 .api-save{margin-top:7px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
 
-/* STICKY CONTROL PANEL — sits below topbar */
-.sticky-controls{position:sticky;top:var(--topbar-h,60px);z-index:100;background:#e8eef6;padding:8px 12px;border-bottom:1.5px solid #c8d5e8}
-.controls-inner{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.controls-row{display:flex;gap:8px;align-items:center}
-.ctrl-label{font-size:8px;font-weight:900;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+/* QUOTE BANNER — inside sticky header */
+.quote-banner{display:none;border-top:1px solid #1e293b;padding:7px 12px}
+.quote-banner.loaded{display:block}
+.quote-chips{display:flex;gap:8px;align-items:center}
+.qc{display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:7px;padding:5px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s}
+.qc.active{border-color:#a78bfa}
+.qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
+.qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
+.qc-chg{font-size:10px;font-weight:800}
+.qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
+.quote-ts{font-size:8px;color:#475569;letter-spacing:.04em;margin-left:auto;white-space:nowrap}
 
-/* Ticker chips — compact */
+/* CONTROLS — inside sticky header */
+.controls-wrap{background:#e8eef6;padding:8px 12px 8px}
+.controls-inner{background:#fff;border:1.5px solid #c8d5e8;border-radius:12px;padding:10px 12px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.controls-row{display:flex;gap:8px;align-items:flex-end}
+.ctrl-group{display:flex;flex-direction:column}
+.ctrl-label{font-size:8px;font-weight:900;color:#64748b;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
 .ticker-group{flex:1}
+.dte-group{flex-shrink:0}
+
+/* Ticker chips */
 .ticker-chips{display:flex;gap:5px}
 .tick-preset{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:6px 4px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
 .tick-preset.on{background:#ede9fe;border-color:#7c3aed}
@@ -45,61 +65,59 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .tick-preset.on .tp-sym{color:#7c3aed}
 .tp-name{font-size:8px;color:#94a3b8;font-weight:600;margin-top:1px}
 .tick-preset.on .tp-name{color:#9f75e8}
-.tick-custom{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:5px 8px;display:flex;flex-direction:column}
-.tick-custom label{font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em}
-.tick-custom input{background:transparent;border:none;outline:none;font-size:13px;font-weight:900;color:#1e293b;font-family:inherit;width:100%;text-transform:uppercase;padding:0}
+.tick-custom{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:5px 8px;display:flex;flex-direction:column;cursor:pointer}
+.tick-custom label{font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
+.tick-custom input{background:transparent;border:none;outline:none;font-size:13px;font-weight:900;color:#1e293b;font-family:inherit;width:100%;text-transform:uppercase;padding:0;cursor:pointer}
 .tick-custom input::placeholder{color:#c8d5e8;font-weight:700}
 .tick-custom.on{background:#ede9fe;border-color:#7c3aed}
 .tick-custom.on input{color:#7c3aed}
 
-/* DTE chips — compact */
-.dte-group{flex-shrink:0}
+/* DTE chips */
 .dte-chips{display:flex;gap:5px}
-.dte-btn{background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:6px 10px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
+.dte-btn{background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:6px 8px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
 .dte-btn.on{background:#09101f;border-color:#09101f}
 .dw{font-size:13px;font-weight:900;color:#475569;line-height:1}
 .dte-btn.on .dw{color:#fff}
 .dl{font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
 .dte-btn.on .dl{color:#a78bfa}
 
-/* GO button — compact, full width below chips */
-.go-btn{width:100%;background:#09101f;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em;margin-top:8px}
+/* Analyze button */
+.go-btn{width:100%;background:#09101f;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em;margin-top:8px;transition:background .15s}
 .go-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.go-btn:not(:disabled):active{background:#334155}
 
-/* QUOTE BANNER — compact */
-.quote-banner{display:none;background:#0f172a;padding:7px 12px 7px;border-bottom:1px solid #1e293b}
-.quote-banner.loaded{display:block}
-.quote-chips{display:flex;gap:8px}
-.qc{display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:7px;padding:5px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s}
-.qc.active{border-color:#a78bfa}
-.qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
-.qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
-.qc-chg{font-size:10px;font-weight:800}
-.qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
-.quote-ts{font-size:8px;color:#475569;letter-spacing:.04em;margin-left:auto;align-self:center;white-space:nowrap;flex-shrink:0}
-
-/* MAIN */
+/* MAIN CONTENT */
 .main{max-width:480px;margin:0 auto;padding:14px 12px 100px}
-.results{scroll-margin-top:calc(var(--sticky-total-h, 160px) + 8px)}
 
 /* ERROR */
 .err-box{background:#fee2e2;border:1.5px solid #f87171;border-radius:10px;padding:12px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:12px;display:none;line-height:1.6}
 
 /* LOADING */
-.loading{display:none;text-align:center;padding:40px 20px}
+.loading{display:none;text-align:center;padding:60px 20px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:34px;height:34px;border:3px solid #c8d5e8;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
 .loading-msg{color:#475569;font-size:13px;font-weight:600}
+
+/* LANDING STATE — centered empty state */
+.landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;padding:20px}
+.landing-icon{font-size:52px;margin-bottom:16px;opacity:.9}
+.landing-title{font-size:20px;font-weight:900;color:#1e293b;letter-spacing:-.01em;margin-bottom:8px}
+.landing-sub{font-size:13px;color:#64748b;font-weight:500;line-height:1.6;max-width:280px}
+.landing-steps{display:flex;flex-direction:column;gap:10px;margin-top:20px;width:100%;max-width:300px}
+.landing-step{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #c8d5e8;border-radius:10px;padding:10px 14px;text-align:left}
+.step-num{width:24px;height:24px;border-radius:50%;background:#09101f;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-txt{font-size:12px;font-weight:600;color:#475569}
+.step-txt strong{color:#1e293b;display:block;font-size:13px;font-weight:800;margin-bottom:1px}
 
 /* RESULTS */
 .results{display:none}
 
 /* TICKER HEADER */
-.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px;margin-bottom:12px;scroll-margin-top:calc(var(--sticky-total-h,160px) + 8px)}
+.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px;margin-bottom:12px}
 .th-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.th-sym{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.01em;line-height:1}
+.th-sym{font-size:18px;font-weight:900;color:#fff}
 .th-name{font-size:9px;color:#64748b;font-weight:600;margin-top:2px}
-.th-price{font-size:18px;font-weight:900;color:#fff;line-height:1}
+.th-price{font-size:18px;font-weight:900;color:#fff}
 .th-chg{font-size:10px;font-weight:800;margin-top:2px;text-align:right}
 .th-chg.up{color:#4ade80}.th-chg.dn{color:#f87171}
 .th-iv{font-size:10px;color:#475569;font-weight:600;margin-top:1px;text-align:right}
@@ -109,11 +127,13 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .th-pill-v{font-size:11px;font-weight:900;color:#fff}
 .th-footer{display:flex;align-items:center;justify-content:space-between}
 .th-ts{font-size:9px;color:#475569;font-weight:600}
-.th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#a78bfa;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.04em}
+.th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#a78bfa;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit}
 
-/* ── STRATEGY TABS ── */
-.strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.strat-tab-bar{display:flex;background:#f4f7fb;border-bottom:1.5px solid #e2e8f0;position:sticky;top:var(--sticky-total-h,160px);z-index:90}
+/* STRATEGY TABS WRAPPER */
+.strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
+
+/* TAB BAR — NOT sticky, lives inside the card */
+.strat-tab-bar{display:flex;background:#f4f7fb;border-bottom:1.5px solid #e2e8f0}
 .strat-tab{flex:1;padding:10px 4px;text-align:center;cursor:pointer;font-family:inherit;border:none;background:transparent;transition:all .18s;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
 .strat-tab.active{background:#fff;border-bottom-color:#7c3aed}
 .strat-tab-icon{font-size:15px;line-height:1;margin-bottom:2px}
@@ -122,7 +142,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .strat-tab-pl{font-size:10px;font-weight:900;margin-top:1px}
 
 /* TAB PANELS */
-.strat-panel{display:none;padding:0}
+.strat-panel{display:none}
 .strat-panel.active{display:block}
 
 /* P&L GRID */
@@ -130,7 +150,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .pl-cell{background:#fff;padding:12px 8px;text-align:center}
 .pl-cell-l{font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
 .pl-cell-v{font-size:15px;font-weight:900}
-.pl-cell-v.pos{color:#16a34a}.pl-cell-v.neg{color:#dc2626}.pl-cell-v.neu{color:#d97706}
+.pl-cell-v.pos{color:#16a34a}.pl-cell-v.neg{color:#dc2626}
 .pl-cell-sub{font-size:9px;color:#94a3b8;font-weight:600;margin-top:1px}
 
 /* BREAKEVENS */
@@ -155,19 +175,19 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 
 /* SCORES */
 .score-section{padding:12px 14px;border-top:1px solid #f1f5f9}
-.score-bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden}
+.score-bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-top:3px}
 .score-fill{height:100%;border-radius:2px}
 
 /* THESIS */
 .thesis-section{padding:12px 14px;border-top:1px solid #f1f5f9}
+.thesis-lbl{font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
 .thesis-txt{font-size:12px;color:#475569;line-height:1.7;font-weight:500}
 
 /* EXIT STRATEGY */
 .exit-section{padding:12px 14px;border-top:2px solid #f1f5f9;background:#fafbfc}
 .exit-hdr{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-.exit-icon{font-size:14px}
 .exit-title{font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em}
-.exit-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.exit-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
 .exit-card{background:#fff;border-radius:9px;padding:9px 10px;border:1.5px solid #e2e8f0}
 .exit-card-label{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
 .exit-card-val{font-size:12px;font-weight:800;color:#1e293b;margin-bottom:3px}
@@ -176,7 +196,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .exit-card.loss .exit-card-label{color:#dc2626}
 .exit-card.time .exit-card-label{color:#2563eb}
 .exit-card.roll .exit-card-label{color:#d97706}
-.exit-rules{margin-top:8px;background:#fff;border-radius:9px;border:1.5px solid #e2e8f0;overflow:hidden}
+.exit-rules{background:#fff;border-radius:9px;border:1.5px solid #e2e8f0;overflow:hidden}
 .exit-rule{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-bottom:1px solid #f1f5f9}
 .exit-rule:last-child{border-bottom:none}
 .exit-rule-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
@@ -186,7 +206,10 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 </head>
 <body>
 
-<div class="topbar" id="topbar">
+<!-- ═══ ONE STICKY BLOCK — everything sticky lives here ═══ -->
+<div id="stickyHeader">
+
+  <!-- Topbar -->
   <div class="topbar-row1">
     <div>
       <div class="app-name">Strategy<span>Lens</span></div>
@@ -195,72 +218,84 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
     <div class="gear-btn" onclick="toggleGear()">⚙️</div>
   </div>
 
+  <!-- Gear drawer -->
   <div class="api-drawer" id="apiDrawer">
     <label>Finnhub API Key</label>
     <input type="password" id="fhKey" placeholder="your finnhub key…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateFhStatus()">
     <div class="api-hint">🔒 Free at finnhub.io · Real-time quotes + IV</div>
     <div class="api-status no" id="fhStatus">⚠️ No key set</div>
-    <button class="api-save" onclick="saveFhKey()">Save & Close</button>
+    <button class="api-save" onclick="saveFhKey()">Save &amp; Close</button>
   </div>
-</div>
 
-<!-- QUOTE BANNER -->
-<div class="quote-banner" id="quoteBanner">
-  <div class="quote-chips" id="quoteChips">
-    <div class="quote-ts" id="quoteTs"></div>
+  <!-- Quote banner -->
+  <div class="quote-banner" id="quoteBanner">
+    <div class="quote-chips" id="quoteChips"></div>
   </div>
-</div>
 
-<!-- STICKY CONTROLS -->
-<div class="sticky-controls" id="stickyControls">
-  <div class="controls-inner">
-    <div class="controls-row">
-      <div class="ticker-group">
-        <div class="ctrl-label">Ticker</div>
-        <div class="ticker-chips">
-          <button class="tick-preset on" id="tp-SPY" onclick="selectPreset('SPY',this)">
-            <div class="tp-sym">SPY</div>
-            <div class="tp-name">S&P 500</div>
-          </button>
-          <button class="tick-preset" id="tp-QQQ" onclick="selectPreset('QQQ',this)">
-            <div class="tp-sym">QQQ</div>
-            <div class="tp-name">Nsdq 100</div>
-          </button>
-          <div class="tick-custom" id="tc-wrap" onclick="selectCustom()">
-            <label>Custom</label>
-            <input type="text" id="customTick" placeholder="NVDA" maxlength="6"
-              oninput="onCustomInput()" onfocus="selectCustom()">
+  <!-- Controls -->
+  <div class="controls-wrap">
+    <div class="controls-inner">
+      <div class="controls-row">
+        <div class="ctrl-group ticker-group">
+          <div class="ctrl-label">Ticker</div>
+          <div class="ticker-chips">
+            <button class="tick-preset on" id="tp-SPY" onclick="selectPreset('SPY',this)">
+              <div class="tp-sym">SPY</div>
+              <div class="tp-name">S&amp;P 500</div>
+            </button>
+            <button class="tick-preset" id="tp-QQQ" onclick="selectPreset('QQQ',this)">
+              <div class="tp-sym">QQQ</div>
+              <div class="tp-name">Nsdq 100</div>
+            </button>
+            <div class="tick-custom" id="tc-wrap" onclick="selectCustom()">
+              <label>Custom</label>
+              <input type="text" id="customTick" placeholder="NVDA" maxlength="6" oninput="onCustomInput()" onfocus="selectCustom()">
+            </div>
+          </div>
+        </div>
+        <div class="ctrl-group dte-group">
+          <div class="ctrl-label">Expiry</div>
+          <div class="dte-chips">
+            <button class="dte-btn on" id="dte-7" onclick="setDTE(7,this)"><div class="dw">1W</div><div class="dl">7d</div></button>
+            <button class="dte-btn" id="dte-14" onclick="setDTE(14,this)"><div class="dw">2W</div><div class="dl">14d</div></button>
+            <button class="dte-btn" id="dte-21" onclick="setDTE(21,this)"><div class="dw">3W</div><div class="dl">21d</div></button>
           </div>
         </div>
       </div>
-      <div class="dte-group">
-        <div class="ctrl-label">Expiry</div>
-        <div class="dte-chips">
-          <button class="dte-btn on" id="dte-7" onclick="setDTE(7,this)">
-            <div class="dw">1W</div>
-            <div class="dl">7d</div>
-          </button>
-          <button class="dte-btn" id="dte-14" onclick="setDTE(14,this)">
-            <div class="dw">2W</div>
-            <div class="dl">14d</div>
-          </button>
-          <button class="dte-btn" id="dte-21" onclick="setDTE(21,this)">
-            <div class="dw">3W</div>
-            <div class="dl">21d</div>
-          </button>
-        </div>
-      </div>
+      <button class="go-btn" id="goBtn" onclick="analyze()">⚡ Analyze Strategies</button>
     </div>
-    <button class="go-btn" id="goBtn" onclick="analyze()">⚡ Analyze Strategies</button>
   </div>
-</div>
 
+</div><!-- end #stickyHeader -->
+
+<!-- SCROLLABLE CONTENT -->
 <div class="main">
   <div class="err-box" id="errBox"></div>
 
   <div class="loading" id="loadingBox">
     <div class="spinner"></div>
     <div class="loading-msg" id="loadingMsg">Fetching live data…</div>
+  </div>
+
+  <!-- LANDING STATE -->
+  <div class="landing" id="landingBox">
+    <div class="landing-icon">📊</div>
+    <div class="landing-title">Options Strategy Analyzer</div>
+    <div class="landing-sub">Get instant P&amp;L analysis for Straddle, Strangle &amp; Iron Condor strategies with live pricing.</div>
+    <div class="landing-steps">
+      <div class="landing-step">
+        <div class="step-num">1</div>
+        <div class="step-txt"><strong>Set your API key</strong>Free Finnhub key via the ⚙️ gear icon above</div>
+      </div>
+      <div class="landing-step">
+        <div class="step-num">2</div>
+        <div class="step-txt"><strong>Pick a ticker &amp; expiry</strong>SPY, QQQ or any custom symbol</div>
+      </div>
+      <div class="landing-step">
+        <div class="step-num">3</div>
+        <div class="step-txt"><strong>Tap Analyze</strong>Live Greeks, breakevens &amp; exit plans</div>
+      </div>
+    </div>
   </div>
 
   <div class="results" id="resultsBox"></div>
@@ -279,27 +314,16 @@ window.addEventListener('load',function(){
   if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
   setTopbarH();
   window.addEventListener('resize',setTopbarH);
-  window.addEventListener('scroll',function(){},true);
-  // Keep sticky height accurate as controls resize
   if(window.ResizeObserver){
-    var ro=new ResizeObserver(function(){setTopbarH();});
-    ro.observe(document.getElementById('topbar'));
-    ro.observe(document.getElementById('quoteBanner'));
-    ro.observe(document.getElementById('stickyControls'));
+    new ResizeObserver(setTopbarH).observe(document.getElementById('stickyHeader'));
   }
   if(fk) loadBannerQuotes();
 });
 
 function setTopbarH(){
-  var topH=document.getElementById('topbar').getBoundingClientRect().height;
-  var bannerEl=document.getElementById('quoteBanner');
-  var bannerH=bannerEl.classList.contains('loaded')?bannerEl.getBoundingClientRect().height:0;
-  var totalSticky=topH+bannerH;
-  document.documentElement.style.setProperty('--topbar-h',totalSticky+'px');
-  // Also compute full sticky height (topbar + banner + controls) for scroll offsets
-  var ctrlEl=document.getElementById('stickyControls');
-  var ctrlH=ctrlEl?ctrlEl.getBoundingClientRect().height:0;
-  document.documentElement.style.setProperty('--sticky-total-h',(totalSticky+ctrlH)+'px');
+  // Everything sticky is inside #stickyHeader — measure it directly
+  var h=document.getElementById('stickyHeader').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--sticky-h',h+'px');
 }
 
 // ── GEAR ──
@@ -379,7 +403,7 @@ async function loadBannerQuotes(){
     }).join('')
     +'<div class="quote-ts">Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div>';
     banner.classList.add('loaded');
-    setTimeout(setTopbarH,50);
+    setTopbarH();
   }catch(e){console.warn('banner quotes failed',e);}
 }
 
@@ -610,6 +634,8 @@ async function analyze(){
   document.getElementById('errBox').style.display='none';
   document.getElementById('resultsBox').style.display='none';
   document.getElementById('loadingBox').style.display='block';
+  var lb=document.getElementById('landingBox');
+  if(lb) lb.style.display='none';
   document.getElementById('goBtn').disabled=true;
   document.getElementById('loadingMsg').textContent='📡 Fetching '+selTicker+' live data…';
   try{
@@ -647,15 +673,7 @@ function switchTab(idx){
   document.querySelectorAll('.strat-panel').forEach(function(p,i){
     p.classList.toggle('active',i===idx);
   });
-  // Scroll tab bar into view below sticky controls
-  var tabsWrap=document.querySelector('.strat-tabs-wrap');
-  if(tabsWrap){
-    var stickyH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-total-h'))||160;
-    var rect=tabsWrap.getBoundingClientRect();
-    if(rect.top < stickyH+4){
-      window.scrollTo({top:window.pageYOffset+rect.top-stickyH-8,behavior:'smooth'});
-    }
-  }
+
 }
 
 // ── RENDER ──
@@ -784,13 +802,13 @@ function render(d,s){
   var box=document.getElementById('resultsBox');
   box.innerHTML=h;
   box.style.display='block';
-  // Scroll to ticker header with sticky offset accounted for
+  var lb=document.getElementById('landingBox');
+  if(lb) lb.style.display='none';
+  // Scroll results into view below the sticky header
   setTimeout(function(){
-    var hdr=box.querySelector('.ticker-hdr');
-    var target=hdr||box;
-    var stickyH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-total-h'))||160;
-    var targetTop=target.getBoundingClientRect().top+window.pageYOffset;
-    window.scrollTo({top:targetTop-stickyH-8,behavior:'smooth'});
+    var stickyH=document.getElementById('stickyHeader').getBoundingClientRect().height;
+    var top=box.getBoundingClientRect().top+window.pageYOffset-stickyH-8;
+    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
   },80);
 }
 
