@@ -95,7 +95,7 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .results{display:none}
 
 /* TICKER HEADER */
-.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px;margin-bottom:12px}
+.ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px;margin-bottom:12px;scroll-margin-top:calc(var(--sticky-total-h,160px) + 8px)}
 .th-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .th-sym{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.01em;line-height:1}
 .th-name{font-size:9px;color:#64748b;font-weight:600;margin-top:2px}
@@ -112,8 +112,8 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#a78bfa;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.04em}
 
 /* ── STRATEGY TABS ── */
-.strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.strat-tab-bar{display:flex;background:#f4f7fb;border-bottom:1.5px solid #e2e8f0}
+.strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.strat-tab-bar{display:flex;background:#f4f7fb;border-bottom:1.5px solid #e2e8f0;position:sticky;top:var(--sticky-total-h,160px);z-index:90}
 .strat-tab{flex:1;padding:10px 4px;text-align:center;cursor:pointer;font-family:inherit;border:none;background:transparent;transition:all .18s;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
 .strat-tab.active{background:#fff;border-bottom-color:#7c3aed}
 .strat-tab-icon{font-size:15px;line-height:1;margin-bottom:2px}
@@ -784,12 +784,14 @@ function render(d,s){
   var box=document.getElementById('resultsBox');
   box.innerHTML=h;
   box.style.display='block';
-  // Use setTimeout to ensure layout is painted before scrolling
+  // Scroll to ticker header with sticky offset accounted for
   setTimeout(function(){
+    var hdr=box.querySelector('.ticker-hdr');
+    var target=hdr||box;
     var stickyH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-total-h'))||160;
-    var boxTop=box.getBoundingClientRect().top+window.pageYOffset;
-    window.scrollTo({top:boxTop-stickyH-8,behavior:'smooth'});
-  },60);
+    var targetTop=target.getBoundingClientRect().top+window.pageYOffset;
+    window.scrollTo({top:targetTop-stickyH-8,behavior:'smooth'});
+  },80);
 }
 
 function scoreBar(label,val,color){
