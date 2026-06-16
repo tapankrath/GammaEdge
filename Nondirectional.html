@@ -83,6 +83,11 @@
         }
         .ticker-input:focus { border-color: #10b981; }
 
+        /* Capital Allocation Block Input Layout */
+        .capital-wrapper { display: flex; align-items: center; background-color: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 2px 8px; margin-bottom: 12px; }
+        .capital-currency { color: #64748b; font-weight: 800; font-size: 13px; margin-right: 4px; }
+        .capital-input { width: 100%; background: none; border: none; color: #fff; font-size: 13px; font-weight: 700; outline: none; padding: 6px 0; }
+
         /* Duration Selection Grid System */
         .duration-grid { display: flex; gap: 6px; margin-bottom: 4px; }
         .btn-duration {
@@ -116,6 +121,7 @@
         .matrix-item { background-color: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); }
         .matrix-lbl { font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
         .matrix-val { font-size: 12.5px; font-weight: 700; }
+        .matrix-highlight { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(52, 211, 153, 0.2); }
 
         /* Multi-zone ASCII Curve Visualizer */
         .visualizer-container { background-color: #0f172a; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; border: 1px solid #1e293b; }
@@ -203,6 +209,12 @@
                 </div>
             </div>
 
+            <label class="input-label">Total Capital Allocation Sizing</label>
+            <div class="capital-wrapper">
+                <span class="capital-currency">$</span>
+                <input type="number" id="capitalInput" class="capital-input" value="10000" step="500" min="500" oninput="processCalculations()">
+            </div>
+
             <label class="input-label">Derivatives Horizon Window (DTE)</label>
             <div class="duration-grid">
                 <button id="dte-7" class="btn-duration active" onclick="selectDte(7)">1 Week (7d)</button>
@@ -231,9 +243,9 @@
         <div id="panel-straddle" class="strat-panel active">
             <div class="matrix-card">
                 <div class="matrix-grid">
-                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#3b82f6;">Long Straddle</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Net Debit Cost</div><div class="matrix-val" id="straddle-cost">$0.00</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Max Risk Limit</div><div class="matrix-val" id="straddle-risk">$0.00</div></div>
+                    <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="straddle-contracts" style="color:#34d399;">0 Lots</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Per Contract Cost</div><div class="matrix-val" id="straddle-cost">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Total Capital Risk</div><div class="matrix-val" id="straddle-risk">$0.00</div></div>
                     <div class="matrix-item"><div class="matrix-lbl">Max Profit Ceiling</div><div class="matrix-val" style="color:#34d399;">Unlimited</div></div>
                 </div>
                 <div class="visualizer-container" id="straddle-vis"></div>
@@ -243,10 +255,10 @@
         <div id="panel-strangle" class="strat-panel">
             <div class="matrix-card">
                 <div class="matrix-grid">
-                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#c084fc;">Short Strangle</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Net Credit Harvest</div><div class="matrix-val" id="strangle-credit" style="color:#34d399;">$0.00</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Ceiling</div><div class="matrix-val" id="strangle-profit">$0.00</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Max Risk Exposure</div><div class="matrix-val" style="color:#f43f5e;">Undefined</div></div>
+                    <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="strangle-contracts" style="color:#34d399;">0 Lots</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Per Contract Cost</div><div class="matrix-val" id="strangle-cost">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Total Capital Risk</div><div class="matrix-val" id="strangle-risk">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Ceiling</div><div class="matrix-val" style="color:#34d399;">Unlimited</div></div>
                 </div>
                 <div class="visualizer-container" id="strangle-vis"></div>
             </div>
@@ -255,10 +267,10 @@
         <div id="panel-condor" class="strat-panel">
             <div class="matrix-card">
                 <div class="matrix-grid">
-                    <div class="matrix-item"><div class="matrix-lbl">Strategy Profile</div><div class="matrix-val" style="color:#fb923c;">Iron Condor</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Net Credit Collected</div><div class="matrix-val" id="condor-credit" style="color:#34d399;">$0.00</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Cap</div><div class="matrix-val" id="condor-profit">$0.00</div></div>
-                    <div class="matrix-item"><div class="matrix-lbl">Max Margin Defined Risk</div><div class="matrix-val" id="condor-risk" style="color:#f43f5e;">$0.00</div></div>
+                    <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="condor-contracts" style="color:#34d399;">0 Lots</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Spread Margin Risk</div><div class="matrix-val" id="condor-risk">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Profit Payout</div><div class="matrix-val" id="condor-profit" style="color:#34d399;">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Total Credit Harvest</div><div class="matrix-val" id="condor-credit">$0.00</div></div>
                 </div>
                 <div class="visualizer-container" id="condor-vis"></div>
             </div>
@@ -282,21 +294,18 @@
     </div>
 
     <script>
-        // Mid-2026 calibrated structural runtime parameters
         var activeTicker = "SPY";
         var activeDte = 7;
         var activeStratTab = "straddle";
         var underlyingPrice = 756.16;
         var percentChange = 1.94;
 
-        // Static backup data layer if finnhub token is absent
         var baseAssetRegistry = {
             "SPY": { price: 756.16, change: 1.94, iv: 0.165 },
             "QQQ": { price: 743.90, change: 3.13, iv: 0.210 },
             "DEFAULT": { price: 200.00, change: 0.50, iv: 0.250 }
         };
 
-        // Storage Layer Modal Handlers
         function toggleModal(show) {
             var overlay = document.getElementById('settingsModalOverlay');
             var input = document.getElementById('apiKeyInput');
@@ -408,7 +417,6 @@
                     underlyingPrice = data.c;
                     percentChange = data.dp;
                 } else {
-                    console.warn("Fallback fallback matrix mapped for unknown assets.");
                     underlyingPrice = 250.00;
                     percentChange = 0.00;
                 }
@@ -436,137 +444,70 @@
         function processCalculations() {
             var spot = underlyingPrice;
             var iv = activeTicker === "SPY" ? 0.165 : (activeTicker === "QQQ" ? 0.210 : 0.245);
+            var capitalInput = parseFloat(document.getElementById('capitalInput').value) || 10000;
             
             var timeFactor = Math.sqrt(activeDte / 365);
             var expectedMove = spot * iv * timeFactor;
 
-            // 1. Long Straddle Matrix Outputs
+            // 1. Long Straddle
             var straddlePremium = expectedMove * 0.85; 
-            var straddleCost = straddlePremium * 100;
+            var straddleCostPerContract = straddlePremium * 100;
+            var straddleContracts = Math.floor(capitalInput / straddleCostPerContract);
+            if(straddleContracts < 0) straddleContracts = 0;
+            var totalStraddleRisk = straddleContracts * straddleCostPerContract;
+            
             var straddleUpperBe = spot + straddlePremium;
             var straddleLowerBe = spot - straddlePremium;
 
-            document.getElementById('straddle-cost').innerText = "$" + straddleCost.toFixed(2);
-            document.getElementById('straddle-risk').innerText = "$" + straddleCost.toFixed(2);
-            renderStraddleAscii(spot, straddlePremium, straddleLowerBe, straddleUpperBe);
+            document.getElementById('straddle-contracts').innerText = straddleContracts + " Lot" + (straddleContracts !== 1 ? "s" : "");
+            document.getElementById('straddle-cost').innerText = "$" + straddleCostPerContract.toFixed(2);
+            document.getElementById('straddle-risk').innerText = "$" + totalStraddleRisk.toFixed(2);
+            renderStraddleAscii(spot, straddlePremium, straddleLowerBe, straddleUpperBe, straddleContracts);
 
-            // 2. Short Strangle Matrix Outputs
-            var strangleStrikeGap = expectedMove * 1.2;
+            // 2. Long Strangle
+            var strangleStrikeGap = expectedMove * 0.9;
             var strangleCallStrike = Math.ceil(spot + strangleStrikeGap);
             var stranglePutStrike = Math.floor(spot - strangleStrikeGap);
-            var stranglePremiumCollected = expectedMove * 0.32;
-            var strangleCreditTotal = stranglePremiumCollected * 100;
-            var strangleLowerBe = stranglePutStrike - stranglePremiumCollected;
-            var strangleUpperBe = strangleCallStrike + stranglePremiumCollected;
+            
+            var stranglePremiumPaid = expectedMove * 0.45; 
+            var strangleCostPerContract = stranglePremiumPaid * 100;
+            var strangleContracts = Math.floor(capitalInput / strangleCostPerContract);
+            if(strangleContracts < 0) strangleContracts = 0;
+            var totalStrangleRisk = strangleContracts * strangleCostPerContract;
+            
+            var strangleLowerBe = stranglePutStrike - stranglePremiumPaid;
+            var strangleUpperBe = strangleCallStrike + stranglePremiumPaid;
 
-            document.getElementById('strangle-credit').innerText = "$" + strangleCreditTotal.toFixed(2);
-            document.getElementById('strangle-profit').innerText = "$" + strangleCreditTotal.toFixed(2);
-            renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumCollected);
+            document.getElementById('strangle-contracts').innerText = strangleContracts + " Lot" + (strangleContracts !== 1 ? "s" : "");
+            document.getElementById('strangle-cost').innerText = "$" + strangleCostPerContract.toFixed(2);
+            document.getElementById('strangle-risk').innerText = "$" + totalStrangleRisk.toFixed(2);
+            renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumPaid, strangleContracts);
 
-            // 3. Iron Condor Matrix Outputs
+            // 3. Iron Condor Matrix Outputs (Leveraging Max Risk Margin Sizing rules)
             var condorWingWidth = Math.max(5, Math.round(spot * 0.015));
             var condorCallShort = strangleCallStrike;
             var condorCallLong = condorCallShort + condorWingWidth;
             var condorPutShort = stranglePutStrike;
             var condorPutLong = condorPutShort - condorWingWidth;
             
-            var condorCreditPerShare = stranglePremiumCollected * 0.70; 
-            var condorMaxProfit = condorCreditPerShare * 100;
-            var condorMaxRisk = (condorWingWidth - condorCreditPerShare) * 100;
+            var condorCreditPerShare = expectedMove * 0.32 * 0.70; 
+            var condorMaxProfitPerContract = condorCreditPerShare * 100;
+            var condorMarginRiskPerContract = (condorWingWidth - condorCreditPerShare) * 100;
+            
+            var condorContracts = Math.floor(capitalInput / condorMarginRiskPerContract);
+            if(condorContracts < 0) condorContracts = 0;
+            var totalCondorRisk = condorContracts * condorMarginRiskPerContract;
+            var totalCondorCredit = condorContracts * condorMaxProfitPerContract;
+            
             var condorLowerBe = condorPutShort - condorCreditPerShare;
             var condorUpperBe = condorCallShort + condorCreditPerShare;
 
-            document.getElementById('condor-credit').innerText = "$" + condorMaxProfit.toFixed(2);
-            document.getElementById('condor-profit').innerText = "$" + condorMaxProfit.toFixed(2);
-            document.getElementById('condor-risk').innerText = "$" + condorMaxRisk.toFixed(2);
-            renderCondorAscii(spot, condorPutLong, condorPutShort, condorCallShort, condorCallLong, condorLowerBe, condorUpperBe, condorMaxProfit);
+            document.getElementById('condor-contracts').innerText = condorContracts + " Lot" + (condorContracts !== 1 ? "s" : "");
+            document.getElementById('condor-risk').innerText = "$" + totalCondorRisk.toFixed(2);
+            document.getElementById('condor-profit').innerText = "$" + condorMaxProfitPerContract.toFixed(2);
+            document.getElementById('condor-credit').innerText = "$" + totalCondorCredit.toFixed(2);
+            renderCondorAscii(spot, condorPutLong, condorPutShort, condorCallShort, condorCallLong, condorLowerBe, condorUpperBe, condorContracts);
         }
 
-        function renderStraddleAscii(spot, premium, lowBe, upBe) {
-            var steps = [
-                { label: "Target Spot +" + (premium*1.5).toFixed(0), price: spot + (premium*1.5), state: "WIN" },
-                { label: "Upper Breakeven Threshold", price: upBe, state: "BE" },
-                { label: "ATM Strike Pin (Max Loss Center)", price: spot, state: "LOSS" },
-                { label: "Lower Breakeven Threshold", price: lowBe, state: "BE" },
-                { label: "Target Spot -" + (premium*1.5).toFixed(0), price: lowBe - (premium * 0.5), state: "WIN" }
-            ];
-            
-            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Projection Horizon Matrix</div>';
-            steps.forEach(function(s) {
-                var lineStyle = "";
-                var stateTag = "";
-                if (s.state === "WIN") { lineStyle = "lbl-green"; stateTag = "[🎁 PROFIT]"; }
-                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🔥 MAX LOSS]"; }
-                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
-
-                html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
-                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
-                html += '</div>';
-            });
-            document.getElementById('straddle-vis').innerHTML = html;
-        }
-
-        function renderStrangleAscii(spot, putStk, callStk, lowBe, upBe, premium) {
-            var steps = [
-                { label: "Topside Breakout Expansion Zone", price: upBe + (premium * 0.5), state: "LOSS" },
-                { label: "Upper Breakeven Barrier", price: upBe, state: "BE" },
-                { label: "Short Call Boundary Strike", price: callStk, state: "WIN" },
-                { label: "Current Underlying Price Axis", price: spot, state: "WIN_MAX" },
-                { label: "Short Put Boundary Strike", price: putStk, state: "WIN" },
-                { label: "Lower Breakeven Barrier", price: lowBe, state: "BE" },
-                { label: "Downside Expansion Vulnerability", price: lowBe - (premium * 0.5), state: "LOSS" }
-            ];
-
-            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">P&L Boundary Ranges</div>';
-            steps.forEach(function(s) {
-                var lineStyle = "";
-                var stateTag = "";
-                if (s.state === "WIN_MAX") { lineStyle = "lbl-green"; stateTag = "[💰 MAX PAYOUT]"; }
-                else if (s.state === "WIN") { lineStyle = "color:#2dd4bf; font-weight:bold;"; stateTag = "[🛡️ SAFE YIELD]"; }
-                else if (s.state === "LOSS") { lineStyle = "lbl-red"; stateTag = "[🚨 LOSS ZONE]"; }
-                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
-
-                html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
-                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
-                html += '</div>';
-            });
-            document.getElementById('strangle-vis').innerHTML = html;
-        }
-
-        function renderCondorAscii(spot, pLong, pShort, cShort, cLong, lowBe, upBe, maxProfit) {
-            var steps = [
-                { label: "Outmost Call Long Protection", price: cLong, state: "MAX_LOSS" },
-                { label: "Upper Breakeven Wall", price: upBe, state: "BE" },
-                { label: "Short Call Strike Anchor", price: cShort, state: "MAX_PROFIT" },
-                { label: "Current Underlying Spot Index", price: spot, state: "MAX_PROFIT" },
-                { label: "Short Put Strike Anchor", price: pShort, state: "MAX_PROFIT" },
-                { label: "Lower Breakeven Wall", price: lowBe, state: "BE" },
-                { label: "Outmost Put Long Protection", price: pLong, state: "MAX_LOSS" }
-            ];
-
-            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">Risk-Isolated Spread Boundaries</div>';
-            steps.forEach(function(s) {
-                var lineStyle = "";
-                var stateTag = "";
-                if (s.state === "MAX_PROFIT") { lineStyle = "lbl-green"; stateTag = "[💰 FULL PREMIUM]"; }
-                else if (s.state === "MAX_LOSS") { lineStyle = "lbl-red"; stateTag = "[🛡️ DEFINED CAP]"; }
-                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
-
-                html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
-                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
-                html += '</div>';
-            });
-            document.getElementById('condor-vis').innerHTML = html;
-        }
-
-        window.onload = function() {
-            checkTokenPresence();
-            synchronizePriceFeed();
-            setInterval(synchronizePriceFeed, 60000);
-        };
-    </script>
-</body>
-</html>
+        function renderStraddleAscii(spot, premium, lowBe, upBe, contracts) {
+            var steps =
