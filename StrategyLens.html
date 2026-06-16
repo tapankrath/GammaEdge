@@ -318,6 +318,7 @@ window.addEventListener('load',function(){
     new ResizeObserver(setTopbarH).observe(document.getElementById('stickyHeader'));
   }
   if(fk) loadBannerQuotes();
+  setInterval(loadBannerQuotes, 60000);
 });
 
 function setTopbarH(){
@@ -327,6 +328,14 @@ function setTopbarH(){
 }
 
 // ── GEAR ──
+
+function selectFromBanner(sym){
+  selTicker=sym;
+  var presetBtn=document.getElementById('tp-'+sym);
+  if(presetBtn) selectPreset(sym,presetBtn);
+  document.querySelectorAll('.qc').forEach(function(c){c.classList.toggle('active',c.dataset.sym===sym);});
+}
+
 function toggleGear(){
   document.getElementById('apiDrawer').classList.toggle('open');
   setTimeout(setTopbarH,50);
@@ -395,13 +404,13 @@ async function loadBannerQuotes(){
       var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
       var sign=r.dp>0?'+':'';
       var active=r.sym===selTicker?' active':'';
-      return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectPreset(\''+r.sym+'\',document.getElementById(\'tp-'+r.sym+'\'))">'
+      return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
         +'<div class="qc-tick">'+r.sym+'</div>'
         +'<div class="qc-price">$'+r.c.toFixed(r.c>=100?0:2)+'</div>'
         +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
         +'</div>';
     }).join('')
-    +'<div class="quote-ts">Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div>';
+    +'<div class="quote-ts" style="display:flex;align-items:center;gap:6px"><span>Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span><button onclick="loadBannerQuotes()" style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:2px 8px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1">↻</button></div>';
     banner.classList.add('loaded');
     setTopbarH();
   }catch(e){console.warn('banner quotes failed',e);}
