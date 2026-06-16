@@ -25,6 +25,8 @@
             border-radius: 16px;
             padding: 14px; 
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 1;
         }
 
         /* Top Bar */
@@ -47,7 +49,7 @@
             border: none;
             color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -91,7 +93,7 @@
         /* Duration Selection Grid System */
         .duration-grid { display: flex; gap: 6px; margin-bottom: 4px; }
         .btn-duration {
-            flex: 1; padding: 8px 0; background-color: #0f172a; border: 1px solid #334155;
+            flex: 1; padding: 10px 0; background-color: #0f172a; border: 1px solid #334155;
             color: #94a3b8; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
         }
         .btn-duration.active {
@@ -108,8 +110,8 @@
         .banner-price { font-size: 16px; font-weight: 800; color: #34d399; }
 
         /* Strategy Tab Structure Layout */
-        .strat-nav { display: flex; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 2px; border: 1px solid #1e293b; }
-        .strat-btn { flex: 1; padding: 8px 0; background: none; border: none; color: #64748b; font-size: 10.5px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; }
+        .strat-nav { display: flex; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 4px; border: 1px solid #1e293b; }
+        .strat-btn { flex: 1; padding: 10px 0; background: none; border: none; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; }
         .strat-btn.active { background-color: #1e293b; color: #34d399; font-weight: 800; }
 
         .strat-panel { display: none; }
@@ -130,16 +132,16 @@
         .lbl-red { color: #f87171; font-weight: bold; }
 
         /* Token Missing Alerts UI */
-        .alert-bar { background-color: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.3); color: #f59e0b; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 12px; cursor: pointer; }
+        .alert-bar { background-color: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.3); color: #f59e0b; padding: 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 12px; cursor: pointer; }
 
         /* Secure Settings Modal Overlay Drawer */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(9, 13, 22, 0.85);
+            background-color: rgba(9, 13, 22, 0.9);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
-            z-index: 1000;
+            z-index: 9999;
             display: none;
             align-items: center;
             justify-content: center;
@@ -172,6 +174,7 @@
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
         .btn-secondary { background-color: #334155; color: #cbd5e1; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
         .btn-primary { background-color: #10b981; color: #0f172a; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        .btn-danger { background-color: #none; border: 1px solid #f43f5e; color: #f43f5e; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top: 14px; width: 100%; display: block; text-align: center; }
     </style>
 </head>
 <body>
@@ -185,7 +188,7 @@
             <div class="actions-area">
                 <span id="liveIndicator" style="font-size: 9px; background-color: #1e293b; color: #64748b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">WORKSPACE ACTIVE</span>
                 
-                <button class="settings-btn" onclick="toggleModal(true)" title="Configure API Token">
+                <button class="settings-btn" id="settingsTriggerBtn" title="Configure API Token">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -194,32 +197,32 @@
             </div>
         </div>
 
-        <div id="tokenAlert" class="alert-bar" style="display: none;" onclick="toggleModal(true)">
+        <div id="tokenAlert" class="alert-bar" style="display: none;">
             ⚠️ Finnhub token absent. Click here to configure real-time metrics.
         </div>
 
         <div class="control-section">
             <label class="input-label">Select Active Ticker Target</label>
             <div class="ticker-row">
-                <button id="btn-spy" class="btn-ticker active" onclick="selectPresetTicker('SPY')">SPY</button>
-                <button id="btn-qqq" class="btn-ticker" onclick="selectPresetTicker('QQQ')">QQQ</button>
+                <button id="btn-spy" class="btn-ticker active">SPY</button>
+                <button id="btn-qqq" class="btn-ticker">QQQ</button>
                 <div class="custom-input-wrapper">
                     <input type="text" id="customTickerInput" class="ticker-input" placeholder="OTHER" maxlength="5">
-                    <button class="btn-ticker" style="padding: 0 10px; max-width: 50px;" onclick="commitCustomTicker()">GO</button>
+                    <button id="btn-custom-go" class="btn-ticker" style="padding: 0 10px; max-width: 50px;">GO</button>
                 </div>
             </div>
 
             <label class="input-label">Total Capital Allocation Sizing</label>
             <div class="capital-wrapper">
                 <span class="capital-currency">$</span>
-                <input type="number" id="capitalInput" class="capital-input" value="10000" step="500" min="500" oninput="processCalculations()">
+                <input type="number" id="capitalInput" class="capital-input" value="10000" step="500" min="500">
             </div>
 
             <label class="input-label">Derivatives Horizon Window (DTE)</label>
             <div class="duration-grid">
-                <button id="dte-7" class="btn-duration active" onclick="selectDte(7)">1 Week (7d)</button>
-                <button id="dte-14" class="btn-duration" onclick="selectDte(14)">2 Weeks (14d)</button>
-                <button id="dte-21" class="btn-duration" onclick="selectDte(21)">3 Weeks (21d)</button>
+                <button id="dte-7" class="btn-duration active">1 Week (7d)</button>
+                <button id="dte-14" class="btn-duration">2 Weeks (14d)</button>
+                <button id="dte-21" class="btn-duration">3 Weeks (21d)</button>
             </div>
         </div>
 
@@ -235,9 +238,9 @@
         </div>
 
         <div class="strat-nav">
-            <button id="tab-straddle" class="strat-btn active" onclick="switchStratTab('straddle')">Straddle</button>
-            <button id="tab-strangle" class="strat-btn" onclick="switchStratTab('strangle')">Strangle</button>
-            <button id="tab-condor" class="strat-btn" onclick="switchStratTab('condor')">Iron Condor</button>
+            <button id="tab-straddle" class="strat-btn active">Straddle</button>
+            <button id="tab-strangle" class="strat-btn">Strangle</button>
+            <button id="tab-condor" class="strat-btn">Iron Condor</button>
         </div>
 
         <div id="panel-straddle" class="strat-panel active">
@@ -287,9 +290,11 @@
             <input type="password" id="apiKeyInput" placeholder="e.g. c1234567890abcdefg" class="settings-input">
             
             <div class="modal-actions">
-                <button class="btn-secondary" onclick="toggleModal(false)">Cancel</button>
-                <button class="btn-primary" onclick="saveApiKey()">Save Token</button>
+                <button class="btn-secondary" id="modalCancelBtn">Cancel</button>
+                <button class="btn-primary" id="modalSaveBtn">Save Token</button>
             </div>
+
+            <button class="btn-danger" id="engineResetBtn">Reset Terminal Data</button>
         </div>
     </div>
 
@@ -483,7 +488,7 @@
             document.getElementById('strangle-risk').innerText = "$" + totalStrangleRisk.toFixed(2);
             renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumPaid, strangleContracts);
 
-            // 3. Iron Condor Matrix Outputs (Leveraging Max Risk Margin Sizing rules)
+            // 3. Iron Condor Matrix Outputs
             var condorWingWidth = Math.max(5, Math.round(spot * 0.015));
             var condorCallShort = strangleCallStrike;
             var condorCallLong = condorCallShort + condorWingWidth;
@@ -588,7 +593,39 @@
             document.getElementById('condor-vis').innerHTML = html;
         }
 
+        // Hard-bound Event Listeners to avoid mobile touch/click isolation conflicts
         window.onload = function() {
+            // Ticker Targets
+            document.getElementById('btn-spy').addEventListener('click', function() { selectPresetTicker('SPY'); });
+            document.getElementById('btn-qqq').addEventListener('click', function() { selectPresetTicker('QQQ'); });
+            document.getElementById('btn-custom-go').addEventListener('click', function() { commitCustomTicker(); });
+            
+            // Sizing Inputs
+            document.getElementById('capitalInput').addEventListener('input', function() { processCalculations(); });
+
+            // Horizons (DTE)
+            document.getElementById('dte-7').addEventListener('click', function() { selectDte(7); });
+            document.getElementById('dte-14').addEventListener('click', function() { selectDte(14); });
+            document.getElementById('dte-21').addEventListener('click', function() { selectDte(21); });
+
+            // Strategies (Tabs)
+            document.getElementById('tab-straddle').addEventListener('click', function() { switchStratTab('straddle'); });
+            document.getElementById('tab-strangle').addEventListener('click', function() { switchStratTab('strangle'); });
+            document.getElementById('tab-condor').addEventListener('click', function() { switchStratTab('condor'); });
+
+            // Modals & Storage Managers
+            document.getElementById('settingsTriggerBtn').addEventListener('click', function() { toggleModal(true); });
+            document.getElementById('tokenAlert').addEventListener('click', function() { toggleModal(true); });
+            document.getElementById('modalCancelBtn').addEventListener('click', function() { toggleModal(false); });
+            document.getElementById('modalSaveBtn').addEventListener('click', function() { saveApiKey(); });
+            
+            document.getElementById('engineResetBtn').addEventListener('click', function() {
+                localStorage.clear();
+                alert("Terminal local state successfully purged. Reinitializing components.");
+                window.location.reload();
+            });
+
+            // Initial Kick-off
             checkTokenPresence();
             synchronizePriceFeed();
             setInterval(synchronizePriceFeed, 60000);
