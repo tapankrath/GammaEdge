@@ -406,7 +406,7 @@ async function loadBannerQuotes(){
       var active=r.sym===selTicker?' active':'';
       return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
         +'<div class="qc-tick">'+r.sym+'</div>'
-        +'<div class="qc-price">$'+r.c.toFixed(r.c>=100?0:2)+'</div>'
+        +'<div class="qc-price">$'+r.c.toFixed(2)+'</div>'
         +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
         +'</div>';
     }).join('')
@@ -699,7 +699,7 @@ function render(d,s){
   h+='<div class="ticker-hdr">'
     +'<div class="th-row1">'
     +'<div><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
-    +'<div><div class="th-price">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
+    +'<div><div class="th-price">$'+d.c.toFixed(2)+'</div>'
     +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
     +'<div class="th-iv">IV '+ivPct+'%</div></div>'
     +'</div>'
@@ -749,11 +749,11 @@ function render(d,s){
     h+='<div class="be-section">'
       +'<div class="be-lbl">Breakeven Prices</div>'
       +'<div class="be-row">'
-      +'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(st.BEdn>=100?0:2)+'</div>'
+      +'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>'
-      +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(d.c>=100?0:2)+'</div>'
+      +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(st.BEup>=100?0:2)+'</div>'
+      +'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>'
       +'</div></div>';
 
