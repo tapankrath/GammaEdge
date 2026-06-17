@@ -308,7 +308,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <div class="app">
 
 <!-- STICKY HEADER -->
-<div style="position:sticky;top:0;z-index:100;background:#ffffff;padding:0;margin:0 -10px;box-shadow:0 2px 16px rgba(0,0,0,.10);border-bottom:1px solid #e2e8f0;">
+<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#ffffff;padding:0;margin:0 -10px;box-shadow:0 2px 16px rgba(0,0,0,.10);border-bottom:1px solid #e2e8f0;">
 
   <!-- Logo row -->
   <div style="display:flex;align-items:center;gap:10px;padding:10px 14px 6px;">
@@ -351,8 +351,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 
-<div class="pane" id="pane0" style="padding:0;margin:0 -10px;">
-  <iframe src="StrategyLens.html" style="width:100%;height:calc(100vh - 150px);border:none;display:block;overflow:hidden;" scrolling="no"></iframe>
+<div class="pane" id="pane0" style="padding:0;margin:0 -10px;overflow:hidden;">
+  <iframe id="ge-lens-frame" src="StrategyLens.html" style="width:100%;height:calc(100dvh - 135px);border:none;display:block;" scrolling="yes"></iframe>
 </div>
 
 <!-- TAB 1: P&L CALC -->
@@ -7285,6 +7285,19 @@ function pgGetSuggestions(){
   });
 }
 
+
+// ── IFRAME HEIGHT FITTER ──
+function geResizeFrame(){
+  var hdr=document.getElementById('ge-header');
+  var frm=document.getElementById('ge-lens-frame');
+  if(!hdr||!frm)return;
+  var offset=hdr.getBoundingClientRect().height;
+  frm.style.height=(window.innerHeight-offset)+'px';
+}
+window.addEventListener('load',geResizeFrame);
+window.addEventListener('resize',geResizeFrame);
+setTimeout(geResizeFrame,100);
+setTimeout(geResizeFrame,500);
 </script>
 
 
