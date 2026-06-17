@@ -281,6 +281,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .cmp-lbl.w{background:#15803d;color:#fff}
 .cmp-lbl.d{background:#6d28d9;color:#fff}
 
+/* ── GE SETTINGS BUTTON ── */
+.ge-settings-btn{background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
+.ge-settings-btn:hover{background:#e2e8f0;color:#0f172a;}
+.ge-settings-btn:active{background:#cbd5e1;}
 /* ── GE PILL NAV ── */
 .ge-pill{
   display:inline-flex;align-items:center;gap:4px;
@@ -315,9 +319,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <div style="font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-.4px;line-height:1;">GammaEdge</div>
       <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-top:1px;">Options Intelligence Platform</div>
     </div>
-    <button onclick="openGeSettings()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-      <span style="font-size:13px;">⚙️</span> Keys
-    </button>
+    <button onclick="openGeSettings()" class="ge-settings-btn">⚙️ Keys</button>
   </div>
 
   <!-- App suite nav — scrollable pill strip -->
@@ -349,8 +351,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 
-<div class="pane" id="pane0" style="padding-top:8px">
-  <iframe src="StrategyLens.html" style="width:100%;height:calc(100vh - 195px);border:none;display:block;overflow-x:hidden"></iframe>
+<div class="pane" id="pane0" style="padding:0;margin:0 -10px;">
+  <iframe src="StrategyLens.html" style="width:100%;height:calc(100vh - 150px);border:none;display:block;overflow:hidden;" scrolling="no"></iframe>
 </div>
 
 <!-- TAB 1: P&L CALC -->
