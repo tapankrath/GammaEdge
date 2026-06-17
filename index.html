@@ -351,9 +351,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 
-<div class="pane" id="pane0" style="padding:0;margin:0 -10px;overflow:hidden;">
-  <iframe id="ge-lens-frame" src="StrategyLens.html" style="width:100%;height:calc(100dvh - 135px);border:none;display:block;" scrolling="yes"></iframe>
-</div>
+<div class="pane" id="pane0" style="padding:0;margin:0;height:0;overflow:visible;"></div>
+<iframe id="ge-lens-frame" src="StrategyLens.html" style="position:fixed;left:0;right:0;bottom:0;top:0;width:100%;border:none;z-index:50;display:block;" scrolling="yes"></iframe>
 
 <!-- TAB 1: P&L CALC -->
 <div class="pane" id="pane1" style="padding-top:8px">
@@ -1413,6 +1412,7 @@ function showTab(n){
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
   if(n===5&&typeof pgRender==='function')pgRender();
+  geResizeFrame();
 }
 
 /* ── MATH ── */
@@ -7291,13 +7291,25 @@ function geResizeFrame(){
   var hdr=document.getElementById('ge-header');
   var frm=document.getElementById('ge-lens-frame');
   if(!hdr||!frm)return;
-  var offset=hdr.getBoundingClientRect().height;
-  frm.style.height=(window.innerHeight-offset)+'px';
+  var r=hdr.getBoundingClientRect();
+  // Position iframe to fill exact gap from header bottom to screen bottom
+  frm.style.position='fixed';
+  frm.style.top=Math.round(r.bottom)+'px';
+  frm.style.left='0';
+  frm.style.right='0';
+  frm.style.bottom='0';
+  frm.style.width='100%';
+  frm.style.height='auto'; // let top+bottom handle it
+  // Show only when StratEdge tab is active
+  var t0=$('tab0');
+  var isActive=t0&&t0.className.indexOf('on')!==-1;
+  frm.style.display=isActive?'block':'none';
 }
 window.addEventListener('load',geResizeFrame);
 window.addEventListener('resize',geResizeFrame);
-setTimeout(geResizeFrame,100);
-setTimeout(geResizeFrame,500);
+// Run immediately and after fonts/layout settle
+setTimeout(geResizeFrame,50);
+setTimeout(geResizeFrame,300);
 </script>
 
 
