@@ -183,6 +183,7 @@
         
         <div class="top-bar">
             <div class="title-area">
+                <a href="index.html" style="font-size:10px;font-weight:700;color:#64748b;text-decoration:none;margin-bottom:3px;display:inline-block;">← GammaEdge</a>
                 <h1 class="title">Volatility & P&L Engine</h1>
             </div>
             <div class="actions-area">
@@ -315,7 +316,7 @@
             var overlay = document.getElementById('settingsModalOverlay');
             var input = document.getElementById('apiKeyInput');
             if (show) {
-                input.value = localStorage.getItem('finnhub_api_key') || '';
+                input.value = localStorage.getItem('ge_fh_key') || '';
                 overlay.classList.add('active');
             } else {
                 overlay.classList.remove('active');
@@ -325,9 +326,9 @@
         function saveApiKey() {
             var value = document.getElementById('apiKeyInput').value.trim();
             if (value) {
-                localStorage.setItem('finnhub_api_key', value);
+                localStorage.setItem('ge_fh_key', value);
             } else {
-                localStorage.removeItem('finnhub_api_key');
+                localStorage.removeItem('ge_fh_key');
             }
             toggleModal(false);
             checkTokenPresence();
@@ -335,7 +336,7 @@
         }
 
         function checkTokenPresence() {
-            var token = localStorage.getItem('finnhub_api_key');
+            var token = localStorage.getItem('ge_fh_key');
             document.getElementById('tokenAlert').style.display = token ? 'none' : 'block';
             var liveIndicator = document.getElementById('liveIndicator');
             if (token) {
@@ -398,7 +399,7 @@
         }
 
         async function synchronizePriceFeed() {
-            var token = localStorage.getItem('finnhub_api_key');
+            var token = localStorage.getItem('ge_fh_key');
             
             if (!token) {
                 var staticAsset = baseAssetRegistry[activeTicker] || baseAssetRegistry["DEFAULT"];

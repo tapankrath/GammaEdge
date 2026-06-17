@@ -505,7 +505,7 @@ html,body{scroll-padding-top:190px;}
 <script>
 var selWeek='this';
 var analysisLog=[];
-try{analysisLog=JSON.parse(localStorage.getItem('eai_log')||'[]');}catch(e){analysisLog=[];}
+try{analysisLog=JSON.parse(localStorage.getItem('ge_log')||'[]');}catch(e){analysisLog=[];}
 if(!Array.isArray(analysisLog))analysisLog=[];
 
 // ── INIT ──
@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded',function(){
 // ── SETTINGS ──
 function openSettings(){
   var inp=document.getElementById('modalKey');
-  inp.value=localStorage.getItem('eai_key')||'';
+  inp.value=localStorage.getItem('ge_key')||'';
   updShStatus(inp.value);
   document.getElementById('settingsModal').classList.add('open');
   setTimeout(function(){inp.focus();},280);
@@ -537,17 +537,17 @@ function updShStatus(k){
 }
 function saveKey(){
   var k=document.getElementById('modalKey').value.trim();
-  try{localStorage.setItem('eai_key',k);}catch(e){}
+  try{localStorage.setItem('ge_key',k);}catch(e){}
   updateGear();updShStatus(k);checkKey();
   toast('✓ Key saved');
   setTimeout(closeSettings,600);
 }
 function updateGear(){
-  var k=localStorage.getItem('eai_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   document.getElementById('gearDot').className=k?'gear-dot set':'gear-dot';
 }
 function checkKey(){
-  var k=localStorage.getItem('eai_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   document.getElementById('noKey').className=k?'no-key':'no-key show';
 }
 
@@ -577,7 +577,7 @@ function toggleRow(el){
 
 // ── MAIN ──
 function runAnalysis(){
-  var apiKey=localStorage.getItem('eai_key')||'';
+  var apiKey=localStorage.getItem('ge_key')||'';
   clearErr();
   if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
 

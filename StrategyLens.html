@@ -312,7 +312,7 @@ var activeTab=0;
 
 // ── INIT ──
 window.addEventListener('load',function(){
-  var fk=localStorage.getItem('fh_key')||'';
+  var fk=localStorage.getItem('ge_fh_key')||'';
   if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
   setTopbarH();
   window.addEventListener('resize',setTopbarH);
@@ -344,7 +344,7 @@ function toggleGear(){
 }
 function saveFhKey(){
   var k=document.getElementById('fhKey').value.trim();
-  if(k){localStorage.setItem('fh_key',k);updateFhStatus();loadBannerQuotes();}
+  if(k){localStorage.setItem('ge_fh_key',k);updateFhStatus();loadBannerQuotes();}
   document.getElementById('apiDrawer').classList.remove('open');
   setTimeout(setTopbarH,50);
 }
@@ -387,7 +387,7 @@ function setDTE(d,btn){
 
 // ── BANNER ──
 async function loadBannerQuotes(){
-  var fk=(localStorage.getItem('fh_key')||'').trim();
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fk) return;
   try{
     var syms=['SPY','QQQ'];
@@ -425,7 +425,7 @@ async function loadBannerQuotes(){
 
 // ── FINNHUB ──
 async function fetchTickerData(sym){
-  var fk=(localStorage.getItem('fh_key')||'').trim();
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fk) throw new Error('No Finnhub key');
   var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
   var q=await qRes.json();
@@ -639,7 +639,7 @@ function computeStrategies(d){
 
 // ── ANALYZE ──
 async function analyze(){
-  var fk=(localStorage.getItem('fh_key')||'').trim();
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fk){
     document.getElementById('apiDrawer').classList.add('open');
     setTimeout(setTopbarH,50);

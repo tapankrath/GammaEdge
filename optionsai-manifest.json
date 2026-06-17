@@ -2,7 +2,7 @@
   "name": "OptionsAI \u2014 Earnings Plays",
   "short_name": "OptionsAI",
   "description": "AI-powered earnings options strategy with macro intelligence",
-  "start_url": "./OptionsAI.html",
+  "start_url": "./optionsai.html",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#ffffff",

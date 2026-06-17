@@ -376,15 +376,17 @@ html,body{scroll-padding-top:190px;}
 
 /* ── BACK TO GAMMAEDGE ── */
 .btn-back{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--text);color:#fff;
-  border:none;border-radius:7px;padding:5px 10px;
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;
+  border:1.5px solid #334155;border-radius:8px;padding:5px 10px;
   font-size:11px;font-weight:800;letter-spacing:.03em;
   text-decoration:none;white-space:nowrap;
-  transition:opacity .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+  transition:all .15s;flex-shrink:0;
 }
-.btn-back:active{opacity:.75;}
-.btn-back svg{width:12px;height:12px;stroke:#fff;stroke-width:2.5;
+.btn-back:hover{border-color:#64748b;background:#1e293b;}
+.btn-back:active{opacity:.85;}
+.btn-back svg{width:10px;height:10px;stroke:#94a3b8;stroke-width:2.5;
   stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 </style>
 </head>
@@ -429,7 +431,7 @@ html,body{scroll-padding-top:190px;}
         <div class="logo-name">Options<em>AI</em></div>
       </div>
       <div class="hdr-right">
-        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
+        <a href="index.html" class="btn-back"><svg viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge</a>
         <div class="live-pill"><div class="live-dot"></div>LIVE</div>
         <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
       </div>
@@ -505,7 +507,7 @@ html,body{scroll-padding-top:190px;}
 <script>
 var selWeek='this';
 var analysisLog=[];
-try{analysisLog=JSON.parse(localStorage.getItem('oai2_log')||'[]');}catch(e){analysisLog=[];}
+try{analysisLog=JSON.parse(localStorage.getItem('ge_log')||'[]');}catch(e){analysisLog=[];}
 if(!Array.isArray(analysisLog))analysisLog=[];
 
 // ── INIT ──
@@ -567,7 +569,7 @@ function renderQ(ticker,label,price,pct){
 // ── SETTINGS ──
 function openSettings(){
   var inp=document.getElementById('modalKey');
-  inp.value=localStorage.getItem('oai2_key')||'';
+  inp.value=localStorage.getItem('ge_key')||'';
   updShStatus(inp.value);
   document.getElementById('settingsModal').classList.add('open');
   setTimeout(function(){inp.focus();},280);
@@ -587,17 +589,17 @@ function updShStatus(k){
 }
 function saveKey(){
   var k=document.getElementById('modalKey').value.trim();
-  try{localStorage.setItem('oai2_key',k);}catch(e){}
+  try{localStorage.setItem('ge_key',k);}catch(e){}
   updateGear();updShStatus(k);checkKey();
   toast('✓ Key saved');
   setTimeout(closeSettings,600);
 }
 function updateGear(){
-  var k=localStorage.getItem('oai2_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   document.getElementById('gearDot').className=k?'gear-dot set':'gear-dot';
 }
 function checkKey(){
-  var k=localStorage.getItem('oai2_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   document.getElementById('noKey').className=k?'no-key':'no-key show';
 }
 
@@ -627,7 +629,7 @@ function toggleRow(el){
 
 // ── MAIN ──
 function runAnalysis(){
-  var apiKey=localStorage.getItem('oai2_key')||'';
+  var apiKey=localStorage.getItem('ge_key')||'';
   clearErr();
   if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
 

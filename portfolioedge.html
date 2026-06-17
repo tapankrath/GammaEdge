@@ -396,7 +396,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 
 <script>
 const API = ''; // no server needed
-const API_KEY_STORAGE = 'portfolioedge_api_key';
+const API_KEY_STORAGE = 'ge_key'; // unified key shared across GammaEdge
 function getApiKey(){ return localStorage.getItem(API_KEY_STORAGE)||''; }
 function setApiKey(k){ localStorage.setItem(API_KEY_STORAGE, k.trim()); }
 // Use getApiKey() everywhere instead of ANTHROPIC_KEY

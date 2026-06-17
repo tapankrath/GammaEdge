@@ -216,18 +216,18 @@ function fmtP(n){return (n>=0?'+':'')+fmt(n)+'%';}
 /* ══════════════════════════════════════════
    KEYS — same localStorage keys as index.html
 ══════════════════════════════════════════ */
-function geKey(){return (localStorage.getItem('sai_key')||localStorage.getItem('ge_key')||'').trim();}
-function tdKey(){return (localStorage.getItem('td_key')||'').trim();}
+function geKey(){return (localStorage.getItem('ge_key')||localStorage.getItem('ge_key')||'').trim();}
+function tdKey(){return (localStorage.getItem('ge_td_key')||'').trim();}
 
 function saveAnthropicKey(){
   var k=$('sai-in').value.trim();
   if(!k||k.indexOf('sk-')===-1){alert('Paste a valid Anthropic key starting with sk-');return;}
-  localStorage.setItem('sai_key',k);
+  localStorage.setItem('ge_key',k);
   checkKeysAndLoad();
 }
 function saveTdKey(){
   var k=$('td-in').value.trim();
-  if(k.length>5){localStorage.setItem('td_key',k);}
+  if(k.length>5){localStorage.setItem('ge_td_key',k);}
   checkKeysAndLoad();
 }
 function checkKeysAndLoad(){

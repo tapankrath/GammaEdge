@@ -324,9 +324,9 @@ function setTopbarH(){
 window.addEventListener('load',function(){
   setTopbarH();
   window.addEventListener('resize',setTopbarH);
-  var k=localStorage.getItem('wa_key');
+  var k=localStorage.getItem('ge_key');
   if(k){document.getElementById('keyInput').value=k;updateStatus();}
-  var fk=localStorage.getItem('fh_key');
+  var fk=localStorage.getItem('ge_fh_key');
   if(fk){document.getElementById('fhKeyInput').value=fk;updateFhStatus();}
   renderSaved();
   var cap=parseFloat(document.getElementById('cap').value)||100000;
@@ -350,7 +350,7 @@ function toggleGear(){
 }
 function saveKey(){
   var k=document.getElementById('keyInput').value.trim();
-  if(k)localStorage.setItem('wa_key',k);
+  if(k)localStorage.setItem('ge_key',k);
   updateStatus();
   document.getElementById('apiDrawer').classList.remove('open');
   setTimeout(setTopbarH,50);
@@ -363,7 +363,7 @@ function updateStatus(){
 }
 function saveFhKey(){
   var k=document.getElementById('fhKeyInput').value.trim();
-  if(k){localStorage.setItem('fh_key',k);updateFhStatus();fetchQuotes();}
+  if(k){localStorage.setItem('ge_fh_key',k);updateFhStatus();fetchQuotes();}
   document.getElementById('apiDrawer').classList.remove('open');
   setTimeout(setTopbarH,50);
 }
@@ -376,7 +376,7 @@ function updateFhStatus(){
 
 // ── FINNHUB: FETCH LIVE QUOTES ──
 async function fetchQuotes(){
-  var fk=(localStorage.getItem('fh_key')||'').trim();
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fk) return;
   try{
     var results=await Promise.all(TICKERS.map(function(t){
@@ -410,7 +410,7 @@ function renderQuoteStrip(results){
 
 // ── FINNHUB: FETCH OPTIONS CHAIN for a ticker ──
 async function fetchOptionChain(ticker){
-  var fk=(localStorage.getItem('fh_key')||'').trim();
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fk) return null;
   try{
     // Get next 3 expiration dates
@@ -584,7 +584,7 @@ function toggleSaved(){
 // ── GENERATE ──
 async function go(){
   // ── KEY CHECKS ──
-  var key=(localStorage.getItem('wa_key')||document.getElementById('keyInput').value||'').trim();
+  var key=(localStorage.getItem('ge_key')||document.getElementById('keyInput').value||'').trim();
   if(!key){
     document.getElementById('apiDrawer').classList.add('open');
     setTimeout(setTopbarH,50);
@@ -593,7 +593,7 @@ async function go(){
   }
   if(!key.startsWith('sk-ant')){showErr('API key must start with sk-ant-');return;}
 
-  var fhKey=(localStorage.getItem('fh_key')||'').trim();
+  var fhKey=(localStorage.getItem('ge_fh_key')||'').trim();
   if(!fhKey){
     document.getElementById('apiDrawer').classList.add('open');
     setTimeout(setTopbarH,50);

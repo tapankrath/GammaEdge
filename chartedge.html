@@ -286,8 +286,8 @@ var imageFiles=[]; // multi-chart support
 var CLAUDE_MODEL='claude-sonnet-4-6';
 
 // API KEY
-function getApiKey(){return localStorage.getItem('ce_api_key')||'';}
-function setApiKey(k){localStorage.setItem('ce_api_key',k);}
+function getApiKey(){return localStorage.getItem('ge_key')||'';}
+function setApiKey(k){localStorage.setItem('ge_key',k);}
 function showApiKeyModal(){var m=gid('api-modal');if(!m)return;m.style.display='flex';gid('api-key-input').value=getApiKey();}
 function closeApiModal(){setDisp('api-modal','none');}
 function saveApiKey(){var v=gid('api-key-input').value.trim();if(!v){alert('Please enter your API key');return;}setApiKey(v);closeApiModal();updateApiStatus();}

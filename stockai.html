@@ -945,29 +945,45 @@ function fetchSingleQuote(sym, id, label){
   tryNext(0);
 }
 
+function fhKey(){return (localStorage.getItem('ge_fh_key')||'').trim();}
+function fhQuote(sym){
+  var k=fhKey();if(!k)return Promise.reject(new Error('no fh key'));
+  return fetch('https://finnhub.io/api/v1/quote?symbol='+sym.toUpperCase()+'&token='+k,{cache:'no-store'})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(j){
+      var p=parseFloat(j.c),pc=parseFloat(j.pc),dp=parseFloat(j.dp);
+      if(!p||isNaN(p)||p===0)throw new Error('no price');
+      return{price:p,pct:isNaN(dp)?((pc>0?(p-pc)/pc*100:0)):dp};
+    });
+}
 function tryClaudeQuote(id, label){
-  var apiKey=localStorage.getItem('sai_key')||'';
-  if(!apiKey||apiKey.indexOf('sk-')===-1) return; // no key, leave as ···
   var sym=label==='VIX'?'VIX':label;
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:80,
-      tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:'Current price and day % change of '+sym+'? Reply ONLY: {"price":123.45,"pct":0.63}'}]
-    })
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var text='';
-    (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-    var m=text.match(/\{[^}]+\}/);
-    if(!m)return;
-    var q=JSON.parse(m[0]);
-    if(q.price) renderQuote(id, q.price, q.pct||0, label, false);
-  })
-  .catch(function(){});
+  // Try Finnhub first (free, no AI tokens)
+  fhQuote(sym)
+    .then(function(q){renderQuote(id, q.price, q.pct||0, label, false);})
+    .catch(function(){
+      var apiKey=localStorage.getItem('ge_key')||'';
+      if(!apiKey||apiKey.indexOf('sk-')===-1) return; // no key, leave as ···
+      fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({
+          model:'claude-haiku-4-5-20251001',max_tokens:80,
+          tools:[{type:'web_search_20250305',name:'web_search'}],
+          messages:[{role:'user',content:'Current price and day % change of '+sym+'? Reply ONLY: {\"price\":123.45,\"pct\":0.63}'}]
+        })
+      })
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var text='';
+        (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+        var m=text.match(/\{[^}]+\}/);
+        if(!m)return;
+        var q=JSON.parse(m[0]);
+        if(q.price) renderQuote(id, q.price, q.pct||0, label, false);
+      })
+      .catch(function(){});
+    });
 }
 
 function renderQuote(sym, price, pct, label, unavailable){
@@ -1121,7 +1137,7 @@ function dismissInstall(){document.getElementById('installBanner').classList.rem
 // SETTINGS
 function openSettings(){
   var inp=document.getElementById('modalKeyInp');
-  inp.value=localStorage.getItem('sai_key')||'';
+  inp.value=localStorage.getItem('ge_key')||'';
   updateModalStatus(inp.value);
   document.getElementById('settingsModal').classList.add('open');
   setTimeout(function(){inp.focus();},300);
@@ -1141,18 +1157,18 @@ function updateModalStatus(k){
 }
 function saveKey(){
   var k=document.getElementById('modalKeyInp').value.trim();
-  try{localStorage.setItem('sai_key',k);}catch(e){}
+  try{localStorage.setItem('ge_key',k);}catch(e){}
   updateGearState(); updateModalStatus(k); checkKeyOnLoad();
   fetchMarketQuotes(); // refresh quotes now that key is available
   toast('✓ API key saved');
   setTimeout(closeSettings,700);
 }
 function updateGearState(){
-  var k=localStorage.getItem('sai_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   document.getElementById('gearDot').className=k?'gear-dot set':'gear-dot';
 }
 function checkKeyOnLoad(){
-  var k=localStorage.getItem('sai_key')||'';
+  var k=localStorage.getItem('ge_key')||'';
   var w=document.getElementById('noKeyWarn');
   if(!k)w.classList.add('show'); else w.classList.remove('show');
 }
@@ -1195,7 +1211,7 @@ function setHz(el,h){
 // MAIN
 function runForecast(){
   var ticker=document.getElementById('tickerInp').value.trim().toUpperCase();
-  var apiKey=localStorage.getItem('sai_key')||'';
+  var apiKey=localStorage.getItem('ge_key')||'';
   clearErr();
   if(!ticker){toast('⚠ Enter a ticker symbol');return;}
   if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
@@ -1874,7 +1890,7 @@ function loadWatchlistTicker(ticker){
 
 function analyzeAll(){
   if(!watchlist.length){toast('Watchlist is empty');return;}
-  var apiKey=localStorage.getItem('sai_key')||'';
+  var apiKey=localStorage.getItem('ge_key')||'';
   if(!apiKey||apiKey.indexOf('sk-')!==0){openSettings();return;}
   var i=0;
   function next(){
@@ -1983,7 +1999,7 @@ function escNews(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
 function fetchNews(ticker){
   var card=document.getElementById('newsCard');
   if(!card)return;
-  var apiKey=localStorage.getItem('sai_key')||'';
+  var apiKey=localStorage.getItem('ge_key')||'';
   if(!apiKey)return;
   card.style.display='';
   card.innerHTML='<div class="card-title">📰 News Sentiment</div><div style="font-size:12px;color:var(--muted);">Searching real headlines…</div>';

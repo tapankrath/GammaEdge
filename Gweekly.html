@@ -411,7 +411,7 @@
             var overlay = document.getElementById('settingsModalOverlay');
             var input = document.getElementById('apiKeyInput');
             if (show) {
-                input.value = localStorage.getItem('finnhub_api_key') || '';
+                input.value = localStorage.getItem('ge_fh_key') || '';
                 overlay.classList.add('active');
             } else {
                 overlay.classList.remove('active');
@@ -421,10 +421,10 @@
         function saveApiKey() {
             var value = document.getElementById('apiKeyInput').value.trim();
             if (value) {
-                localStorage.setItem('finnhub_api_key', value);
+                localStorage.setItem('ge_fh_key', value);
                 document.getElementById('apiAlertStripe').style.display = 'none';
             } else {
-                localStorage.removeItem('finnhub_api_key');
+                localStorage.removeItem('ge_fh_key');
                 document.getElementById('apiAlertStripe').style.display = 'block';
             }
             toggleModal(false);
@@ -432,7 +432,7 @@
         }
 
         function checkApiKeyStatus() {
-            var key = localStorage.getItem('finnhub_api_key');
+            var key = localStorage.getItem('ge_fh_key');
             document.getElementById('apiAlertStripe').style.display = !key ? 'block' : 'none';
         }
 
@@ -485,7 +485,7 @@
         }
 
         async function fetchMarketPrices() {
-            var token = localStorage.getItem('finnhub_api_key');
+            var token = localStorage.getItem('ge_fh_key');
             var target = getSelectedTicker();
 
             if (!token) {
