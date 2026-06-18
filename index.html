@@ -34,10 +34,8 @@ input{outline:none;-webkit-appearance:none;appearance:none;-moz-appearance:textf
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .app{max-width:480px;margin:0 auto;padding:10px 10px 60px}
 
-/* TABS */
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.tab{background:transparent;color:#1e293b;padding:9px 2px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.01em;text-transform:uppercase;text-align:center;line-height:1.3}
-.tab.on{background:#09101f;color:#fff;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.tab:hover:not(.on){color:#0f172a;background:#f8fafc;}
+.tab.on{color:#0f172a!important;font-weight:900!important;border-bottom:2.5px solid #2563eb!important;background:transparent!important;}
 .pane{display:none}.pane.on{display:block}
 /* MKT STATUS PILL */
 .mkt-pill{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.06em;transition:all .5s;white-space:nowrap;text-transform:uppercase}
@@ -287,21 +285,18 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .ge-settings-btn:active{background:#cbd5e1;}
 /* ── GE PILL NAV ── */
 .ge-pill{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:5px 11px;border-radius:20px;
-  font-size:11px;font-weight:700;white-space:nowrap;
-  color:#475569;background:#f1f5f9;
+  display:flex;align-items:center;justify-content:center;
+  padding:7px 3px;border-radius:9px;
+  font-size:10px;font-weight:800;
+  color:#0f172a;background:#f1f5f9;
   border:1.5px solid #e2e8f0;
-  text-decoration:none;
+  text-decoration:none;text-align:center;
   transition:background .15s,border-color .15s,color .15s;
   letter-spacing:.01em;
 }
 .ge-pill:hover{background:#0f172a;color:#fff;border-color:#0f172a;}
-/* ── TAB BAR (override for new header) ── */
-.tabs{display:grid;gap:0;background:transparent;border:none;border-radius:0;padding:0;margin-bottom:0;box-shadow:none;}
-.tab{background:transparent;color:#64748b;padding:10px 2px;border-radius:0;font-size:10px;font-weight:700;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.01em;}
-.tab.on{color:#0f172a;border-bottom-color:#2563eb;background:transparent;}
-.tab:hover:not(.on){color:#334155;background:#f8fafc;}
+.tab.on{color:#0f172a!important;font-weight:900!important;border-bottom:2.5px solid #2563eb!important;background:transparent!important;}
+.tab:hover:not(.on){color:#0f172a;background:#f1f5f9;}
 
 /* ── STRATEGY LENS INLINE ── */
 #sl-wrap{--sl:1}
@@ -503,6 +498,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .exit-rule-txt{font-size:11px;color:#475569;font-weight:500;line-height:1.5}
 #sl-wrap .exit-rule-txt strong{color:#1e293b;font-weight:800}
 
+
+/* ── TABS ── */
+.tabs{display:grid;gap:0;background:transparent;border:none;border-radius:0;padding:0;margin:0;box-shadow:none;}
+.tab{display:block;background:transparent;color:#0f172a!important;padding:10px 4px;border-radius:0;font-size:9.5px;font-weight:900!important;letter-spacing:.02em;text-transform:uppercase;text-align:center;line-height:1.3;border:none;border-bottom:2.5px solid transparent;cursor:pointer;transition:color .15s,border-color .15s;-webkit-appearance:none;}
+.tab.on{color:#0f172a!important;font-weight:900!important;border-bottom-color:#2563eb!important;background:transparent!important;}
+.tab:hover:not(.on){background:#f1f5f9;}
 </style>
 </head>
 <body>
@@ -523,29 +524,28 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button onclick="openGeSettings()" class="ge-settings-btn">⚙️ Keys</button>
   </div>
 
-  <!-- App suite nav — scrollable pill strip -->
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 14px 8px;scrollbar-width:none;" onscroll="">
-    <div style="display:flex;gap:5px;width:max-content;">
-      <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-pill">📁 PortfolioAI</a>
-      <a href="chartedge.html" target="_blank" rel="noopener" class="ge-pill">📈 ChartAI</a>
-      <a href="stockai.html" target="_blank" rel="noopener" class="ge-pill">🔍 StockAI</a>
-      <a href="Nondirectional.html" target="_blank" rel="noopener" class="ge-pill">⚡ NonDir</a>
-      <a href="EarningsAI.html" target="_blank" rel="noopener" class="ge-pill">📅 EarningsAI</a>
-      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="ge-pill">🚀 MoonshotAI</a>
-      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="ge-pill">📊 WeeklyAlpha</a>
-      <a href="Gweekly.html" target="_blank" rel="noopener" class="ge-pill">💰 AlphaYield</a>
-      <a href="signal.html" target="_blank" rel="noopener" class="ge-pill">📡 Signal</a>
+  <!-- App suite nav — 4x2 grid -->
+  <div style="padding:0 14px 8px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+      <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-pill">Portfolio</a>
+      <a href="chartedge.html" target="_blank" rel="noopener" class="ge-pill">ChartAI</a>
+      <a href="stockai.html" target="_blank" rel="noopener" class="ge-pill">StockAI</a>
+      <a href="signal.html" target="_blank" rel="noopener" class="ge-pill">Signal</a>
+      <a href="EarningsAI.html" target="_blank" rel="noopener" class="ge-pill">EarningsAI</a>
+      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="ge-pill">Moonshot</a>
+      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="ge-pill">WeeklyAlpha</a>
+      <a href="optionsai.html" target="_blank" rel="noopener" class="ge-pill">OptionsAI</a>
     </div>
   </div>
 
   <!-- Tab bar -->
-  <div style="display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid #f1f5f9;">
-    <button class="tab on" id="tab0" onclick="showTab(0)" style="font-size:9.5px;border-radius:0;">StratEdge</button>
-    <button class="tab" id="tab1" onclick="showTab(1)" style="font-size:9.5px;border-radius:0;">Backtest</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="font-size:9.5px;border-radius:0;">Alloc</button>
-    <button class="tab" id="tab3" onclick="showTab(3)" style="font-size:9.5px;border-radius:0;">Planner</button>
-    <button class="tab" id="tab4" onclick="showTab(4)" style="font-size:9.5px;border-radius:0;">Lottery</button>
-    <button class="tab" id="tab5" onclick="showTab(5)" style="font-size:9.5px;border-radius:0;">Portfolio</button>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);border-top:1.5px solid #e2e8f0;background:#fff;">
+        <button class="tab  on" id="tab0" onclick="showTab(0)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid #2563eb;">StratEdge</button>
+    <button class="tab" id="tab1" onclick="showTab(1)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Backtest</button>
+    <button class="tab" id="tab2" onclick="showTab(2)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Alloc</button>
+    <button class="tab" id="tab3" onclick="showTab(3)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Planner</button>
+    <button class="tab" id="tab4" onclick="showTab(4)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Lottery</button>
+    <button class="tab" id="tab5" onclick="showTab(5)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Portfolio</button>
   </div>
 
 </div><!-- end sticky header -->
@@ -2242,7 +2242,9 @@ function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
   var paneMap={0:0,1:5,2:7,3:6,4:3,5:8};
-  for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb)tb.className='tab'+(i===n?' on':'');var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
+  var onStyle='background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid #2563eb;';
+  var offStyle='background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;';
+  for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='tab'+(i===n?' on':'');tb.style.cssText=(i===n?onStyle:offStyle);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
@@ -3632,7 +3634,7 @@ function gePrintPicks(){
       +'</table></div>';
   });
   var html='<!DOCTYPE html><html><head><title>Top Picks \u2014 '+when+'</title><meta charset="utf-8">'
-    +'<style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:24px;max-width:720px;}@media print{body{margin:8px;}.no-print{display:none!important;}}</style></head><body>'
+    +'<!-- nested style removed --></head><body>'
     +'<div class="no-print" style="display:flex;align-items:center;gap:10px;background:#f1f5f9;border-radius:10px;padding:10px 14px;margin-bottom:16px;">'
       +'<span style="flex:1;font-size:12px;color:#475569;font-weight:600;">Review the plan below \u2014 save when ready.</span>'
       +'<button onclick="window.print()" style="background:#0f172a;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;">Save as PDF</button>'
