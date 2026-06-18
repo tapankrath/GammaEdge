@@ -25,7 +25,7 @@
   --amber:#d97706;--abg:#fef3c7;--abd:#fbbf24;
   --blue:#2563eb;--bbg:#dbeafe;--bbd:#60a5fa;
   --orange:#ea580c;--obg:#ffedd5;--obd:#fb923c;
-  --purple:#7c3aed;--pbg:#ede9fe;--pbd:#a78bfa;
+  --purple:#0284c7;--pbg:#e0f2fe;--pbd:#7dd3fc;
   --pink:#db2777;--pikbg:#fce7f3;--pikbd:#f472b6;
 }
 html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -270,14 +270,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .cmp-tbl tr:nth-child(even) td:first-child{background:rgba(0,0,0,.03)}
 .cmp-tbl tr.cmp-sum td{background:#f1f5f9!important;border-top:2px solid var(--border);font-weight:800}
 .cmp-tbl .sd-cell{border-left:1px solid #e8f5e9}
-.cmp-tbl .on-cell{border-left:1px solid #ede9fe}
+.cmp-tbl .on-cell{border-left:1px solid #e0f2fe}
 .cmp-tbl .dte-sep{border-left:3px solid #e2e8f0}
 /* winner highlight */
 .cmp-win-sd{background:#f0fdf4!important}
 .cmp-win-on{background:#f5f3ff!important}
 .cmp-lbl{display:inline-block;font-size:8px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:2px;vertical-align:middle}
 .cmp-lbl.w{background:#15803d;color:#fff}
-.cmp-lbl.d{background:#6d28d9;color:#fff}
+.cmp-lbl.d{background:#0369a1;color:#fff}
 
 /* ── GE TOOL LINKS ── */
 .ge-tool-link{
@@ -347,7 +347,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .api-drawer.open{display:block}
 #sl-wrap .api-drawer label{display:block;font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
 #sl-wrap .api-drawer input{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:8px;padding:9px 12px;color:#fff;font-family:monospace;font-size:13px;outline:none}
-#sl-wrap .api-drawer input:focus{border-color:#a78bfa}
+#sl-wrap .api-drawer input:focus{border-color:#7dd3fc}
 #sl-wrap .api-hint{font-size:10px;color:#64748b;margin-top:4px}
 #sl-wrap .api-status{font-size:11px;font-weight:700;margin-top:4px}
 #sl-wrap .api-status.ok{color:#4ade80}.api-status.no{color:#fbbf24}
@@ -358,10 +358,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .quote-banner.loaded{display:block}
 #sl-wrap .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 #sl-wrap .quote-ts{font-size:9px;color:#475569;letter-spacing:.04em}
-#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#a78bfa;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
+#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#0284c7;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
 #sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden}
 #sl-wrap .qc{display:flex;align-items:center;gap:6px;background:#1e293b;border-radius:7px;padding:5px 8px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
-#sl-wrap .qc.active{border-color:#a78bfa}
+#sl-wrap .qc.active{border-color:#7dd3fc}
 #sl-wrap .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
 #sl-wrap .qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
 #sl-wrap .qc-chg{font-size:10px;font-weight:800}
@@ -379,17 +379,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* Ticker chips */
 #sl-wrap .ticker-chips{display:flex;gap:5px}
 #sl-wrap .tick-preset{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:6px 4px;text-align:center;cursor:pointer;font-family:inherit;transition:all .15s}
-#sl-wrap .tick-preset.on{background:#ede9fe;border-color:#7c3aed}
+#sl-wrap .tick-preset.on{background:#e0f2fe;border-color:#0284c7}
 #sl-wrap .tp-sym{font-size:13px;font-weight:900;color:#1e293b;line-height:1}
-#sl-wrap .tick-preset.on .tp-sym{color:#7c3aed}
+#sl-wrap .tick-preset.on .tp-sym{color:#0284c7}
 #sl-wrap .tp-name{font-size:8px;color:#94a3b8;font-weight:600;margin-top:1px}
 #sl-wrap .tick-preset.on .tp-name{color:#9f75e8}
 #sl-wrap .tick-custom{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:8px;padding:5px 8px;display:flex;flex-direction:column;cursor:pointer}
 #sl-wrap .tick-custom label{font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
 #sl-wrap .tick-custom input{background:transparent;border:none;outline:none;font-size:13px;font-weight:900;color:#1e293b;font-family:inherit;width:100%;text-transform:uppercase;padding:0;cursor:pointer}
 #sl-wrap .tick-custom input::placeholder{color:#c8d5e8;font-weight:700}
-#sl-wrap .tick-custom.on{background:#ede9fe;border-color:#7c3aed}
-#sl-wrap .tick-custom.on input{color:#7c3aed}
+#sl-wrap .tick-custom.on{background:#e0f2fe;border-color:#0284c7}
+#sl-wrap .tick-custom.on input{color:#0284c7}
 
 /* DTE chips */
 #sl-wrap .dte-chips{display:flex;gap:5px}
@@ -398,7 +398,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .dw{font-size:13px;font-weight:900;color:#475569;line-height:1}
 #sl-wrap .dte-btn.on .dw{color:#fff}
 #sl-wrap .dl{font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
-#sl-wrap .dte-btn.on .dl{color:#a78bfa}
+#sl-wrap .dte-btn.on .dl{color:#0284c7}
 
 /* Analyze button */
 #sl-wrap .go-btn{width:100%;background:#09101f;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em;margin-top:8px;transition:background .15s}
@@ -414,7 +414,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* LOADING */
 #sl-wrap .loading{display:none;text-align:center;padding:60px 20px}
 @keyframes spin{to{transform:rotate(360deg)}}
-#sl-wrap .spinner{width:34px;height:34px;border:3px solid #c8d5e8;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+#sl-wrap .spinner{width:34px;height:34px;border:3px solid #c8d5e8;border-top-color:#0284c7;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
 #sl-wrap .loading-msg{color:#475569;font-size:13px;font-weight:600}
 
 /* LANDING STATE — centered empty state */
@@ -446,7 +446,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .th-pill-v{font-size:11px;font-weight:900;color:#fff}
 #sl-wrap .th-footer{display:flex;align-items:center;justify-content:space-between}
 #sl-wrap .th-ts{font-size:9px;color:#475569;font-weight:600}
-#sl-wrap .th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#a78bfa;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit}
+#sl-wrap .th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#0284c7;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit}
 
 /* STRATEGY TABS WRAPPER */
 #sl-wrap .strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
@@ -454,10 +454,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* TAB BAR — NOT sticky, lives inside the card */
 #sl-wrap .strat-tab-bar{display:flex;background:#f4f7fb;border-bottom:1.5px solid #e2e8f0}
 #sl-wrap .strat-tab{flex:1;padding:10px 4px;text-align:center;cursor:pointer;font-family:inherit;border:none;background:transparent;transition:all .18s;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
-#sl-wrap .strat-tab.active{background:#fff;border-bottom-color:#7c3aed}
+#sl-wrap .strat-tab.active{background:#fff;border-bottom-color:#0284c7}
 #sl-wrap .strat-tab-icon{font-size:15px;line-height:1;margin-bottom:2px}
 #sl-wrap .strat-tab-name{font-size:9px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
-#sl-wrap .strat-tab.active .strat-tab-name{color:#7c3aed}
+#sl-wrap .strat-tab.active .strat-tab-name{color:#0369a1}
 #sl-wrap .strat-tab-pl{font-size:10px;font-weight:900;margin-top:1px}
 
 /* TAB PANELS */
@@ -916,7 +916,7 @@ function computeStrategies(d){
     spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
     straddle:{
       name:'Straddle', icon:'🎯', tag:'Neutral · High IV Play',
-      tagColor:'#7c3aed', tagBg:'#ede9fe', iconBg:'#ede9fe',
+      tagColor:'#0369a1', tagBg:'#e0f2fe', iconBg:'#e0f2fe',
       cost:straddleCost, maxGain:null, maxLoss:straddleMaxLoss,
       BEup:straddleBEup, BEdn:straddleBEdn, netCredit:false,
       legs:[
@@ -1154,7 +1154,7 @@ function render(d,s){
     // Scores
     h+='<div class="score-section">'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
-      +scoreBar('Vol Needed',st.scoreVol,'#7c3aed')
+      +scoreBar('Vol Needed',st.scoreVol,'#0369a1')
       +scoreBar('Risk Defined',st.scoreRisk,'#16a34a')
       +scoreBar('Win Prob',st.scoreProb,'#2563eb')
       +'</div></div>';
@@ -1902,7 +1902,7 @@ function scoreBar(label,val,color){
     <button onclick="btToggle('bt-settings-body',this)" style="width:100%;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;background:#1e293b;border:none;cursor:pointer;text-align:left;border-radius:10px">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="display:flex;gap:6px" id="bt-ticker-chips">
-          <span id="bt-chip-spy" style="font-size:10px;font-weight:800;color:#6d28d9;background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:5px;padding:2px 7px">SPY</span>
+          <span id="bt-chip-spy" style="font-size:10px;font-weight:800;color:#0369a1;background:#e0f2fe;border:1.5px solid #7dd3fc;border-radius:5px;padding:2px 7px">SPY</span>
           <span id="bt-chip-qqq" style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:5px;padding:2px 7px">QQQ ✓</span>
         </div>
         <span style="font-size:10px;font-weight:800;color:#e2e8f0;text-transform:uppercase;letter-spacing:.1em">Settings</span>
@@ -1997,8 +1997,8 @@ function scoreBar(label,val,color){
         <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;padding:0 6px">
           <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#15803d"><div style="width:12px;height:12px;background:#22c55e;border-radius:3px;border:2px solid #15803d"></div>Same Day Best</div>
           <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#166534"><div style="width:12px;height:12px;background:#15803d;border-radius:3px"></div>Same Day EOD</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#6d28d9"><div style="width:12px;height:12px;background:#7c3aed;border-radius:3px;border:2px solid #4c1d95"></div>Overnight Best</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#4c1d95"><div style="width:12px;height:12px;background:#6d28d9;border-radius:3px"></div>Overnight EOD</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#16a34a"><div style="width:12px;height:12px;background:#16a34a;border-radius:3px;border:2px solid #15803d"></div>Overnight Best</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#15803d"><div style="width:12px;height:12px;background:#64748b;border-radius:3px"></div>Overnight EOD</div>
         </div>
         <div id="b-day-cards"></div>
         <div class="note" id="b-mode-note" style="margin-top:8px">📊 Same Day = Buy Open, hold to EOD · Overnight = Buy ~3:55pm, exit next day EOD · Best = intraday peak</div>
@@ -2171,8 +2171,8 @@ function scoreBar(label,val,color){
         <div style="font-size:9px;color:#94a3b8;font-weight:700;margin-top:3px;" id="pg-delta-bias">—</div>
       </div>
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-        <div style="font-size:8px;font-weight:900;color:#8b5cf6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">Θ /day</div>
-        <div style="font-size:22px;font-weight:900;color:#6d28d9;line-height:1;" id="pg-net-theta">—</div>
+        <div style="font-size:8px;font-weight:900;color:#0369a1;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">Θ /day</div>
+        <div style="font-size:22px;font-weight:900;color:#0369a1;line-height:1;" id="pg-net-theta">—</div>
         <div style="font-size:9px;color:#94a3b8;font-weight:700;margin-top:3px;" id="pg-theta-note">—</div>
       </div>
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);">
@@ -2197,7 +2197,7 @@ function scoreBar(label,val,color){
     <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
         <div style="font-size:9px;font-weight:900;color:#475569;text-transform:uppercase;letter-spacing:.12em;flex:1;">AI Suggestions</div>
-        <button onclick="pgGetSuggestions()" id="pg-suggest-btn" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.02em;">✦ Analyze</button>
+        <button onclick="pgGetSuggestions()" id="pg-suggest-btn" style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.02em;">✦ Analyze</button>
       </div>
       <div id="pg-suggestions-content" style="font-size:11.5px;color:#64748b;font-weight:600;line-height:1.7;">Add positions then tap Analyze for AI-powered hedge recommendations.</div>
     </div>
@@ -2210,7 +2210,7 @@ function scoreBar(label,val,color){
       <div style="font-size:8.5px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;">Symbol</div>
       <div style="font-size:8.5px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;">Type</div>
       <div style="font-size:8.5px;font-weight:900;color:#3b82f6;text-transform:uppercase;letter-spacing:.12em;text-align:right;">Δ</div>
-      <div style="font-size:8.5px;font-weight:900;color:#8b5cf6;text-transform:uppercase;letter-spacing:.12em;text-align:right;">Θ</div>
+      <div style="font-size:8.5px;font-weight:900;color:#0369a1;text-transform:uppercase;letter-spacing:.12em;text-align:right;">Θ</div>
       <div style="font-size:8.5px;font-weight:900;color:#f59e0b;text-transform:uppercase;letter-spacing:.12em;text-align:right;">V</div>
       <div style="font-size:8.5px;font-weight:900;color:#10b981;text-transform:uppercase;letter-spacing:.12em;text-align:right;">P&amp;L</div>
       <div></div>
@@ -2227,22 +2227,22 @@ function scoreBar(label,val,color){
   <div style="margin-bottom:10px;">
     <div style="font-size:9px;font-weight:900;color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;">Quick Templates</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
-      <button onclick="pgLoadTemplate('iron_condor')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <button onclick="pgLoadTemplate('iron_condor')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='#e2e8f0'">
         <div style="font-size:16px;margin-bottom:4px;">🦅</div>
         <div style="font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px;">Iron Condor</div>
         <div style="font-size:9.5px;color:#64748b;font-weight:600;line-height:1.4;">Sell OTM call + put spreads<br>Theta positive · defined risk</div>
       </button>
-      <button onclick="pgLoadTemplate('calendar')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <button onclick="pgLoadTemplate('calendar')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='#e2e8f0'">
         <div style="font-size:16px;margin-bottom:4px;">📅</div>
         <div style="font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px;">Calendar Spread</div>
         <div style="font-size:9.5px;color:#64748b;font-weight:600;line-height:1.4;">Sell front · buy back month<br>Vega long · theta neutral</div>
       </button>
-      <button onclick="pgLoadTemplate('covered_call')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <button onclick="pgLoadTemplate('covered_call')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='#e2e8f0'">
         <div style="font-size:16px;margin-bottom:4px;">📋</div>
         <div style="font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px;">Covered Call</div>
         <div style="font-size:9.5px;color:#64748b;font-weight:600;line-height:1.4;">Long 100 shares + short call<br>Income strategy · moderate</div>
       </button>
-      <button onclick="pgLoadTemplate('straddle')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <button onclick="pgLoadTemplate('straddle')" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:11px 12px;text-align:left;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:border-color .15s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='#e2e8f0'">
         <div style="font-size:16px;margin-bottom:4px;">⚡</div>
         <div style="font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px;">Long Straddle</div>
         <div style="font-size:9.5px;color:#64748b;font-weight:600;line-height:1.4;">Buy ATM call + put<br>Vega &amp; gamma long · earnings play</div>
@@ -5593,7 +5593,7 @@ function renderVisual(dte,sdResults,onResults){
     var upPct=((d.h-d.o)/d.o*100).toFixed(1),dnPct=((d.o-d.l)/d.o*100).toFixed(1);
     var sdScore=(sd.pnlBest>0?1:0)+(sd.pnlEOD>0?1:0);
     var onScore=on?((on.pnlBest>0?1:0)+(on.pnlEOD>0?1:0)):0;
-    var wb=sdScore>onScore?'border-left:4px solid #15803d':onScore>sdScore?'border-left:4px solid #6d28d9':'border-left:4px solid #e2e8f0';
+    var wb=sdScore>onScore?'border-left:4px solid #15803d':onScore>sdScore?'border-left:4px solid #16a34a':'border-left:4px solid #e2e8f0';
     html+='<div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;'+wb+';padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">';
     html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
     html+='<div><span style="font-size:15px;font-weight:900;color:var(--text)">'+d.label+'</span>'
@@ -5623,21 +5623,21 @@ function renderVisual(dte,sdResults,onResults){
     html+='</div>';
     // ── OVERNIGHT column ──
     if(on){
-      html+='<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:9px;padding:9px">';
-      html+='<div style="font-size:9px;font-weight:900;color:#6d28d9;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Overnight</div>';
+      html+='<div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:9px;padding:9px">';
+      html+='<div style="font-size:9px;font-weight:900;color:#0369a1;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Overnight</div>';
       // Bought / Sold row
-      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;background:#ede9fe;border-radius:6px;padding:5px 6px;margin-bottom:7px">';
-      html+='<div><div style="font-size:8px;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.05em">Bought</div>'
-          +'<div style="font-size:13px;font-weight:900;color:#4c1d95">$'+on.entryPrem.toFixed(2)+'</div>'
-          +'<div style="font-size:8px;color:#6d28d9">spot $'+on.entrySpot.toFixed(2)+'</div></div>';
-      html+='<div style="text-align:right"><div style="font-size:8px;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.05em">Sold EOD</div>'
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;background:#e0f2fe;border-radius:6px;padding:5px 6px;margin-bottom:7px">';
+      html+='<div><div style="font-size:8px;font-weight:800;color:#0369a1;text-transform:uppercase;letter-spacing:.05em">Bought</div>'
+          +'<div style="font-size:13px;font-weight:900;color:#0369a1">$'+on.entryPrem.toFixed(2)+'</div>'
+          +'<div style="font-size:8px;color:#0369a1">spot $'+on.entrySpot.toFixed(2)+'</div></div>';
+      html+='<div style="text-align:right"><div style="font-size:8px;font-weight:800;color:#0369a1;text-transform:uppercase;letter-spacing:.05em">Sold EOD</div>'
           +'<div style="font-size:13px;font-weight:900;color:'+(on.exitEodPrem>=on.entryPrem?'#15803d':'#b91c1c')+'">$'+Math.max(0,on.exitEodPrem).toFixed(2)+'</div>'
-          +'<div style="font-size:8px;color:#6d28d9">spot $'+on.exitEodSpot.toFixed(2)+'</div></div>';
+          +'<div style="font-size:8px;color:#0369a1">spot $'+on.exitEodSpot.toFixed(2)+'</div></div>';
       html+='</div>';
       html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px">Best '+(on.beClears?'✓':'✗')+' @ $'+on.bestSpotPx.toFixed(2)+'</div>';
-      html+=bar(on.pnlBest,'#7c3aed');
+      html+=bar(on.pnlBest,'#16a34a');
       html+='<div style="font-size:9px;color:#374151;font-weight:700;margin-bottom:3px;margin-top:4px">EOD P&amp;L</div>';
-      html+=bar(on.pnlEOD,'#6d28d9');
+      html+=bar(on.pnlEOD,'#64748b');
       html+='</div>';
     } else {
       html+='<div style="background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:9px;display:flex;align-items:center;justify-content:center">'
@@ -5646,7 +5646,7 @@ function renderVisual(dte,sdResults,onResults){
     html+='</div>';
     if(on){
       var wl=sdScore>onScore?'▲ Same Day wins':onScore>sdScore?'▲ Overnight wins':'Tie';
-      var wc=sdScore>onScore?'#15803d':onScore>sdScore?'#6d28d9':'#94a3b8';
+      var wc=sdScore>onScore?'#15803d':onScore>sdScore?'#16a34a':'#94a3b8';
       html+='<div style="margin-top:8px;text-align:right;font-size:10px;font-weight:900;color:'+wc+'">'+wl+'</div>';
     }
     html+='</div>';
@@ -5679,22 +5679,22 @@ function renderWeekSummary(dte,sdResults,onResults){
   html+=wsum('Win E',sdWE+'/'+n,'#93c5fd');
   html+='</div>';
   if(no>0){
-    html+='<div style="background:#1a103a;border:2px solid #7c3aed;border-radius:9px;padding:10px">';
-    html+='<div style="font-size:9px;font-weight:900;color:#8b5cf6;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Overnight</div>';
+    html+='<div style="background:#1a103a;border:2px solid #0369a1;border-radius:9px;padding:10px">';
+    html+='<div style="font-size:9px;font-weight:900;color:#0369a1;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Overnight</div>';
     html+=wsum('Best',fc(onTB),onTB>=0?'#4ade80':'#f87171');
     html+=wsum('EOD',fc(onTE),onTE>=0?'#4ade80':'#f87171');
     html+=wsum('Win B',onWB+'/'+no,'#93c5fd');
     html+=wsum('Win E',onWE+'/'+no,'#93c5fd');
     html+='</div>';
   } else {
-    html+='<div style="background:#1a103a;border:2px solid #7c3aed;border-radius:9px;padding:10px;display:flex;align-items:center;justify-content:center">'
-      +'<span style="color:#6d28d9;font-size:10px;font-weight:700;text-align:center">Need 2+<br/>days for<br/>Overnight</span></div>';
+    html+='<div style="background:#1a103a;border:2px solid #0369a1;border-radius:9px;padding:10px;display:flex;align-items:center;justify-content:center">'
+      +'<span style="color:#0369a1;font-size:10px;font-weight:700;text-align:center">Need 2+<br/>days for<br/>Overnight</span></div>';
   }
   html+='</div>';
   if(onTB!==null){
     var sds=(sdTB>0?1:0)+(sdTE>0?1:0),ons=(onTB>0?1:0)+(onTE>0?1:0);
     var wl=sds>ons?'Same Day wins the week':ons>sds?'Overnight wins the week':'Week is a tie';
-    var wc=sds>ons?'#22c55e':ons>sds?'#7c3aed':'#94a3b8';
+    var wc=sds>ons?'#22c55e':ons>sds?'#0369a1':'#94a3b8';
     html+='<div style="margin-top:10px;text-align:center;font-size:13px;font-weight:900;color:'+wc+'">'+wl+'</div>';
   }
   html+='</div>';
@@ -5875,7 +5875,7 @@ function renderBtSummary(){
     html+='<div style="font-size:10px;font-weight:800;color:'+col(sd.avgPnl)+'">'+fc(sd.avgPnl)+'</div>';
     html+='</div>';
     // ON
-    html+='<div style="background:#3b0764;border:1px solid #7c3aed;border-radius:6px;padding:5px 3px">';
+    html+='<div style="background:#3b0764;border:1px solid #0369a1;border-radius:6px;padding:5px 3px">';
     html+='<div style="font-size:16px;font-weight:900;color:'+wrCol(on.winRate)+'">'+on.winRate+'%</div>';
     html+='<div style="font-size:8px;color:#a78bfa;font-weight:700">ON</div>';
     html+='<div style="font-size:10px;font-weight:800;color:'+col(on.avgPnl)+'">'+fc(on.avgPnl)+'</div>';
@@ -6191,8 +6191,8 @@ function renderCostTable(dte,sdResults,onResults){
     b+='<td style="background:#f0fdf4"><b>$'+sd.cost.toFixed(0)+'</b> ×'+sd.contracts+'c</td>';
     b+='<td style="background:#f0fdf4"><span style="color:#b45309;font-size:9px">±'+sd.bePct.toFixed(2)+'%</span></td>';
     if(on){
-      b+='<td style="background:#f5f3ff"><b>$'+on.cost.toFixed(0)+'</b> ×'+on.contracts+'c</td>';
-      b+='<td style="background:#f5f3ff"><span style="color:#b45309;font-size:9px">±'+on.bePct.toFixed(2)+'%</span></td>';
+      b+='<td style="background:#e0f2fe"><b>$'+on.cost.toFixed(0)+'</b> ×'+on.contracts+'c</td>';
+      b+='<td style="background:#e0f2fe"><span style="color:#b45309;font-size:9px">±'+on.bePct.toFixed(2)+'%</span></td>';
     } else b+='<td colspan="2" style="color:#94a3b8;font-size:9px">—</td>';
     b+='</tr>';
   });
@@ -7291,9 +7291,9 @@ function alSetTicker(t){
   ['spy','qqq'].forEach(function(x){
     var el=$('al-a-'+x);if(!el)return;
     var on=t===x;
-    el.style.background=on?(x==='qqq'?'#fffbeb':'#f5f3ff'):'#f1f5f9';
-    el.style.color=on?(x==='qqq'?'#b45309':'#6d28d9'):'#6b7280';
-    el.style.border=on?('2px solid '+(x==='qqq'?'#b45309':'#6d28d9')):'2px solid #e2e8f0';
+    el.style.background=on?(x==='qqq'?'#fffbeb':'#f0f9ff'):'#f1f5f9';
+    el.style.color=on?(x==='qqq'?'#b45309':'#0369a1'):'#6b7280';
+    el.style.border=on?('2px solid '+(x==='qqq'?'#b45309':'#0369a1')):'2px solid #e2e8f0';
   });
   var defs={spy:{spot:585,iv:18},qqq:{spot:506,iv:21}};
   var d=defs[t];
@@ -7834,21 +7834,21 @@ var PG_MODE_INFO = {
   nondirectional: {
     label: '⚡ NonDir',
     desc: '<strong>Nondirectional:</strong> Volatility-based strategies with near-zero net delta. Target consistent theta decay. Examples: iron condors, butterflies, delta-neutral straddles.',
-    color: '#7c3aed', bg: '#faf5ff', border: '#e9d5ff'
+    color: '#0369a1', bg: '#e0f2fe', border: '#bae6fd'
   }
 };
 
 function pgSetMode(m){
   PG_MODE=m;
-  var colors={moderate:'#2563eb',aggressive:'#dc2626',nondirectional:'#7c3aed'};
-  var bgs={moderate:'linear-gradient(135deg,#eff6ff,#dbeafe)',aggressive:'linear-gradient(135deg,#fef2f2,#fecaca)',nondirectional:'linear-gradient(135deg,#faf5ff,#e9d5ff)'};
+  var colors={moderate:'#2563eb',aggressive:'#dc2626',nondirectional:'#0369a1'};
+  var bgs={moderate:'linear-gradient(135deg,#eff6ff,#dbeafe)',aggressive:'linear-gradient(135deg,#fef2f2,#fecaca)',nondirectional:'linear-gradient(135deg,#e0f2fe,#bae6fd)'};
   var descs={
     moderate:'<strong>Moderate:</strong> Defined-risk spreads &amp; covered strategies. Target 5–15% monthly. Iron condors, credit spreads, covered calls.',
     aggressive:'<strong>Aggressive:</strong> Long premium, ratio spreads &amp; LEAPS. Target 30–100%+ returns. High gamma &amp; vega. OTM LEAPS, ratio backspreads.',
     nondirectional:'<strong>Nondirectional:</strong> Near-zero net delta. Profit from theta decay or IV moves. Iron condors, butterflies, delta-neutral straddles.'
   };
-  var borderColors={moderate:'#bfdbfe',aggressive:'#fecaca',nondirectional:'#e9d5ff'};
-  var textColors={moderate:'#1e40af',aggressive:'#991b1b',nondirectional:'#5b21b6'};
+  var borderColors={moderate:'#bfdbfe',aggressive:'#fecaca',nondirectional:'#bae6fd'};
+  var textColors={moderate:'#1e40af',aggressive:'#991b1b',nondirectional:'#0369a1'};
   ['moderate','aggressive','nondirectional'].forEach(function(k){
     var btn=$('pg-mode-'+k);
     if(!btn)return;
@@ -7973,7 +7973,7 @@ function pgRender(){
     return '<option value="'+o[0]+'">'+o[1]+'</option>';
   }).join('');
 
-  var typeColor={long_call:'#16a34a',long_put:'#dc2626',short_call:'#b45309',short_put:'#7c3aed',stock:'#0284c7',short_stock:'#94a3b8'};
+  var typeColor={long_call:'#16a34a',long_put:'#dc2626',short_call:'#b45309',short_put:'#dc2626',stock:'#0284c7',short_stock:'#94a3b8'};
 
   rowsEl.innerHTML=PG_POSITIONS.map(function(p){
     var pnl=pgCalcPnl(p);
@@ -7981,7 +7981,7 @@ function pgRender(){
     var dv=p.delta||0,tv=p.theta||0,vv=p.vega||0;
     var dc=dv>0?'#1d4ed8':dv<0?'#dc2626':'#94a3b8';
     var tc=tv>0?'#16a34a':tv<0?'#dc2626':'#94a3b8';
-    var vc=vv>0?'#b45309':vv<0?'#7c3aed':'#94a3b8';
+    var vc=vv>0?'#b45309':vv<0?'#dc2626':'#94a3b8';
     var tc2=typeColor[p.type]||'#64748b';
     var typeOpts2=[
       ['long_call','Long Call'],['long_put','Long Put'],
@@ -8053,7 +8053,7 @@ function pgRender(){
   if(ntEl){ntEl.textContent=(netTheta>=0?'+':'')+netTheta.toFixed(1);ntEl.style.color=netTheta>=0?'#16a34a':'#dc2626';}
   var tnEl=$('pg-theta-note');if(tnEl)tnEl.textContent=netTheta>=0?'Earning':'Paying';
   var nvEl=$('pg-net-vega');
-  if(nvEl){nvEl.textContent=(netVega>=0?'+':'')+netVega.toFixed(1);nvEl.style.color=netVega>=0?'#b45309':'#7c3aed';}
+  if(nvEl){nvEl.textContent=(netVega>=0?'+':'')+netVega.toFixed(1);nvEl.style.color=netVega>=0?'#b45309':'#dc2626';}
   var vnEl=$('pg-vega-note');if(vnEl)vnEl.textContent=netVega>=0?'Long vol':'Short vol';
   var npEl=$('pg-net-pnl');
   if(npEl){npEl.textContent=(netPnl>=0?'+$':'-$')+Math.abs(netPnl).toFixed(0);npEl.style.color=netPnl>=0?'#16a34a':'#dc2626';}
@@ -8068,7 +8068,7 @@ function pgRender(){
   if(netVega<-500)risks.push({icon:'⚠️',txt:'Short heavy vega — exposed to IV spikes',col:'#dc2626'});
   if(Math.abs(netDelta)<3&&netTheta>0)risks.push({icon:'✅',txt:'Good nondirectional posture — theta positive, delta neutral',col:'#16a34a'});
   if(PG_MODE==='moderate'&&Math.abs(netDelta)>15)risks.push({icon:'ℹ️',txt:'Moderate mode: aim for |Δ| < 15. Currently '+Math.abs(netDelta).toFixed(1),col:'#2563eb'});
-  if(PG_MODE==='nondirectional'&&Math.abs(netDelta)>5)risks.push({icon:'ℹ️',txt:'NonDir target |Δ| < 5. Currently '+netDelta.toFixed(1)+' — needs rebalance',col:'#7c3aed'});
+  if(PG_MODE==='nondirectional'&&Math.abs(netDelta)>5)risks.push({icon:'ℹ️',txt:'NonDir target |Δ| < 5. Currently '+netDelta.toFixed(1)+' — needs rebalance',col:'#dc2626'});
   if(!risks.length)risks.push({icon:'✅',txt:'No major risk flags',col:'#16a34a'});
   var rcEl=$('pg-risk-content');
   if(rcEl)rcEl.innerHTML=risks.map(function(r){return '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;"><span>'+r.icon+'</span><span style="color:'+r.col+'">'+r.txt+'</span></div>';}).join('');
@@ -8390,7 +8390,7 @@ function computeStrategies(d){
     spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
     straddle:{
       name:'Straddle', icon:'🎯', tag:'Neutral · High IV Play',
-      tagColor:'#7c3aed', tagBg:'#ede9fe', iconBg:'#ede9fe',
+      tagColor:'#0369a1', tagBg:'#e0f2fe', iconBg:'#e0f2fe',
       cost:straddleCost, maxGain:null, maxLoss:straddleMaxLoss,
       BEup:straddleBEup, BEdn:straddleBEdn, netCredit:false,
       legs:[
@@ -8628,7 +8628,7 @@ function render(d,s){
     // Scores
     h+='<div class="score-section">'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
-      +scoreBar('Vol Needed',st.scoreVol,'#7c3aed')
+      +scoreBar('Vol Needed',st.scoreVol,'#0369a1')
       +scoreBar('Risk Defined',st.scoreRisk,'#16a34a')
       +scoreBar('Win Prob',st.scoreProb,'#2563eb')
       +'</div></div>';
@@ -8705,7 +8705,7 @@ function scoreBar(label,val,color){
       <!-- Anthropic -->
       <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <div style="width:28px;height:28px;background:#7c3aed;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">🧠</div>
+          <div style="width:28px;height:28px;background:#0369a1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">🧠</div>
           <div>
             <div style="font-size:13px;font-weight:800;color:#0f172a;">Anthropic (Claude)</div>
             <div style="font-size:10px;color:#64748b;">Powers AI analysis, GammaScan, signal verdicts</div>
@@ -8715,7 +8715,7 @@ function scoreBar(label,val,color){
           style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:9px 12px;font-size:13px;font-family:monospace;color:#0f172a;background:#fff;outline:none;">
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
           <div id="gs-anthropic-status" style="font-size:11px;font-weight:700;flex:1;color:#64748b;">—</div>
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:10px;color:#7c3aed;font-weight:700;text-decoration:none;">Get key ↗</a>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:10px;color:#0284c7;font-weight:700;text-decoration:none;">Get key ↗</a>
         </div>
       </div>
 
