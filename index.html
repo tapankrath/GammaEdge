@@ -762,8 +762,7 @@ function setDTE(d,btn){
 
 // ── BANNER ──
 async function loadBannerQuotes(){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk) return;
+  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
   try{
     var syms=['SPY','QQQ'];
     var results=await Promise.all(syms.map(function(s){
@@ -801,10 +800,10 @@ async function loadBannerQuotes(){
 // ── FINNHUB ──
 async function fetchTickerData(sym){
   var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk) throw new Error('No Finnhub key');
+  if(!fk){fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';} // fallback to demo key
   var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
   var q=await qRes.json();
-  if(!q||!q.c) throw new Error('No quote data for '+sym+'. Check the ticker.');
+  if(!q||!q.c) throw new Error('No live data for '+sym+' — set your Finnhub key in ⚙️ Keys above for reliable quotes.');
   var name=sym;
   try{
     var pRes=await fetch('https://finnhub.io/api/v1/stock/profile2?symbol='+sym+'&token='+fk);
@@ -1019,8 +1018,7 @@ async function analyze(){
     document.getElementById('apiDrawer').classList.add('open');
     setTimeout(setTopbarH,50);
     document.getElementById('fhKey').focus();
-    showErr('Enter your Finnhub API key above to fetch live prices.');
-    return;
+    fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0'; // use demo key as fallback
   }
   document.getElementById('errBox').style.display='none';
   document.getElementById('resultsBox').style.display='none';
@@ -8236,8 +8234,7 @@ function setDTE(d,btn){
 
 // ── BANNER ──
 async function loadBannerQuotes(){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk) return;
+  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
   try{
     var syms=['SPY','QQQ'];
     var results=await Promise.all(syms.map(function(s){
@@ -8275,10 +8272,10 @@ async function loadBannerQuotes(){
 // ── FINNHUB ──
 async function fetchTickerData(sym){
   var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk) throw new Error('No Finnhub key');
+  if(!fk){fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';} // fallback to demo key
   var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
   var q=await qRes.json();
-  if(!q||!q.c) throw new Error('No quote data for '+sym+'. Check the ticker.');
+  if(!q||!q.c) throw new Error('No live data for '+sym+' — set your Finnhub key in ⚙️ Keys above for reliable quotes.');
   var name=sym;
   try{
     var pRes=await fetch('https://finnhub.io/api/v1/stock/profile2?symbol='+sym+'&token='+fk);
@@ -8493,8 +8490,7 @@ async function analyze(){
     document.getElementById('apiDrawer').classList.add('open');
     setTimeout(setTopbarH,50);
     document.getElementById('fhKey').focus();
-    showErr('Enter your Finnhub API key above to fetch live prices.');
-    return;
+    fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0'; // use demo key as fallback
   }
   document.getElementById('errBox').style.display='none';
   document.getElementById('resultsBox').style.display='none';
