@@ -686,6 +686,7 @@ var selDTE=7;
 var _liveData={};
 var _ivData={};
 var activeTab=0;
+var _hasResults=false;
 
 // ── INIT ──
 window.addEventListener('load',function(){
@@ -741,7 +742,7 @@ function selectPreset(sym,btn){
   document.querySelectorAll('.qc').forEach(function(c){
     c.classList.toggle('active',c.dataset.sym===sym);
   });
-  if(document.getElementById('resultsBox')&&document.getElementById('resultsBox').style.display!=='none'){analyze();}
+  if(_hasResults){analyze();}
 }
 function selectCustom(){
   document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
@@ -762,7 +763,7 @@ function setDTE(d,btn){
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
   // Auto-analyze if results already showing
-  if(document.getElementById('resultsBox').style.display!=='none'){analyze();}
+  if(_hasResults){analyze();}
 }
 
 // ── BANNER ──
@@ -1196,6 +1197,7 @@ function render(d,s){
   var box=document.getElementById('resultsBox');
   box.innerHTML=h;
   box.style.display='block';
+  _hasResults=true;
   var lb=document.getElementById('landingBox');
   if(lb) lb.style.display='none';
   // Scroll results into view below the sticky header
@@ -8161,6 +8163,7 @@ var selDTE=7;
 var _liveData={};
 var _ivData={};
 var activeTab=0;
+var _hasResults=false;
 
 // ── INIT ──
 window.addEventListener('load',function(){
@@ -8216,7 +8219,7 @@ function selectPreset(sym,btn){
   document.querySelectorAll('.qc').forEach(function(c){
     c.classList.toggle('active',c.dataset.sym===sym);
   });
-  if(document.getElementById('resultsBox')&&document.getElementById('resultsBox').style.display!=='none'){analyze();}
+  if(_hasResults){analyze();}
 }
 function selectCustom(){
   document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
@@ -8237,7 +8240,7 @@ function setDTE(d,btn){
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
   // Auto-analyze if results already showing
-  if(document.getElementById('resultsBox').style.display!=='none'){analyze();}
+  if(_hasResults){analyze();}
 }
 
 // ── BANNER ──
@@ -8671,6 +8674,7 @@ function render(d,s){
   var box=document.getElementById('resultsBox');
   box.innerHTML=h;
   box.style.display='block';
+  _hasResults=true;
   var lb=document.getElementById('landingBox');
   if(lb) lb.style.display='none';
   // Scroll results into view below the sticky header
