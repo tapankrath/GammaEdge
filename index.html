@@ -758,6 +758,12 @@ function setDTE(d,btn){
   selDTE=d;
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
+  // Auto-refresh results if already analyzed (no re-fetch needed)
+  var resultsBox=document.getElementById('resultsBox');
+  if(resultsBox && resultsBox.style.display!=='none' && _liveData && _liveData[selTicker]){
+    var strats=computeStrategies(_liveData[selTicker]);
+    render(_liveData[selTicker],strats);
+  }
 }
 
 // ── BANNER ──
@@ -8232,6 +8238,12 @@ function setDTE(d,btn){
   selDTE=d;
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
+  // Auto-refresh results if already analyzed (no re-fetch needed)
+  var resultsBox=document.getElementById('resultsBox');
+  if(resultsBox && resultsBox.style.display!=='none' && _liveData && _liveData[selTicker]){
+    var strats=computeStrategies(_liveData[selTicker]);
+    render(_liveData[selTicker],strats);
+  }
 }
 
 // ── BANNER ──
