@@ -282,33 +282,26 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* ── GE TOOL LINKS ── */
 .ge-tool-link{
   display:flex;align-items:center;justify-content:center;text-align:center;
-  padding:7px 6px;min-height:28px;
-  border-radius:8px;font-size:12px;font-weight:800;
-  color:rgba(255,255,255,.95);text-decoration:none;
-  transition:background .12s,color .12s,border-color .12s;
-  letter-spacing:.02em;line-height:1.2;
-  border:1px solid rgba(255,255,255,.08);
+  padding:5px 6px;min-height:24px;
+  border-radius:7px;font-size:11.5px;font-weight:700;
+  color:rgba(255,255,255,.85);text-decoration:none;
+  transition:background .12s,color .12s;
+  letter-spacing:.01em;line-height:1.2;
 }
-.ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.25);}
-a.ge-tool-link[href="chartedge.html"]{color:#7dd3fc;border-color:rgba(125,211,252,.2);}
-a.ge-tool-link[href="stockai.html"]{color:#86efac;border-color:rgba(134,239,172,.2);}
-a.ge-tool-link[href="EarningsAI.html"]{color:#fbbf24;border-color:rgba(251,191,36,.2);}
-a.ge-tool-link[href="MoonshotAI.html"]{color:#f9a8d4;border-color:rgba(249,168,212,.2);}
-a.ge-tool-link[href="weekly-alpha.html"]{color:#a5b4fc;border-color:rgba(165,180,252,.2);}
-a.ge-tool-link[href="optionsai.html"]{color:#6ee7b7;border-color:rgba(110,231,183,.2);}
+.ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.15);color:#fff;}
 
 /* ── GE TAB BAR ── */
 .ge-tab{
   display:flex;align-items:center;justify-content:center;
-  background:transparent;color:rgba(255,255,255,.75);
-  padding:11px 3px;border-radius:0;font-size:10.5px;font-weight:900;
+  background:transparent;color:rgba(255,255,255,.55);
+  padding:11px 3px;border-radius:0;font-size:10.5px;font-weight:800;
   letter-spacing:.04em;text-transform:uppercase;text-align:center;
   border:none;border-bottom:2.5px solid transparent;
   cursor:pointer;transition:color .15s,border-color .15s;
   -webkit-appearance:none;
 }
-.ge-tab-on,.ge-tab.ge-tab-on{color:#0d0f2b!important;background:linear-gradient(135deg,#38bdf8,#818cf8)!important;border-bottom-color:transparent!important;font-weight:900!important;border-radius:6px!important;text-shadow:none!important;}
-.ge-tab:hover:not(.ge-tab-on){color:#fff;background:rgba(255,255,255,.08);border-radius:6px;}
+.ge-tab-on,.ge-tab.ge-tab-on{color:#0f172a!important;background:#38bdf8!important;border-bottom-color:transparent!important;font-weight:900!important;border-radius:6px!important;}
+.ge-tab:hover:not(.ge-tab-on){color:rgba(255,255,255,.8);}
 
 /* ── GE SETTINGS BUTTON ── */
 .ge-settings-btn{background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
@@ -361,16 +354,16 @@ a.ge-tool-link[href="optionsai.html"]{color:#6ee7b7;border-color:rgba(110,231,18
 #sl-wrap .api-save{margin-top:7px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
 
 /* QUOTE BANNER — inside sticky header */
-#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:6px 12px}
+#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:6px 12px;background:#0f172a;}
 #sl-wrap .quote-banner.loaded{display:block}
-#sl-wrap .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;gap:8px}
-#sl-wrap .quote-ts{font-size:10px;color:#f1f5f9;letter-spacing:.04em;font-weight:900}
-#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#7dd3fc;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1;flex-shrink:0}
-#sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden;align-items:center}
-#sl-wrap .qc{display:flex;align-items:center;justify-content:center;gap:7px;background:#1e293b;border-radius:7px;padding:7px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
+#sl-wrap .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#sl-wrap .quote-ts{font-size:9px;color:#94a3b8;letter-spacing:.04em}
+#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#0284c7;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
+#sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden}
+#sl-wrap .qc{display:flex;align-items:center;gap:6px;background:#1e293b;border-radius:7px;padding:5px 8px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
 #sl-wrap .qc.active{border-color:#7dd3fc}
-#sl-wrap .qc-tick{font-size:11px;font-weight:900;color:#fff;letter-spacing:.08em;text-transform:uppercase}
-#sl-wrap .qc-price{font-size:15px;font-weight:900;color:#fff;line-height:1}
+#sl-wrap .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
+#sl-wrap .qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
 #sl-wrap .qc-chg{font-size:10px;font-weight:800}
 #sl-wrap .qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
 
@@ -442,25 +435,18 @@ a.ge-tool-link[href="optionsai.html"]{color:#6ee7b7;border-color:rgba(110,231,18
 #sl-wrap .ticker-hdr{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px;margin-bottom:12px}
 #sl-wrap .th-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 #sl-wrap .th-sym{font-size:18px;font-weight:900;color:#fff}
-#sl-wrap .th-name{font-size:9px;color:#94a3b8;font-weight:700;margin-top:2px}
+#sl-wrap .th-name{font-size:9px;color:#64748b;font-weight:600;margin-top:2px}
 #sl-wrap .th-price{font-size:18px;font-weight:900;color:#fff}
 #sl-wrap .th-chg{font-size:10px;font-weight:800;margin-top:2px;text-align:right}
 #sl-wrap .th-chg.up{color:#4ade80}.th-chg.dn{color:#f87171}
-#sl-wrap .th-iv{font-size:10px;color:#7dd3fc;font-weight:700;margin-top:1px;text-align:right}
+#sl-wrap .th-iv{font-size:10px;color:#475569;font-weight:600;margin-top:1px;text-align:right}
 #sl-wrap .th-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
-#sl-wrap .th-pill{background:rgba(255,255,255,.09);border-radius:7px;padding:8px 4px;text-align:center;border:1px solid rgba(125,211,252,.2)}
-#sl-wrap .th-pill-l{font-size:8px;color:#7dd3fc;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
-#sl-wrap .th-pill-v{font-size:13px;font-weight:900;color:#fff}
+#sl-wrap .th-pill{background:rgba(255,255,255,.07);border-radius:7px;padding:7px 4px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+#sl-wrap .th-pill-l{font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+#sl-wrap .th-pill-v{font-size:11px;font-weight:900;color:#fff}
 #sl-wrap .th-footer{display:flex;align-items:center;justify-content:space-between}
-#sl-wrap .th-ts{font-size:9px;color:#94a3b8;font-weight:700}
+#sl-wrap .th-ts{font-size:9px;color:#94a3b8;font-weight:600}
 #sl-wrap .th-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#0284c7;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit}
-
-
-#sl-wrap .th-greeks{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
-#sl-wrap .th-greek{background:rgba(255,255,255,.06);border-radius:7px;padding:7px 4px;text-align:center;border:1px solid rgba(168,85,247,.2)}
-#sl-wrap .th-greek-l{font-size:8px;color:#c4b5fd;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
-#sl-wrap .th-greek-v{font-size:13px;font-weight:900;color:#e9d5ff}
-#sl-wrap .th-greek-v.neg{color:#f9a8d4}
 
 /* STRATEGY TABS WRAPPER */
 #sl-wrap .strat-tabs-wrap{background:#fff;border:1.5px solid #c8d5e8;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
@@ -548,7 +534,7 @@ a.ge-tool-link[href="optionsai.html"]{color:#6ee7b7;border-color:rgba(110,231,18
 <div class="app">
 
 <!-- STICKY HEADER -->
-<div id="ge-header" style="position:sticky;top:0;z-index:100;background:linear-gradient(160deg,#0d0f2b 0%,#0f172a 55%,#0c1a2e 100%);padding:12px 14px 0;margin:0 -10px;box-shadow:0 4px 24px rgba(0,0,0,.4),0 0 0 1px rgba(99,102,241,.18);">
+<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#0f172a;padding:12px 14px 0;margin:0 -10px;box-shadow:0 4px 20px rgba(0,0,0,.25);">
 
   <!-- Logo + Keys row -->
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -564,13 +550,13 @@ a.ge-tool-link[href="optionsai.html"]{color:#6ee7b7;border-color:rgba(110,231,18
       <div style="font-size:19px;font-weight:900;letter-spacing:-.4px;line-height:1;"><span style="color:#ffffff;text-shadow:0 1px 1px rgba(0,0,0,.4);">Gamma</span><span style="color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,.5);">Edge</span></div>
       <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Options Intelligence</div>
     </div>
-    <button onclick="openGeSettings()" style="background:rgba(99,102,241,.25);border:1.5px solid rgba(165,180,252,.45);color:#c7d2fe;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
+    <button onclick="openGeSettings()" style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
       <span style="font-size:12px;opacity:.8;">⚙️</span> Keys
     </button>
   </div>
 
   <!-- Tools grid — single bordered card -->
-  <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:11px;padding:5px;margin-bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:5px;margin-bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
     <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
     <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
     <a href="EarningsAI.html"    target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
@@ -772,12 +758,6 @@ function setDTE(d,btn){
   selDTE=d;
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  // Auto-refresh results if already analyzed (no re-fetch needed)
-  var resultsBox=document.getElementById('resultsBox');
-  if(resultsBox && resultsBox.style.display!=='none' && _liveData && _liveData[selTicker]){
-    var strats=computeStrategies(_liveData[selTicker]);
-    render(_liveData[selTicker],strats);
-  }
 }
 
 // ── BANNER ──
@@ -801,7 +781,7 @@ async function loadBannerQuotes(){
     chips.innerHTML=
       '<div class="quote-banner-top">'
       +'<span class="quote-ts">Live · '+ts+'</span>'
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()" title="Refresh quotes">↻</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>'
       +valid.map(function(r){
         var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
@@ -1111,27 +1091,6 @@ function render(d,s){
     +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">±Move</div><div class="th-pill-v">'+stdPct+'%</div></div>'
     +'</div>'
-    +function(){
-      var S=d.c,K=S,T=selDTE/365,r=0.045,v=d.iv||0.3;
-      if(T<=0)T=0.001;
-      var sqT=Math.sqrt(T);
-      var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*sqT);
-      var d2=d1-v*sqT;
-      var nd1=normCDF(d1);
-      var pdf1=Math.exp(-d1*d1/2)/Math.sqrt(2*Math.PI);
-      var delta=nd1.toFixed(2);
-      var gamma=(pdf1/(S*v*sqT)).toFixed(4);
-      var theta=(-(S*pdf1*v/(2*sqT))-r*K*Math.exp(-r*T)*normCDF(d2))/365;
-      var thetaD=theta.toFixed(2);
-      var vega=(S*sqT*pdf1/100).toFixed(2);
-      var hvPct=(Math.abs(d.dp/100)*Math.sqrt(252)*100).toFixed(0);
-      return '<div class="th-greeks">'
-        +'<div class="th-greek"><div class="th-greek-l">Delta</div><div class="th-greek-v">'+delta+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">Theta/d</div><div class="th-greek-v neg">$'+thetaD+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">Vega</div><div class="th-greek-v">$'+vega+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">HV (1d)</div><div class="th-greek-v">'+hvPct+'%</div></div>'
-        +'</div>';
-    }()
     +'<div class="th-footer">'
     +'<div class="th-ts">📡 Live · '+_ts+'</div>'
     +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
@@ -2310,7 +2269,7 @@ function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
   var paneMap={0:0,1:5,2:7,3:6,4:3,5:8};
-  var onS='color:#0d0f2b!important;background:linear-gradient(135deg,#38bdf8,#818cf8);border-radius:6px;font-weight:900;border-bottom:2.5px solid transparent;';var offS='';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
+  var onS='color:#0f172a!important;background:#38bdf8;border-radius:6px;font-weight:900;border-bottom:2.5px solid transparent;';var offS='';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
@@ -8273,12 +8232,6 @@ function setDTE(d,btn){
   selDTE=d;
   document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  // Auto-refresh results if already analyzed (no re-fetch needed)
-  var resultsBox=document.getElementById('resultsBox');
-  if(resultsBox && resultsBox.style.display!=='none' && _liveData && _liveData[selTicker]){
-    var strats=computeStrategies(_liveData[selTicker]);
-    render(_liveData[selTicker],strats);
-  }
 }
 
 // ── BANNER ──
@@ -8302,7 +8255,7 @@ async function loadBannerQuotes(){
     chips.innerHTML=
       '<div class="quote-banner-top">'
       +'<span class="quote-ts">Live · '+ts+'</span>'
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()" title="Refresh quotes">↻</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>'
       +valid.map(function(r){
         var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
@@ -8612,27 +8565,6 @@ function render(d,s){
     +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
     +'<div class="th-pill"><div class="th-pill-l">±Move</div><div class="th-pill-v">'+stdPct+'%</div></div>'
     +'</div>'
-    +function(){
-      var S=d.c,K=S,T=selDTE/365,r=0.045,v=d.iv||0.3;
-      if(T<=0)T=0.001;
-      var sqT=Math.sqrt(T);
-      var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*sqT);
-      var d2=d1-v*sqT;
-      var nd1=normCDF(d1);
-      var pdf1=Math.exp(-d1*d1/2)/Math.sqrt(2*Math.PI);
-      var delta=nd1.toFixed(2);
-      var gamma=(pdf1/(S*v*sqT)).toFixed(4);
-      var theta=(-(S*pdf1*v/(2*sqT))-r*K*Math.exp(-r*T)*normCDF(d2))/365;
-      var thetaD=theta.toFixed(2);
-      var vega=(S*sqT*pdf1/100).toFixed(2);
-      var hvPct=(Math.abs(d.dp/100)*Math.sqrt(252)*100).toFixed(0);
-      return '<div class="th-greeks">'
-        +'<div class="th-greek"><div class="th-greek-l">Delta</div><div class="th-greek-v">'+delta+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">Theta/d</div><div class="th-greek-v neg">$'+thetaD+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">Vega</div><div class="th-greek-v">$'+vega+'</div></div>'
-        +'<div class="th-greek"><div class="th-greek-l">HV (1d)</div><div class="th-greek-v">'+hvPct+'%</div></div>'
-        +'</div>';
-    }()
     +'<div class="th-footer">'
     +'<div class="th-ts">📡 Live · '+_ts+'</div>'
     +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
