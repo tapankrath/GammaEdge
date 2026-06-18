@@ -281,13 +281,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 /* ── GE TOOL LINKS ── */
 .ge-tool-link{
-  display:flex;align-items:center;justify-content:center;gap:3px;
-  text-align:center;padding:9px 4px;min-height:38px;
-  border-radius:9px;font-size:11.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  padding:10px 6px;font-size:12px;font-weight:800;
   color:#0f172a!important;text-decoration:none;background:transparent;
-  transition:background .12s,color .12s;
-  letter-spacing:.01em;line-height:1.2;
+  text-align:center;letter-spacing:.01em;
+  border-right:1px solid #e2e8f0;
+  transition:background .12s;
 }
+.ge-tool-link:last-child{border-right:none;}
 .ge-tool-link:hover,.ge-tool-link:active{background:#dcfce7;color:#15803d!important;}
 .ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.15);color:#fff;}
 
@@ -535,52 +536,52 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <div class="app">
 
 <!-- STICKY HEADER -->
-<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#ffffff;margin:0 -10px;box-shadow:0 2px 0 #16a34a,0 4px 20px rgba(0,0,0,.10);">
+<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#ffffff;margin:0 -10px;box-shadow:0 2px 0 #16a34a,0 3px 16px rgba(0,0,0,.08);">
 
   <!-- Logo + Keys row -->
-  <div style="display:flex;align-items:center;gap:12px;padding:11px 16px 10px;">
-    <!-- Logo mark -->
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px 8px;">
     <div style="width:40px;height:40px;background:#0f172a;border-radius:11px;display:flex;align-items:flex-end;justify-content:center;padding:7px 6px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.25);gap:3px;">
       <div style="width:5px;height:8px;border-radius:2px 2px 1px 1px;background:#dc2626;"></div>
       <div style="width:5px;height:13px;border-radius:2px 2px 1px 1px;background:#f97316;"></div>
       <div style="width:5px;height:19px;border-radius:2px 2px 1px 1px;background:#eab308;"></div>
       <div style="width:5px;height:26px;border-radius:2px 2px 1px 1px;background:#16a34a;"></div>
     </div>
-    <!-- Name -->
     <div style="flex:1;">
       <div style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1;font-family:'Inter',-apple-system,sans-serif;">
         <span style="color:#16a34a;">Gamma</span><span style="color:#0f172a;">Edge</span>
       </div>
       <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Options Intelligence</div>
     </div>
-    <!-- Keys button -->
-    <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#ffffff;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;letter-spacing:.01em;">
-      ⚙️ Keys
-    </button>
+    <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#fff;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">⚙️ Keys</button>
   </div>
 
-  <!-- Tools grid -->
-  <div style="margin:0 12px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:13px;padding:6px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;">
-    <a href="chartedge.html"      target="_blank" rel="noopener" class="ge-tool-link">📈 ChartAI</a>
-    <a href="stockai.html"        target="_blank" rel="noopener" class="ge-tool-link">🔍 StockAI</a>
-    <a href="EarningsAI.html"     target="_blank" rel="noopener" class="ge-tool-link">📅 EarningsAI</a>
-    <a href="Nondirectional.html" target="_blank" rel="noopener" class="ge-tool-link">⚡ NonDir</a>
-    <a href="portfolioedge.html"  target="_blank" rel="noopener" class="ge-tool-link">💼 Portfolio</a>
-    <a href="MoonshotAI.html"     target="_blank" rel="noopener" class="ge-tool-link">🚀 Moonshot</a>
-    <a href="weekly-alpha.html"   target="_blank" rel="noopener" class="ge-tool-link">📊 Weekly</a>
-    <a href="optionsai.html"      target="_blank" rel="noopener" class="ge-tool-link">🎯 OptionsAI</a>
+  <!-- Tools grid — 4x2, equal cells, no emoji wrapping issues -->
+  <div style="margin:0 12px 8px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);">
+      <a href="chartedge.html"      target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
+      <a href="stockai.html"        target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
+      <a href="EarningsAI.html"     target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
+      <a href="Nondirectional.html" target="_blank" rel="noopener" class="ge-tool-link">NonDir</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #e2e8f0;">
+      <a href="portfolioedge.html"  target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
+      <a href="MoonshotAI.html"     target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
+      <a href="weekly-alpha.html"   target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
+      <a href="optionsai.html"      target="_blank" rel="noopener" class="ge-tool-link">OptionsAI</a>
+    </div>
   </div>
 
-  <!-- Tab bar -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);border-top:1.5px solid #f1f5f9;">
-    <button class="ge-tab ge-tab-on" id="tab0" onclick="showTab(0)" style="color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;">StratEdge</button>
-    <button class="ge-tab" id="tab1" onclick="showTab(1)">Backtest</button>
-    <button class="ge-tab" id="tab2" onclick="showTab(2)">Alloc</button>
-    <button class="ge-tab" id="tab3" onclick="showTab(3)">Planner</button>
-    <button class="ge-tab" id="tab4" onclick="showTab(4)">Lottery</button>
+  <!-- Tab bar — all 5 visible, equal width -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);border-top:1.5px solid #e8f5e9;">
+    <button class="ge-tab ge-tab-on" id="tab0" onclick="showTab(0)" style="color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;border-bottom:2.5px solid transparent;">StratEdge</button>
+    <button class="ge-tab" id="tab1" onclick="showTab(1)" style="color:#64748b;background:transparent;">Backtest</button>
+    <button class="ge-tab" id="tab2" onclick="showTab(2)" style="color:#64748b;background:transparent;">Alloc</button>
+    <button class="ge-tab" id="tab3" onclick="showTab(3)" style="color:#64748b;background:transparent;">Planner</button>
+    <button class="ge-tab" id="tab4" onclick="showTab(4)" style="color:#64748b;background:transparent;">Lottery</button>
   </div>
 
 </div><!-- end sticky header -->
+
 
 
 
