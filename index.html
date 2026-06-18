@@ -356,14 +356,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* QUOTE BANNER — inside sticky header */
 #sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:6px 12px}
 #sl-wrap .quote-banner.loaded{display:block}
-#sl-wrap .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-#sl-wrap .quote-ts{font-size:9px;color:#475569;letter-spacing:.04em}
-#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:5px;padding:3px 10px;color:#0284c7;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1}
-#sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden}
-#sl-wrap .qc{display:flex;align-items:center;gap:6px;background:#1e293b;border-radius:7px;padding:5px 8px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
+#sl-wrap .quote-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;gap:8px}
+#sl-wrap .quote-ts{font-size:10px;color:#e2e8f0;letter-spacing:.04em;font-weight:800}
+#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#7dd3fc;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;line-height:1;flex-shrink:0}
+#sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden;align-items:center}
+#sl-wrap .qc{display:flex;align-items:center;justify-content:center;gap:7px;background:#1e293b;border-radius:7px;padding:7px 10px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;flex:1;min-width:0}
 #sl-wrap .qc.active{border-color:#7dd3fc}
-#sl-wrap .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
-#sl-wrap .qc-price{font-size:14px;font-weight:900;color:#fff;line-height:1}
+#sl-wrap .qc-tick{font-size:11px;font-weight:900;color:#fff;letter-spacing:.08em;text-transform:uppercase}
+#sl-wrap .qc-price{font-size:15px;font-weight:900;color:#fff;line-height:1}
 #sl-wrap .qc-chg{font-size:10px;font-weight:800}
 #sl-wrap .qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
 
@@ -787,7 +787,7 @@ async function loadBannerQuotes(){
     chips.innerHTML=
       '<div class="quote-banner-top">'
       +'<span class="quote-ts">Live · '+ts+'</span>'
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()" title="Refresh quotes">↻</button>'
       +'</div>'
       +valid.map(function(r){
         var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
@@ -8267,7 +8267,7 @@ async function loadBannerQuotes(){
     chips.innerHTML=
       '<div class="quote-banner-top">'
       +'<span class="quote-ts">Live · '+ts+'</span>'
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()" title="Refresh quotes">↻</button>'
       +'</div>'
       +valid.map(function(r){
         var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
