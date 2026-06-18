@@ -281,13 +281,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 /* ── GE TOOL LINKS ── */
 .ge-tool-link{
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  padding:5px 6px;min-height:24px;
-  border-radius:7px;font-size:11.5px;font-weight:700;
-  color:rgba(255,255,255,.85);text-decoration:none;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  text-align:center;padding:9px 4px;min-height:38px;
+  border-radius:9px;font-size:11.5px;font-weight:800;
+  color:#0f172a!important;text-decoration:none;background:transparent;
   transition:background .12s,color .12s;
   letter-spacing:.01em;line-height:1.2;
 }
+.ge-tool-link:hover,.ge-tool-link:active{background:#dcfce7;color:#15803d!important;}
 .ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.15);color:#fff;}
 
 /* ── GE TAB BAR ── */
@@ -300,12 +301,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   cursor:pointer;transition:color .15s,border-color .15s;
   -webkit-appearance:none;
 }
-.ge-tab-on,.ge-tab.ge-tab-on{color:#0f172a!important;background:#38bdf8!important;border-bottom-color:transparent!important;font-weight:900!important;border-radius:6px!important;}
-.ge-tab:hover:not(.ge-tab-on){color:rgba(255,255,255,.8);}
+.ge-tab-on,.ge-tab.ge-tab-on{color:#ffffff!important;background:#16a34a!important;border-bottom-color:transparent!important;font-weight:900!important;border-radius:0!important;}
+.ge-tab:hover:not(.ge-tab-on){color:#0f172a;background:#f0fdf4;}
 
 /* ── GE SETTINGS BUTTON ── */
-.ge-settings-btn{background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
-.ge-settings-btn:hover{background:#e2e8f0;color:#0f172a;}
+.ge-settings-btn{background:#0f172a;border:none;color:#ffffff;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;}
+.ge-settings-btn:hover{background:#1e293b;}
 .ge-settings-btn:active{background:#cbd5e1;}
 /* ── GE PILL NAV ── */
 .ge-pill{
@@ -534,42 +535,45 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <div class="app">
 
 <!-- STICKY HEADER -->
-<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#0f172a;padding:12px 14px 0;margin:0 -10px;box-shadow:0 4px 20px rgba(0,0,0,.25);">
+<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#ffffff;margin:0 -10px;box-shadow:0 2px 0 #16a34a,0 4px 20px rgba(0,0,0,.10);">
 
   <!-- Logo + Keys row -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-    <div style="width:38px;height:38px;position:relative;background:linear-gradient(155deg,#05070d,#1e1b4b 60%,#312e81);border:1.5px solid rgba(255,255,255,.35);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 1px rgba(139,92,246,.25) inset,0 3px 14px rgba(99,102,241,.5),0 0 16px rgba(56,189,248,.3);">
-      <span style="font-size:21px;color:#fff;font-weight:900;text-shadow:0 1px 1px rgba(0,0,0,.6);letter-spacing:-1px;">Γ</span>
-      <div style="position:absolute;right:4px;bottom:4px;display:flex;align-items:flex-end;gap:1.5px;">
-        <div style="width:2.5px;height:5px;background:#ef4444;border-radius:1px;box-shadow:0 0 3px rgba(239,68,68,.8);"></div>
-        <div style="width:2.5px;height:8px;background:#facc15;border-radius:1px;box-shadow:0 0 3px rgba(250,204,21,.8);"></div>
-        <div style="width:2.5px;height:11px;background:#22c55e;border-radius:1px;box-shadow:0 0 4px rgba(34,197,94,.9);"></div>
-      </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:11px 16px 10px;">
+    <!-- Logo mark -->
+    <div style="width:40px;height:40px;background:#0f172a;border-radius:11px;display:flex;align-items:flex-end;justify-content:center;padding:7px 6px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.25);gap:3px;">
+      <div style="width:5px;height:8px;border-radius:2px 2px 1px 1px;background:#dc2626;"></div>
+      <div style="width:5px;height:13px;border-radius:2px 2px 1px 1px;background:#f97316;"></div>
+      <div style="width:5px;height:19px;border-radius:2px 2px 1px 1px;background:#eab308;"></div>
+      <div style="width:5px;height:26px;border-radius:2px 2px 1px 1px;background:#16a34a;"></div>
     </div>
+    <!-- Name -->
     <div style="flex:1;">
-      <div style="font-size:19px;font-weight:900;letter-spacing:-.4px;line-height:1;"><span style="color:#ffffff;text-shadow:0 1px 1px rgba(0,0,0,.4);">Gamma</span><span style="color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,.5);">Edge</span></div>
-      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Options Intelligence</div>
+      <div style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1;font-family:'Inter',-apple-system,sans-serif;">
+        <span style="color:#16a34a;">Gamma</span><span style="color:#0f172a;">Edge</span>
+      </div>
+      <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Options Intelligence</div>
     </div>
-    <button onclick="openGeSettings()" style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
-      <span style="font-size:12px;opacity:.8;">⚙️</span> Keys
+    <!-- Keys button -->
+    <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#ffffff;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;letter-spacing:.01em;">
+      ⚙️ Keys
     </button>
   </div>
 
-  <!-- Tools grid — single bordered card -->
-  <div style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:12px;padding:6px;margin-bottom:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;">
-    <a href="chartedge.html"    target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">ChartAI</a>
-    <a href="stockai.html"      target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">StockAI</a>
-    <a href="EarningsAI.html"   target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">EarningsAI</a>
-    <a href="Nondirectional.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">NonDir</a>
-    <a href="portfolioedge.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">Portfolio</a>
-    <a href="MoonshotAI.html"   target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">Moonshot</a>
-    <a href="weekly-alpha.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">WeeklyAlpha</a>
-    <a href="optionsai.html"    target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;text-align:center;letter-spacing:.01em;transition:background .12s;">OptionsAI</a>
+  <!-- Tools grid -->
+  <div style="margin:0 12px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:13px;padding:6px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;">
+    <a href="chartedge.html"      target="_blank" rel="noopener" class="ge-tool-link">📈 ChartAI</a>
+    <a href="stockai.html"        target="_blank" rel="noopener" class="ge-tool-link">🔍 StockAI</a>
+    <a href="EarningsAI.html"     target="_blank" rel="noopener" class="ge-tool-link">📅 EarningsAI</a>
+    <a href="Nondirectional.html" target="_blank" rel="noopener" class="ge-tool-link">⚡ NonDir</a>
+    <a href="portfolioedge.html"  target="_blank" rel="noopener" class="ge-tool-link">💼 Portfolio</a>
+    <a href="MoonshotAI.html"     target="_blank" rel="noopener" class="ge-tool-link">🚀 Moonshot</a>
+    <a href="weekly-alpha.html"   target="_blank" rel="noopener" class="ge-tool-link">📊 Weekly</a>
+    <a href="optionsai.html"      target="_blank" rel="noopener" class="ge-tool-link">🎯 OptionsAI</a>
   </div>
 
   <!-- Tab bar -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);">
-    <button class="ge-tab ge-tab-on" id="tab0" onclick="showTab(0)" style="color:#0f172a!important;background:#38bdf8;border-radius:6px;font-weight:900;">StratEdge</button>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);border-top:1.5px solid #f1f5f9;">
+    <button class="ge-tab ge-tab-on" id="tab0" onclick="showTab(0)" style="color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;">StratEdge</button>
     <button class="ge-tab" id="tab1" onclick="showTab(1)">Backtest</button>
     <button class="ge-tab" id="tab2" onclick="showTab(2)">Alloc</button>
     <button class="ge-tab" id="tab3" onclick="showTab(3)">Planner</button>
@@ -577,6 +581,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
 </div><!-- end sticky header -->
+
 
 
 
@@ -2274,7 +2279,7 @@ function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
   var paneMap={0:0,1:5,2:7,3:6,4:3,5:8};
-  var onS='color:#0f172a!important;background:#38bdf8;border-radius:6px;font-weight:900;border-bottom:2.5px solid transparent;';var offS='';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
+  var onS='color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;border-bottom:2.5px solid transparent;';var offS='color:#64748b;background:transparent;';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
