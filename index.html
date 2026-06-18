@@ -279,6 +279,28 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .cmp-lbl.w{background:#15803d;color:#fff}
 .cmp-lbl.d{background:#6d28d9;color:#fff}
 
+/* ── GE TOOL LINKS ── */
+.ge-tool-link{
+  display:block;text-align:center;padding:7px 4px;
+  border-radius:8px;font-size:12px;font-weight:700;
+  color:rgba(255,255,255,.85);text-decoration:none;
+  transition:background .12s,color .12s;
+  letter-spacing:.01em;
+}
+.ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.15);color:#fff;}
+
+/* ── GE TAB BAR ── */
+.ge-tab{
+  background:transparent;color:rgba(255,255,255,.55);
+  padding:11px 2px;border-radius:0;font-size:9px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;text-align:center;
+  border:none;border-bottom:2.5px solid transparent;
+  cursor:pointer;transition:color .15s,border-color .15s;
+  -webkit-appearance:none;
+}
+.ge-tab-on,.ge-tab.ge-tab-on{color:#0f172a!important;background:#38bdf8!important;border-bottom-color:transparent!important;font-weight:900!important;border-radius:6px!important;}
+.ge-tab:hover:not(.ge-tab-on){color:rgba(255,255,255,.8);}
+
 /* ── GE SETTINGS BUTTON ── */
 .ge-settings-btn{background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
 .ge-settings-btn:hover{background:#e2e8f0;color:#0f172a;}
@@ -510,45 +532,46 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <div class="app">
 
 <!-- STICKY HEADER -->
-<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#ffffff;padding:0;margin:0 -10px;box-shadow:0 2px 16px rgba(0,0,0,.10);border-bottom:1px solid #e2e8f0;">
+<div id="ge-header" style="position:sticky;top:0;z-index:100;background:#0f172a;padding:12px 14px 0;margin:0 -10px;box-shadow:0 4px 20px rgba(0,0,0,.25);">
 
-  <!-- Logo row -->
-  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px 6px;">
-    <div style="width:32px;height:32px;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <span style="font-size:16px;">Γ</span>
+  <!-- Logo + Keys row -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <div style="width:34px;height:34px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span style="font-size:18px;color:#fff;font-weight:900;">Γ</span>
     </div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-.4px;line-height:1;">GammaEdge</div>
-      <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-top:1px;">Options Intelligence Platform</div>
+    <div style="flex:1;">
+      <div style="font-size:19px;font-weight:900;color:#ffffff;letter-spacing:-.4px;line-height:1;">GammaEdge</div>
+      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:.12em;text-transform:uppercase;margin-top:1px;">Options Intelligence</div>
     </div>
-    <button onclick="openGeSettings()" class="ge-settings-btn">⚙️ Keys</button>
+    <button onclick="openGeSettings()" style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
+      <span style="font-size:12px;opacity:.8;">⚙️</span> Keys
+    </button>
   </div>
 
-  <!-- App suite nav — 4x2 grid -->
-  <div style="padding:0 14px 8px;">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
-      <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-pill">Portfolio</a>
-      <a href="chartedge.html" target="_blank" rel="noopener" class="ge-pill">ChartAI</a>
-      <a href="stockai.html" target="_blank" rel="noopener" class="ge-pill">StockAI</a>
-      <a href="signal.html" target="_blank" rel="noopener" class="ge-pill">Signal</a>
-      <a href="EarningsAI.html" target="_blank" rel="noopener" class="ge-pill">EarningsAI</a>
-      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="ge-pill">Moonshot</a>
-      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="ge-pill">WeeklyAlpha</a>
-      <a href="optionsai.html" target="_blank" rel="noopener" class="ge-pill">OptionsAI</a>
-    </div>
+  <!-- Tools grid — single bordered card -->
+  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;margin-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+    <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
+    <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
+    <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
+    <a href="signal.html"        target="_blank" rel="noopener" class="ge-tool-link">Signal</a>
+    <a href="EarningsAI.html"    target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
+    <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
+    <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">WeeklyAlpha</a>
+    <a href="optionsai.html"     target="_blank" rel="noopener" class="ge-tool-link">OptionsAI</a>
   </div>
 
   <!-- Tab bar -->
-  <div style="display:grid;grid-template-columns:repeat(6,1fr);border-top:1.5px solid #e2e8f0;background:#fff;">
-        <button class="tab  on" id="tab0" onclick="showTab(0)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid #2563eb;">StratEdge</button>
-    <button class="tab" id="tab1" onclick="showTab(1)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Backtest</button>
-    <button class="tab" id="tab2" onclick="showTab(2)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Alloc</button>
-    <button class="tab" id="tab3" onclick="showTab(3)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Planner</button>
-    <button class="tab" id="tab4" onclick="showTab(4)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Lottery</button>
-    <button class="tab" id="tab5" onclick="showTab(5)" style="background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;">Portfolio</button>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);">
+    <button class="ge-tab ge-tab-on" id="tab0" onclick="showTab(0)" style="color:#0f172a!important;background:#38bdf8;border-radius:6px;font-weight:900;">StratEdge</button>
+    <button class="ge-tab" id="tab1" onclick="showTab(1)">Backtest</button>
+    <button class="ge-tab" id="tab2" onclick="showTab(2)">Alloc</button>
+    <button class="ge-tab" id="tab3" onclick="showTab(3)">Planner</button>
+    <button class="ge-tab" id="tab4" onclick="showTab(4)">Lottery</button>
+    <button class="ge-tab" id="tab5" onclick="showTab(5)">Portfolio</button>
   </div>
 
 </div><!-- end sticky header -->
+
 
 
 
@@ -2242,9 +2265,7 @@ function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
   var paneMap={0:0,1:5,2:7,3:6,4:3,5:8};
-  var onStyle='background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid #2563eb;';
-  var offStyle='background:transparent;padding:10px 4px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center;border:none;border-radius:0;cursor:pointer;width:100%;color:#0f172a;font-weight:900;border-bottom:2.5px solid transparent;';
-  for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='tab'+(i===n?' on':'');tb.style.cssText=(i===n?onStyle:offStyle);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
+  var onS='color:#0f172a!important;background:#38bdf8;border-radius:6px;font-weight:900;border-bottom:2.5px solid transparent;';var offS='';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
