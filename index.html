@@ -356,16 +356,16 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .api-save{margin-top:7px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
 
 /* QUOTE BANNER — inside sticky header */
-#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:8px 12px;background:#0f172a;}
+#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:10px 12px;background:#0f172a;}
 #sl-wrap .quote-banner.loaded{display:block}
-#sl-wrap .quote-banner-top{display:flex;align-items:center;gap:6px;}
+#sl-wrap .quote-banner-top{display:flex;align-items:stretch;gap:8px;min-height:52px;}
 #sl-wrap .quote-ts{font-size:9px;color:#94a3b8;letter-spacing:.04em}
-#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+#sl-wrap .quote-refresh{background:#1e293b;border:1.5px solid #334155;border-radius:9px;padding:0 16px;color:#38bdf8;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;align-self:stretch;flex:0 0 auto;}
 #sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden}
-#sl-wrap .qc{flex:1;justify-content:center;display:flex;align-items:center;gap:4px;background:#1e293b;border-radius:7px;padding:5px 6px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;min-width:0}
+#sl-wrap .qc{flex:1;justify-content:center;display:flex;align-items:center;gap:6px;background:#1e293b;border-radius:9px;padding:10px 8px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;min-width:0}
 #sl-wrap .qc.active{border-color:#7dd3fc}
-#sl-wrap .qc-tick{font-size:10px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
-#sl-wrap .qc-price{font-size:16px;font-weight:900;color:#fff;line-height:1}
+#sl-wrap .qc-tick{font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase}
+#sl-wrap .qc-price{font-size:18px;font-weight:900;color:#fff;line-height:1}
 #sl-wrap .qc-chg{font-size:11px;font-weight:800;}
 #sl-wrap .qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
 
@@ -814,7 +814,7 @@ async function loadBannerQuotes(){
           +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
           +'</div>';
       }).join('')
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>';
     banner.classList.add('loaded');
     setTopbarH();
@@ -1187,7 +1187,7 @@ function render(d,s){
     +'</div>'
     +'<div class="th-footer">'
     +'<div class="th-ts">📡 Live · '+_ts+'</div>'
-    +'<button class="th-refresh" onclick="reAnalyze()">↻</button>'
+    +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
     +'</div>'
     +'</div>';
 
@@ -8489,7 +8489,7 @@ async function loadBannerQuotes(){
           +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
           +'</div>';
       }).join('')
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻</button>'
+      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>';
     banner.classList.add('loaded');
     setTopbarH();
@@ -8862,7 +8862,7 @@ function render(d,s){
     +'</div>'
     +'<div class="th-footer">'
     +'<div class="th-ts">📡 Live · '+_ts+'</div>'
-    +'<button class="th-refresh" onclick="reAnalyze()">↻</button>'
+    +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
     +'</div>'
     +'</div>';
 
