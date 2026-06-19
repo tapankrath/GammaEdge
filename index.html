@@ -356,17 +356,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .api-save{margin-top:7px;width:100%;background:#16a34a;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit}
 
 /* QUOTE BANNER — inside sticky header */
-#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:5px 10px;background:#0f172a;}
+#sl-wrap .quote-banner{display:none;border-top:1px solid #1e293b;padding:8px 12px;background:#0f172a;}
 #sl-wrap .quote-banner.loaded{display:block}
 #sl-wrap .quote-banner-top{display:flex;align-items:center;gap:6px;}
 #sl-wrap .quote-ts{font-size:9px;color:#94a3b8;letter-spacing:.04em}
-#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:6px 10px;color:#0284c7;font-size:14px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap;}
+#sl-wrap .quote-refresh{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
 #sl-wrap .quote-chips{display:flex;gap:8px;overflow-x:hidden}
 #sl-wrap .qc{flex:1;justify-content:center;display:flex;align-items:center;gap:4px;background:#1e293b;border-radius:7px;padding:5px 6px;border:1.5px solid #334155;cursor:pointer;transition:border-color .15s;min-width:0}
 #sl-wrap .qc.active{border-color:#7dd3fc}
-#sl-wrap .qc-tick{font-size:9px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
-#sl-wrap .qc-price{font-size:13px;font-weight:900;color:#fff;line-height:1}
-#sl-wrap .qc-chg{font-size:10px;font-weight:800}
+#sl-wrap .qc-tick{font-size:10px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
+#sl-wrap .qc-price{font-size:16px;font-weight:900;color:#fff;line-height:1}
+#sl-wrap .qc-chg{font-size:11px;font-weight:800;}
 #sl-wrap .qc-chg.up{color:#4ade80}.qc-chg.dn{color:#f87171}.qc-chg.flat{color:#64748b}
 
 /* CONTROLS — inside sticky header */
@@ -662,19 +662,20 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div class="loading-msg" id="loadingMsg">Fetching live data…</div>
   </div>
 
+  <!-- VOL SIGNAL CARD — persists through analyze() -->
+  <div id="vol-signal-card" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:900;color:#0f172a;letter-spacing:.02em;">⚡ Volatility Signal</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="runVolSignal('SPY')" id="vs-spy-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">SPY</button>
+        <button onclick="runVolSignal('QQQ')" id="vs-qqq-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">QQQ</button>
+      </div>
+    </div>
+    <div id="vol-signal-body" style="font-size:13px;color:#64748b;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.01em;">Tap <strong style="color:#0f172a;">SPY</strong> or <strong style="color:#0f172a;">QQQ</strong> to run the volatility signal</div>
+  </div>
+
   <!-- LANDING STATE -->
   <div class="landing" id="landingBox">
-    <!-- VOL SIGNAL CARD -->
-    <div id="vol-signal-card" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:900;color:#0f172a;text-transform:uppercase;letter-spacing:.1em;">⚡ Vol Signal</div>
-        <div style="display:flex;gap:6px;">
-          <button onclick="runVolSignal('SPY')" id="vs-spy-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
-          <button onclick="runVolSignal('QQQ')" id="vs-qqq-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
-        </div>
-      </div>
-      <div id="vol-signal-body" style="font-size:12px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">Tap SPY or QQQ to check volatility signal</div>
-    </div>
 
     <div class="landing-icon">📊</div>
     <div class="landing-title">Options Strategy Analyzer</div>
@@ -6930,6 +6931,135 @@ function startStripe(){
 })();
 
 
+/* ── VOLATILITY SIGNAL ────────────────────────────────────────── */
+async function runVolSignal(sym){
+  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
+  var body=document.getElementById('vol-signal-body');
+  var spyBtn=document.getElementById('vs-spy-btn');
+  var qqqBtn=document.getElementById('vs-qqq-btn');
+
+  // Highlight active button
+  [spyBtn,qqqBtn].forEach(function(b){
+    if(!b)return;
+    b.style.background='#1e293b';b.style.color='#94a3b8';b.style.borderColor='#334155';
+  });
+  var activeBtn=sym==='SPY'?spyBtn:qqqBtn;
+  if(activeBtn){activeBtn.style.background='#16a34a';activeBtn.style.color='#fff';activeBtn.style.borderColor='#16a34a';}
+
+  body.innerHTML='<span style="color:#64748b;">⏳ Fetching live data…</span>';
+
+  try{
+    // Fetch sym quote + VIX in parallel
+    var [symRes, vixRes] = await Promise.all([
+      fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
+      fetch('https://finnhub.io/api/v1/quote?symbol=VIX&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
+    ]);
+
+    var price  = symRes.c  || 0;
+    var prevC  = symRes.pc || price;
+    var dayPct = prevC > 0 ? Math.abs((price - prevC) / prevC * 100) : 0;
+    var vixNow = vixRes ? (vixRes.c || 0) : 0;
+    var vixPrev= vixRes ? (vixRes.pc || vixNow) : vixNow;
+    var vixPct = vixPrev > 0 ? Math.abs((vixNow - vixPrev) / vixPrev * 100) : 0;
+
+    // Put/call ratio via Finnhub (market-wide)
+    var pcRes = null;
+    try{
+      var pcFetch = await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
+      pcRes = await pcFetch.json();
+    }catch(e){}
+
+    // Calculate P/C ratio from option chain if available
+    var pcRatio = null;
+    if(pcRes && pcRes.data && pcRes.data.length > 0){
+      var totalPutVol=0, totalCallVol=0;
+      pcRes.data.forEach(function(exp){
+        (exp.options&&exp.options.CALL||[]).forEach(function(o){totalCallVol+=(o.volume||0);});
+        (exp.options&&exp.options.PUT||[]).forEach(function(o){totalPutVol+=(o.volume||0);});
+      });
+      if(totalCallVol > 0) pcRatio = totalPutVol / totalCallVol;
+    }
+
+    // Evaluate signal conditions
+    var cond1 = dayPct > 2;       // daily move > 2%
+    var cond2 = vixPct > 10;      // VIX spike > 10%
+    var cond3 = pcRatio !== null ? pcRatio > 1.1 : null;  // P/C > 1.1 (null if unavailable)
+
+    var condsMet = [cond1, cond2].filter(Boolean).length + (cond3===true?1:0);
+    var totalConds = pcRatio !== null ? 3 : 2;
+
+    // Signal strength
+    var signal, signalColor, signalBg, rec;
+    if(cond1 && cond2 && (cond3===true || cond3===null)){
+      signal='🔥 STRONG SIGNAL';
+      signalColor='#15803d';signalBg='#f0fdf4';
+      rec='All conditions met → <strong>Buy a Straddle or Strangle</strong>. Expect another outsized move within 1–3 sessions.';
+    } else if(condsMet >= 2){
+      signal='⚡ MODERATE SIGNAL';
+      signalColor='#854d0e';signalBg='#fefce8';
+      rec='Most conditions met → <strong>Consider a Strangle</strong> with wider strikes. Vol is elevated but not extreme.';
+    } else if(cond1 || cond2){
+      signal='📡 WEAK SIGNAL';
+      signalColor='#9a3412';signalBg='#fff7ed';
+      rec='Partial conditions → <strong>Wait or reduce size</strong>. Not a high-conviction vol setup yet.';
+    } else {
+      signal='😴 NO SIGNAL';
+      signalColor='#475569';signalBg='#f8fafc';
+      rec='Market calm → <strong>Sell premium instead</strong>. Iron Condor or Credit Spread favored over long vol.';
+    }
+
+    var moveDir = price >= prevC ? '▲' : '▼';
+    var moveCol = price >= prevC ? '#16a34a' : '#dc2626';
+
+    body.innerHTML=
+      '<div style="background:'+signalBg+';border-radius:9px;padding:10px 12px;margin-bottom:10px;text-align:center;">'
+        +'<div style="font-size:16px;font-weight:900;color:'+signalColor+';letter-spacing:.01em;margin-bottom:5px;">'+signal+'</div>'
+        +'<div style="font-size:11px;color:#334155;font-weight:600;line-height:1.5;">'+rec+'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
+        // Condition 1: Daily Move
+        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond1?'#16a34a':'#e2e8f0')+'">'
+          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Daily Move</div>'
+          +'<div style="font-size:17px;font-weight:900;color:'+moveCol+';margin-bottom:3px;">'+moveDir+dayPct.toFixed(1)+'%</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond1?'#16a34a':'#dc2626')+';">'+(cond1?'✓ >2%':'✗ <2%')+'</div>'
+        +'</div>'
+        // Condition 2: VIX Spike
+        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond2?'#16a34a':'#e2e8f0')+'">'
+          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">VIX Spike</div>'
+          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(vixNow>0?vixNow.toFixed(1)+' <span style="font-size:10px;color:'+(vixPct>10?'#dc2626':'#64748b')+';">('+vixPct.toFixed(0)+'%)</span>':'N/A')+'</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >10%':'✗ <10%')+'</div>'
+        +'</div>'
+        // Condition 3: P/C Ratio
+        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond3===true?'#16a34a':'#e2e8f0')+'">'
+          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">P/C Ratio</div>'
+          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(pcRatio!==null?pcRatio.toFixed(2):'—')+'</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond3===true?'#16a34a':cond3===false?'#dc2626':'#64748b')+';">'+(cond3===true?'✓ >1.1':cond3===false?'✗ <1.1':'No data')+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="margin-top:8px;text-align:right;">'
+        +'<span style="font-size:9px;color:#94a3b8;font-weight:600;">'+sym+' $'+price.toFixed(2)+' · '+(cond3===null?'P/C from Finnhub unavailable on free tier · ':'')+'Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>'
+      +'</div>';
+
+    // If strong signal, auto-select this ticker
+    if(condsMet >= 2){
+      selTicker = sym;
+      document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.toggle('on',b.dataset&&b.dataset.sym===sym);});
+    }
+
+  }catch(e){
+    body.innerHTML='<span style="color:#dc2626;">Error fetching data: '+e.message+'</span>';
+  }
+}
+
+// Auto-run SPY signal on load if Finnhub key available
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var fk=localStorage.getItem('ge_fh_key');
+    if(fk) runVolSignal('SPY');
+  }, 1500);
+});
+
+
 /* ══════════════════════════════════════════════════════
    ALLOCAI — 3-Bucket Capital Strategy
    ══════════════════════════════════════════════════════ */
@@ -8850,134 +8980,6 @@ function scoreBar(label,val,color){
 }
 
 
-/* ── VOLATILITY SIGNAL ────────────────────────────────────────── */
-async function runVolSignal(sym){
-  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
-  var body=document.getElementById('vol-signal-body');
-  var spyBtn=document.getElementById('vs-spy-btn');
-  var qqqBtn=document.getElementById('vs-qqq-btn');
-
-  // Highlight active button
-  [spyBtn,qqqBtn].forEach(function(b){
-    if(!b)return;
-    b.style.background='#1e293b';b.style.color='#94a3b8';b.style.borderColor='#334155';
-  });
-  var activeBtn=sym==='SPY'?spyBtn:qqqBtn;
-  if(activeBtn){activeBtn.style.background='#16a34a';activeBtn.style.color='#fff';activeBtn.style.borderColor='#16a34a';}
-
-  body.innerHTML='<span style="color:#64748b;">⏳ Fetching live data…</span>';
-
-  try{
-    // Fetch sym quote + VIX in parallel
-    var [symRes, vixRes] = await Promise.all([
-      fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
-      fetch('https://finnhub.io/api/v1/quote?symbol=VIX&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
-    ]);
-
-    var price  = symRes.c  || 0;
-    var prevC  = symRes.pc || price;
-    var dayPct = prevC > 0 ? Math.abs((price - prevC) / prevC * 100) : 0;
-    var vixNow = vixRes ? (vixRes.c || 0) : 0;
-    var vixPrev= vixRes ? (vixRes.pc || vixNow) : vixNow;
-    var vixPct = vixPrev > 0 ? Math.abs((vixNow - vixPrev) / vixPrev * 100) : 0;
-
-    // Put/call ratio via Finnhub (market-wide)
-    var pcRes = null;
-    try{
-      var pcFetch = await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
-      pcRes = await pcFetch.json();
-    }catch(e){}
-
-    // Calculate P/C ratio from option chain if available
-    var pcRatio = null;
-    if(pcRes && pcRes.data && pcRes.data.length > 0){
-      var totalPutVol=0, totalCallVol=0;
-      pcRes.data.forEach(function(exp){
-        (exp.options&&exp.options.CALL||[]).forEach(function(o){totalCallVol+=(o.volume||0);});
-        (exp.options&&exp.options.PUT||[]).forEach(function(o){totalPutVol+=(o.volume||0);});
-      });
-      if(totalCallVol > 0) pcRatio = totalPutVol / totalCallVol;
-    }
-
-    // Evaluate signal conditions
-    var cond1 = dayPct > 2;       // daily move > 2%
-    var cond2 = vixPct > 10;      // VIX spike > 10%
-    var cond3 = pcRatio !== null ? pcRatio > 1.1 : null;  // P/C > 1.1 (null if unavailable)
-
-    var condsMet = [cond1, cond2].filter(Boolean).length + (cond3===true?1:0);
-    var totalConds = pcRatio !== null ? 3 : 2;
-
-    // Signal strength
-    var signal, signalColor, signalBg, rec;
-    if(cond1 && cond2 && (cond3===true || cond3===null)){
-      signal='🔥 STRONG VOL SIGNAL';
-      signalColor='#15803d';signalBg='#f0fdf4';
-      rec='All conditions met — straddle or strangle highly favored. Expect another outsized move.';
-    } else if(condsMet >= 2){
-      signal='⚡ MODERATE SIGNAL';
-      signalColor='#854d0e';signalBg='#fefce8';
-      rec='Most conditions met — elevated vol likely. Consider straddle or wide strangle.';
-    } else if(cond1 || cond2){
-      signal='📡 WEAK SIGNAL';
-      signalColor='#9a3412';signalBg='#fff7ed';
-      rec='Some elevated vol. Monitor closely — not a high-conviction setup yet.';
-    } else {
-      signal='😴 NO SIGNAL';
-      signalColor='#475569';signalBg='#f8fafc';
-      rec='Conditions not met. Market appears calm — iron condor or credit spread may be better.';
-    }
-
-    var moveDir = price >= prevC ? '▲' : '▼';
-    var moveCol = price >= prevC ? '#16a34a' : '#dc2626';
-
-    body.innerHTML=
-      '<div style="background:'+signalBg+';border-radius:9px;padding:10px 12px;margin-bottom:10px;text-align:center;">'
-        +'<div style="font-size:13px;font-weight:900;color:'+signalColor+';letter-spacing:.02em;margin-bottom:3px;">'+signal+'</div>'
-        +'<div style="font-size:11px;color:#334155;font-weight:600;line-height:1.5;">'+rec+'</div>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
-        // Condition 1: Daily Move
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond1?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Daily Move</div>'
-          +'<div style="font-size:14px;font-weight:900;color:'+moveCol+';">'+moveDir+dayPct.toFixed(1)+'%</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond1?'#16a34a':'#dc2626')+';">'+(cond1?'✓ >2%':'✗ <2%')+'</div>'
-        +'</div>'
-        // Condition 2: VIX Spike
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond2?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:3px;">VIX Spike</div>'
-          +'<div style="font-size:14px;font-weight:900;color:#0f172a;">'+(vixNow>0?vixNow.toFixed(1)+' <span style="font-size:10px;color:'+(vixPct>10?'#dc2626':'#64748b')+';">('+vixPct.toFixed(0)+'%)</span>':'N/A')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >10%':'✗ <10%')+'</div>'
-        +'</div>'
-        // Condition 3: P/C Ratio
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond3===true?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:3px;">P/C Ratio</div>'
-          +'<div style="font-size:14px;font-weight:900;color:#0f172a;">'+(pcRatio!==null?pcRatio.toFixed(2):'—')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond3===true?'#16a34a':cond3===false?'#dc2626':'#64748b')+';">'+(cond3===true?'✓ >1.1':cond3===false?'✗ <1.1':'No data')+'</div>'
-        +'</div>'
-      +'</div>'
-      +'<div style="margin-top:8px;text-align:right;">'
-        +'<span style="font-size:9px;color:#94a3b8;font-weight:600;">'+sym+' $'+price.toFixed(2)+' · '+(cond3===null?'P/C from Finnhub unavailable on free tier · ':'')+'Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>'
-      +'</div>';
-
-    // If strong signal, auto-select this ticker
-    if(condsMet >= 2){
-      selTicker = sym;
-      document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.toggle('on',b.dataset&&b.dataset.sym===sym);});
-    }
-
-  }catch(e){
-    body.innerHTML='<span style="color:#dc2626;">Error fetching data: '+e.message+'</span>';
-  }
-}
-
-// Auto-run SPY signal on load if Finnhub key available
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var fk=localStorage.getItem('ge_fh_key');
-    if(fk) runVolSignal('SPY');
-  }, 1500);
-});
-
 })();
 </script>
 
@@ -9062,4 +9064,16 @@ window.addEventListener('load', function(){
 
 
 </body>
-</html>
+</html><!-- VOL SIGNAL CARD -->
+    <div id="vol-signal-card" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:900;color:#0f172a;letter-spacing:.02em;">⚡ Volatility Signal</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="runVolSignal('SPY')" id="vs-spy-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">SPY</button>
+          <button onclick="runVolSignal('QQQ')" id="vs-qqq-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">QQQ</button>
+        </div>
+      </div>
+      <div id="vol-signal-body" style="font-size:13px;color:#64748b;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.01em;">Tap <strong style="color:#0f172a;">SPY</strong> or <strong style="color:#0f172a;">QQQ</strong> to run the volatility signal</div>
+    </div>
+
+  
