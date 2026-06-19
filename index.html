@@ -1213,12 +1213,10 @@ function render(d,s){
     h+='<div class="be-section">'
       +'<div class="be-lbl">Breakeven Prices</div>'
       +'<div class="be-row">'
-      +'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>'
+      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
       +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>'
+      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
       +'</div></div>';
 
     // Legs
@@ -8472,6 +8470,18 @@ function computeStrategies(d){
   var condorBEup=Kc+otmCall-farCall+otmPut-farPut;
   var condorBEdn=Kp-(otmCall-farCall)-(otmPut-farPut);
 
+  // Bull Call Spread — buy ATM call, sell OTM call
+  var bcNetDebit = atmCall - otmCall;
+  var bcMaxGain  = (Kc - K - bcNetDebit) * 100;
+  var bcMaxLoss  = bcNetDebit * 100;
+  var bcBE       = K + bcNetDebit;
+
+  // Bear Put Spread — buy ATM put, sell OTM put
+  var bpNetDebit = atmPut - otmPut;
+  var bpMaxGain  = (K - Kp - bpNetDebit) * 100;
+  var bpMaxLoss  = bpNetDebit * 100;
+  var bpBE       = K - bpNetDebit;
+
   return{
     spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
     straddle:{
@@ -8566,6 +8576,66 @@ function computeStrategies(d){
           {color:'#dc2626',text:'<strong>Stop if spread = 2× credit</strong> — defined risk doesn\'t mean hold to max loss. Cut at $'+(condorCredit*2).toFixed(2)+' debit to close.'},
           {color:'#2563eb',text:'<strong>Always close before expiry week</strong> — short gamma in the final days can move against you violently even on small price swings.'},
           {color:'#d97706',text:'<strong>Roll the untested side</strong> — if one wing is threatened, roll the opposite (safe) short strike closer to collect more credit and re-center.'},
+        ]
+      }
+    },
+    bullCall:{
+      name:'Bull Call Spread', icon:'🟢', tag:'Bullish · Defined Risk',
+      tagColor:'#15803d', tagBg:'#dcfce7', iconBg:'#dcfce7',
+      cost:bcMaxLoss, maxGain:bcMaxGain, maxLoss:-bcMaxLoss,
+      BEup:bcBE, BEdn:null, netCredit:false,
+      legs:[
+        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'ATM Call (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmCall},
+        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
+         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
+      ],
+      thesis:'Bullish play with defined risk. Pay $'+bcNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' rallies above $'+bcBE.toFixed(2)+'. Max gain $'+bcMaxGain.toFixed(0)+' if '+d.sym+' closes at or above $'+Kc.toFixed(0)+' at expiry.',
+      scoreVol:40, scoreRisk:70, scoreProb:45,
+      exit:{
+        profitTarget:'75–100% of max gain ($'+( bcMaxGain*0.75).toFixed(0)+'–$'+bcMaxGain.toFixed(0)+')',
+        profitDetail:'Close the spread when it approaches max value — the short call caps further gain.',
+        stopLoss:'50% of debit paid ($'+(bcMaxLoss*0.5).toFixed(0)+')',
+        stopDetail:'Exit if the spread loses half its cost. Directional thesis is likely wrong.',
+        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
+        timeDetail:'Exit if the move has not materialized by 40% of DTE remaining to recover theta.',
+        rollTrigger:d.sym+' stalls below $'+K.toFixed(0),
+        rollDetail:'Roll the long call strike closer to spot if the stock consolidates near entry.',
+        rules:[
+          {color:'#16a34a',text:'<strong>Need '+d.sym+' above $'+bcBE.toFixed(2)+' to profit</strong> — confirm bullish momentum before entry.'},
+          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bcMaxLoss.toFixed(0)+')</strong> — no further risk, but full loss if stock stays flat or drops.'},
+          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% of gain requires the stock to pin exactly at $'+Kc.toFixed(0)+'.'},
+          {color:'#d97706',text:'<strong>Best in rising IV environment</strong> — entering before a catalyst gives the long call extra vega support.'},
+        ]
+      }
+    },
+    bearPut:{
+      name:'Bear Put Spread', icon:'🔴', tag:'Bearish · Defined Risk',
+      tagColor:'#dc2626', tagBg:'#fee2e2', iconBg:'#fee2e2',
+      cost:bpMaxLoss, maxGain:bpMaxGain, maxLoss:-bpMaxLoss,
+      BEup:null, BEdn:bpBE, netCredit:false,
+      legs:[
+        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
+         desc:'ATM Put (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmPut},
+        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
+         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
+      ],
+      thesis:'Bearish play with defined risk. Pay $'+bpNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' drops below $'+bpBE.toFixed(2)+'. Max gain $'+bpMaxGain.toFixed(0)+' if '+d.sym+' closes at or below $'+Kp.toFixed(0)+' at expiry.',
+      scoreVol:40, scoreRisk:70, scoreProb:42,
+      exit:{
+        profitTarget:'75–100% of max gain ($'+(bpMaxGain*0.75).toFixed(0)+'–$'+bpMaxGain.toFixed(0)+')',
+        profitDetail:'Close the spread when it approaches max value — the short put caps further gain.',
+        stopLoss:'50% of debit paid ($'+(bpMaxLoss*0.5).toFixed(0)+')',
+        stopDetail:'Exit if the spread loses half its cost. The bearish thesis is likely wrong.',
+        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
+        timeDetail:'Exit if the stock has not moved down by 40% of DTE remaining.',
+        rollTrigger:d.sym+' rebounds above $'+K.toFixed(0),
+        rollDetail:'Close immediately if the stock reclaims the long put strike — trend has reversed.',
+        rules:[
+          {color:'#16a34a',text:'<strong>Need '+d.sym+' below $'+bpBE.toFixed(2)+' to profit</strong> — confirm bearish momentum or catalyst before entry.'},
+          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bpMaxLoss.toFixed(0)+')</strong> — defined risk, but full loss if stock stays flat or rises.'},
+          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires the stock to pin at or below $'+Kp.toFixed(0)+'.'},
+          {color:'#d97706',text:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers the debit cost and improves the reward ratio.'},
         ]
       }
     }
@@ -8690,12 +8760,10 @@ function render(d,s){
     h+='<div class="be-section">'
       +'<div class="be-lbl">Breakeven Prices</div>'
       +'<div class="be-row">'
-      +'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>'
+      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
       +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>'
+      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
       +'</div></div>';
 
     // Legs
