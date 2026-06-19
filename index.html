@@ -4354,8 +4354,8 @@ function quickSignal(sym){
   } else {
     // No real history yet — never compute RSI/MA on a Math.random() series.
     // (A backwards random walk is biased toward "Below MA" → fake LEAN PUT.)
-    return{action:'LOADING…',color:'#0369a1',bgColor:'#f0f9ff',borderColor:'#bae6fd',
-      conf:'fetching',sub:'Loading market data',detail:'Fetching OHLC history for signal…',
+    return{action:'NO DATA',color:'#475569',bgColor:'#f8fafc',borderColor:'#e2e8f0',
+      conf:'—',sub:'─ Awaiting live feed',detail:'No signal without real market data',
       bull:0,bear:0,noData:true};
   }
   // Gap injection — same logic as processSignal so dual cards stay consistent
@@ -4993,7 +4993,7 @@ function processSignal(valid,capital,target,stopPct,sym){
     action=regF.action;
     isCall=action.indexOf('CALL')>-1?true:(action.indexOf('PUT')>-1?false:null);
     color=geActionColor(action);
-    confidence=action==='NO TRADE'||action==='NEUTRAL'?'Mixed signals — stand aside':'Low (regime filter)';
+    confidence=action==='NO TRADE'?'—':'Low (regime filter)';
     regF.notes.forEach(function(nn){reasons.push('⛔ '+nn+' — signal downgraded');});
   }
   if(regT.ma50!=null){
@@ -6982,7 +6982,7 @@ async function runVolSignal(sym){
 
     // Evaluate signal conditions
     var cond1 = dayPct > 2;       // daily move > 2%
-    var cond2 = vixPct > 5;       // VIX spike > 5% (meaningful fear spike)
+    var cond2 = vixPct > 10;      // VIX spike > 10%
     var cond3 = pcRatio !== null ? pcRatio > 1.1 : null;  // P/C > 1.1 (null if unavailable)
 
     var condsMet = [cond1, cond2].filter(Boolean).length + (cond3===true?1:0);
@@ -7027,7 +7027,7 @@ async function runVolSignal(sym){
         +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond2?'#16a34a':'#e2e8f0')+'">'
           +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">VIX Spike</div>'
           +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(vixNow>0?vixNow.toFixed(1)+' <span style="font-size:10px;color:'+(vixPct>10?'#dc2626':'#64748b')+';">('+vixPct.toFixed(0)+'%)</span>':'N/A')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >5%':'✗ <5%')+</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >10%':'✗ <10%')+'</div>'
         +'</div>'
         // Condition 3: P/C Ratio
         +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond3===true?'#16a34a':'#e2e8f0')+'">'
@@ -7929,34 +7929,19 @@ function setTSt(t){
 
 
 function processSignalForPlan(tk,spot,chg,iv3){
+  // Same scoring logic as processSignal
   var bull=0,bear=0;
-  // Day % change
-  if(chg>1.5)bull+=3; else if(chg>0.5)bull+=2; else if(chg>0.2)bull+=1;
-  else if(chg<-1.5)bear+=3; else if(chg<-0.5)bear+=2; else if(chg<-0.2)bear+=1;
-  // IV regime
-  if(iv3>0.28)bear+=1; else if(iv3<0.16)bull+=1;
-  // VIX context (if loaded)
-  if(VIX_NOW>25)bear+=2; else if(VIX_NOW>20)bear+=1; else if(VIX_NOW<15)bull+=1;
-  // Cached OHLC data for RSI/MA (if available)
-  var cache=G4_CACHE[tk.toUpperCase()];
-  if(cache&&cache.length>=20){
-    var closes=cache.map(function(v){return v.c;}),n=closes.length;
-    if(spot>0&&cache.length>=1)closes=closes.concat([spot]),n=closes.length;
-    var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
-    if(spot>ma20*1.002)bull+=2; else if(spot<ma20*0.998)bear+=2;
-    var gains=0,losses=0;
-    for(var j=Math.max(1,n-14);j<n;j++){var d2=closes[j]-closes[j-1];if(d2>0)gains+=d2;else losses+=Math.abs(d2);}
-    var rs=(gains/14)/((losses/14)||0.001),rsi=100-100/(1+rs);
-    if(rsi>65)bear+=1; else if(rsi>55)bull+=1; else if(rsi<35)bull+=2; else if(rsi<45)bear+=1;
-  }
+  if(chg>1.0)bull+=2; else if(chg>0.3)bull+=1;
+  else if(chg<-1.0)bear+=2; else if(chg<-0.3)bear+=1;
+  if(iv3>0.25)bear+=1;
   var action,conf;
-  if(bull>=5){action='BUY CALL';conf='High';}
-  else if(bull>=3){action='BUY CALL';conf='Medium';}
-  else if(bull>bear&&bull>=2){action='LEAN CALL';conf='Low';}
-  else if(bear>=5){action='BUY PUT';conf='High';}
-  else if(bear>=3){action='BUY PUT';conf='Medium';}
-  else if(bear>bull&&bear>=2){action='LEAN PUT';conf='Low';}
-  else{action='NEUTRAL';conf='Mixed';}
+  if(bull>=3){action='BUY CALL';conf='High';}
+  else if(bull===2){action='BUY CALL';conf='Medium';}
+  else if(bull===1&&bear===0){action='LEAN CALL';conf='Low';}
+  else if(bear>=3){action='BUY PUT';conf='High';}
+  else if(bear===2){action='BUY PUT';conf='Medium';}
+  else if(bear===1&&bull===0){action='LEAN PUT';conf='Low';}
+  else{action='NO TRADE';conf='Low';}
   return{action:action,conf:conf};
 }
 
