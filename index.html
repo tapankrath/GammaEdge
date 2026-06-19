@@ -791,7 +791,6 @@ async function loadBannerQuotes(){
     var ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     chips.innerHTML=
       '<div class="quote-banner-top">'
-      +'<span class="quote-ts">Live · '+ts+'</span>'
       +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>'
       +valid.map(function(r){
@@ -1188,7 +1187,7 @@ function render(d,s){
   strats.forEach(function(st,i){
     var topVal=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
     var topCls=st.netCredit?'#16a34a':'#dc2626';
-    h+='<button class="strat-tab'+(i===0?' active':'')+'" onclick="switchTab('+i+')">'
+    h+='<button class="strat-tab'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'
       +'<div class="strat-tab-icon">'+st.icon+'</div>'
       +'<div class="strat-tab-name">'+st.name+'</div>'
       +'<div class="strat-tab-pl" style="color:'+topCls+'">'+topVal+'</div>'
@@ -1198,7 +1197,7 @@ function render(d,s){
 
   // Tab panels
   strats.forEach(function(st,i){
-    h+='<div class="strat-panel'+(i===0?' active':'')+'" id="panel-'+i+'">';
+    h+='<div class="strat-panel'+(i===activeTab?' active':'')+'" id="panel-'+i+'">';
 
     // P&L grid
     h+='<div class="pl-grid">'
@@ -8338,7 +8337,6 @@ async function loadBannerQuotes(){
     var ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     chips.innerHTML=
       '<div class="quote-banner-top">'
-      +'<span class="quote-ts">Live · '+ts+'</span>'
       +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
       +'</div>'
       +valid.map(function(r){
@@ -8735,7 +8733,7 @@ function render(d,s){
   strats.forEach(function(st,i){
     var topVal=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
     var topCls=st.netCredit?'#16a34a':'#dc2626';
-    h+='<button class="strat-tab'+(i===0?' active':'')+'" onclick="switchTab('+i+')">'
+    h+='<button class="strat-tab'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'
       +'<div class="strat-tab-icon">'+st.icon+'</div>'
       +'<div class="strat-tab-name">'+st.name+'</div>'
       +'<div class="strat-tab-pl" style="color:'+topCls+'">'+topVal+'</div>'
@@ -8745,7 +8743,7 @@ function render(d,s){
 
   // Tab panels
   strats.forEach(function(st,i){
-    h+='<div class="strat-panel'+(i===0?' active':'')+'" id="panel-'+i+'">';
+    h+='<div class="strat-panel'+(i===activeTab?' active':'')+'" id="panel-'+i+'">';
 
     // P&L grid
     h+='<div class="pl-grid">'
