@@ -1213,10 +1213,10 @@ function render(d,s){
     h+='<div class="be-section">'
       +'<div class="be-lbl">Breakeven Prices</div>'
       +'<div class="be-row">'
-      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
+      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+(st.BEdn||0).toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct(((st.BEdn||d.c)-d.c)/d.c*100)+'</div></div>':'')
       +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
+      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+(st.BEup||0).toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct(((st.BEup||d.c)-d.c)/d.c*100)+'</div></div>':'')
       +'</div></div>';
 
     // Legs
@@ -8760,10 +8760,10 @@ function render(d,s){
     h+='<div class="be-section">'
       +'<div class="be-lbl">Breakeven Prices</div>'
       +'<div class="be-row">'
-      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+st.BEdn.toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
+      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+(st.BEdn||0).toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct(((st.BEdn||d.c)-d.c)/d.c*100)+'</div></div>':'')
       +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
       +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+st.BEup.toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
+      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+(st.BEup||0).toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct(((st.BEup||d.c)-d.c)/d.c*100)+'</div></div>':'')
       +'</div></div>';
 
     // Legs
