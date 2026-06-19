@@ -150,6 +150,33 @@
         .matrix-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
         .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .matrix-item { background-color: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); }
+
+        /* Trade Ticket — explicit buy/sell strike instructions */
+        .trade-ticket {
+            background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(16,185,129,0.03));
+            border: 1.5px solid #10b981;
+            border-radius: 8px;
+            padding: 10px 11px;
+            margin-bottom: 12px;
+        }
+        .trade-ticket-title {
+            font-size: 9px; font-weight: 800; color: #34d399; text-transform: uppercase;
+            letter-spacing: 0.05em; margin-bottom: 7px;
+        }
+        .trade-leg {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);
+            font-size: 11.5px;
+        }
+        .trade-leg:last-child { border-bottom: none; }
+        .trade-leg-action {
+            font-weight: 800; font-size: 9.5px; padding: 2px 6px; border-radius: 4px;
+            text-transform: uppercase; margin-right: 7px; white-space: nowrap;
+        }
+        .trade-leg-action.buy { background-color: rgba(16,185,129,0.18); color: #34d399; }
+        .trade-leg-action.sell { background-color: rgba(244,63,94,0.18); color: #fb7185; }
+        .trade-leg-desc { color: #e2e8f0; font-weight: 700; flex: 1; }
+        .trade-leg-strike { color: #f8fafc; font-weight: 800; font-family: monospace; }
         .matrix-lbl { font-size: 9px; color: #cbd5e1; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
         .matrix-val { font-size: 12.5px; font-weight: 700; }
         .matrix-highlight { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(52, 211, 153, 0.2); }
@@ -283,6 +310,7 @@
 
         <div id="panel-straddle" class="strat-panel active">
             <div class="matrix-card">
+                <div class="trade-ticket" id="straddle-ticket"></div>
                 <div class="matrix-grid">
                     <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="straddle-contracts" style="color:#34d399;">0 Lots</div></div>
                     <div class="matrix-item"><div class="matrix-lbl">Per Contract Cost</div><div class="matrix-val" id="straddle-cost">$0.00</div></div>
@@ -295,6 +323,7 @@
 
         <div id="panel-strangle" class="strat-panel">
             <div class="matrix-card">
+                <div class="trade-ticket" id="strangle-ticket"></div>
                 <div class="matrix-grid">
                     <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="strangle-contracts" style="color:#34d399;">0 Lots</div></div>
                     <div class="matrix-item"><div class="matrix-lbl">Per Contract Cost</div><div class="matrix-val" id="strangle-cost">$0.00</div></div>
@@ -307,6 +336,7 @@
 
         <div id="panel-condor" class="strat-panel">
             <div class="matrix-card">
+                <div class="trade-ticket" id="condor-ticket"></div>
                 <div class="matrix-grid">
                     <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Capital Contracts</div><div class="matrix-val" id="condor-contracts" style="color:#34d399;">0 Lots</div></div>
                     <div class="matrix-item"><div class="matrix-lbl">Spread Margin Risk</div><div class="matrix-val" id="condor-risk">$0.00</div></div>
@@ -319,6 +349,7 @@
 
         <div id="panel-bullcall" class="strat-panel">
             <div class="matrix-card">
+                <div class="trade-ticket" id="bullcall-ticket"></div>
                 <div class="matrix-grid">
                     <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Spread Contracts</div><div class="matrix-val" id="bullcall-contracts" style="color:#34d399;">0 Lots</div></div>
                     <div class="matrix-item"><div class="matrix-lbl">Net Premium Debit</div><div class="matrix-val" id="bullcall-cost">$0.00</div></div>
@@ -624,6 +655,12 @@
             document.getElementById('straddle-risk').innerText = "$" + totalStraddleRisk.toFixed(2);
             renderStraddleAscii(spot, straddlePremium, straddleLowerBe, straddleUpperBe, straddleContracts);
 
+            var straddleStrike = Math.round(spot);
+            document.getElementById('straddle-ticket').innerHTML =
+                '<div class="trade-ticket-title">📋 Trade Ticket — ' + activeTicker + ' ' + activeDte + 'DTE</div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + straddleStrike + ' Call</span><span class="trade-leg-strike">$' + straddleStrike + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + straddleStrike + ' Put</span><span class="trade-leg-strike">$' + straddleStrike + '</span></div>';
+
             // 2. Long Strangle
             var strangleStrikeGap = expectedMove * 0.9;
             var strangleCallStrike = Math.ceil(spot + strangleStrikeGap);
@@ -640,6 +677,11 @@
             document.getElementById('strangle-cost').innerText = "$" + strangleCostPerContract.toFixed(2);
             document.getElementById('strangle-risk').innerText = "$" + totalStrangleRisk.toFixed(2);
             renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumPaid, strangleContracts);
+
+            document.getElementById('strangle-ticket').innerHTML =
+                '<div class="trade-ticket-title">📋 Trade Ticket — ' + activeTicker + ' ' + activeDte + 'DTE</div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + strangleCallStrike + ' Call (OTM)</span><span class="trade-leg-strike">$' + strangleCallStrike + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + stranglePutStrike + ' Put (OTM)</span><span class="trade-leg-strike">$' + stranglePutStrike + '</span></div>';
 
             // 3. Iron Condor
             var condorWingWidth = Math.max(2, Math.round(spot * 0.02));
@@ -663,6 +705,13 @@
             document.getElementById('condor-credit').innerText = "$" + totalCondorCredit.toFixed(2);
             renderCondorAscii(spot, condorPutLong, condorPutShort, condorCallShort, condorCallLong, condorLowerBe, condorUpperBe, condorContracts);
 
+            document.getElementById('condor-ticket').innerHTML =
+                '<div class="trade-ticket-title">📋 Trade Ticket — ' + activeTicker + ' ' + activeDte + 'DTE</div>' +
+                '<div class="trade-leg"><span class="trade-leg-action sell">Sell</span><span class="trade-leg-desc">' + condorCallShort + ' Call</span><span class="trade-leg-strike">$' + condorCallShort + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + condorCallLong + ' Call (wing)</span><span class="trade-leg-strike">$' + condorCallLong + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action sell">Sell</span><span class="trade-leg-desc">' + condorPutShort + ' Put</span><span class="trade-leg-strike">$' + condorPutShort + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + condorPutLong + ' Put (wing)</span><span class="trade-leg-strike">$' + condorPutLong + '</span></div>';
+
             // 4. Vertical Bull Call Spread
             var bCallLongStrike = Math.floor(spot);
             var bCallSpreadWidth = Math.max(5, Math.round(expectedMove * 0.75));
@@ -682,6 +731,11 @@
             document.getElementById('bullcall-risk').innerText = "$" + totalBCallRisk.toFixed(2);
             document.getElementById('bullcall-profit').innerText = "$" + totalBCallProfit.toFixed(2);
             renderBullCallAscii(spot, bCallLongStrike, bCallShortStrike, bCallBePoint, bCallContracts);
+
+            document.getElementById('bullcall-ticket').innerHTML =
+                '<div class="trade-ticket-title">📋 Trade Ticket — ' + activeTicker + ' ' + activeDte + 'DTE</div>' +
+                '<div class="trade-leg"><span class="trade-leg-action buy">Buy</span><span class="trade-leg-desc">' + bCallLongStrike + ' Call (ATM)</span><span class="trade-leg-strike">$' + bCallLongStrike + '</span></div>' +
+                '<div class="trade-leg"><span class="trade-leg-action sell">Sell</span><span class="trade-leg-desc">' + bCallShortStrike + ' Call</span><span class="trade-leg-strike">$' + bCallShortStrike + '</span></div>';
         }
 
         function renderStraddleAscii(spot, premium, lowBe, upBe, contracts) {
