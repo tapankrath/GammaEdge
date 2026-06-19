@@ -47,7 +47,7 @@
         .settings-btn {
             background: none;
             border: none;
-            color: #64748b;
+            color: #cbd5e1;
             cursor: pointer;
             padding: 8px;
             display: flex;
@@ -65,7 +65,7 @@
             margin-bottom: 14px;
             border: 1px solid rgba(255,255,255,0.02);
         }
-        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        .input-label { font-size: 10px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; margin-bottom: 6px; display: block; }
         
         /* Multi-line Wrapped Ticker Grid Layout */
         .ticker-grid-container {
@@ -87,7 +87,7 @@
         .btn-ticker .remove-x {
             font-size: 12px;
             font-weight: 900;
-            color: #64748b;
+            color: #cbd5e1;
             padding: 0 2px;
             border-radius: 50%;
             transition: color 0.1s ease;
@@ -112,14 +112,14 @@
 
         /* Capital Allocation Block Input Layout */
         .capital-wrapper { display: flex; align-items: center; background-color: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 2px 8px; margin-bottom: 12px; }
-        .capital-currency { color: #64748b; font-weight: 800; font-size: 13px; margin-right: 4px; }
+        .capital-currency { color: #cbd5e1; font-weight: 800; font-size: 13px; margin-right: 4px; }
         .capital-input { width: 100%; background: none; border: none; color: #fff; font-size: 13px; font-weight: 700; outline: none; padding: 6px 0; }
 
         /* Duration Selection Grid System */
         .duration-grid { display: flex; gap: 6px; margin-bottom: 4px; }
         .btn-duration {
             flex: 1; padding: 10px 0; background-color: #0f172a; border: 1px solid #334155;
-            color: #94a3b8; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
+            color: #e2e8f0; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
         }
         .btn-duration.active { background-color: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 800; }
 
@@ -140,7 +140,7 @@
 
         /* Strategy Tab Structure Layout */
         .strat-nav { display: grid; grid-template-columns: 1fr 1fr; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 4px; border: 1px solid #1e293b; }
-        .strat-btn { padding: 8px 0; background: none; border: none; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; text-align: center; }
+        .strat-btn { padding: 8px 0; background: none; border: none; color: #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; text-align: center; }
         .strat-btn.active { background-color: #1e293b; color: #34d399; font-weight: 800; }
 
         .strat-panel { display: none; }
@@ -150,7 +150,7 @@
         .matrix-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
         .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .matrix-item { background-color: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); }
-        .matrix-lbl { font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .matrix-lbl { font-size: 9px; color: #cbd5e1; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
         .matrix-val { font-size: 12.5px; font-weight: 700; }
         .matrix-highlight { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(52, 211, 153, 0.2); }
 
@@ -212,12 +212,18 @@
         
         <div class="top-bar">
             <div class="title-area">
-                <a href="index.html" style="font-size:10px;font-weight:700;color:#64748b;text-decoration:none;margin-bottom:3px;display:inline-block;">← GammaEdge</a>
+                <a href="index.html" style="font-size:10px;font-weight:700;color:#cbd5e1;text-decoration:none;margin-bottom:3px;display:inline-block;">← GammaEdge</a>
                 <h1 class="title">Volatility & P&L Engine</h1>
             </div>
             <div class="actions-area">
-                <span id="liveIndicator" style="font-size: 9px; background-color: #1e293b; color: #64748b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">WORKSPACE ACTIVE</span>
-                
+                <button class="settings-btn" id="refreshTriggerBtn" title="Refresh All Data">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+
                 <button class="settings-btn" id="settingsTriggerBtn" title="Configure API Token">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
@@ -260,7 +266,7 @@
         <div class="ticker-banner">
             <div>
                 <div id="displaySymbol" class="banner-symbol">SPY</div>
-                <div style="font-size: 9px; color: #64748b; font-weight: bold; margin-top: 1px;" id="impliedVolDisplay">Implied Volatility: ~16.5%</div>
+                <div style="font-size: 9px; color: #cbd5e1; font-weight: bold; margin-top: 1px;" id="impliedVolDisplay">Implied Volatility: ~16.5%</div>
             </div>
             <div style="text-align: right;">
                 <div id="displayPrice" class="banner-price">$756.16</div>
@@ -328,7 +334,7 @@
     <div id="settingsModalOverlay" class="modal-overlay">
         <div class="settings-modal">
             <h3 style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;">Engine Configuration</h3>
-            <p style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 12px;">Enter your free Finnhub.io API key below. The token is securely isolated inside your personal browser storage layer.</p>
+            <p style="font-size: 11px; color: #e2e8f0; line-height: 1.4; margin-bottom: 12px;">Enter your free Finnhub.io API key below. The token is securely isolated inside your personal browser storage layer.</p>
             
             <label class="input-label" style="font-size: 9px;">Finnhub API Token</label>
             <input type="password" id="apiKeyInput" placeholder="e.g. c1234567890abcdefg" class="settings-input">
@@ -464,16 +470,6 @@
         function checkTokenPresence() {
             var token = localStorage.getItem('ge_fh_key');
             document.getElementById('tokenAlert').style.display = token ? 'none' : 'block';
-            var liveIndicator = document.getElementById('liveIndicator');
-            if (token) {
-                liveIndicator.innerText = "STREAM LIVE";
-                liveIndicator.style.backgroundColor = "#10b981";
-                liveIndicator.style.color = "#0f172a";
-            } else {
-                liveIndicator.innerText = "LOCAL SIMULATION";
-                liveIndicator.style.backgroundColor = "#334155";
-                liveIndicator.style.color = "#cbd5e1";
-            }
         }
 
         function selectPresetTicker(symbol) {
@@ -540,6 +536,19 @@
             document.getElementById('tab-' + stratName).classList.add('active');
             document.getElementById('panel-' + stratName).classList.add('active');
             processCalculations();
+        }
+
+        function refreshEverything() {
+            var btn = document.getElementById('refreshTriggerBtn');
+            if (btn) {
+                btn.style.transition = 'transform 0.5s ease';
+                btn.style.transform = 'rotate(360deg)';
+                setTimeout(function() { btn.style.transform = 'rotate(0deg)'; }, 500);
+            }
+            checkTokenPresence();
+            renderWatchlistGrid();
+            synchronizePriceFeed();
+            evaluateConditionRecommendations(activeTicker);
         }
 
         async function synchronizePriceFeed() {
@@ -693,7 +702,7 @@
                 else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
 
                 html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span style="color:#cbd5e1; font-weight:700;">' + s.label + '</span>';
                 html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
                 html += '</div>';
             });
@@ -720,7 +729,7 @@
                 else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
 
                 html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span style="color:#cbd5e1; font-weight:700;">' + s.label + '</span>';
                 html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
                 html += '</div>';
             });
@@ -747,7 +756,7 @@
                 else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
 
                 html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span style="color:#cbd5e1; font-weight:700;">' + s.label + '</span>';
                 html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
                 html += '</div>';
             });
@@ -773,7 +782,7 @@
                 else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
 
                 html += '<div class="vis-row">';
-                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span style="color:#cbd5e1; font-weight:700;">' + s.label + '</span>';
                 html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
                 html += '</div>';
             });
@@ -812,6 +821,7 @@
             document.getElementById('tab-condor').addEventListener('click', function() { switchStratTab('condor'); });
             document.getElementById('tab-bullcall').addEventListener('click', function() { switchStratTab('bullcall'); });
 
+            document.getElementById('refreshTriggerBtn').addEventListener('click', function() { refreshEverything(); });
             document.getElementById('settingsTriggerBtn').addEventListener('click', function() { toggleModal(true); });
             document.getElementById('tokenAlert').addEventListener('click', function() { toggleModal(true); });
             document.getElementById('modalCancelBtn').addEventListener('click', function() { toggleModal(false); });
