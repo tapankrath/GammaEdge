@@ -55,9 +55,7 @@
             justify-content: center;
             transition: color 0.2s ease;
         }
-        .settings-btn:hover, .settings-btn:active {
-            color: #34d399;
-        }
+        .settings-btn:hover, .settings-btn:active { color: #34d399; }
 
         /* Interactive Input Form Blocks */
         .control-section {
@@ -69,21 +67,48 @@
         }
         .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
         
-        /* Ticker Selector Row Component Layout */
-        .ticker-row { display: flex; gap: 6px; margin-bottom: 12px; }
+        /* Multi-line Wrapped Ticker Grid Layout */
+        .ticker-grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
         .btn-ticker {
-            flex: 1; padding: 10px; background-color: #0f172a; border: 1px solid #475569;
-            color: #cbd5e1; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px; background-color: #0f172a; border: 1px solid #475569;
+            color: #cbd5e1; border-radius: 14px; font-weight: 800; font-size: 10.5px; cursor: pointer; transition: all 0.15s ease;
+            white-space: nowrap; gap: 6px;
         }
         .btn-ticker.active {
             background-color: #10b981; color: #0f172a; border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
-        .custom-input-wrapper { display: flex; flex: 1.5; gap: 4px; }
+        .btn-ticker .remove-x {
+            font-size: 12px;
+            font-weight: 900;
+            color: #64748b;
+            padding: 0 2px;
+            border-radius: 50%;
+            transition: color 0.1s ease;
+        }
+        .btn-ticker.active .remove-x { color: #065f46; }
+        .btn-ticker .remove-x:hover { color: #f43f5e !important; }
+        
+        .custom-input-row {
+            display: flex; gap: 6px; margin-bottom: 12px;
+        }
+        .custom-input-wrapper { display: flex; flex: 1; gap: 4px; }
         .ticker-input {
             width: 100%; background-color: #0f172a; border: 1px solid #475569; color: #fff;
             padding: 8px; border-radius: 6px; font-weight: 700; font-size: 12px; text-transform: uppercase; text-align: center; outline: none;
         }
         .ticker-input:focus { border-color: #10b981; }
+
+        .btn-add-action {
+            background-color: #10b981; color: #0f172a; font-weight: 900; font-size: 16px; border: none; padding: 0 18px; border-radius: 6px; cursor: pointer;
+        }
+        .btn-add-action:active { opacity: 0.8; }
 
         /* Capital Allocation Block Input Layout */
         .capital-wrapper { display: flex; align-items: center; background-color: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 2px 8px; margin-bottom: 12px; }
@@ -96,9 +121,7 @@
             flex: 1; padding: 10px 0; background-color: #0f172a; border: 1px solid #334155;
             color: #94a3b8; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
         }
-        .btn-duration.active {
-            background-color: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 800;
-        }
+        .btn-duration.active { background-color: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 800; }
 
         /* Ticker Banner Component */
         .ticker-banner {
@@ -108,10 +131,16 @@
         }
         .banner-symbol { font-size: 18px; font-weight: 900; color: #fff; }
         .banner-price { font-size: 16px; font-weight: 800; color: #34d399; }
+        
+        /* Recommended State Indicator Pill */
+        .recom-badge {
+            font-size: 8px; font-weight: 900; background-color: #d97706; color: #fff; padding: 1px 4px; border-radius: 3px; vertical-align: middle; margin-left: 4px; display: none;
+        }
+        .strat-btn.recommended .recom-badge { display: inline-block; }
 
         /* Strategy Tab Structure Layout */
-        .strat-nav { display: flex; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 4px; border: 1px solid #1e293b; }
-        .strat-btn { flex: 1; padding: 10px 0; background: none; border: none; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; }
+        .strat-nav { display: grid; grid-template-columns: 1fr 1fr; background-color: #0f172a; padding: 4px; border-radius: 8px; margin-bottom: 12px; gap: 4px; border: 1px solid #1e293b; }
+        .strat-btn { padding: 8px 0; background: none; border: none; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 5px; text-align: center; }
         .strat-btn.active { background-color: #1e293b; color: #34d399; font-weight: 800; }
 
         .strat-panel { display: none; }
@@ -174,7 +203,7 @@
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
         .btn-secondary { background-color: #334155; color: #cbd5e1; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
         .btn-primary { background-color: #10b981; color: #0f172a; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
-        .btn-danger { background-color: #none; border: 1px solid #f43f5e; color: #f43f5e; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top: 14px; width: 100%; display: block; text-align: center; }
+        .btn-danger { background-color: none; border: 1px solid #f43f5e; color: #f43f5e; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top: 14px; width: 100%; display: block; text-align: center; }
     </style>
 </head>
 <body>
@@ -204,12 +233,13 @@
 
         <div class="control-section">
             <label class="input-label">Select Active Ticker Target</label>
-            <div class="ticker-row">
-                <button id="btn-spy" class="btn-ticker active">SPY</button>
-                <button id="btn-qqq" class="btn-ticker">QQQ</button>
+            
+            <div class="ticker-grid-container" id="tickerGridBox"></div>
+
+            <div class="custom-input-row">
                 <div class="custom-input-wrapper">
-                    <input type="text" id="customTickerInput" class="ticker-input" placeholder="OTHER" maxlength="5">
-                    <button id="btn-custom-go" class="btn-ticker" style="padding: 0 10px; max-width: 50px;">GO</button>
+                    <input type="text" id="customTickerInput" class="ticker-input" placeholder="ADD SYMBOL" maxlength="5">
+                    <button id="btn-custom-add" class="btn-add-action" title="Add Ticker">+</button>
                 </div>
             </div>
 
@@ -239,9 +269,10 @@
         </div>
 
         <div class="strat-nav">
-            <button id="tab-straddle" class="strat-btn active">Straddle</button>
-            <button id="tab-strangle" class="strat-btn">Strangle</button>
-            <button id="tab-condor" class="strat-btn">Iron Condor</button>
+            <button id="tab-straddle" class="strat-btn active">Straddle<span class="recom-badge">REC</span></button>
+            <button id="tab-strangle" class="strat-btn">Strangle<span class="recom-badge">REC</span></button>
+            <button id="tab-condor" class="strat-btn">Iron Condor<span class="recom-badge">REC</span></button>
+            <button id="tab-bullcall" class="strat-btn">Bull Call<span class="recom-badge">REC</span></button>
         </div>
 
         <div id="panel-straddle" class="strat-panel active">
@@ -280,6 +311,18 @@
             </div>
         </div>
 
+        <div id="panel-bullcall" class="strat-panel">
+            <div class="matrix-card">
+                <div class="matrix-grid">
+                    <div class="matrix-item matrix-highlight"><div class="matrix-lbl">Spread Contracts</div><div class="matrix-val" id="bullcall-contracts" style="color:#34d399;">0 Lots</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Net Premium Debit</div><div class="matrix-val" id="bullcall-cost">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Risk Premium</div><div class="matrix-val" id="bullcall-risk">$0.00</div></div>
+                    <div class="matrix-item"><div class="matrix-lbl">Max Cap Return</div><div class="matrix-val" id="bullcall-profit" style="color:#34d399;">$0.00</div></div>
+                </div>
+                <div class="visualizer-container" id="bullcall-vis"></div>
+            </div>
+        </div>
+
     </div>
 
     <div id="settingsModalOverlay" class="modal-overlay">
@@ -306,11 +349,94 @@
         var underlyingPrice = 756.16;
         var percentChange = 1.94;
 
+        // Top 10 primary tradable defaults
+        var initialDefaultWatchlist = ["SPY", "QQQ", "IWM", "NVDA", "AAPL", "MSFT", "AMZN", "META", "GOOG", "TSLA"];
+        var currentWatchlist = [];
+
         var baseAssetRegistry = {
-            "SPY": { price: 756.16, change: 1.94, iv: 0.165 },
-            "QQQ": { price: 743.90, change: 3.13, iv: 0.210 },
+            "SPY": { price: 756.16, change: 1.94, iv: 0.145 },
+            "QQQ": { price: 743.90, change: 3.13, iv: 0.185 },
+            "IWM": { price: 210.40, change: 0.72, iv: 0.195 },
+            "NVDA": { price: 127.40, change: 4.85, iv: 0.440 },
+            "AAPL": { price: 214.30, change: -0.45, iv: 0.190 },
+            "AMZN": { price: 189.20, change: 1.20, iv: 0.225 },
+            "MSFT": { price: 412.50, change: 0.85, iv: 0.180 },
+            "GOOG": { price: 176.40, change: -1.10, iv: 0.210 },
+            "META": { price: 498.20, change: 2.40, iv: 0.295 },
+            "TSLA": { price: 184.50, change: -5.30, iv: 0.460 },
+            "ORCL": { price: 142.10, change: 0.65, iv: 0.240 },
+            "AVGO": { price: 1560.00, change: 3.80, iv: 0.360 },
+            "NOW": { price: 785.40, change: 1.15, iv: 0.280 },
+            "CRWD": { price: 295.60, change: -8.40, iv: 0.480 },
+            "NFLX": { price: 665.20, change: 1.95, iv: 0.270 },
+            "MU": { price: 112.30, change: 5.10, iv: 0.420 },
+            "AMD": { price: 158.70, change: 3.65, iv: 0.390 },
+            "SNDK": { price: 84.20, change: 0.00, iv: 0.310 },
+            "SPCX": { price: 115.40, change: 0.45, iv: 0.160 },
+            "ACN": { price: 298.10, change: -1.25, iv: 0.210 },
             "DEFAULT": { price: 200.00, change: 0.50, iv: 0.250 }
         };
+
+        function initWatchlist() {
+            var stored = localStorage.getItem('ge_watchlist');
+            if (stored) {
+                currentWatchlist = JSON.parse(stored);
+            } else {
+                currentWatchlist = [...initialDefaultWatchlist];
+                saveWatchlistState();
+            }
+            if (currentWatchlist.length > 0 && !currentWatchlist.includes(activeTicker)) {
+                activeTicker = currentWatchlist[0];
+            }
+            renderWatchlistGrid();
+        }
+
+        function saveWatchlistState() {
+            localStorage.setItem('ge_watchlist', JSON.stringify(currentWatchlist));
+        }
+
+        function renderWatchlistGrid() {
+            var container = document.getElementById('tickerGridBox');
+            container.innerHTML = "";
+            
+            currentWatchlist.forEach(function(symbol) {
+                var btn = document.createElement('button');
+                btn.className = 'btn-ticker' + (symbol === activeTicker ? ' active' : '');
+                btn.setAttribute('data-sym', symbol);
+                
+                // Add inner text symbol plus specific deletion handler cross node
+                btn.innerHTML = symbol + '<span class="remove-x" data-del="' + symbol + '">×</span>';
+                container.appendChild(btn);
+            });
+        }
+
+        function addCustomTicker() {
+            var input = document.getElementById('customTickerInput');
+            var symbol = input.value.trim().toUpperCase();
+            if (!symbol) return;
+
+            if (!currentWatchlist.includes(symbol)) {
+                currentWatchlist.push(symbol);
+                saveWatchlistState();
+            }
+            
+            input.value = "";
+            selectPresetTicker(symbol);
+        }
+
+        function removeTickerFromList(symbol, event) {
+            event.stopPropagation(); // Avoid triggering button selection logic simultaneously
+            currentWatchlist = currentWatchlist.filter(s => s !== symbol);
+            saveWatchlistState();
+            
+            if (activeTicker === symbol) {
+                activeTicker = currentWatchlist.length > 0 ? currentWatchlist[0] : "SPY";
+            }
+            
+            renderWatchlistGrid();
+            evaluateConditionRecommendations(activeTicker);
+            synchronizePriceFeed();
+        }
 
         function toggleModal(show) {
             var overlay = document.getElementById('settingsModalOverlay');
@@ -352,25 +478,44 @@
 
         function selectPresetTicker(symbol) {
             activeTicker = symbol;
-            document.getElementById('btn-spy').classList.remove('active');
-            document.getElementById('btn-qqq').classList.remove('active');
-            document.getElementById('customTickerInput').value = "";
-
-            if (symbol === 'SPY') document.getElementById('btn-spy').classList.add('active');
-            if (symbol === 'QQQ') document.getElementById('btn-qqq').classList.add('active');
-
+            
+            if (!currentWatchlist.includes(symbol)) {
+                currentWatchlist.push(symbol);
+                saveWatchlistState();
+            }
+            
+            renderWatchlistGrid();
+            evaluateConditionRecommendations(symbol);
             synchronizePriceFeed();
         }
 
-        function commitCustomTicker() {
-            var rawInput = document.getElementById('customTickerInput').value.trim().toUpperCase();
-            if (!rawInput) return;
+        function evaluateConditionRecommendations(symbol) {
+            var targetStrategy = "straddle"; 
             
-            activeTicker = rawInput;
-            document.getElementById('btn-spy').classList.remove('active');
-            document.getElementById('btn-qqq').classList.remove('active');
-            
-            synchronizePriceFeed();
+            if(["NVDA", "AMD", "MU", "AVGO", "TSLA"].includes(symbol)) {
+                targetStrategy = "bullcall";
+            } 
+            else if(["SPY", "QQQ", "IWM", "SPCX"].includes(symbol)) {
+                targetStrategy = "condor";
+            }
+            else if(["CRWD", "NFLX", "ORCL", "NOW"].includes(symbol)) {
+                targetStrategy = "strangle";
+            }
+            else if(["AAPL", "MSFT", "AMZN", "GOOG", "META", "ACN", "SNDK"].includes(symbol)) {
+                targetStrategy = "straddle";
+            }
+
+            var tabs = ["straddle", "strangle", "condor", "bullcall"];
+            tabs.forEach(t => {
+                var btn = document.getElementById('tab-' + t);
+                if(t === targetStrategy) {
+                    btn.classList.add('recommended');
+                } else {
+                    btn.classList.remove('recommended');
+                }
+            });
+
+            switchStratTab(targetStrategy);
         }
 
         function selectDte(days) {
@@ -385,13 +530,12 @@
 
         function switchStratTab(stratName) {
             activeStratTab = stratName;
-            document.getElementById('tab-straddle').classList.remove('active');
-            document.getElementById('tab-strangle').classList.remove('active');
-            document.getElementById('tab-condor').classList.remove('active');
-
-            document.getElementById('panel-straddle').classList.remove('active');
-            document.getElementById('panel-strangle').classList.remove('active');
-            document.getElementById('panel-condor').classList.remove('active');
+            
+            var tabs = ["straddle", "strangle", "condor", "bullcall"];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.remove('active');
+                document.getElementById('panel-' + t).classList.remove('active');
+            });
 
             document.getElementById('tab-' + stratName).classList.add('active');
             document.getElementById('panel-' + stratName).classList.add('active');
@@ -443,13 +587,15 @@
             changeElement.innerText = sign + percentChange.toFixed(2) + "%";
             changeElement.style.color = percentChange >= 0 ? "#34d399" : "#f43f5e";
 
-            var calculatedIv = activeTicker === "SPY" ? 0.165 : (activeTicker === "QQQ" ? 0.210 : 0.245);
-            document.getElementById('impliedVolDisplay').innerText = "Implied Volatility: ~" + (calculatedIv * 100).toFixed(1) + "%";
+            var assetData = baseAssetRegistry[activeTicker] || baseAssetRegistry["DEFAULT"];
+            var ivVal = assetData ? assetData.iv : 0.25;
+            document.getElementById('impliedVolDisplay').innerText = "Implied Volatility: ~" + (ivVal * 100).toFixed(1) + "%";
         }
 
         function processCalculations() {
             var spot = underlyingPrice;
-            var iv = activeTicker === "SPY" ? 0.165 : (activeTicker === "QQQ" ? 0.210 : 0.245);
+            var assetData = baseAssetRegistry[activeTicker] || baseAssetRegistry["DEFAULT"];
+            var iv = assetData ? assetData.iv : 0.25;
             var capitalInput = parseFloat(document.getElementById('capitalInput').value) || 10000;
             
             var timeFactor = Math.sqrt(activeDte / 365);
@@ -461,7 +607,6 @@
             var straddleContracts = Math.floor(capitalInput / straddleCostPerContract);
             if(straddleContracts < 0) straddleContracts = 0;
             var totalStraddleRisk = straddleContracts * straddleCostPerContract;
-            
             var straddleUpperBe = spot + straddlePremium;
             var straddleLowerBe = spot - straddlePremium;
 
@@ -474,13 +619,11 @@
             var strangleStrikeGap = expectedMove * 0.9;
             var strangleCallStrike = Math.ceil(spot + strangleStrikeGap);
             var stranglePutStrike = Math.floor(spot - strangleStrikeGap);
-            
             var stranglePremiumPaid = expectedMove * 0.45; 
             var strangleCostPerContract = stranglePremiumPaid * 100;
             var strangleContracts = Math.floor(capitalInput / strangleCostPerContract);
             if(strangleContracts < 0) strangleContracts = 0;
             var totalStrangleRisk = strangleContracts * strangleCostPerContract;
-            
             var strangleLowerBe = stranglePutStrike - stranglePremiumPaid;
             var strangleUpperBe = strangleCallStrike + stranglePremiumPaid;
 
@@ -489,22 +632,19 @@
             document.getElementById('strangle-risk').innerText = "$" + totalStrangleRisk.toFixed(2);
             renderStrangleAscii(spot, stranglePutStrike, strangleCallStrike, strangleLowerBe, strangleUpperBe, stranglePremiumPaid, strangleContracts);
 
-            // 3. Iron Condor Matrix Outputs
-            var condorWingWidth = Math.max(5, Math.round(spot * 0.015));
+            // 3. Iron Condor
+            var condorWingWidth = Math.max(2, Math.round(spot * 0.02));
             var condorCallShort = strangleCallStrike;
             var condorCallLong = condorCallShort + condorWingWidth;
             var condorPutShort = stranglePutStrike;
             var condorPutLong = condorPutShort - condorWingWidth;
-            
             var condorCreditPerShare = expectedMove * 0.32 * 0.70; 
             var condorMaxProfitPerContract = condorCreditPerShare * 100;
-            var condorMarginRiskPerContract = (condorWingWidth - condorCreditPerShare) * 100;
-            
+            var condorMarginRiskPerContract = Math.max(50, (condorWingWidth - condorCreditPerShare) * 100);
             var condorContracts = Math.floor(capitalInput / condorMarginRiskPerContract);
             if(condorContracts < 0) condorContracts = 0;
             var totalCondorRisk = condorContracts * condorMarginRiskPerContract;
             var totalCondorCredit = condorContracts * condorMaxProfitPerContract;
-            
             var condorLowerBe = condorPutShort - condorCreditPerShare;
             var condorUpperBe = condorCallShort + condorCreditPerShare;
 
@@ -513,6 +653,26 @@
             document.getElementById('condor-profit').innerText = "$" + condorMaxProfitPerContract.toFixed(2);
             document.getElementById('condor-credit').innerText = "$" + totalCondorCredit.toFixed(2);
             renderCondorAscii(spot, condorPutLong, condorPutShort, condorCallShort, condorCallLong, condorLowerBe, condorUpperBe, condorContracts);
+
+            // 4. Vertical Bull Call Spread
+            var bCallLongStrike = Math.floor(spot);
+            var bCallSpreadWidth = Math.max(5, Math.round(expectedMove * 0.75));
+            var bCallShortStrike = bCallLongStrike + bCallSpreadWidth;
+            var bCallDebitPerShare = expectedMove * 0.38;
+            var bCallCostPerContract = bCallDebitPerShare * 100;
+            
+            var bCallContracts = Math.floor(capitalInput / bCallCostPerContract);
+            if(bCallContracts < 0) bCallContracts = 0;
+            var totalBCallRisk = bCallContracts * bCallCostPerContract;
+            var bCallMaxProfitPerContract = (bCallSpreadWidth - bCallDebitPerShare) * 100;
+            var totalBCallProfit = bCallContracts * bCallMaxProfitPerContract;
+            var bCallBePoint = bCallLongStrike + bCallDebitPerShare;
+
+            document.getElementById('bullcall-contracts').innerText = bCallContracts + " Lot" + (bCallContracts !== 1 ? "s" : "");
+            document.getElementById('bullcall-cost').innerText = "$" + bCallCostPerContract.toFixed(2);
+            document.getElementById('bullcall-risk').innerText = "$" + totalBCallRisk.toFixed(2);
+            document.getElementById('bullcall-profit').innerText = "$" + totalBCallProfit.toFixed(2);
+            renderBullCallAscii(spot, bCallLongStrike, bCallShortStrike, bCallBePoint, bCallContracts);
         }
 
         function renderStraddleAscii(spot, premium, lowBe, upBe, contracts) {
@@ -594,27 +754,64 @@
             document.getElementById('condor-vis').innerHTML = html;
         }
 
-        // Hard-bound Event Listeners to avoid mobile touch/click isolation conflicts
+        function renderBullCallAscii(spot, longStk, shortStk, bePoint, contracts) {
+            var steps = [
+                { label: "Bullish Zone Cap Threshold", price: shortStk + (shortStk * 0.02), state: "MAX_PROFIT" },
+                { label: "Short Call Strike Ceiling", price: shortStk, state: "MAX_PROFIT" },
+                { label: "Spread Breakeven Pivot", price: bePoint, state: "BE" },
+                { label: "Current Underlying Spot Index", price: spot, state: spot >= bePoint ? "MAX_PROFIT" : "MAX_LOSS" },
+                { label: "Long Call Strike Floor (ATM)", price: longStk, state: "MAX_LOSS" },
+                { label: "Tail Risk Protection Floor", price: longStk - (longStk * 0.02), state: "MAX_LOSS" }
+            ];
+
+            var html = '<div style="font-weight:700; color:#cbd5e1; margin-bottom:6px; font-size:9px; text-transform:uppercase;">Bull Call Spread Zones ('+contracts+' Contracts)</div>';
+            steps.forEach(function(s) {
+                var lineStyle = "";
+                var stateTag = "";
+                if (s.state === "MAX_PROFIT") { lineStyle = "lbl-green"; stateTag = "[💰 CAP PROFIT]"; }
+                else if (s.state === "MAX_LOSS") { lineStyle = "lbl-red"; stateTag = "[🛡️ DEBIT RISK]"; }
+                else { lineStyle = "color: #fbbf24; font-weight:bold;"; stateTag = "[⚖️ BREAKEVEN]"; }
+
+                html += '<div class="vis-row">';
+                html += '  <span style="color:#64748b;">' + s.label + '</span>';
+                html += '  <span class="' + lineStyle + '">' + stateTag + ' $' + s.price.toFixed(2) + '</span>';
+                html += '</div>';
+            });
+            document.getElementById('bullcall-vis').innerHTML = html;
+        }
+
         window.onload = function() {
-            // Ticker Targets
-            document.getElementById('btn-spy').addEventListener('click', function() { selectPresetTicker('SPY'); });
-            document.getElementById('btn-qqq').addEventListener('click', function() { selectPresetTicker('QQQ'); });
-            document.getElementById('btn-custom-go').addEventListener('click', function() { commitCustomTicker(); });
+            // Setup dynamic layout items mapping out from memory structure
+            initWatchlist();
+
+            document.getElementById('tickerGridBox').addEventListener('click', function(e) {
+                var deleteTarget = e.target.closest('.remove-x');
+                if (deleteTarget) {
+                    var symToDel = deleteTarget.getAttribute('data-del');
+                    removeTickerFromList(symToDel, e);
+                    return;
+                }
+                
+                var targetButton = e.target.closest('.btn-ticker');
+                if(!targetButton) return;
+                var sym = targetButton.getAttribute('data-sym');
+                if(sym) selectPresetTicker(sym);
+            });
+
+            document.getElementById('btn-custom-add').addEventListener('click', function() { addCustomTicker(); });
+            document.getElementById('customTickerInput').addEventListener('keydown', function(e) { if(e.key === 'Enter') addCustomTicker(); });
             
-            // Sizing Inputs
             document.getElementById('capitalInput').addEventListener('input', function() { processCalculations(); });
 
-            // Horizons (DTE)
             document.getElementById('dte-7').addEventListener('click', function() { selectDte(7); });
             document.getElementById('dte-14').addEventListener('click', function() { selectDte(14); });
             document.getElementById('dte-21').addEventListener('click', function() { selectDte(21); });
 
-            // Strategies (Tabs)
             document.getElementById('tab-straddle').addEventListener('click', function() { switchStratTab('straddle'); });
             document.getElementById('tab-strangle').addEventListener('click', function() { switchStratTab('strangle'); });
             document.getElementById('tab-condor').addEventListener('click', function() { switchStratTab('condor'); });
+            document.getElementById('tab-bullcall').addEventListener('click', function() { switchStratTab('bullcall'); });
 
-            // Modals & Storage Managers
             document.getElementById('settingsTriggerBtn').addEventListener('click', function() { toggleModal(true); });
             document.getElementById('tokenAlert').addEventListener('click', function() { toggleModal(true); });
             document.getElementById('modalCancelBtn').addEventListener('click', function() { toggleModal(false); });
@@ -626,9 +823,8 @@
                 window.location.reload();
             });
 
-            // Initial Kick-off
             checkTokenPresence();
-            synchronizePriceFeed();
+            evaluateConditionRecommendations(activeTicker); 
             setInterval(synchronizePriceFeed, 60000);
         };
     </script>
