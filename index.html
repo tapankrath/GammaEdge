@@ -6981,19 +6981,24 @@ async function runVolSignal(sym){
     }
 
     // Evaluate signal conditions
-    var cond1 = dayPct > 2;       // daily move > 2%
-    var cond2 = vixPct > 10;      // VIX spike > 10%
-    var cond3 = pcRatio !== null ? pcRatio > 1.1 : null;  // P/C > 1.1 (null if unavailable)
+    var moveThresh = sym === 'QQQ' ? 1.5 : 2;  // QQQ: >1.5%, SPY: >2%
+    var cond1 = dayPct > moveThresh;             // daily move (either direction)
+    var cond2 = vixNow > 20;                     // VIX absolute level > 20 (fear elevated)
+    var cond3 = pcRatio !== null ? pcRatio > 1.2 : null;  // P/C > 1.2 (null if unavailable)
 
     var condsMet = [cond1, cond2].filter(Boolean).length + (cond3===true?1:0);
     var totalConds = pcRatio !== null ? 3 : 2;
 
-    // Signal strength
+    // Signal strength — P/C null does NOT auto-upgrade to STRONG
     var signal, signalColor, signalBg, rec;
-    if(cond1 && cond2 && (cond3===true || cond3===null)){
+    if(cond1 && cond2 && cond3===true){
       signal='🔥 STRONG SIGNAL';
       signalColor='#15803d';signalBg='#f0fdf4';
       rec='All conditions met → <strong>Buy a Straddle or Strangle</strong>. Expect another outsized move within 1–3 sessions.';
+    } else if(cond1 && cond2 && cond3===null){
+      signal='⚡ MODERATE SIGNAL';
+      signalColor='#854d0e';signalBg='#fefce8';
+      rec='Move + elevated VIX confirmed → <strong>Consider a Strangle</strong>. P/C data unavailable — size conservatively.';
     } else if(condsMet >= 2){
       signal='⚡ MODERATE SIGNAL';
       signalColor='#854d0e';signalBg='#fefce8';
@@ -7021,19 +7026,19 @@ async function runVolSignal(sym){
         +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond1?'#16a34a':'#e2e8f0')+'">'
           +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Daily Move</div>'
           +'<div style="font-size:17px;font-weight:900;color:'+moveCol+';margin-bottom:3px;">'+moveDir+dayPct.toFixed(1)+'%</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond1?'#16a34a':'#dc2626')+';">'+(cond1?'✓ >2%':'✗ <2%')+'</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond1?'#16a34a':'#dc2626')+';">'+(cond1?'✓ >'+moveThresh+'%':'✗ <'+moveThresh+'%')+'</div>'
         +'</div>'
-        // Condition 2: VIX Spike
+        // Condition 2: VIX Level
         +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond2?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">VIX Spike</div>'
-          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(vixNow>0?vixNow.toFixed(1)+' <span style="font-size:10px;color:'+(vixPct>10?'#dc2626':'#64748b')+';">('+vixPct.toFixed(0)+'%)</span>':'N/A')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >10%':'✗ <10%')+'</div>'
+          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">VIX Level</div>'
+          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(vixNow>0?vixNow.toFixed(1):'N/A')+'</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >20':'✗ <20')+'</div>'
         +'</div>'
         // Condition 3: P/C Ratio
         +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond3===true?'#16a34a':'#e2e8f0')+'">'
           +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">P/C Ratio</div>'
           +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(pcRatio!==null?pcRatio.toFixed(2):'—')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond3===true?'#16a34a':cond3===false?'#dc2626':'#64748b')+';">'+(cond3===true?'✓ >1.1':cond3===false?'✗ <1.1':'No data')+'</div>'
+          +'<div style="font-size:9px;font-weight:700;color:'+(cond3===true?'#16a34a':cond3===false?'#dc2626':'#64748b')+';">'+(cond3===true?'✓ >1.2':cond3===false?'✗ <1.2':'No data')+'</div>'
         +'</div>'
       +'</div>'
       +'<div style="margin-top:8px;text-align:right;">'
