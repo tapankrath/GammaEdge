@@ -233,6 +233,20 @@ body{background:#090d16;color:#f8fafc;font-family:'Inter',-apple-system,BlinkMac
   <!-- Results -->
   <div id="results">
 
+    <!-- ⚡ BIG RECOMMENDATION CARD -->
+    <div id="rec-card" style="border-radius:14px;border:2px solid;padding:18px 16px;margin-bottom:12px;transition:all .3s">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px" id="rec-label">RECOMMENDATION</div>
+          <div style="font-size:13px;font-weight:700;color:#94a3b8">for <span id="rec-ticker" style="color:#f8fafc;font-size:15px;font-weight:900"></span></div>
+        </div>
+        <div style="font-size:36px;line-height:1" id="rec-emoji"></div>
+      </div>
+      <div id="rec-action" style="font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px;line-height:1"></div>
+      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:10px;letter-spacing:.02em" id="rec-spread"></div>
+      <div style="font-size:13px;color:#94a3b8;line-height:1.6;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)" id="rec-desc"></div>
+    </div>
+
     <!-- Signal -->
     <div class="signal-card">
       <div class="signal-banner" id="signal-banner">
@@ -332,7 +346,311 @@ let activeTicker='', editMode=false;
 let currentIV=null, currentRV=null, currentSignal=null, ivSource='';
 let ivSeries=[], rvSeries=[];
 const VIX_MAP={SPY:'VIX',QQQ:'VXN',IWM:'RVX'};
-const VIX_TICKERS={VIX:'^VIX',VXN:'^VXN',RVX:'^RVX'};
+// Finnhub uses these symbol formats for indices
+const VIX_SYMBOLS={VIX:'CBOE:VIX',VXN:'CBOE:VXN',RVX:'CBOE:RVX'};
+
+// ── math ───────────────────────────────────────────────────────────────────
+function calcRV(closes,w=30){
+  if(closes.length<w+1)return null;
+  const sl=closes.slice(-(w+1)),lr=[];
+  for(let i=1;i<sl.length;i++)lr.push(Math.log(sl[i]/sl[i-1]));
+  const mean=lr.reduce((a,b)=>a+b,0)/lr.length;
+  const variance=lr.reduce((s,r)=>s+(r-mean)**2,0)/(lr.length-1);
+  return +(Math.sqrt(variance)*Math.sqrt(252)*100).toFixed(2);
+}
+function calcRollingRV(closes,w=20){
+  const out=[];
+  for(let i=w;i<closes.length;i++){
+    const sl=closes.slice(i-w,i+1),lr=[];
+    for(let j=1;j<sl.length;j++)lr.push(Math.log(sl[j]/sl[j-1]));
+    const mean=lr.reduce((a,b)=>a+b,0)/lr.length;
+    const variance=lr.reduce((s,r)=>s+(r-mean)**2,0)/(lr.length-1);
+    out.push(+(Math.sqrt(variance)*Math.sqrt(252)*100).toFixed(2));
+  }
+  return out;
+}
+function getSignal(iv,rv){
+  const spread=+(iv-rv).toFixed(2), spreadPct=+((spread/rv)*100).toFixed(1);
+  let signal,confidence,color,bg,action,rec,recColor,recBg,emoji;
+  if(spreadPct>20){
+    signal='SELL VOLATILITY';confidence=Math.min(99,60+spreadPct*.8);color='#f43f5e';bg='rgba(244,63,94,.12)';
+    action='IV is <strong>substantially above RV</strong> — well paid to sell options. Iron condors, short strangles, covered calls.';
+    rec='SELL OPTIONS';recColor='#f43f5e';recBg='rgba(244,63,94,.12)';emoji='🔴';
+  } else if(spreadPct>8){
+    signal='MILD SELL EDGE';confidence=40+spreadPct;color='#f97316';bg='rgba(249,115,22,.1)';
+    action='<strong>Modest vol premium</strong> exists. Consider short vol with defined risk — credit spreads, iron condors.';
+    rec='LEAN SELL';recColor='#f97316';recBg='rgba(249,115,22,.1)';emoji='🟠';
+  } else if(spreadPct<-5){
+    signal='BUY VOLATILITY';confidence=Math.min(95,50+Math.abs(spreadPct)*1.5);color='#34d399';bg='rgba(52,211,153,.1)';
+    action='RV exceeds IV — market is <strong>underpricing risk</strong>. Consider long straddles, back-spreads, long gamma.';
+    rec='BUY OPTIONS';recColor='#34d399';recBg='rgba(52,211,153,.1)';emoji='🟢';
+  } else {
+    signal='NEUTRAL';confidence=30;color='#64748b';bg='rgba(100,116,139,.08)';
+    action='IV and RV are <strong>near parity</strong>. No strong vol edge — avoid directional vol bets.';
+    rec='HOLD / NO TRADE';recColor='#64748b';recBg='rgba(100,116,139,.08)';emoji='⚪';
+  }
+  return{signal,confidence:+confidence.toFixed(0),spread,spreadPct,color,bg,action,rec,recColor,recBg,emoji};
+}
+
+// ── config ─────────────────────────────────────────────────────────────────
+function toggleConfig(){
+  const p=document.getElementById('config-panel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')){
+    document.getElementById('input-twelve').value=twelveKey;
+    document.getElementById('input-finnhub').value=finnhubKey;
+  }
+}
+function saveKeys(){
+  twelveKey=document.getElementById('input-twelve').value.trim();
+  finnhubKey=document.getElementById('input-finnhub').value.trim();
+  document.getElementById('config-panel').classList.remove('open');
+  updateGear();
+  updateLandingCTA();
+}
+function updateGear(){
+  const btn=document.getElementById('gear-btn'), lbl=document.getElementById('gear-label');
+  const ready=finnhubKey&&twelveKey;
+  btn.className='gear-btn '+(ready?'ready':'missing');
+  lbl.textContent=ready?'Keys Set':'Add Keys';
+}
+function updateLandingCTA(){
+  if(finnhubKey&&twelveKey){
+    document.getElementById('landing-cta').innerHTML='<div class="cta-icon">📈</div><p style="font-size:13px;color:#64748b">Select a ticker above to load live vol data.</p>';
+  }
+}
+
+// ── pills ──────────────────────────────────────────────────────────────────
+function renderPills(){
+  const row=document.getElementById('pill-row');
+  row.innerHTML='';
+  symbols.forEach(t=>{
+    const wrap=document.createElement('div');
+    wrap.className='pill-wrap';
+    const btn=document.createElement('button');
+    btn.className='pill'+(t===activeTicker&&!editMode?' active':'')+(editMode?' edit-mode':'');
+    btn.textContent=t;
+    btn.onclick=()=>{
+      if(editMode)return;
+      if(!finnhubKey||!twelveKey){toggleConfig();return;}
+      fetchVolData(t);
+    };
+    wrap.appendChild(btn);
+    if(editMode){
+      const del=document.createElement('button');
+      del.className='pill-del';del.textContent='×';
+      del.onclick=()=>deleteSymbol(t);
+      wrap.appendChild(del);
+    }
+    row.appendChild(wrap);
+  });
+  if(editMode){
+    const form=document.createElement('form');
+    form.className='add-form';form.onsubmit=addSymbol;
+    const inp=document.createElement('input');
+    inp.className='add-input';inp.id='add-input';inp.placeholder='TICKER';inp.maxLength=6;
+    inp.oninput=e=>e.target.value=e.target.value.toUpperCase();
+    const abtn=document.createElement('button');
+    abtn.type='submit';abtn.className='add-btn';abtn.textContent='+';
+    form.appendChild(inp);form.appendChild(abtn);
+    row.appendChild(form);
+    setTimeout(()=>inp.focus(),50);
+  }
+  const tog=document.getElementById('edit-toggle');
+  tog.textContent=editMode?'✓ Done':'+ Add / Delete';
+  tog.className='edit-toggle'+(editMode?' active':'');
+  document.getElementById('search-form').style.display=editMode?'none':'flex';
+}
+function toggleEditMode(){editMode=!editMode;renderPills();}
+function addSymbol(e){
+  e.preventDefault();
+  const inp=document.getElementById('add-input'),val=inp.value.trim().toUpperCase();
+  if(!val||symbols.includes(val)){inp.value='';return;}
+  symbols.push(val);inp.value='';renderPills();
+}
+function deleteSymbol(t){
+  symbols=symbols.filter(s=>s!==t);
+  if(activeTicker===t){activeTicker='';showLanding();}
+  renderPills();
+}
+
+// ── search ─────────────────────────────────────────────────────────────────
+function handleSearch(e){
+  e.preventDefault();
+  if(!finnhubKey||!twelveKey){toggleConfig();return;}
+  const val=document.getElementById('search-input').value.trim().toUpperCase();
+  if(val)fetchVolData(val);
+}
+document.getElementById('search-input').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+
+// ── fetch ──────────────────────────────────────────────────────────────────
+async function fetchVolData(tkr){
+  activeTicker=tkr;
+  document.getElementById('ai-btn').textContent=`Analyze ${tkr}`;
+  renderPills();showLoading(true);hideError();hideLanding();hideResults();
+  document.getElementById('ai-result').style.display='none';
+  document.getElementById('ai-hint').style.display='block';
+  try{
+    // 1. Twelve Data — price history for RV
+    const tdRes=await fetch(`https://api.twelvedata.com/time_series?symbol=${tkr}&interval=1day&outputsize=120&apikey=${twelveKey}`);
+    const tdJson=await tdRes.json();
+    if(tdJson.status==='error'||!tdJson.values)throw new Error(tdJson.message||`No price data for ${tkr}`);
+    const closes=tdJson.values.map(d=>parseFloat(d.close)).reverse();
+    const rv30=calcRV(closes,30);
+    const rollingRV=calcRollingRV(closes,20);
+    if(!rv30)throw new Error('Not enough price history to calculate RV.');
+
+    // 2. Fetch VIX as IV proxy — cascade through multiple sources
+    const vixKey=VIX_MAP[tkr.toUpperCase()]||'VIX';
+    let ivNow=null, ivSer=[];
+
+    // Method A: Finnhub — try several symbol formats
+    for(const sym of ['VIX','CBOE:VIX','^VIX']){
+      try{
+        const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${finnhubKey}`);
+        const j=await r.json();
+        if(j?.c>0){ivNow=+j.c.toFixed(2);ivSource=`VIX ${ivNow}% (Finnhub)`;break;}
+      }catch(e){}
+    }
+
+    // Method B: Twelve Data quote
+    if(!ivNow){
+      for(const sym of ['VIX','^VIX','VIXY']){
+        try{
+          const r=await fetch(`https://api.twelvedata.com/quote?symbol=${sym}&apikey=${twelveKey}`);
+          const j=await r.json();
+          if(j?.close&&parseFloat(j.close)>0){ivNow=+parseFloat(j.close).toFixed(2);ivSource=`VIX ${ivNow}% (Twelve Data)`;break;}
+        }catch(e){}
+      }
+    }
+
+    // Method C: Twelve Data time series for VIX (also builds rolling chart)
+    if(!ivNow){
+      try{
+        const r=await fetch(`https://api.twelvedata.com/time_series?symbol=VIX&interval=1day&outputsize=100&apikey=${twelveKey}`);
+        const j=await r.json();
+        if(j?.values?.length){
+          const vc=j.values.map(d=>parseFloat(d.close)).reverse();
+          ivNow=+vc[vc.length-1].toFixed(2);
+          ivSource=`VIX ${ivNow}% (Twelve Data)`;
+          ivSer=vc.slice(-rollingRV.length);
+          while(ivSer.length<rollingRV.length)ivSer.unshift(ivSer[0]);
+        }
+      }catch(e){}
+    }
+
+    // Method D: Estimate — RV × 1.2 (typical vol risk premium)
+    if(!ivNow){
+      ivNow=+(rv30*1.2).toFixed(2);
+      ivSource=`~${ivNow}% (est. RV×1.2 — VIX unavailable)`;
+    }
+
+    if(ivSer.length===0) ivSer=Array(rollingRV.length).fill(ivNow);
+    currentIV=ivNow;currentRV=rv30;ivSeries=ivSer;rvSeries=rollingRV;
+    currentSignal=getSignal(ivNow,rv30);
+    showLoading(false);renderResults();
+  }catch(err){showLoading(false);showError(err.message);showLanding();}
+}
+
+// ── render ─────────────────────────────────────────────────────────────────
+function renderResults(){
+  const s=currentSignal;
+
+  // ── BIG RECOMMENDATION CARD ──
+  document.getElementById('rec-ticker').textContent=activeTicker;
+  document.getElementById('rec-card').style.background=s.recBg;
+  document.getElementById('rec-card').style.borderColor=s.recColor;
+  document.getElementById('rec-emoji').textContent=s.emoji;
+  document.getElementById('rec-label').textContent='RECOMMENDATION';
+  const recAction=document.getElementById('rec-action');
+  recAction.textContent=s.rec;
+  recAction.style.color=s.recColor;
+  document.getElementById('rec-spread').textContent=`IV ${currentIV}% vs RV ${currentRV}% · Premium ${s.spread>0?'+':''}${s.spread}%`;
+  document.getElementById('rec-desc').innerHTML=s.action;
+
+  // signal banner
+  document.getElementById('signal-banner').style.background=s.bg;
+  const badge=document.getElementById('signal-badge');
+  badge.textContent=s.signal;badge.style.background=s.color;
+  document.getElementById('signal-conf').textContent=`${s.confidence}% confidence`;
+  document.getElementById('signal-src').textContent=`IV: ${ivSource}`;
+  document.getElementById('signal-action').innerHTML=s.action;
+
+  // stats
+  document.getElementById('stat-iv').textContent=`${currentIV}%`;
+  document.getElementById('stat-rv').textContent=`${currentRV}%`;
+  const prem=document.getElementById('stat-prem');
+  prem.textContent=`${s.spread>0?'+':''}${s.spread}%`;
+  prem.style.color=s.spread>2?'#f43f5e':s.spread<-2?'#34d399':'#64748b';
+  document.getElementById('stat-prem-sub').textContent=`${s.spreadPct>0?'+':''}${s.spreadPct}% vs RV`;
+
+  // strategy active
+  const sellCard=document.getElementById('strat-sell'),buyCard=document.getElementById('strat-buy');
+  const sellBadge=document.getElementById('strat-sell-badge'),buyBadge=document.getElementById('strat-buy-badge');
+  if(s.spreadPct>8){sellCard.style.borderColor='#f43f5e';sellBadge.style.display='block';}
+  else{sellCard.style.borderColor='transparent';sellBadge.style.display='none';}
+  if(s.spreadPct<-5){buyCard.style.borderColor='#34d399';buyBadge.style.display='block';}
+  else{buyCard.style.borderColor='transparent';buyBadge.style.display='none';}
+
+  renderChart();
+  document.getElementById('results').style.display='block';
+}
+function renderChart(){
+  const svg=document.getElementById('vol-chart');
+  const len=Math.min(ivSeries.length,rvSeries.length);
+  const iv=ivSeries.slice(-len),rv=rvSeries.slice(-len);
+  const all=[...iv,...rv];
+  const minV=Math.min(...all)-2,maxV=Math.max(...all)+2;
+  const pl=40,pr=12,pt=12,pb=22,W=660-pl-pr,H=180-pt-pb;
+  const xS=i=>(i/(len-1))*W, yS=v=>H-((v-minV)/(maxV-minV))*H;
+  const ivPath=iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
+  const rvPath=rv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
+  const fill=[...iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`),...[...rv].reverse().map((v,i,a)=>`L${xS(a.length-1-i)},${yS(v)}`),'Z'].join(' ');
+  const ticks=4;let gridLines='';
+  for(let i=0;i<=ticks;i++){
+    const v=minV+((maxV-minV)/ticks)*i;
+    gridLines+=`<line x1="0" y1="${yS(v)}" x2="${W}" y2="${yS(v)}" stroke="#1e293b" stroke-width="1"/>
+    <text x="-5" y="${yS(v)+4}" text-anchor="end" font-size="10" fill="#334155" font-weight="700">${v.toFixed(0)}%</text>`;
+  }
+  svg.innerHTML=`<g transform="translate(${pl},${pt})">
+    ${gridLines}
+    <path d="${fill}" fill="rgba(244,63,94,0.15)"/>
+    <path d="${rvPath}" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,4"/>
+    <path d="${ivPath}" fill="none" stroke="#f8fafc" stroke-width="2.5"/>
+    <circle cx="${xS(len-1)}" cy="${yS(iv[len-1])}" r="4" fill="#34d399"/>
+    <circle cx="${xS(len-1)}" cy="${yS(rv[len-1])}" r="4" fill="#475569"/>
+    <text x="${W/2}" y="${H+18}" text-anchor="middle" font-size="10" fill="#334155" font-weight="700">← ${len} Trading Days →</text>
+  </g>`;
+}
+
+// ── AI ─────────────────────────────────────────────────────────────────────
+async function runAI(){
+  if(!currentSignal)return;
+  const btn=document.getElementById('ai-btn'),result=document.getElementById('ai-result'),hint=document.getElementById('ai-hint');
+  btn.textContent='Analyzing…';btn.disabled=true;
+  result.style.display='none';hint.style.display='none';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-6',max_tokens:1000,
+      messages:[{role:'user',content:`You are a professional options trader and volatility analyst.\n\n${activeTicker} vol setup:\n- IV proxy (${ivSource}): ${currentIV}%\n- 30-day Realized Vol: ${currentRV}%\n- Vol Premium: ${currentSignal.spread>0?'+':''}${currentSignal.spread}% (${currentSignal.spreadPct}% ${currentSignal.spread>0?'above':'below'} RV)\n- Signal: ${currentSignal.signal}\n\nNote: IV is sourced from VIX/VXN as a market IV proxy, not from the options chain directly.\n\nGive a concise, practical 3–4 sentence trading analysis. Cover: what this IV/RV spread means right now, specific option strategies that make sense (name them), key risk to watch. Be direct. Talk like a vol desk trader. No disclaimers.`}]
+    })});
+    const data=await res.json();
+    result.innerHTML=(data.content?.map(b=>b.text||'').join('')||'No response.').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    result.style.display='block';
+  }catch(e){result.textContent='Error fetching analysis.';result.style.display='block';}
+  btn.textContent=`Analyze ${activeTicker}`;btn.disabled=false;
+}
+
+// ── ui helpers ─────────────────────────────────────────────────────────────
+function showLoading(v){document.getElementById('loading-box').style.display=v?'block':'none';document.getElementById('search-btn').textContent=v?'…':'Go';}
+function showError(msg){const b=document.getElementById('error-box');b.textContent='⚠ '+msg;b.style.display='block';}
+function hideError(){document.getElementById('error-box').style.display='none';}
+function showLanding(){document.getElementById('landing').style.display='block';}
+function hideLanding(){document.getElementById('landing').style.display='none';}
+function hideResults(){document.getElementById('results').style.display='none';}
+
+// ── init ───────────────────────────────────────────────────────────────────
+renderPills();
 
 // ── math ───────────────────────────────────────────────────────────────────
 function calcRV(closes,w=30){
@@ -454,97 +772,6 @@ function handleSearch(e){
   if(val)fetchVolData(val);
 }
 document.getElementById('search-input').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
-
-// ── fetch ──────────────────────────────────────────────────────────────────
-async function fetchVolData(tkr){
-  activeTicker=tkr;
-  document.getElementById('ai-btn').textContent=`Analyze ${tkr}`;
-  renderPills();showLoading(true);hideError();hideLanding();hideResults();
-  document.getElementById('ai-result').style.display='none';
-  document.getElementById('ai-hint').style.display='block';
-  try{
-    const tdRes=await fetch(`https://api.twelvedata.com/time_series?symbol=${tkr}&interval=1day&outputsize=120&apikey=${twelveKey}`);
-    const tdJson=await tdRes.json();
-    if(tdJson.status==='error'||!tdJson.values)throw new Error(tdJson.message||`No data for ${tkr}`);
-    const closes=tdJson.values.map(d=>parseFloat(d.close)).reverse();
-    const rv30=calcRV(closes,30);
-    const rollingRV=calcRollingRV(closes,20);
-    if(!rv30)throw new Error('Not enough price history to calculate RV.');
-    const vixKey=VIX_MAP[tkr.toUpperCase()]||'VIX';
-    const fhSym=VIX_TICKERS[vixKey]||'^VIX';
-    const fhRes=await fetch(`https://finnhub.io/api/v1/quote?symbol=${fhSym}&token=${finnhubKey}`);
-    const fhJson=await fhRes.json();
-    let ivNow=null,ivSer=[];
-    if(fhJson?.c>0){
-      ivNow=+fhJson.c.toFixed(2);ivSource=`${vixKey} ${ivNow}%`;
-      ivSer=Array(rollingRV.length).fill(ivNow);
-    }else{
-      const to=Math.floor(Date.now()/1000),from=to-86400*100;
-      const cRes=await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${fhSym}&resolution=D&from=${from}&to=${to}&token=${finnhubKey}`);
-      const cJson=await cRes.json();
-      if(cJson.s==='ok'&&cJson.c?.length){
-        ivNow=+cJson.c[cJson.c.length-1].toFixed(2);ivSource=`${vixKey} ${ivNow}%`;
-        ivSer=cJson.c.slice(-rollingRV.length);
-        while(ivSer.length<rollingRV.length)ivSer.unshift(ivSer[0]);
-      }else throw new Error(`Cannot fetch ${vixKey} from Finnhub. Check your key.`);
-    }
-    currentIV=ivNow;currentRV=rv30;ivSeries=ivSer;rvSeries=rollingRV;
-    currentSignal=getSignal(ivNow,rv30);
-    showLoading(false);renderResults();
-  }catch(err){showLoading(false);showError(err.message);showLanding();}
-}
-
-// ── render ─────────────────────────────────────────────────────────────────
-function renderResults(){
-  const s=currentSignal;
-  document.getElementById('signal-banner').style.background=s.bg;
-  const badge=document.getElementById('signal-badge');
-  badge.textContent=s.signal;badge.style.background=s.color;
-  document.getElementById('signal-conf').textContent=`${s.confidence}% confidence`;
-  document.getElementById('signal-src').textContent=`IV: ${ivSource}`;
-  document.getElementById('signal-action').innerHTML=s.action;
-  document.getElementById('stat-iv').textContent=`${currentIV}%`;
-  document.getElementById('stat-rv').textContent=`${currentRV}%`;
-  const prem=document.getElementById('stat-prem');
-  prem.textContent=`${s.spread>0?'+':''}${s.spread}%`;
-  prem.style.color=s.spread>2?'#f43f5e':s.spread<-2?'#34d399':'#64748b';
-  document.getElementById('stat-prem-sub').textContent=`${s.spreadPct>0?'+':''}${s.spreadPct}% vs RV`;
-  const sellCard=document.getElementById('strat-sell'),buyCard=document.getElementById('strat-buy');
-  const sellBadge=document.getElementById('strat-sell-badge'),buyBadge=document.getElementById('strat-buy-badge');
-  if(s.spreadPct>8){sellCard.style.borderColor='#f43f5e';sellBadge.style.display='block';}
-  else{sellCard.style.borderColor='transparent';sellBadge.style.display='none';}
-  if(s.spreadPct<-5){buyCard.style.borderColor='#34d399';buyBadge.style.display='block';}
-  else{buyCard.style.borderColor='transparent';buyBadge.style.display='none';}
-  renderChart();
-  document.getElementById('results').style.display='block';
-}
-function renderChart(){
-  const svg=document.getElementById('vol-chart');
-  const len=Math.min(ivSeries.length,rvSeries.length);
-  const iv=ivSeries.slice(-len),rv=rvSeries.slice(-len);
-  const all=[...iv,...rv];
-  const minV=Math.min(...all)-2,maxV=Math.max(...all)+2;
-  const pl=40,pr=12,pt=12,pb=22,W=660-pl-pr,H=180-pt-pb;
-  const xS=i=>(i/(len-1))*W, yS=v=>H-((v-minV)/(maxV-minV))*H;
-  const ivPath=iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
-  const rvPath=rv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
-  const fill=[...iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`),...[...rv].reverse().map((v,i,a)=>`L${xS(a.length-1-i)},${yS(v)}`),'Z'].join(' ');
-  const ticks=4;let gridLines='';
-  for(let i=0;i<=ticks;i++){
-    const v=minV+((maxV-minV)/ticks)*i;
-    gridLines+=`<line x1="0" y1="${yS(v)}" x2="${W}" y2="${yS(v)}" stroke="#1e293b" stroke-width="1"/>
-    <text x="-5" y="${yS(v)+4}" text-anchor="end" font-size="10" fill="#334155" font-weight="700">${v.toFixed(0)}%</text>`;
-  }
-  svg.innerHTML=`<g transform="translate(${pl},${pt})">
-    ${gridLines}
-    <path d="${fill}" fill="rgba(244,63,94,0.15)"/>
-    <path d="${rvPath}" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,4"/>
-    <path d="${ivPath}" fill="none" stroke="#f8fafc" stroke-width="2.5"/>
-    <circle cx="${xS(len-1)}" cy="${yS(iv[len-1])}" r="4" fill="#34d399"/>
-    <circle cx="${xS(len-1)}" cy="${yS(rv[len-1])}" r="4" fill="#475569"/>
-    <text x="${W/2}" y="${H+18}" text-anchor="middle" font-size="10" fill="#334155" font-weight="700">← ${len} Trading Days →</text>
-  </g>`;
-}
 
 // ── AI ─────────────────────────────────────────────────────────────────────
 async function runAI(){
