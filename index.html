@@ -587,725 +587,649 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 
-<div class="pane" id="pane0" style="padding:0;margin:0 -10px;overflow-x:hidden;">
-  <div id="sl-wrap">
+<div class="pane on" id="pane0" style="padding:0;margin:0 -10px;overflow-x:hidden;">
+<div id="sl-wrap">
 
+<style>
+/* ── OVERRIDE: dark engine inside pane0 ── */
+#sl-wrap { background:#090d16; color:#f8fafc; }
+#sl-wrap .nd-container { max-width:100%; padding:12px; }
+#sl-wrap .nd-top-bar { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:10px; margin-bottom:14px; }
+#sl-wrap .nd-title { font-size:16px; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:.03em; }
+#sl-wrap .nd-actions { display:flex; align-items:center; gap:8px; }
+#sl-wrap .nd-icon-btn { background:none; border:none; color:#cbd5e1; cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; transition:color .2s; }
+#sl-wrap .nd-icon-btn:hover, #sl-wrap .nd-icon-btn:active { color:#34d399; }
+#sl-wrap .nd-ctrl { background:#1e293b; padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid rgba(255,255,255,.02); }
+#sl-wrap .nd-lbl { font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; margin-bottom:6px; display:block; }
+#sl-wrap .nd-ticker-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+#sl-wrap .nd-tick-btn { display:inline-flex; align-items:center; padding:6px 10px; background:#0f172a; border:1px solid #475569; color:#cbd5e1; border-radius:14px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap; gap:6px; transition:all .15s; }
+#sl-wrap .nd-tick-btn.active { background:#10b981; color:#0f172a; border-color:#10b981; box-shadow:0 0 10px rgba(16,185,129,.2); }
+#sl-wrap .nd-tick-btn .nd-rmx { font-size:12px; font-weight:900; color:#cbd5e1; padding:0 2px; border-radius:50%; }
+#sl-wrap .nd-tick-btn.active .nd-rmx { color:#065f46; }
+#sl-wrap .nd-custom-row { display:flex; gap:6px; margin-bottom:12px; }
+#sl-wrap .nd-tick-inp { flex:1; background:#0f172a; border:1px solid #475569; color:#fff; padding:8px; border-radius:6px; font-weight:700; font-size:12px; text-transform:uppercase; text-align:center; outline:none; }
+#sl-wrap .nd-tick-inp:focus { border-color:#10b981; }
+#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:16px; border:none; padding:0 18px; border-radius:6px; cursor:pointer; }
+#sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:2px 8px; margin-bottom:12px; }
+#sl-wrap .nd-cap-sym { color:#cbd5e1; font-weight:800; font-size:13px; margin-right:4px; }
+#sl-wrap .nd-cap-inp { width:100%; background:none; border:none; color:#fff; font-size:13px; font-weight:700; outline:none; padding:6px 0; }
+#sl-wrap .nd-dte-grid { display:flex; gap:6px; }
+#sl-wrap .nd-dte-btn { flex:1; padding:10px 0; background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
+#sl-wrap .nd-dte-btn.active { background:#3b82f6; color:#fff; border-color:#3b82f6; font-weight:800; }
+#sl-wrap .nd-banner { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#0f172a,#1e293b); padding:10px 14px; border-radius:8px; margin-bottom:14px; border-left:4px solid #10b981; }
+#sl-wrap .nd-sym { font-size:18px; font-weight:900; color:#fff; }
+#sl-wrap .nd-price { font-size:16px; font-weight:800; color:#34d399; }
+#sl-wrap .nd-analyze-btn { width:100%; background:#10b981; color:#0f172a; border:none; border-radius:8px; padding:11px; font-size:13px; font-weight:900; cursor:pointer; margin-bottom:14px; letter-spacing:.02em; transition:background .15s; font-family:inherit; }
+#sl-wrap .nd-analyze-btn:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
+#sl-wrap .nd-analyze-btn:not(:disabled):active { background:#059669; }
+#sl-wrap .nd-loading { display:none; text-align:center; padding:30px 20px; }
+#sl-wrap .nd-spinner { width:28px; height:28px; border:3px solid #334155; border-top-color:#10b981; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 8px; }
+#sl-wrap .nd-loading-msg { color:#64748b; font-size:12px; font-weight:600; }
+#sl-wrap .nd-err { background:rgba(244,63,94,.1); border:1px solid #f43f5e; border-radius:8px; padding:10px 12px; color:#f43f5e; font-size:12px; font-weight:600; margin-bottom:12px; display:none; line-height:1.6; }
+#sl-wrap .nd-alert { background:rgba(234,179,8,.15); border:1px solid rgba(234,179,8,.3); color:#f59e0b; padding:10px; border-radius:6px; font-size:11px; font-weight:600; text-align:center; margin-bottom:12px; cursor:pointer; }
+#sl-wrap .nd-landing { text-align:center; padding:30px 20px; color:#475569; }
+/* Ticker header in results */
+#sl-wrap .nd-tick-hdr { background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:12px; padding:13px; margin-bottom:12px; border:1px solid #334155; }
+/* Strategy tabs */
+#sl-wrap .nd-tabs-wrap { background:#1e293b; border-radius:10px; overflow:hidden; margin-bottom:12px; border:1px solid #334155; }
+#sl-wrap .nd-tab-bar { display:flex; background:#0f172a; border-bottom:1px solid #334155; overflow-x:auto; }
+#sl-wrap .nd-tab { flex:0 0 auto; min-width:68px; padding:9px 5px; text-align:center; cursor:pointer; font-family:inherit; border:none; background:transparent; transition:all .18s; border-bottom:2.5px solid transparent; margin-bottom:-1px; }
+#sl-wrap .nd-tab.active { border-bottom-color:#10b981; }
+#sl-wrap .nd-tab-icon { font-size:14px; line-height:1; margin-bottom:2px; }
+#sl-wrap .nd-tab-name { font-size:8px; font-weight:900; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
+#sl-wrap .nd-tab.active .nd-tab-name { color:#34d399; }
+#sl-wrap .nd-tab-pl { font-size:9.5px; font-weight:900; margin-top:1px; }
+#sl-wrap .nd-panel { display:none; }
+#sl-wrap .nd-panel.active { display:block; }
+/* P&L grid */
+#sl-wrap .nd-pl-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:#334155; }
+#sl-wrap .nd-pl-cell { background:#1e293b; padding:10px 8px; text-align:center; }
+#sl-wrap .nd-pl-l { font-size:8px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+#sl-wrap .nd-pl-v { font-size:14px; font-weight:900; }
+#sl-wrap .nd-pl-v.pos { color:#34d399; } #sl-wrap .nd-pl-v.neg { color:#f43f5e; }
+#sl-wrap .nd-pl-sub { font-size:9px; color:#475569; font-weight:600; margin-top:1px; }
+/* Sizing row */
+#sl-wrap .nd-sizing { display:flex; align-items:center; justify-content:space-between; padding:9px 13px; border-top:1px solid #334155; background:rgba(16,185,129,.06); }
+#sl-wrap .nd-sizing-lbl { font-size:9px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+#sl-wrap .nd-sizing-val { font-size:14px; font-weight:900; color:#34d399; }
+#sl-wrap .nd-sizing-sub { font-size:9px; color:#475569; font-weight:600; margin-top:1px; text-align:right; }
+/* Breakevens */
+#sl-wrap .nd-be { padding:11px 13px; border-top:1px solid #334155; background:#0f172a; }
+#sl-wrap .nd-be-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+#sl-wrap .nd-be-row { display:flex; gap:7px; }
+#sl-wrap .nd-be-item { flex:1; text-align:center; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:8px 5px; }
+#sl-wrap .nd-be-l { font-size:8px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+#sl-wrap .nd-be-v { font-size:12px; font-weight:900; color:#f8fafc; }
+#sl-wrap .nd-be-d { font-size:10px; font-weight:700; margin-top:2px; }
+/* Legs */
+#sl-wrap .nd-legs { padding:11px 13px; border-top:1px solid #334155; }
+#sl-wrap .nd-legs-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+#sl-wrap .nd-leg { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; padding:8px 10px; border-radius:8px; border:1px solid #334155; }
+#sl-wrap .nd-leg:last-child { margin-bottom:0; }
+#sl-wrap .nd-leg-l { display:flex; align-items:center; gap:8px; }
+#sl-wrap .nd-leg-action { font-size:9px; font-weight:900; border-radius:5px; padding:2px 6px; text-transform:uppercase; letter-spacing:.06em; flex-shrink:0; }
+#sl-wrap .nd-leg-action.buy { background:rgba(16,185,129,.15); color:#34d399; }
+#sl-wrap .nd-leg-action.sell { background:rgba(244,63,94,.15); color:#f43f5e; }
+#sl-wrap .nd-leg-desc { font-size:12px; font-weight:700; color:#e2e8f0; }
+#sl-wrap .nd-leg-sub { font-size:10px; color:#64748b; font-weight:500; margin-top:1px; }
+#sl-wrap .nd-leg-price { font-size:12px; font-weight:900; color:#f8fafc; flex-shrink:0; }
+/* Scores */
+#sl-wrap .nd-scores { padding:11px 13px; border-top:1px solid #334155; }
+#sl-wrap .nd-score-bar { height:4px; background:#334155; border-radius:2px; overflow:hidden; margin-top:3px; }
+#sl-wrap .nd-score-fill { height:100%; border-radius:2px; }
+/* Thesis */
+#sl-wrap .nd-thesis { padding:11px 13px; border-top:1px solid #334155; }
+#sl-wrap .nd-thesis-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
+#sl-wrap .nd-thesis-txt { font-size:11.5px; color:#94a3b8; line-height:1.7; font-weight:500; }
+/* Exit */
+#sl-wrap .nd-exit { padding:11px 13px; border-top:2px solid #334155; background:#0f172a; }
+#sl-wrap .nd-exit-hdr { display:flex; align-items:center; gap:7px; margin-bottom:10px; }
+#sl-wrap .nd-exit-title { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; }
+#sl-wrap .nd-exit-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:8px; }
+#sl-wrap .nd-exit-card { background:#1e293b; border-radius:9px; padding:9px 10px; border:1px solid #334155; }
+#sl-wrap .nd-exit-card-lbl { font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; }
+#sl-wrap .nd-exit-card-val { font-size:11px; font-weight:800; color:#e2e8f0; margin-bottom:3px; }
+#sl-wrap .nd-exit-card-sub { font-size:9.5px; color:#64748b; font-weight:500; line-height:1.4; }
+#sl-wrap .nd-exit-card.profit .nd-exit-card-lbl { color:#34d399; }
+#sl-wrap .nd-exit-card.loss .nd-exit-card-lbl { color:#f43f5e; }
+#sl-wrap .nd-exit-card.time .nd-exit-card-lbl { color:#38bdf8; }
+#sl-wrap .nd-exit-card.roll .nd-exit-card-lbl { color:#fbbf24; }
+#sl-wrap .nd-exit-rules { background:#1e293b; border-radius:9px; border:1px solid #334155; overflow:hidden; }
+#sl-wrap .nd-exit-rule { display:flex; align-items:flex-start; gap:9px; padding:8px 10px; border-bottom:1px solid #334155; }
+#sl-wrap .nd-exit-rule:last-child { border-bottom:none; }
+#sl-wrap .nd-exit-rule-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+#sl-wrap .nd-exit-rule-txt { font-size:11px; color:#94a3b8; font-weight:500; line-height:1.5; }
+#sl-wrap .nd-exit-rule-txt strong { color:#e2e8f0; font-weight:800; }
+/* Vol signal */
+#sl-wrap .nd-vol-card { background:#1e293b; border-radius:10px; padding:12px; margin-bottom:14px; border:1px solid #334155; }
+#sl-wrap .nd-modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9,13,22,.9); backdrop-filter:blur(4px); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px; }
+#sl-wrap .nd-modal-overlay.active { display:flex; }
+#sl-wrap .nd-modal { background:#1e293b; border:2px solid #475569; border-radius:12px; width:100%; max-width:380px; padding:18px; }
+#sl-wrap .nd-modal input { width:100%; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:10px; color:#fff; font-family:monospace; font-size:12px; margin-top:6px; margin-bottom:14px; outline:none; }
+#sl-wrap .nd-modal input:focus { border-color:#10b981; }
+#sl-wrap .nd-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+#sl-wrap .nd-btn-sec { background:#334155; color:#cbd5e1; border:none; padding:8px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-transform:uppercase; font-family:inherit; }
+#sl-wrap .nd-btn-pri { background:#10b981; color:#0f172a; border:none; padding:8px 14px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; text-transform:uppercase; font-family:inherit; }
+#sl-wrap .nd-btn-danger { background:none; border:1px solid #f43f5e; color:#f43f5e; padding:6px 10px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer; text-transform:uppercase; margin-top:14px; width:100%; display:block; text-align:center; font-family:inherit; }
+</style>
 
-<!-- ═══ ONE STICKY BLOCK — everything sticky lives here ═══ -->
-<div id="stickyHeader">
+<div class="nd-container">
 
-  <!-- Topbar -->
-  <div class="topbar-row1">
+  <div class="nd-top-bar">
     <div>
-      <div class="app-name">Strategy<span>Lens</span></div>
-      <div class="app-sub">Options P&L Analyzer</div>
+      <div class="nd-title">Volatility & P&amp;L Engine</div>
     </div>
-    <!-- gear removed: use ⚙️ Keys in GammaEdge header -->
+    <div class="nd-actions">
+      <button class="nd-icon-btn" id="nd-refresh-btn" title="Refresh">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+      <button class="nd-icon-btn" id="nd-settings-btn" title="API Key">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Gear drawer -->
-  <div class="api-drawer" id="apiDrawer">
-    <label>Finnhub API Key</label>
-    <input type="password" id="fhKey" placeholder="your finnhub key…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="updateFhStatus()">
-    <div class="api-hint">🔒 Free at finnhub.io · Real-time quotes + IV</div>
-    <div class="api-status no" id="fhStatus">⚠️ No key set</div>
-    <button class="api-save" onclick="saveFhKey()">Save &amp; Close</button>
-  </div>
-
-  <!-- Quote banner -->
-  <div class="quote-banner" id="quoteBanner">
-    <div class="quote-chips" id="quoteChips"></div>
-  </div>
+  <div id="nd-token-alert" class="nd-alert" style="display:none;">⚠️ No Finnhub key — tap to configure for live pricing.</div>
 
   <!-- Controls -->
-  <div class="controls-wrap">
-    <div class="controls-inner">
-      <div class="controls-row">
-        <div class="ctrl-group ticker-group">
-          <div class="ctrl-label">Ticker</div>
-          <div class="ticker-chips">
-            <button class="tick-preset on" id="tp-SPY" onclick="selectPreset('SPY',this)">
-              <div class="tp-sym">SPY</div>
-              <div class="tp-name">S&amp;P 500</div>
-            </button>
-            <button class="tick-preset" id="tp-QQQ" onclick="selectPreset('QQQ',this)">
-              <div class="tp-sym">QQQ</div>
-              <div class="tp-name">Nsdq 100</div>
-            </button>
-            <div class="tick-custom" id="tc-wrap" onclick="selectCustom()">
-              <label>Custom</label>
-              <input type="text" id="customTick" placeholder="NVDA" maxlength="6" oninput="onCustomInput()" onfocus="selectCustom()">
-            </div>
-          </div>
-        </div>
-        <div class="ctrl-group dte-group">
-          <div class="ctrl-label">Expiry</div>
-          <div class="dte-chips">
-            <button class="dte-btn on" id="dte-7" onclick="setDTE(7,this)"><div class="dw">1W</div><div class="dl">7d</div></button>
-            <button class="dte-btn" id="dte-14" onclick="setDTE(14,this)"><div class="dw">2W</div><div class="dl">14d</div></button>
-            <button class="dte-btn" id="dte-21" onclick="setDTE(21,this)"><div class="dw">3W</div><div class="dl">21d</div></button>
-          </div>
-        </div>
-      </div>
-      <button class="go-btn" id="goBtn" onclick="analyze()">⚡ Analyze Strategies</button>
+  <div class="nd-ctrl">
+    <label class="nd-lbl">Active Ticker</label>
+    <div class="nd-ticker-grid" id="nd-ticker-grid"></div>
+    <div class="nd-custom-row">
+      <input type="text" id="nd-custom-inp" class="nd-tick-inp" placeholder="ADD SYMBOL" maxlength="6">
+      <button id="nd-add-btn" class="nd-add-btn">+</button>
+    </div>
+    <label class="nd-lbl">Capital Allocation</label>
+    <div class="nd-cap-wrap">
+      <span class="nd-cap-sym">$</span>
+      <input type="number" id="nd-capital" class="nd-cap-inp" value="10000" step="500" min="500">
+    </div>
+    <label class="nd-lbl">DTE</label>
+    <div class="nd-dte-grid">
+      <button id="nd-dte-7" class="nd-dte-btn active" onclick="ndSelectDte(7)">1 Week (7d)</button>
+      <button id="nd-dte-14" class="nd-dte-btn" onclick="ndSelectDte(14)">2 Weeks (14d)</button>
+      <button id="nd-dte-21" class="nd-dte-btn" onclick="ndSelectDte(21)">3 Weeks (21d)</button>
     </div>
   </div>
 
-</div><!-- end #stickyHeader -->
-
-<!-- SCROLLABLE CONTENT -->
-<div class="main">
-  <div class="err-box" id="errBox"></div>
-
-  <div class="loading" id="loadingBox">
-    <div class="spinner"></div>
-    <div class="loading-msg" id="loadingMsg">Fetching live data…</div>
-  </div>
-
-  <!-- VOL SIGNAL CARD — persists through analyze() -->
-  <div id="vol-signal-card" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+  <!-- Vol Signal -->
+  <div class="nd-vol-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:13px;font-weight:900;color:#0f172a;letter-spacing:.02em;">⚡ Volatility Signal</div>
+      <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ Volatility Signal</div>
       <div style="display:flex;gap:6px;">
-        <button onclick="runVolSignal('SPY')" id="vs-spy-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">SPY</button>
-        <button onclick="runVolSignal('QQQ')" id="vs-qqq-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">QQQ</button>
+        <button onclick="ndRunVolSignal('SPY')" id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
+        <button onclick="ndRunVolSignal('QQQ')" id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
       </div>
     </div>
-    <div id="vol-signal-body" style="font-size:13px;color:#64748b;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.01em;">Tap <strong style="color:#0f172a;">SPY</strong> or <strong style="color:#0f172a;">QQQ</strong> to run the volatility signal</div>
+    <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> to run the volatility signal</div>
   </div>
 
-  <!-- LANDING STATE -->
-  <div class="landing" id="landingBox">
-
-    <div class="landing-icon">📊</div>
-    <div class="landing-title">Options Strategy Analyzer</div>
-    <div class="landing-sub">Get instant P&amp;L analysis for Straddle, Strangle &amp; Iron Condor strategies with live pricing.</div>
-    <div class="landing-steps">
-      <div class="landing-step">
-        <div class="step-num">1</div>
-        <div class="step-txt"><strong>Set your Finnhub key</strong>Tap <strong>⚙️ Keys</strong> in the GammaEdge header above</div>
-      </div>
-      <div class="landing-step">
-        <div class="step-num">2</div>
-        <div class="step-txt"><strong>Pick a ticker &amp; expiry</strong>SPY, QQQ or any custom symbol</div>
-      </div>
-      <div class="landing-step">
-        <div class="step-num">3</div>
-        <div class="step-txt"><strong>Tap Analyze</strong>Live Greeks, breakevens &amp; exit plans</div>
-      </div>
+  <!-- Banner -->
+  <div class="nd-banner">
+    <div>
+      <div id="nd-disp-sym" class="nd-sym">SPY</div>
+      <div style="font-size:9px;color:#cbd5e1;font-weight:bold;margin-top:1px;" id="nd-disp-iv">IV: —</div>
+    </div>
+    <div style="text-align:right;">
+      <div id="nd-disp-price" class="nd-price">—</div>
+      <div id="nd-disp-chg" style="font-size:10px;font-weight:700;color:#34d399;">—</div>
     </div>
   </div>
 
-  <div class="results" id="resultsBox"></div>
+  <div class="nd-err" id="nd-err"></div>
+  <button class="nd-analyze-btn" id="nd-analyze-btn" onclick="ndRunAnalyze()">⚡ Analyze Strategies</button>
+
+  <div class="nd-loading" id="nd-loading">
+    <div class="nd-spinner"></div>
+    <div class="nd-loading-msg" id="nd-loading-msg">Fetching live data…</div>
+  </div>
+
+
+
+  <div id="nd-results" style="display:none;"></div>
+
+</div><!-- end nd-container -->
+
+<!-- Settings Modal -->
+<div id="nd-modal-overlay" class="nd-modal-overlay">
+  <div class="nd-modal">
+    <h3 style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:6px;text-transform:uppercase;">API Configuration</h3>
+    <p style="font-size:11px;color:#e2e8f0;line-height:1.4;margin-bottom:12px;">Enter your free Finnhub.io API key. Same key used across all GammaEdge tabs.</p>
+    <label class="nd-lbl" style="font-size:9px;">Finnhub API Token</label>
+    <input type="password" id="nd-api-inp" placeholder="e.g. c1234567890abcdefg" autocomplete="off">
+    <div class="nd-modal-actions">
+      <button class="nd-btn-sec" id="nd-modal-cancel">Cancel</button>
+      <button class="nd-btn-pri" id="nd-modal-save">Save Token</button>
+    </div>
+    <button class="nd-btn-danger" id="nd-engine-reset">Reset Terminal Data</button>
+  </div>
 </div>
 
 <script>
-var selTicker='SPY';
-var selDTE=7;
-var _liveData={};
-var _ivData={};
-var activeTab=0;
-var _hasResults=false;
+(function(){
+// ── STATE ──
+var ndTicker = 'SPY';
+var ndDte = 7;
+var ndHasResults = false;
+var ndWatchlist = [];
+var ndDefaults = ['SPY','QQQ','IWM','NVDA','AAPL','MSFT','AMZN','META','GOOG','TSLA'];
+var ndFallback = {
+  SPY:{price:560,change:0.42,iv:.145}, QQQ:{price:480,change:.65,iv:.185},
+  IWM:{price:210,change:.30,iv:.195}, NVDA:{price:127,change:2.1,iv:.44},
+  AAPL:{price:214,change:-.45,iv:.19}, MSFT:{price:412,change:.85,iv:.18},
+  AMZN:{price:189,change:1.2,iv:.225}, META:{price:498,change:2.4,iv:.295},
+  GOOG:{price:176,change:-1.1,iv:.21}, TSLA:{price:184,change:-5.3,iv:.46},
+  DEFAULT:{price:200,change:.5,iv:.25}
+};
 
-// ── INIT ──
-window.addEventListener('load',function(){
-  var fk=localStorage.getItem('ge_fh_key')||'';
-  if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
-  setTopbarH();
-  window.addEventListener('resize',setTopbarH);
-  if(window.ResizeObserver){
-    new ResizeObserver(setTopbarH).observe(document.getElementById('stickyHeader'));
-  }
-  if(fk) loadBannerQuotes();
-  setInterval(loadBannerQuotes, 60000);
-});
-
-function setTopbarH(){
-  // Everything sticky is inside #stickyHeader — measure it directly
-  var h=document.getElementById('stickyHeader').getBoundingClientRect().height;
-  document.documentElement.style.setProperty('--sticky-h',h+'px');
+// ── WATCHLIST ──
+function ndInitWatchlist(){
+  var s=localStorage.getItem('ge_watchlist');
+  ndWatchlist=s?JSON.parse(s):ndDefaults.slice();
+  if(!s)localStorage.setItem('ge_watchlist',JSON.stringify(ndWatchlist));
+  if(!ndWatchlist.includes(ndTicker))ndTicker=ndWatchlist[0]||'SPY';
+  ndRenderGrid();
 }
-
-// ── GEAR ──
-
-function selectFromBanner(sym){
-  selTicker=sym;
-  var presetBtn=document.getElementById('tp-'+sym);
-  if(presetBtn) selectPreset(sym,presetBtn);
-  document.querySelectorAll('.qc').forEach(function(c){c.classList.toggle('active',c.dataset.sym===sym);});
-}
-
-function toggleGear(){
-  document.getElementById('apiDrawer').classList.toggle('open');
-  setTimeout(setTopbarH,50);
-}
-function saveFhKey(){
-  var k=document.getElementById('fhKey').value.trim();
-  if(k){localStorage.setItem('ge_fh_key',k);updateFhStatus();loadBannerQuotes();}
-  document.getElementById('apiDrawer').classList.remove('open');
-  setTimeout(setTopbarH,50);
-}
-function updateFhStatus(){
-  var k=document.getElementById('fhKey').value.trim();
-  var s=document.getElementById('fhStatus');
-  if(k){s.textContent='✓ Key set';s.className='api-status ok';}
-  else{s.textContent='⚠️ No key set';s.className='api-status no';}
-}
-
-// ── TICKER ──
-function selectPreset(sym,btn){
-  selTicker=sym;
-  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
-  document.getElementById('tc-wrap').classList.remove('on');
-  btn.classList.add('on');
-  document.querySelectorAll('.qc').forEach(function(c){
-    c.classList.toggle('active',c.dataset.sym===sym);
+function ndRenderGrid(){
+  var g=document.getElementById('nd-ticker-grid'); if(!g)return; g.innerHTML='';
+  ndWatchlist.forEach(function(sym){
+    var b=document.createElement('button');
+    b.className='nd-tick-btn'+(sym===ndTicker?' active':'');
+    b.setAttribute('data-sym',sym);
+    b.innerHTML=sym+'<span class="nd-rmx" data-del="'+sym+'">×</span>';
+    g.appendChild(b);
   });
-  if(_hasResults){analyze();}
 }
-function selectCustom(){
-  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
-  document.getElementById('tc-wrap').classList.add('on');
-  var v=document.getElementById('customTick').value.trim().toUpperCase();
-  if(v) selTicker=v;
-  document.querySelectorAll('.qc').forEach(function(c){c.classList.remove('active');});
+function ndAddTicker(){
+  var inp=document.getElementById('nd-custom-inp');
+  var sym=inp.value.trim().toUpperCase(); if(!sym)return;
+  if(!ndWatchlist.includes(sym)){ndWatchlist.push(sym);localStorage.setItem('ge_watchlist',JSON.stringify(ndWatchlist));}
+  inp.value=''; ndSelectTicker(sym);
 }
-function onCustomInput(){
-  var v=document.getElementById('customTick').value.trim().toUpperCase();
-  document.getElementById('customTick').value=v;
-  if(v){selTicker=v;selectCustom();}
+function ndRemoveTicker(sym,e){
+  e.stopPropagation();
+  ndWatchlist=ndWatchlist.filter(function(s){return s!==sym;});
+  localStorage.setItem('ge_watchlist',JSON.stringify(ndWatchlist));
+  if(ndTicker===sym)ndTicker=ndWatchlist[0]||'SPY';
+  ndRenderGrid(); ndUpdateBanner();
 }
-
-// ── DTE ──
-function setDTE(d,btn){
-  selDTE=d;
-  document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
-  // Auto-analyze if results already showing
-  if(_hasResults){analyze();}
+function ndSelectTicker(sym){
+  ndTicker=sym;
+  if(!ndWatchlist.includes(sym)){ndWatchlist.push(sym);localStorage.setItem('ge_watchlist',JSON.stringify(ndWatchlist));}
+  ndRenderGrid(); ndUpdateBanner();
+  if(ndHasResults)ndRunAnalyze();
 }
-
-// ── BANNER ──
-async function loadBannerQuotes(){
-  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
-  try{
-    var syms=['SPY','QQQ'];
-    var results=await Promise.all(syms.map(function(s){
-      return fetch('https://finnhub.io/api/v1/quote?symbol='+s+'&token='+fk)
-        .then(function(r){return r.json();})
-        .then(function(d){return{sym:s,c:d.c,dp:d.dp};})
-        .catch(function(){return{sym:s,c:null};});
-    }));
-    var valid=results.filter(function(r){return r.c;});
-    if(!valid.length) return;
-    valid.forEach(function(r){_liveData[r.sym]=r;});
-    var banner=document.getElementById('quoteBanner');
-    var chips=document.getElementById('quoteChips');
-    var ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    chips.innerHTML=
-      '<div class="quote-banner-top">'
-      +valid.map(function(r){
-        var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
-        var sign=r.dp>0?'+':'';
-        var active=r.sym===selTicker?' active':'';
-        return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
-          +'<div class="qc-tick">'+r.sym+'</div>'
-          +'<div class="qc-price">$'+r.c.toFixed(2)+'</div>'
-          +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
-          +'</div>';
-      }).join('')
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
-      +'</div>';
-    banner.classList.add('loaded');
-    setTopbarH();
-  }catch(e){console.warn('banner quotes failed',e);}
+function ndSelectDte(d){
+  ndDte=d;
+  ['7','14','21'].forEach(function(x){document.getElementById('nd-dte-'+x).classList.toggle('active',parseInt(x)===d);});
+  if(ndHasResults)ndRunAnalyze();
 }
-
-// ── FINNHUB ──
-async function fetchTickerData(sym){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk){fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';} // fallback to demo key
-  var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
-  var q=await qRes.json();
-  if(!q||!q.c) throw new Error('No live data for '+sym+' — set your Finnhub key in ⚙️ Keys above for reliable quotes.');
-  var name=sym;
-  try{
-    var pRes=await fetch('https://finnhub.io/api/v1/stock/profile2?symbol='+sym+'&token='+fk);
-    var p=await pRes.json();
-    if(p&&p.name) name=p.name;
-  }catch(e){}
-  var iv=null;
-  try{
-    var today=new Date();
-    var expDate=new Date(today);
-    expDate.setDate(today.getDate()+selDTE);
-    var day=expDate.getDay();
-    var diff=day<=5?5-day:6;
-    expDate.setDate(expDate.getDate()+diff);
-    var oRes=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
-    var oData=await oRes.json();
-    if(oData&&oData.data&&oData.data.length){
-      var best=oData.data.reduce(function(a,b){
-        return Math.abs(new Date(b.expirationDate)-expDate)<Math.abs(new Date(a.expirationDate)-expDate)?b:a;
-      });
-      var spot=q.c;
-      var calls=(best.options||{}).CALL||[];
-      var atm=calls.reduce(function(a,b){
-        return Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a;
-      },{strike:0,impliedVolatility:0.3});
-      iv=atm.impliedVolatility||0.3;
-    }
-  }catch(e){iv=0.3;}
-  return {sym:sym,name:name,c:q.c,dp:q.dp,h:q.h,l:q.l,pc:q.pc,o:q.o,iv:iv||0.3};
+function ndUpdateBanner(){
+  document.getElementById('nd-disp-sym').innerText=ndTicker;
+  var fk=localStorage.getItem('ge_fh_key');
+  if(!fk){
+    var fb=ndFallback[ndTicker]||ndFallback.DEFAULT;
+    document.getElementById('nd-disp-price').innerText='$'+fb.price.toFixed(2);
+    document.getElementById('nd-disp-chg').innerText=(fb.change>=0?'+':'')+fb.change.toFixed(2)+'%';
+    document.getElementById('nd-disp-chg').style.color=fb.change>=0?'#34d399':'#f43f5e';
+    document.getElementById('nd-disp-iv').innerText='IV: ~'+(fb.iv*100).toFixed(1)+'% (est)';
+  }
+}
+function ndCheckToken(){
+  document.getElementById('nd-token-alert').style.display=localStorage.getItem('ge_fh_key')?'none':'block';
+}
+function ndToggleModal(show){
+  var o=document.getElementById('nd-modal-overlay');
+  if(show){document.getElementById('nd-api-inp').value=localStorage.getItem('ge_fh_key')||'';o.classList.add('active');}
+  else o.classList.remove('active');
+}
+function ndSaveKey(){
+  var v=document.getElementById('nd-api-inp').value.trim();
+  if(v)localStorage.setItem('ge_fh_key',v); else localStorage.removeItem('ge_fh_key');
+  ndToggleModal(false); ndCheckToken(); ndUpdateBanner();
 }
 
 // ── MATH ──
-function normCDF(x){
-  var t=1/(1+.2316419*Math.abs(x));
-  var d=.3989422820*Math.exp(-x*x/2);
-  var p=d*t*(.3193815+t*(-.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));
-  return x>=0?1-p:p;
-}
-function bsCall(S,K,T,r,v){
-  if(T<=0)return Math.max(S-K,0);
-  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
-  var d2=d1-v*Math.sqrt(T);
-  return S*normCDF(d1)-K*Math.exp(-r*T)*normCDF(d2);
-}
-function bsPut(S,K,T,r,v){
-  if(T<=0)return Math.max(K-S,0);
-  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
-  var d2=d1-v*Math.sqrt(T);
-  return K*Math.exp(-r*T)*normCDF(-d2)-S*normCDF(-d1);
-}
-function roundStrike(s,spacing){return Math.round(s/spacing)*spacing;}
-function strikeSpacing(price){
-  if(price<20)return 0.5;
-  if(price<50)return 1;
-  if(price<100)return 2;
-  if(price<200)return 5;
-  if(price<500)return 5;
-  return 10;
-}
-function fmt$(n){return'$'+Math.abs(n).toFixed(2);}
-function fmtSign(n){return(n>=0?'+':'-')+'$'+Math.abs(n).toFixed(2);}
-function fmtPct(n){return(n>=0?'+':'')+n.toFixed(1)+'%';}
+function ndNcdf(x){var t=1/(1+.2316419*Math.abs(x));var d=.3989422820*Math.exp(-x*x/2);var p=d*t*(.3193815+t*(-.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));return x>=0?1-p:p;}
+function ndBsC(S,K,T,r,v){if(T<=0)return Math.max(S-K,0);var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));var d2=d1-v*Math.sqrt(T);return S*ndNcdf(d1)-K*Math.exp(-r*T)*ndNcdf(d2);}
+function ndBsP(S,K,T,r,v){if(T<=0)return Math.max(K-S,0);var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));var d2=d1-v*Math.sqrt(T);return K*Math.exp(-r*T)*ndNcdf(-d2)-S*ndNcdf(-d1);}
+function ndRndK(s,sp){return Math.round(s/sp)*sp;}
+function ndSp(p){if(p<20)return .5;if(p<50)return 1;if(p<100)return 2;if(p<500)return 5;return 10;}
+function ndPct(n){return(n>=0?'+':'')+n.toFixed(1)+'%';}
+function ndExpiry(){var d=new Date();d.setDate(d.getDate()+ndDte);var dy=d.getDay();d.setDate(d.getDate()+(dy<=5?5-dy:6));return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 
-function getExpiry(){
-  var d=new Date();
-  d.setDate(d.getDate()+selDTE);
-  var day=d.getDay();
-  var diff=day<=5?5-day:6;
-  d.setDate(d.getDate()+diff);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+// ── FETCH ──
+async function ndFetch(sym){
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fk)throw new Error('No Finnhub key — tap ⚙️ to add your free key.');
+  var q=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();});
+  if(!q||!q.c)throw new Error('No quote for '+sym+'. Check your Finnhub key.');
+  document.getElementById('nd-disp-sym').innerText=sym;
+  document.getElementById('nd-disp-price').innerText='$'+q.c.toFixed(2);
+  document.getElementById('nd-disp-chg').innerText=(q.dp>=0?'+':'')+q.dp.toFixed(2)+'%';
+  document.getElementById('nd-disp-chg').style.color=q.dp>=0?'#34d399':'#f43f5e';
+  var iv=null;
+  try{
+    var oData=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk).then(function(r){return r.json();});
+    if(oData&&oData.data&&oData.data.length){
+      var exp=new Date();exp.setDate(exp.getDate()+ndDte);var dy=exp.getDay();exp.setDate(exp.getDate()+(dy<=5?5-dy:6));
+      var best=oData.data.reduce(function(a,b){return Math.abs(new Date(b.expirationDate)-exp)<Math.abs(new Date(a.expirationDate)-exp)?b:a;});
+      var calls=((best.options||{}).CALL||[]);
+      var atm=calls.reduce(function(a,b){return Math.abs(b.strike-q.c)<Math.abs(a.strike-q.c)?b:a;},{strike:0,impliedVolatility:.3});
+      iv=atm.impliedVolatility||.3;
+    }
+  }catch(e){iv=(ndFallback[sym]||ndFallback.DEFAULT).iv;}
+  if(!iv)iv=(ndFallback[sym]||ndFallback.DEFAULT).iv;
+  document.getElementById('nd-disp-iv').innerText='IV: '+(iv*100).toFixed(1)+'%';
+  return{sym:sym,c:q.c,dp:q.dp,iv:iv};
 }
 
 // ── COMPUTE ──
-function computeStrategies(d){
-  var S=d.c, iv=d.iv, T=selDTE/365, r=0.045;
-  var sp=strikeSpacing(S);
-  var K=roundStrike(S,sp);
-  var stdMove=S*iv*Math.sqrt(T);
-  var Kc=roundStrike(S+stdMove*0.5,sp);
-  var Kp=roundStrike(S-stdMove*0.5,sp);
-  var Kcc=roundStrike(S+stdMove*1.0,sp);
-  var Kpp=roundStrike(S-stdMove*1.0,sp);
-
-  var atmCall=bsCall(S,K,T,r,iv);
-  var atmPut=bsPut(S,K,T,r,iv);
-  var otmCall=bsCall(S,Kc,T,r,iv);
-  var otmPut=bsPut(S,Kp,T,r,iv);
-  var farCall=bsCall(S,Kcc,T,r,iv);
-  var farPut=bsPut(S,Kpp,T,r,iv);
-
-  var straddleCost=(atmCall+atmPut)*100;
-  var straddleBEup=K+atmCall+atmPut;
-  var straddleBEdn=K-atmCall-atmPut;
-  var straddleMaxLoss=-straddleCost;
-
-  var strangleCost=(otmCall+otmPut)*100;
-  var strangleBEup=Kc+otmCall+otmPut;
-  var strangleBEdn=Kp-otmCall-otmPut;
-  var strangleMaxLoss=-strangleCost;
-
-  var condorCredit=((otmCall-farCall)+(otmPut-farPut))*100;
-  var condorWingW=(Kcc-Kc)*100;
-  var condorMaxLoss=-(condorWingW-condorCredit);
-  var condorMaxGain=condorCredit;
-  var condorBEup=Kc+otmCall-farCall+otmPut-farPut;
-  var condorBEdn=Kp-(otmCall-farCall)-(otmPut-farPut);
-
-  // Bull Call Spread — buy ATM call, sell OTM call
-  var bcNetDebit = atmCall - otmCall;
-  var bcMaxGain  = (Kc - K - bcNetDebit) * 100;
-  var bcMaxLoss  = bcNetDebit * 100;
-  var bcBE       = K + bcNetDebit;
-
-  // Bear Put Spread — buy ATM put, sell OTM put
-  var bpNetDebit = atmPut - otmPut;
-  var bpMaxGain  = (K - Kp - bpNetDebit) * 100;
-  var bpMaxLoss  = bpNetDebit * 100;
-  var bpBE       = K - bpNetDebit;
-
-  return{
-    spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
-    straddle:{
-      name:'Straddle', icon:'🎯', tag:'Neutral · High IV Play',
-      tagColor:'#0369a1', tagBg:'#e0f2fe', iconBg:'#e0f2fe',
-      cost:straddleCost, maxGain:null, maxLoss:straddleMaxLoss,
-      BEup:straddleBEup, BEdn:straddleBEdn, netCredit:false,
-      legs:[
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Call',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Put',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmPut},
-      ],
-      thesis:'Profits from a large move in either direction. Best when you expect volatility but are directionally neutral. Max loss is the premium paid if '+d.sym+' stays pinned at $'+K+' through expiry.',
-      scoreVol:85, scoreRisk:40, scoreProb:35,
-      exit:{
-        profitTarget:'50% of max gain',
-        profitDetail:'Close when combined premium doubles (sell both legs for 2× cost).',
-        stopLoss:'100% of debit paid',
-        stopDetail:'Exit if position value hits zero — full premium lost.',
-        timeTrigger:Math.round(selDTE*0.5)+' DTE (halfway)',
-        timeDetail:'Close or roll if still at a loss at half-life to avoid theta bleed.',
-        rollTrigger:'Spot moves >'+fmtPct(stdMove/S*100*0.8)+' in one direction',
-        rollDetail:'Consider closing the winning leg and rolling the losing leg closer to spot.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Take profit at 50% gain</strong> — options are priced for uncertainty; lock in when the move happens fast.'},
-          {color:'#dc2626',text:'<strong>Hard stop at 2× debit</strong> — if the position doubles your cost before the move, exit to preserve capital.'},
-          {color:'#2563eb',text:'<strong>Avoid holding through expiry</strong> — gamma exposure accelerates losses in the final 2 DTE if spot is near $'+K+'.'},
-          {color:'#d97706',text:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close immediately even without a large price move.'},
-        ]
-      }
-    },
-    strangle:{
-      name:'Strangle', icon:'📐', tag:'Wider Wings · Cheaper Entry',
-      tagColor:'#2563eb', tagBg:'#dbeafe', iconBg:'#dbeafe',
-      cost:strangleCost, maxGain:null, maxLoss:strangleMaxLoss,
-      BEup:strangleBEup, BEdn:strangleBEdn, netCredit:false,
-      legs:[
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'OTM Call',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'OTM Put',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-      ],
-      thesis:'Cheaper than a straddle but needs a bigger move to profit. Long call at $'+Kc+', long put at $'+Kp+'. Breakevens are wider — requires ~'+fmtPct(Math.abs(strangleBEup-S)/S*100)+' up or '+fmtPct(Math.abs(strangleBEdn-S)/S*100)+' down.',
-      scoreVol:75, scoreRisk:50, scoreProb:28,
-      exit:{
-        profitTarget:'100% of debit (double your money)',
-        profitDetail:'Close at 2× cost — OTM options can expand rapidly on a strong move.',
-        stopLoss:'50% of debit paid',
-        stopDetail:'Exit if position loses half its value. OTM decay accelerates fast.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE (60% through)',
-        timeDetail:'Theta decay accelerates on OTM options. Exit by 40% of DTE remaining.',
-        rollTrigger:'Spot clears $'+Kc.toFixed(0)+' or breaks $'+Kp.toFixed(0),
-        rollDetail:'Convert the in-the-money leg to a debit spread to bank partial profit.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Target 100% return</strong> — the lower cost basis means bigger % gains are needed to overcome the wider breakevens.'},
-          {color:'#dc2626',text:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; a half-loss stop preserves most of your capital.'},
-          {color:'#2563eb',text:'<strong>Exit well before '+Math.round(selDTE*0.4)+' DTE</strong> — both options will be near-worthless if spot hasn\'t moved by then.'},
-          {color:'#d97706',text:'<strong>Leg out on big moves</strong> — sell the profitable leg first and let the other run if the move is very strong.'},
-        ]
-      }
-    },
-    condor:{
-      name:'Iron Condor', icon:'🦅', tag:'Income · Range Bound',
-      tagColor:'#d97706', tagBg:'#fef3c7', iconBg:'#fef3c7',
-      cost:-condorCredit, maxGain:condorMaxGain, maxLoss:condorMaxLoss,
-      BEup:condorBEup, BEdn:condorBEdn, netCredit:true,
-      creditReceived:condorCredit, wingWidth:(Kcc-Kc),
-      legs:[
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'Far OTM Call (hedge)',sub:'Strike $'+Kcc+' · Exp '+getExpiry(),price:farCall},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'Far OTM Put (hedge)',sub:'Strike $'+Kpp+' · Exp '+getExpiry(),price:farPut},
-      ],
-      thesis:'Collect premium by selling the $'+Kp+'/$'+Kc+' strangle, hedged with long $'+Kpp+'/$'+Kcc+' wings. Max gain if '+d.sym+' stays between $'+Kp+' and $'+Kc+' through expiry.',
-      scoreVol:30, scoreRisk:75, scoreProb:65,
-      exit:{
-        profitTarget:'50% of credit received ($'+(condorCredit*0.5).toFixed(2)+')',
-        profitDetail:'Buy back the spread for half the credit. Most of the edge is captured quickly.',
-        stopLoss:'2× credit received ($'+(condorCredit*2).toFixed(2)+')',
-        stopDetail:'If the spread widens to 2× your credit, close before max loss is reached.',
-        timeTrigger:'7 DTE (expiry week)',
-        timeDetail:'Close all legs in expiry week to avoid pin risk and gamma spikes.',
-        rollTrigger:'Spot within '+sp+' pts of $'+Kc.toFixed(0)+' or $'+Kp.toFixed(0),
-        rollDetail:'Roll the threatened short strike 1–2 strikes further OTM, or close that wing entirely.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Take profit at 50% credit</strong> — collect $'+(condorCredit*0.5).toFixed(2)+' and close. The remaining 50% isn\'t worth the added risk.'},
-          {color:'#dc2626',text:'<strong>Stop if spread = 2× credit</strong> — defined risk doesn\'t mean hold to max loss. Cut at $'+(condorCredit*2).toFixed(2)+' debit to close.'},
-          {color:'#2563eb',text:'<strong>Always close before expiry week</strong> — short gamma in the final days can move against you violently even on small price swings.'},
-          {color:'#d97706',text:'<strong>Roll the untested side</strong> — if one wing is threatened, roll the opposite (safe) short strike closer to collect more credit and re-center.'},
-        ]
-      }
-    },
-    bullCall:{
-      name:'Bull Call Spread', icon:'🟢', tag:'Bullish · Defined Risk',
-      tagColor:'#15803d', tagBg:'#dcfce7', iconBg:'#dcfce7',
-      cost:bcMaxLoss, maxGain:bcMaxGain, maxLoss:-bcMaxLoss,
-      BEup:bcBE, BEdn:null, netCredit:false,
-      legs:[
-        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Call (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmCall},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-      ],
-      thesis:'Bullish play with defined risk. Pay $'+bcNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' rallies above $'+bcBE.toFixed(2)+'. Max gain $'+bcMaxGain.toFixed(0)+' if '+d.sym+' closes at or above $'+Kc.toFixed(0)+' at expiry.',
-      scoreVol:40, scoreRisk:70, scoreProb:45,
-      exit:{
-        profitTarget:'75–100% of max gain ($'+( bcMaxGain*0.75).toFixed(0)+'–$'+bcMaxGain.toFixed(0)+')',
-        profitDetail:'Close the spread when it approaches max value — the short call caps further gain.',
-        stopLoss:'50% of debit paid ($'+(bcMaxLoss*0.5).toFixed(0)+')',
-        stopDetail:'Exit if the spread loses half its cost. Directional thesis is likely wrong.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
-        timeDetail:'Exit if the move has not materialized by 40% of DTE remaining to recover theta.',
-        rollTrigger:d.sym+' stalls below $'+K.toFixed(0),
-        rollDetail:'Roll the long call strike closer to spot if the stock consolidates near entry.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Need '+d.sym+' above $'+bcBE.toFixed(2)+' to profit</strong> — confirm bullish momentum before entry.'},
-          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bcMaxLoss.toFixed(0)+')</strong> — no further risk, but full loss if stock stays flat or drops.'},
-          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% of gain requires the stock to pin exactly at $'+Kc.toFixed(0)+'.'},
-          {color:'#d97706',text:'<strong>Best in rising IV environment</strong> — entering before a catalyst gives the long call extra vega support.'},
-        ]
-      }
-    },
-    bearPut:{
-      name:'Bear Put Spread', icon:'🔴', tag:'Bearish · Defined Risk',
-      tagColor:'#dc2626', tagBg:'#fee2e2', iconBg:'#fee2e2',
-      cost:bpMaxLoss, maxGain:bpMaxGain, maxLoss:-bpMaxLoss,
-      BEup:null, BEdn:bpBE, netCredit:false,
-      legs:[
-        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Put (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmPut},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-      ],
-      thesis:'Bearish play with defined risk. Pay $'+bpNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' drops below $'+bpBE.toFixed(2)+'. Max gain $'+bpMaxGain.toFixed(0)+' if '+d.sym+' closes at or below $'+Kp.toFixed(0)+' at expiry.',
-      scoreVol:40, scoreRisk:70, scoreProb:42,
-      exit:{
-        profitTarget:'75–100% of max gain ($'+(bpMaxGain*0.75).toFixed(0)+'–$'+bpMaxGain.toFixed(0)+')',
-        profitDetail:'Close the spread when it approaches max value — the short put caps further gain.',
-        stopLoss:'50% of debit paid ($'+(bpMaxLoss*0.5).toFixed(0)+')',
-        stopDetail:'Exit if the spread loses half its cost. The bearish thesis is likely wrong.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
-        timeDetail:'Exit if the stock has not moved down by 40% of DTE remaining.',
-        rollTrigger:d.sym+' rebounds above $'+K.toFixed(0),
-        rollDetail:'Close immediately if the stock reclaims the long put strike — trend has reversed.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Need '+d.sym+' below $'+bpBE.toFixed(2)+' to profit</strong> — confirm bearish momentum or catalyst before entry.'},
-          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bpMaxLoss.toFixed(0)+')</strong> — defined risk, but full loss if stock stays flat or rises.'},
-          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires the stock to pin at or below $'+Kp.toFixed(0)+'.'},
-          {color:'#d97706',text:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers the debit cost and improves the reward ratio.'},
-        ]
-      }
-    }
-  };
-}
-
-// ── ANALYZE ──
-async function analyze(){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk){
-    document.getElementById('apiDrawer').classList.add('open');
-    setTimeout(setTopbarH,50);
-    document.getElementById('fhKey').focus();
-    fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0'; // use demo key as fallback
-  }
-  document.getElementById('errBox').style.display='none';
-  document.getElementById('resultsBox').style.display='none';
-  document.getElementById('loadingBox').style.display='block';
-  var lb=document.getElementById('landingBox');
-  if(lb) lb.style.display='none';
-  document.getElementById('goBtn').disabled=true;
-  document.getElementById('loadingMsg').textContent='📡 Fetching '+selTicker+' live data…';
-  try{
-    var data=await fetchTickerData(selTicker);
-    _liveData[selTicker]=data;
-    var strats=computeStrategies(data);
-    render(data,strats);
-  }catch(e){
-    showErr(e.message||'Failed to fetch data. Check ticker and Finnhub key.');
-  }finally{
-    document.getElementById('loadingBox').style.display='none';
-    document.getElementById('goBtn').disabled=false;
-  }
-}
-
-function reAnalyze(){
-  document.getElementById('resultsBox').style.display='none';
-  loadBannerQuotes();
-  analyze();
-}
-
-function showErr(m){
-  var el=document.getElementById('errBox');
-  el.innerHTML='⚠️ '+m;el.style.display='block';
-  document.getElementById('loadingBox').style.display='none';
-  document.getElementById('goBtn').disabled=false;
-}
-
-// ── TABS ──
-function switchTab(idx){
-  activeTab=idx;
-  document.querySelectorAll('.strat-tab').forEach(function(t,i){
-    t.classList.toggle('active',i===idx);
-  });
-  document.querySelectorAll('.strat-panel').forEach(function(p,i){
-    p.classList.toggle('active',i===idx);
-  });
-
+function ndCompute(d,cap){
+  var S=d.c,iv=d.iv,T=ndDte/365,r=.045,sp=ndSp(S);
+  var K=ndRndK(S,sp),stdM=S*iv*Math.sqrt(T);
+  var Kc=ndRndK(S+stdM*.5,sp),Kp=ndRndK(S-stdM*.5,sp);
+  var Kcc=ndRndK(S+stdM*1,sp),Kpp=ndRndK(S-stdM*1,sp);
+  var exp=ndExpiry();
+  var aC=ndBsC(S,K,T,r,iv),aP=ndBsP(S,K,T,r,iv);
+  var oC=ndBsC(S,Kc,T,r,iv),oP=ndBsP(S,Kp,T,r,iv);
+  var fC=ndBsC(S,Kcc,T,r,iv),fP=ndBsP(S,Kpp,T,r,iv);
+  var stC=(aC+aP)*100,stN=Math.max(0,Math.floor(cap/stC));
+  var sgC=(oC+oP)*100,sgN=Math.max(0,Math.floor(cap/sgC));
+  var icCr=((oC-fC)+(oP-fP))*100,icML=-((Kcc-Kc)*100-icCr),icN=Math.max(0,Math.floor(cap/Math.abs(icML)));
+  var bcD=aC-oC,bcC=bcD*100,bcG=(Kc-K-bcD)*100,bcN=Math.max(0,Math.floor(cap/bcC));
+  var bpD=aP-oP,bpC=bpD*100,bpG=(K-Kp-bpD)*100,bpN=Math.max(0,Math.floor(cap/bpC));
+  return[
+    {name:'Straddle',icon:'🎯',cost:stC,maxGain:null,maxLoss:-stC,netCredit:false,contracts:stN,totalRisk:stN*stC,BEup:K+aC+aP,BEdn:K-aC-aP,
+     legs:[{a:'BUY',cls:'buy',desc:'ATM Call',sub:'$'+K+' · '+exp,p:aC},{a:'BUY',cls:'buy',desc:'ATM Put',sub:'$'+K+' · '+exp,p:aP}],
+     sV:85,sR:40,sP:35,
+     thesis:'Profits from a large move in either direction. Max loss is premium paid if '+d.sym+' stays pinned near $'+K+' through expiry.',
+     exit:{pt:'50% of premium paid',pd:'Close when the position gains 50% of cost. Locking in early beats fighting theta.',
+           sl:'50% of debit paid',sd:'If the straddle loses half its value, the "big move" thesis is wrong — exit and redeploy.',
+           tt:Math.round(ndDte*.5)+' DTE (half-life)',td:'Close or roll at half-life if still at a loss. Theta accelerates rapidly near expiry.',
+           rt:'Spot moves >'+ndPct(stdM/S*80)+' in one direction',rd:'Close the winning leg and roll the losing leg closer to spot.',
+           rules:[{c:'#34d399',t:'<strong>Target 50% gain</strong> — lock in when the move materializes; don't wait for a perfect exit.'},
+                  {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — if the straddle loses half before expiry, the thesis has failed.'},
+                  {c:'#38bdf8',t:'<strong>Never hold to expiry</strong> — gamma risk explodes in the final 2 DTE near $'+K+'.'},
+                  {c:'#fbbf24',t:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close even without a price move.'}]}},
+    {name:'Strangle',icon:'📐',cost:sgC,maxGain:null,maxLoss:-sgC,netCredit:false,contracts:sgN,totalRisk:sgN*sgC,BEup:Kc+oC+oP,BEdn:Kp-oC-oP,
+     legs:[{a:'BUY',cls:'buy',desc:'OTM Call',sub:'$'+Kc+' · '+exp,p:oC},{a:'BUY',cls:'buy',desc:'OTM Put',sub:'$'+Kp+' · '+exp,p:oP}],
+     sV:75,sR:50,sP:28,
+     thesis:'Cheaper than a straddle but needs a bigger move. Call at $'+Kc+', put at $'+Kp+'. Requires ~'+ndPct(Math.abs(Kc+oC+oP-S)/S*100)+' up or '+ndPct(Math.abs(Kp-oC-oP-S)/S*100)+' down to break even.',
+     exit:{pt:'100% of debit (2× your money)',pd:'OTM options can expand rapidly on a strong move — target 2× cost.',
+           sl:'50% of debit paid',sd:'Exit if position loses half its value. OTM theta decay accelerates fast — don't let it go to zero.',
+           tt:Math.round(ndDte*.4)+' DTE (60% through)',td:'Both legs will be near-worthless if spot hasn't moved. Exit to salvage remaining value.',
+           rt:'Spot clears $'+Kc+' or breaks $'+Kp,rd:'Sell the in-the-money leg into strength and let the other run.',
+           rules:[{c:'#34d399',t:'<strong>Target 100% return</strong> — wider breakevens mean bigger % gains needed.'},
+                  {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; half-loss stop preserves capital.'},
+                  {c:'#38bdf8',t:'<strong>Exit before '+Math.round(ndDte*.4)+' DTE</strong> — time is your enemy once the move fails.'},
+                  {c:'#fbbf24',t:'<strong>Leg out on big moves</strong> — sell the profitable leg first and hold the other if momentum continues.'}]}},
+    {name:'Iron Condor',icon:'🦅',cost:-icCr,maxGain:icCr,maxLoss:icML,netCredit:true,creditReceived:icCr,contracts:icN,totalRisk:icN*Math.abs(icML),BEup:Kc+(oC-fC+oP-fP),BEdn:Kp-(oC-fC+oP-fP),
+     legs:[{a:'SELL',cls:'sell',desc:'OTM Call (short)',sub:'$'+Kc+' · '+exp,p:oC},{a:'BUY',cls:'buy',desc:'Far OTM Call (wing)',sub:'$'+Kcc+' · '+exp,p:fC},
+           {a:'SELL',cls:'sell',desc:'OTM Put (short)',sub:'$'+Kp+' · '+exp,p:oP},{a:'BUY',cls:'buy',desc:'Far OTM Put (wing)',sub:'$'+Kpp+' · '+exp,p:fP}],
+     sV:30,sR:75,sP:65,
+     thesis:'Collect premium selling the $'+Kp+'/$'+Kc+' strangle, hedged with $'+Kpp+'/$'+Kcc+' wings. Max gain if '+d.sym+' stays between $'+Kp+' and $'+Kc+'.',
+     exit:{pt:'50% of credit ($'+(icCr*.5).toFixed(2)+')',pd:'Buy back the spread at half credit. Most edge is captured early.',
+           sl:'2× credit ($'+(icCr*2).toFixed(2)+')',sd:'If spread widens to 2× your credit, close before max loss.',
+           tt:'7 DTE (expiry week)',td:'Close all legs in expiry week to avoid pin risk and gamma spikes.',
+           rt:'Spot within '+sp+' pts of $'+Kc+' or $'+Kp,rd:'Roll the threatened short strike further OTM or close that wing.',
+           rules:[{c:'#34d399',t:'<strong>Take profit at 50% credit</strong> — the remaining 50% isn't worth the gamma risk.'},
+                  {c:'#f43f5e',t:'<strong>Stop at 2× credit</strong> — cut at $'+(icCr*2).toFixed(2)+' debit well before max loss.'},
+                  {c:'#38bdf8',t:'<strong>Close before expiry week</strong> — short gamma in final days can move violently.'},
+                  {c:'#fbbf24',t:'<strong>Roll the untested side</strong> — tighten the safe short to collect more credit.'}]}},
+    {name:'Bull Call',icon:'🟢',cost:bcC,maxGain:bcG,maxLoss:-bcC,netCredit:false,contracts:bcN,totalRisk:bcN*bcC,BEup:K+bcD,BEdn:null,
+     legs:[{a:'BUY',cls:'buy',desc:'ATM Call (long)',sub:'$'+K+' · '+exp,p:aC},{a:'SELL',cls:'sell',desc:'OTM Call (short)',sub:'$'+Kc+' · '+exp,p:oC}],
+     sV:40,sR:70,sP:45,
+     thesis:'Bullish play with defined risk. Pay $'+bcD.toFixed(2)+'/share to profit if '+d.sym+' rallies above $'+(K+bcD).toFixed(2)+'. Max gain $'+bcG.toFixed(0)+' if '+d.sym+' closes at or above $'+Kc+'.',
+     exit:{pt:'75% of max gain ($'+(bcG*.75).toFixed(0)+')',pd:'Close when spread approaches max value — the short call caps further gain.',
+           sl:'50% of debit ($'+(bcC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bullish thesis likely wrong.',
+           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the move hasn't materialized by 40% DTE remaining.',
+           rt:d.sym+' stalls below $'+K,rd:'Roll the long call closer to spot if the stock consolidates near entry.',
+           rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' above $'+(K+bcD).toFixed(2)+'</strong> — confirm bullish momentum first.'},
+                  {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bcC.toFixed(0)+')</strong> — full loss if stock stays flat or drops.'},
+                  {c:'#38bdf8',t:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires exact pin at $'+Kc+'.'},
+                  {c:'#fbbf24',t:'<strong>Best before a catalyst</strong> — entering pre-event gives extra vega support.'}]}},
+    {name:'Bear Put',icon:'🔴',cost:bpC,maxGain:bpG,maxLoss:-bpC,netCredit:false,contracts:bpN,totalRisk:bpN*bpC,BEup:null,BEdn:K-bpD,
+     legs:[{a:'BUY',cls:'buy',desc:'ATM Put (long)',sub:'$'+K+' · '+exp,p:aP},{a:'SELL',cls:'sell',desc:'OTM Put (short)',sub:'$'+Kp+' · '+exp,p:oP}],
+     sV:40,sR:70,sP:42,
+     thesis:'Bearish play with defined risk. Pay $'+bpD.toFixed(2)+'/share to profit if '+d.sym+' drops below $'+(K-bpD).toFixed(2)+'. Max gain $'+bpG.toFixed(0)+' if '+d.sym+' closes at or below $'+Kp+'.',
+     exit:{pt:'75% of max gain ($'+(bpG*.75).toFixed(0)+')',pd:'Close when spread approaches max value — the short put caps further gain.',
+           sl:'50% of debit ($'+(bpC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bearish thesis likely wrong.',
+           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the stock hasn't moved down by 40% DTE remaining.',
+           rt:d.sym+' rebounds above $'+K,rd:'Close immediately if stock reclaims the long put strike.',
+           rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' below $'+(K-bpD).toFixed(2)+'</strong> — confirm bearish catalyst first.'},
+                  {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bpC.toFixed(0)+')</strong> — full loss if stock stays flat or rises.'},
+                  {c:'#38bdf8',t:'<strong>Close at 75%+ of max gain</strong> — last 25% requires pin at or below $'+Kp+'.'},
+                  {c:'#fbbf24',t:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers debit cost.'}]}}
+  ];
 }
 
 // ── RENDER ──
-function render(d,s){
-  var ivPct=(d.iv*100).toFixed(1);
-  var chgCls=d.dp>0?'up':'dn';
-  var sign=d.dp>0?'+':'';
-  var stdPct=(s.straddle.stdMove/d.c*100).toFixed(1);
-  var _ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-
-  var h='';
-
-  // Ticker header
-  h+='<div class="ticker-hdr">'
-    +'<div class="th-row1">'
-    +'<div><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
-    +'<div><div class="th-price">$'+d.c.toFixed(2)+'</div>'
-    +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
-    +'<div class="th-iv">IV '+ivPct+'%</div></div>'
-    +'</div>'
-    +'<div class="th-pills">'
-    +'<div class="th-pill"><div class="th-pill-l">DTE</div><div class="th-pill-v">'+selDTE+'d</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">IV</div><div class="th-pill-v">'+ivPct+'%</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">±Move</div><div class="th-pill-v">'+stdPct+'%</div></div>'
-    +'</div>'
-    +'<div class="th-footer">'
-    +'<div class="th-ts">📡 Live · '+_ts+'</div>'
-    +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
-    +'</div>'
-    +'</div>';
-
-  // Tab container
-  var strats=[s.straddle,s.strangle,s.condor,s.bullCall,s.bearPut];
-
-  // Tab bar
-  h+='<div class="strat-tabs-wrap">'
-    +'<div class="strat-tab-bar">';
-  strats.forEach(function(st,i){
-    var topVal=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
-    var topCls=st.netCredit?'#16a34a':'#dc2626';
-    h+='<button class="strat-tab'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'
-      +'<div class="strat-tab-icon">'+st.icon+'</div>'
-      +'<div class="strat-tab-name">'+st.name+'</div>'
-      +'<div class="strat-tab-pl" style="color:'+topCls+'">'+topVal+'</div>'
-      +'</button>';
-  });
-  h+='</div>'; // end tab bar
-
-  // Tab panels
-  strats.forEach(function(st,i){
-    h+='<div class="strat-panel'+(i===activeTab?' active':'')+'" id="panel-'+i+'">';
-
-    // P&L grid
-    h+='<div class="pl-grid">'
-      +(st.netCredit
-        ?'<div class="pl-cell"><div class="pl-cell-l">Credit In</div><div class="pl-cell-v pos">+$'+st.creditReceived.toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
-        :'<div class="pl-cell"><div class="pl-cell-l">Cost / Contract</div><div class="pl-cell-v neg">-$'+Math.abs(st.cost).toFixed(2)+'</div><div class="pl-cell-sub">debit paid</div></div>')
-      +'<div class="pl-cell"><div class="pl-cell-l">Max Gain</div><div class="pl-cell-v pos">'+(st.maxGain===null?'Unlimited':'+$'+st.maxGain.toFixed(2))+'</div><div class="pl-cell-sub">per contract</div></div>'
-      +'<div class="pl-cell"><div class="pl-cell-l">Max Loss</div><div class="pl-cell-v neg">-$'+Math.abs(st.maxLoss).toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
-      +'</div>';
-
-    // Breakevens
-    h+='<div class="be-section">'
-      +'<div class="be-lbl">Breakeven Prices</div>'
-      +'<div class="be-row">'
-      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+(st.BEdn||0).toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct(((st.BEdn||d.c)-d.c)/d.c*100)+'</div></div>':'')
-      +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+(st.BEup||0).toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct(((st.BEup||d.c)-d.c)/d.c*100)+'</div></div>':'')
-      +'</div></div>';
-
-    // Legs
-    h+='<div class="legs-section">'
-      +'<div class="legs-lbl">Position Legs</div>'
-      +st.legs.map(function(lg){
-        return '<div class="leg" style="background:'+lg.legBg+';border:1px solid '+lg.actionBg+'">'
-          +'<div class="leg-l"><span class="leg-action" style="background:'+lg.actionBg+';color:'+lg.actionC+'">'+lg.action+'</span>'
-          +'<div><div class="leg-desc">'+lg.desc+'</div><div class="leg-sub">'+lg.sub+'</div></div></div>'
-          +'<div class="leg-price">$'+lg.price.toFixed(2)+'</div>'
-          +'</div>';
-      }).join('')
-      +'</div>';
-
-    // Scores
-    h+='<div class="score-section">'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
-      +scoreBar('Vol Needed',st.scoreVol,'#0369a1')
-      +scoreBar('Risk Defined',st.scoreRisk,'#16a34a')
-      +scoreBar('Win Prob',st.scoreProb,'#2563eb')
-      +'</div></div>';
-
-    // Thesis
-    h+='<div class="thesis-section">'
-      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Strategy Notes</div>'
-      +'<div class="thesis-txt">'+st.thesis+'</div>'
-      +'</div>';
-
-    // Exit Strategy
-    var ex=st.exit;
-    h+='<div class="exit-section">'
-      +'<div class="exit-hdr"><span class="exit-icon">🚪</span><span class="exit-title">Exit Strategy</span></div>'
-      +'<div class="exit-grid">'
-      +'<div class="exit-card profit"><div class="exit-card-label">✅ Profit Target</div><div class="exit-card-val">'+ex.profitTarget+'</div><div class="exit-card-sub">'+ex.profitDetail+'</div></div>'
-      +'<div class="exit-card loss"><div class="exit-card-label">🛑 Stop Loss</div><div class="exit-card-val">'+ex.stopLoss+'</div><div class="exit-card-sub">'+ex.stopDetail+'</div></div>'
-      +'<div class="exit-card time"><div class="exit-card-label">⏱ Time Exit</div><div class="exit-card-val">'+ex.timeTrigger+'</div><div class="exit-card-sub">'+ex.timeDetail+'</div></div>'
-      +'<div class="exit-card roll"><div class="exit-card-label">🔄 Roll Trigger</div><div class="exit-card-val">'+ex.rollTrigger+'</div><div class="exit-card-sub">'+ex.rollDetail+'</div></div>'
-      +'</div>'
-      +'<div class="exit-rules">'
-      +ex.rules.map(function(r){
-        return '<div class="exit-rule">'
-          +'<div class="exit-rule-dot" style="background:'+r.color+'"></div>'
-          +'<div class="exit-rule-txt">'+r.text+'</div>'
-          +'</div>';
-      }).join('')
-      +'</div>'
-      +'</div>';
-
-    h+='</div>'; // end panel
-  });
-
-  h+='</div>'; // end strat-tabs-wrap
-
-  var box=document.getElementById('resultsBox');
-  box.innerHTML=h;
-  box.style.display='block';
-  _hasResults=true;
-  var lb=document.getElementById('landingBox');
-  if(lb) lb.style.display='none';
-  // Scroll results into view below the sticky header
-  setTimeout(function(){
-    var stickyH=document.getElementById('stickyHeader').getBoundingClientRect().height;
-    var top=box.getBoundingClientRect().top+window.pageYOffset-stickyH-8;
-    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
-  },80);
-}
-
-function scoreBar(label,val,color){
-  return '<div>'
-    +'<div style="font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">'+label+'</div>'
+function ndSB(label,val,color){
+  return'<div><div style="font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">'+label+'</div>'
     +'<div style="font-size:13px;font-weight:900;color:'+color+';margin-bottom:3px">'+val+'%</div>'
-    +'<div class="score-bar"><div class="score-fill" style="width:'+val+'%;background:'+color+'"></div></div>'
-    +'</div>';
+    +'<div class="nd-score-bar"><div class="nd-score-fill" style="width:'+val+'%;background:'+color+'"></div></div></div>';
 }
+
+function ndRender(d,strats){
+  var stdM=d.c*d.iv*Math.sqrt(ndDte/365);
+  var h='<div class="nd-tick-hdr">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    +'<div style="font-size:20px;font-weight:900;color:#fff;">'+d.sym+'</div>'
+    +'<div style="text-align:right;"><div style="font-size:18px;font-weight:900;color:#34d399;">$'+d.c.toFixed(2)+'</div>'
+    +'<div style="font-size:10px;font-weight:800;color:'+(d.dp>=0?'#34d399':'#f43f5e')+';">'+(d.dp>=0?'+':'')+d.dp.toFixed(2)+'%</div></div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">'
+    +['DTE|'+ndDte+'d','IV|'+(d.iv*100).toFixed(1)+'%','Exp|'+ndExpiry(),'±Mv|'+(stdM/d.c*100).toFixed(1)+'%'].map(function(s){
+      var p=s.split('|');
+      return'<div style="background:rgba(255,255,255,.06);border-radius:7px;padding:6px 4px;text-align:center;">'
+        +'<div style="font-size:7.5px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">'+p[0]+'</div>'
+        +'<div style="font-size:11px;font-weight:900;color:#fff;">'+p[1]+'</div></div>';
+    }).join('')+'</div></div>';
+
+  h+='<div class="nd-tabs-wrap"><div class="nd-tab-bar">';
+  strats.forEach(function(st,i){
+    var tv=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
+    var tc=st.netCredit?'#34d399':'#f43f5e';
+    h+='<button class="nd-tab'+(i===0?' active':'')+'" onclick="ndSwitchTab('+i+',this)">'
+      +'<div class="nd-tab-icon">'+st.icon+'</div>'
+      +'<div class="nd-tab-name">'+st.name+'</div>'
+      +'<div class="nd-tab-pl" style="color:'+tc+'">'+tv+'</div></button>';
+  });
+  h+='</div>';
+
+  strats.forEach(function(st,i){
+    h+='<div class="nd-panel'+(i===0?' active':'')+'" id="nd-p-'+i+'">';
+    // P&L grid
+    h+='<div class="nd-pl-grid">'
+      +(st.netCredit?'<div class="nd-pl-cell"><div class="nd-pl-l">Credit In</div><div class="nd-pl-v pos">+$'+st.creditReceived.toFixed(2)+'</div><div class="nd-pl-sub">per contract</div></div>'
+                   :'<div class="nd-pl-cell"><div class="nd-pl-l">Cost/Contract</div><div class="nd-pl-v neg">-$'+Math.abs(st.cost).toFixed(2)+'</div><div class="nd-pl-sub">debit paid</div></div>')
+      +'<div class="nd-pl-cell"><div class="nd-pl-l">Max Gain</div><div class="nd-pl-v pos">'+(st.maxGain===null?'Unlimited':'+$'+st.maxGain.toFixed(2))+'</div><div class="nd-pl-sub">per contract</div></div>'
+      +'<div class="nd-pl-cell"><div class="nd-pl-l">Max Loss</div><div class="nd-pl-v neg">-$'+Math.abs(st.maxLoss).toFixed(2)+'</div><div class="nd-pl-sub">per contract</div></div></div>';
+    // Sizing
+    var capV=parseFloat(document.getElementById('nd-capital').value)||10000;
+    h+='<div class="nd-sizing"><div><div class="nd-sizing-lbl">Contracts ($'+capV.toLocaleString()+')</div></div>'
+      +'<div style="text-align:right;"><div class="nd-sizing-val">'+st.contracts+' Lot'+(st.contracts!==1?'s':'')+'</div>'
+      +'<div class="nd-sizing-sub">At risk: $'+st.totalRisk.toFixed(0)+'</div></div></div>';
+    // BEs
+    h+='<div class="nd-be"><div class="nd-be-lbl">Breakeven Prices</div><div class="nd-be-row">'
+      +(st.BEdn!=null?'<div class="nd-be-item"><div class="nd-be-l">Lower BE</div><div class="nd-be-v">$'+st.BEdn.toFixed(2)+'</div><div class="nd-be-d" style="color:#f43f5e;">'+ndPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
+      +'<div class="nd-be-item" style="border-color:#475569;"><div class="nd-be-l">Current</div><div class="nd-be-v">$'+d.c.toFixed(2)+'</div><div class="nd-be-d" style="color:#64748b;">spot</div></div>'
+      +(st.BEup!=null?'<div class="nd-be-item"><div class="nd-be-l">Upper BE</div><div class="nd-be-v">$'+st.BEup.toFixed(2)+'</div><div class="nd-be-d" style="color:#34d399;">'+ndPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
+      +'</div></div>';
+    // Legs
+    h+='<div class="nd-legs"><div class="nd-legs-lbl">Position Legs</div>'
+      +st.legs.map(function(lg){
+        return'<div class="nd-leg"><div class="nd-leg-l"><span class="nd-leg-action '+lg.cls+'">'+lg.a+'</span>'
+          +'<div><div class="nd-leg-desc">'+lg.desc+'</div><div class="nd-leg-sub">'+lg.sub+'</div></div></div>'
+          +'<div class="nd-leg-price">$'+lg.p.toFixed(2)+'</div></div>';
+      }).join('')+'</div>';
+    // Scores
+    h+='<div class="nd-scores"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
+      +ndSB('Vol Needed',st.sV,'#38bdf8')+ndSB('Risk Defined',st.sR,'#34d399')+ndSB('Win Prob',st.sP,'#a78bfa')
+      +'</div></div>';
+    // Thesis
+    h+='<div class="nd-thesis"><div class="nd-thesis-lbl">Strategy Notes</div><div class="nd-thesis-txt">'+st.thesis+'</div></div>';
+    // Exit
+    var ex=st.exit;
+    h+='<div class="nd-exit"><div class="nd-exit-hdr"><span>🚪</span><span class="nd-exit-title">Exit Strategy</span></div>'
+      +'<div class="nd-exit-grid">'
+      +'<div class="nd-exit-card profit"><div class="nd-exit-card-lbl">✅ Profit Target</div><div class="nd-exit-card-val">'+ex.pt+'</div><div class="nd-exit-card-sub">'+ex.pd+'</div></div>'
+      +'<div class="nd-exit-card loss"><div class="nd-exit-card-lbl">🛑 Stop Loss</div><div class="nd-exit-card-val">'+ex.sl+'</div><div class="nd-exit-card-sub">'+ex.sd+'</div></div>'
+      +'<div class="nd-exit-card time"><div class="nd-exit-card-lbl">⏱ Time Exit</div><div class="nd-exit-card-val">'+ex.tt+'</div><div class="nd-exit-card-sub">'+ex.td+'</div></div>'
+      +'<div class="nd-exit-card roll"><div class="nd-exit-card-lbl">🔄 Roll Trigger</div><div class="nd-exit-card-val">'+ex.rt+'</div><div class="nd-exit-card-sub">'+ex.rd+'</div></div>'
+      +'</div><div class="nd-exit-rules">'
+      +ex.rules.map(function(rule){
+        return'<div class="nd-exit-rule"><div class="nd-exit-rule-dot" style="background:'+rule.c+'"></div><div class="nd-exit-rule-txt">'+rule.t+'</div></div>';
+      }).join('')+'</div></div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  var box=document.getElementById('nd-results');
+  box.innerHTML=h; box.style.display='block';
+  ndHasResults=true;
+  
+  setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+function ndSwitchTab(idx,btn){
+  document.querySelectorAll('.nd-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.nd-panel').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('nd-p-'+idx).classList.add('active');
+}
+
+// ── ANALYZE ──
+async function ndRunAnalyze(){
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+  document.getElementById('nd-err').style.display='none';
+  document.getElementById('nd-results').style.display='none';
+  document.getElementById('nd-loading').style.display='block';
+  
+  document.getElementById('nd-analyze-btn').disabled=true;
+  document.getElementById('nd-loading-msg').textContent='📡 Fetching '+ndTicker+'…';
+  try{
+    var data;
+    if(!fk){
+      var fb=ndFallback[ndTicker]||ndFallback.DEFAULT;
+      data={sym:ndTicker,c:fb.price,dp:fb.change,iv:fb.iv};
+      ndUpdateBanner();
+      document.getElementById('nd-err').style.display='block';
+      document.getElementById('nd-err').textContent='⚠️ Using estimated data — tap ⚙️ for live pricing.';
+    }else{
+      data=await ndFetch(ndTicker);
+    }
+    var cap=parseFloat(document.getElementById('nd-capital').value)||10000;
+    ndRender(data,ndCompute(data,cap));
+  }catch(e){
+    document.getElementById('nd-err').style.display='block';
+    document.getElementById('nd-err').textContent='⚠️ '+e.message;
+    
+  }finally{
+    document.getElementById('nd-loading').style.display='none';
+    document.getElementById('nd-analyze-btn').disabled=false;
+  }
+}
+
+// ── VOL SIGNAL ──
+async function ndRunVolSignal(sym){
+  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+  var body=document.getElementById('nd-vol-body');
+  var sb=document.getElementById('nd-vs-spy'),qb=document.getElementById('nd-vs-qqq');
+  [sb,qb].forEach(function(b){b.style.background='#0f172a';b.style.color='#94a3b8';b.style.borderColor='#334155';});
+  var ab=sym==='SPY'?sb:qb;
+  ab.style.background='#10b981';ab.style.color='#0f172a';ab.style.borderColor='#10b981';
+  body.innerHTML='<span style="color:#64748b;">⏳ Fetching…</span>';
+  if(!fk){body.innerHTML='<span style="color:#f59e0b;">⚠️ No Finnhub key — tap ⚙️ to configure.</span>';return;}
+  try{
+    var[sR,vR]=await Promise.all([
+      fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
+      fetch('https://finnhub.io/api/v1/quote?symbol=VIX&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
+    ]);
+    var pr=sR.c||0,pc=sR.pc||pr,dp=pc>0?Math.abs((pr-pc)/pc*100):0,vix=vR?(vR.c||0):0;
+    var pcR=null;
+    try{var po=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk).then(function(r){return r.json();});
+      if(po&&po.data&&po.data.length){var tv=0,tc2=0;po.data.forEach(function(e){((e.options||{}).CALL||[]).forEach(function(o){tc2+=(o.volume||0);});((e.options||{}).PUT||[]).forEach(function(o){tv+=(o.volume||0);});});if(tc2>0)pcR=tv/tc2;}}catch(e){}
+    var mt=sym==='QQQ'?1.5:2,c1=dp>mt,c2=vix>20,c3=pcR!==null?pcR>1.2:null;
+    var cm=[c1,c2].filter(Boolean).length+(c3===true?1:0);
+    var sig,sc,sb2,rec;
+    if(c1&&c2&&c3===true){sig='🔥 STRONG SIGNAL';sc='#34d399';sb2='rgba(16,185,129,.10)';rec='All conditions met → <strong>Buy a Straddle or Strangle</strong>.';}
+    else if(c1&&c2&&c3===null){sig='⚡ MODERATE SIGNAL';sc='#fbbf24';sb2='rgba(251,191,36,.10)';rec='Move + elevated VIX → <strong>Consider a Strangle</strong>. Size conservatively.';}
+    else if(cm>=2){sig='⚡ MODERATE SIGNAL';sc='#fbbf24';sb2='rgba(251,191,36,.10)';rec='Most conditions met → <strong>Consider a Strangle</strong> with wider strikes.';}
+    else if(c1||c2){sig='📡 WEAK SIGNAL';sc='#fb923c';sb2='rgba(251,146,60,.08)';rec='Partial conditions → <strong>Wait or reduce size</strong>.';}
+    else{sig='😴 NO SIGNAL';sc='#94a3b8';sb2='rgba(148,163,184,.08)';rec='Market calm → <strong>Sell premium</strong>. Iron Condor favored.';}
+    var md=pr>=pc?'▲':'▼',mc=pr>=pc?'#34d399':'#f43f5e';
+    body.innerHTML='<div style="background:'+sb2+';border-radius:8px;padding:9px 11px;margin-bottom:9px;text-align:center;">'
+      +'<div style="font-size:14px;font-weight:900;color:'+sc+';margin-bottom:4px;">'+sig+'</div>'
+      +'<div style="font-size:10px;color:#cbd5e1;font-weight:600;line-height:1.5;">'+rec+'</div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
+      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c1?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Daily Move</div><div style="font-size:15px;font-weight:900;color:'+mc+';">'+md+dp.toFixed(1)+'%</div><div style="font-size:8px;font-weight:700;color:'+(c1?'#34d399':'#f43f5e')+'">'+(c1?'✓ >'+mt+'%':'✗ <'+mt+'%')+'</div></div>'
+      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c2?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">VIX Level</div><div style="font-size:15px;font-weight:900;color:#e2e8f0;">'+(vix>0?vix.toFixed(1):'N/A')+'</div><div style="font-size:8px;font-weight:700;color:'+(c2?'#34d399':'#f43f5e')+'">'+(c2?'✓ >20':'✗ <20')+'</div></div>'
+      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c3===true?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">P/C Ratio</div><div style="font-size:15px;font-weight:900;color:#e2e8f0;">'+(pcR!==null?pcR.toFixed(2):'—')+'</div><div style="font-size:8px;font-weight:700;color:'+(c3===true?'#34d399':c3===false?'#f43f5e':'#64748b')+'">'+(c3===true?'✓ >1.2':c3===false?'✗ <1.2':'No data')+'</div></div>'
+      +'</div><div style="margin-top:7px;text-align:right;"><span style="font-size:8px;color:#475569;font-weight:600;">'+sym+' $'+pr.toFixed(2)+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span></div>';
+  }catch(e){body.innerHTML='<span style="color:#f43f5e;">Error: '+e.message+'</span>';}
+}
+
+// ── expose vol signal globally so onclick attrs can reach it ──
+window.ndRunVolSignal = ndRunVolSignal;
+window.ndRunAnalyze  = ndRunAnalyze;
+window.ndSelectDte   = ndSelectDte;
+window.ndSwitchTab   = ndSwitchTab;
+
+// ── INIT (DOM already ready for inline scripts) ──
+function ndInit(){
+  if(!document.getElementById('nd-ticker-grid'))return; // pane not in DOM yet
+  ndInitWatchlist();
+  document.getElementById('nd-ticker-grid').addEventListener('click',function(e){
+    var del=e.target.closest('.nd-rmx');
+    if(del){ndRemoveTicker(del.getAttribute('data-del'),e);return;}
+    var btn=e.target.closest('.nd-tick-btn');
+    if(btn)ndSelectTicker(btn.getAttribute('data-sym'));
+  });
+  document.getElementById('nd-add-btn').addEventListener('click',ndAddTicker);
+  document.getElementById('nd-custom-inp').addEventListener('keydown',function(e){if(e.key==='Enter')ndAddTicker();});
+  document.getElementById('nd-capital').addEventListener('change',function(){if(ndHasResults)ndRunAnalyze();});
+  document.getElementById('nd-refresh-btn').addEventListener('click',function(){
+    // Re-fetch live quote for active ticker and re-run analysis if results exist
+    if(ndHasResults){
+      ndRunAnalyze();
+    } else {
+      // Just refresh the banner price
+      var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+      if(fk){
+        fetch('https://finnhub.io/api/v1/quote?symbol='+ndTicker+'&token='+fk)
+          .then(function(r){return r.json();})
+          .then(function(q){
+            if(q&&q.c){
+              document.getElementById('nd-disp-price').innerText='$'+q.c.toFixed(2);
+              document.getElementById('nd-disp-chg').innerText=(q.dp>=0?'+':'')+q.dp.toFixed(2)+'%';
+              document.getElementById('nd-disp-chg').style.color=q.dp>=0?'#34d399':'#f43f5e';
+              document.getElementById('nd-disp-sym').innerText=ndTicker;
+            }
+          }).catch(function(){ndUpdateBanner();});
+      } else {
+        ndUpdateBanner();
+      }
+    }
+  });
+  document.getElementById('nd-settings-btn').addEventListener('click',function(){ndToggleModal(true);});
+  document.getElementById('nd-token-alert').addEventListener('click',function(){ndToggleModal(true);});
+  document.getElementById('nd-modal-cancel').addEventListener('click',function(){ndToggleModal(false);});
+  document.getElementById('nd-modal-save').addEventListener('click',ndSaveKey);
+  document.getElementById('nd-engine-reset').addEventListener('click',function(){localStorage.clear();alert('Reset. Reloading…');window.location.reload();});
+  ndCheckToken(); ndUpdateBanner();
+  setTimeout(function(){if(localStorage.getItem('ge_fh_key'))ndRunVolSignal('SPY');},1200);
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){ndInit();if(typeof showTab==='function')showTab(0);});
+}else{
+  ndInit();
+  // showTab(0) must run after the rest of index.html's scripts have loaded
+  setTimeout(function(){if(typeof showTab==='function')showTab(0);},0);
+}
+})();
 </script>
 
-  </div>
+</div><!-- end sl-wrap -->
 </div>
 
 
@@ -1988,7 +1912,7 @@ function scoreBar(label,val,color){
 </div>
 
 <!-- PANE 5: BACKTEST TABLE -->
-<div class="pane on" id="pane5" style="padding-top:8px">
+<div class="pane" id="pane5" style="padding-top:8px">
 
   <!-- ── SETTINGS (collapsible, collapsed by default) ── -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
@@ -6208,8 +6132,8 @@ function btGoToSignal(tk){
 
 /* ── BACKTEST → PLANNER BRIDGE ── */
 function btSendToPlanner(dte,mode,ticker,winRate,avgPnl){
-  // Switch to Planner tab (now tab 4)
-  showTab(4);
+  // Switch to Planner tab (tab3 → pane6)
+  showTab(3);
 
   // Pre-fill fields
   setTimeout(function(){
@@ -6931,138 +6855,7 @@ function startStripe(){
 })();
 
 
-/* ── VOLATILITY SIGNAL ────────────────────────────────────────── */
-async function runVolSignal(sym){
-  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
-  var body=document.getElementById('vol-signal-body');
-  var spyBtn=document.getElementById('vs-spy-btn');
-  var qqqBtn=document.getElementById('vs-qqq-btn');
-
-  // Highlight active button
-  [spyBtn,qqqBtn].forEach(function(b){
-    if(!b)return;
-    b.style.background='#1e293b';b.style.color='#94a3b8';b.style.borderColor='#334155';
-  });
-  var activeBtn=sym==='SPY'?spyBtn:qqqBtn;
-  if(activeBtn){activeBtn.style.background='#16a34a';activeBtn.style.color='#fff';activeBtn.style.borderColor='#16a34a';}
-
-  body.innerHTML='<span style="color:#64748b;">⏳ Fetching live data…</span>';
-
-  try{
-    // Fetch sym quote + VIX in parallel
-    var [symRes, vixRes] = await Promise.all([
-      fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
-      fetch('https://finnhub.io/api/v1/quote?symbol=VIX&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
-    ]);
-
-    var price  = symRes.c  || 0;
-    var prevC  = symRes.pc || price;
-    var dayPct = prevC > 0 ? Math.abs((price - prevC) / prevC * 100) : 0;
-    var vixNow = vixRes ? (vixRes.c || 0) : 0;
-    var vixPrev= vixRes ? (vixRes.pc || vixNow) : vixNow;
-    var vixPct = vixPrev > 0 ? Math.abs((vixNow - vixPrev) / vixPrev * 100) : 0;
-
-    // Put/call ratio via Finnhub (market-wide)
-    var pcRes = null;
-    try{
-      var pcFetch = await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
-      pcRes = await pcFetch.json();
-    }catch(e){}
-
-    // Calculate P/C ratio from option chain if available
-    var pcRatio = null;
-    if(pcRes && pcRes.data && pcRes.data.length > 0){
-      var totalPutVol=0, totalCallVol=0;
-      pcRes.data.forEach(function(exp){
-        (exp.options&&exp.options.CALL||[]).forEach(function(o){totalCallVol+=(o.volume||0);});
-        (exp.options&&exp.options.PUT||[]).forEach(function(o){totalPutVol+=(o.volume||0);});
-      });
-      if(totalCallVol > 0) pcRatio = totalPutVol / totalCallVol;
-    }
-
-    // Evaluate signal conditions
-    var moveThresh = sym === 'QQQ' ? 1.5 : 2;  // QQQ: >1.5%, SPY: >2%
-    var cond1 = dayPct > moveThresh;             // daily move (either direction)
-    var cond2 = vixNow > 20;                     // VIX absolute level > 20 (fear elevated)
-    var cond3 = pcRatio !== null ? pcRatio > 1.2 : null;  // P/C > 1.2 (null if unavailable)
-
-    var condsMet = [cond1, cond2].filter(Boolean).length + (cond3===true?1:0);
-    var totalConds = pcRatio !== null ? 3 : 2;
-
-    // Signal strength — P/C null does NOT auto-upgrade to STRONG
-    var signal, signalColor, signalBg, rec;
-    if(cond1 && cond2 && cond3===true){
-      signal='🔥 STRONG SIGNAL';
-      signalColor='#15803d';signalBg='#f0fdf4';
-      rec='All conditions met → <strong>Buy a Straddle or Strangle</strong>. Expect another outsized move within 1–3 sessions.';
-    } else if(cond1 && cond2 && cond3===null){
-      signal='⚡ MODERATE SIGNAL';
-      signalColor='#854d0e';signalBg='#fefce8';
-      rec='Move + elevated VIX confirmed → <strong>Consider a Strangle</strong>. P/C data unavailable — size conservatively.';
-    } else if(condsMet >= 2){
-      signal='⚡ MODERATE SIGNAL';
-      signalColor='#854d0e';signalBg='#fefce8';
-      rec='Most conditions met → <strong>Consider a Strangle</strong> with wider strikes. Vol is elevated but not extreme.';
-    } else if(cond1 || cond2){
-      signal='📡 WEAK SIGNAL';
-      signalColor='#9a3412';signalBg='#fff7ed';
-      rec='Partial conditions → <strong>Wait or reduce size</strong>. Not a high-conviction vol setup yet.';
-    } else {
-      signal='😴 NO SIGNAL';
-      signalColor='#475569';signalBg='#f8fafc';
-      rec='Market calm → <strong>Sell premium instead</strong>. Iron Condor or Credit Spread favored over long vol.';
-    }
-
-    var moveDir = price >= prevC ? '▲' : '▼';
-    var moveCol = price >= prevC ? '#16a34a' : '#dc2626';
-
-    body.innerHTML=
-      '<div style="background:'+signalBg+';border-radius:9px;padding:10px 12px;margin-bottom:10px;text-align:center;">'
-        +'<div style="font-size:16px;font-weight:900;color:'+signalColor+';letter-spacing:.01em;margin-bottom:5px;">'+signal+'</div>'
-        +'<div style="font-size:11px;color:#334155;font-weight:600;line-height:1.5;">'+rec+'</div>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
-        // Condition 1: Daily Move
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond1?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Daily Move</div>'
-          +'<div style="font-size:17px;font-weight:900;color:'+moveCol+';margin-bottom:3px;">'+moveDir+dayPct.toFixed(1)+'%</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond1?'#16a34a':'#dc2626')+';">'+(cond1?'✓ >'+moveThresh+'%':'✗ <'+moveThresh+'%')+'</div>'
-        +'</div>'
-        // Condition 2: VIX Level
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond2?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">VIX Level</div>'
-          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(vixNow>0?vixNow.toFixed(1):'N/A')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond2?'#16a34a':'#dc2626')+';">'+(cond2?'✓ >20':'✗ <20')+'</div>'
-        +'</div>'
-        // Condition 3: P/C Ratio
-        +'<div style="background:#f8fafc;border-radius:8px;padding:8px 6px;text-align:center;border:1.5px solid '+(cond3===true?'#16a34a':'#e2e8f0')+'">'
-          +'<div style="font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">P/C Ratio</div>'
-          +'<div style="font-size:17px;font-weight:900;color:#0f172a;margin-bottom:3px;">'+(pcRatio!==null?pcRatio.toFixed(2):'—')+'</div>'
-          +'<div style="font-size:9px;font-weight:700;color:'+(cond3===true?'#16a34a':cond3===false?'#dc2626':'#64748b')+';">'+(cond3===true?'✓ >1.2':cond3===false?'✗ <1.2':'No data')+'</div>'
-        +'</div>'
-      +'</div>'
-      +'<div style="margin-top:8px;text-align:right;">'
-        +'<span style="font-size:9px;color:#94a3b8;font-weight:600;">'+sym+' $'+price.toFixed(2)+' · '+(cond3===null?'P/C from Finnhub unavailable on free tier · ':'')+'Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>'
-      +'</div>';
-
-    // If strong signal, auto-select this ticker
-    if(condsMet >= 2){
-      selTicker = sym;
-      document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.toggle('on',b.dataset&&b.dataset.sym===sym);});
-    }
-
-  }catch(e){
-    body.innerHTML='<span style="color:#dc2626;">Error fetching data: '+e.message+'</span>';
-  }
-}
-
-// Auto-run SPY signal on load if Finnhub key available
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var fk=localStorage.getItem('ge_fh_key');
-    if(fk) runVolSignal('SPY');
-  }, 1500);
-});
+// Vol signal handled by pane0 ndRunVolSignal
 
 
 /* ══════════════════════════════════════════════════════
@@ -8375,618 +8168,6 @@ function pgGetSuggestions(){
 }
 
 
-// ── IFRAME HEIGHT FITTER ──
-// geResizeFrame removed — StrategyLens now inlined in pane0
-
-/* ── STRATEGY LENS JS ── */
-(function(){
-
-var selTicker='SPY';
-var selDTE=7;
-var _liveData={};
-var _ivData={};
-var activeTab=0;
-var _hasResults=false;
-
-// ── INIT ──
-window.addEventListener('load',function(){
-  var fk=localStorage.getItem('ge_fh_key')||'';
-  if(fk){document.getElementById('fhKey').value=fk;updateFhStatus();}
-  setTopbarH();
-  window.addEventListener('resize',setTopbarH);
-  if(window.ResizeObserver){
-    new ResizeObserver(setTopbarH).observe(document.getElementById('stickyHeader'));
-  }
-  if(fk) loadBannerQuotes();
-  setInterval(loadBannerQuotes, 60000);
-});
-
-function setTopbarH(){
-  // Everything sticky is inside #stickyHeader — measure it directly
-  var h=document.getElementById('stickyHeader').getBoundingClientRect().height;
-  document.documentElement.style.setProperty('--sticky-h',h+'px');
-}
-
-// ── GEAR ──
-
-function selectFromBanner(sym){
-  selTicker=sym;
-  var presetBtn=document.getElementById('tp-'+sym);
-  if(presetBtn) selectPreset(sym,presetBtn);
-  document.querySelectorAll('.qc').forEach(function(c){c.classList.toggle('active',c.dataset.sym===sym);});
-}
-
-function toggleGear(){
-  document.getElementById('apiDrawer').classList.toggle('open');
-  setTimeout(setTopbarH,50);
-}
-function saveFhKey(){
-  var k=document.getElementById('fhKey').value.trim();
-  if(k){localStorage.setItem('ge_fh_key',k);updateFhStatus();loadBannerQuotes();}
-  document.getElementById('apiDrawer').classList.remove('open');
-  setTimeout(setTopbarH,50);
-}
-function updateFhStatus(){
-  var k=document.getElementById('fhKey').value.trim();
-  var s=document.getElementById('fhStatus');
-  if(k){s.textContent='✓ Key set';s.className='api-status ok';}
-  else{s.textContent='⚠️ No key set';s.className='api-status no';}
-}
-
-// ── TICKER ──
-function selectPreset(sym,btn){
-  selTicker=sym;
-  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
-  document.getElementById('tc-wrap').classList.remove('on');
-  btn.classList.add('on');
-  document.querySelectorAll('.qc').forEach(function(c){
-    c.classList.toggle('active',c.dataset.sym===sym);
-  });
-  if(_hasResults){analyze();}
-}
-function selectCustom(){
-  document.querySelectorAll('.tick-preset').forEach(function(b){b.classList.remove('on');});
-  document.getElementById('tc-wrap').classList.add('on');
-  var v=document.getElementById('customTick').value.trim().toUpperCase();
-  if(v) selTicker=v;
-  document.querySelectorAll('.qc').forEach(function(c){c.classList.remove('active');});
-}
-function onCustomInput(){
-  var v=document.getElementById('customTick').value.trim().toUpperCase();
-  document.getElementById('customTick').value=v;
-  if(v){selTicker=v;selectCustom();}
-}
-
-// ── DTE ──
-function setDTE(d,btn){
-  selDTE=d;
-  document.querySelectorAll('.dte-btn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
-  // Auto-analyze if results already showing
-  if(_hasResults){analyze();}
-}
-
-// ── BANNER ──
-async function loadBannerQuotes(){
-  var fk=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim();
-  try{
-    var syms=['SPY','QQQ'];
-    var results=await Promise.all(syms.map(function(s){
-      return fetch('https://finnhub.io/api/v1/quote?symbol='+s+'&token='+fk)
-        .then(function(r){return r.json();})
-        .then(function(d){return{sym:s,c:d.c,dp:d.dp};})
-        .catch(function(){return{sym:s,c:null};});
-    }));
-    var valid=results.filter(function(r){return r.c;});
-    if(!valid.length) return;
-    valid.forEach(function(r){_liveData[r.sym]=r;});
-    var banner=document.getElementById('quoteBanner');
-    var chips=document.getElementById('quoteChips');
-    var ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    chips.innerHTML=
-      '<div class="quote-banner-top">'
-      +valid.map(function(r){
-        var cls=r.dp>0?'up':r.dp<0?'dn':'flat';
-        var sign=r.dp>0?'+':'';
-        var active=r.sym===selTicker?' active':'';
-        return '<div class="qc'+active+'" data-sym="'+r.sym+'" onclick="selectFromBanner(\''+r.sym+'\')">'
-          +'<div class="qc-tick">'+r.sym+'</div>'
-          +'<div class="qc-price">$'+r.c.toFixed(2)+'</div>'
-          +'<div class="qc-chg '+cls+'">'+sign+r.dp.toFixed(2)+'%</div>'
-          +'</div>';
-      }).join('')
-      +'<button class="quote-refresh" onclick="loadBannerQuotes()">↻ Refresh</button>'
-      +'</div>';
-    banner.classList.add('loaded');
-    setTopbarH();
-  }catch(e){console.warn('banner quotes failed',e);}
-}
-
-// ── FINNHUB ──
-async function fetchTickerData(sym){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk){fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0';} // fallback to demo key
-  var qRes=await fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk);
-  var q=await qRes.json();
-  if(!q||!q.c) throw new Error('No live data for '+sym+' — set your Finnhub key in ⚙️ Keys above for reliable quotes.');
-  var name=sym;
-  try{
-    var pRes=await fetch('https://finnhub.io/api/v1/stock/profile2?symbol='+sym+'&token='+fk);
-    var p=await pRes.json();
-    if(p&&p.name) name=p.name;
-  }catch(e){}
-  var iv=null;
-  try{
-    var today=new Date();
-    var expDate=new Date(today);
-    expDate.setDate(today.getDate()+selDTE);
-    var day=expDate.getDay();
-    var diff=day<=5?5-day:6;
-    expDate.setDate(expDate.getDate()+diff);
-    var oRes=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk);
-    var oData=await oRes.json();
-    if(oData&&oData.data&&oData.data.length){
-      var best=oData.data.reduce(function(a,b){
-        return Math.abs(new Date(b.expirationDate)-expDate)<Math.abs(new Date(a.expirationDate)-expDate)?b:a;
-      });
-      var spot=q.c;
-      var calls=(best.options||{}).CALL||[];
-      var atm=calls.reduce(function(a,b){
-        return Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a;
-      },{strike:0,impliedVolatility:0.3});
-      iv=atm.impliedVolatility||0.3;
-    }
-  }catch(e){iv=0.3;}
-  return {sym:sym,name:name,c:q.c,dp:q.dp,h:q.h,l:q.l,pc:q.pc,o:q.o,iv:iv||0.3};
-}
-
-// ── MATH ──
-function normCDF(x){
-  var t=1/(1+.2316419*Math.abs(x));
-  var d=.3989422820*Math.exp(-x*x/2);
-  var p=d*t*(.3193815+t*(-.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));
-  return x>=0?1-p:p;
-}
-function bsCall(S,K,T,r,v){
-  if(T<=0)return Math.max(S-K,0);
-  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
-  var d2=d1-v*Math.sqrt(T);
-  return S*normCDF(d1)-K*Math.exp(-r*T)*normCDF(d2);
-}
-function bsPut(S,K,T,r,v){
-  if(T<=0)return Math.max(K-S,0);
-  var d1=(Math.log(S/K)+(r+v*v/2)*T)/(v*Math.sqrt(T));
-  var d2=d1-v*Math.sqrt(T);
-  return K*Math.exp(-r*T)*normCDF(-d2)-S*normCDF(-d1);
-}
-function roundStrike(s,spacing){return Math.round(s/spacing)*spacing;}
-function strikeSpacing(price){
-  if(price<20)return 0.5;
-  if(price<50)return 1;
-  if(price<100)return 2;
-  if(price<200)return 5;
-  if(price<500)return 5;
-  return 10;
-}
-function fmt$(n){return'$'+Math.abs(n).toFixed(2);}
-function fmtSign(n){return(n>=0?'+':'-')+'$'+Math.abs(n).toFixed(2);}
-function fmtPct(n){return(n>=0?'+':'')+n.toFixed(1)+'%';}
-
-function getExpiry(){
-  var d=new Date();
-  d.setDate(d.getDate()+selDTE);
-  var day=d.getDay();
-  var diff=day<=5?5-day:6;
-  d.setDate(d.getDate()+diff);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-}
-
-// ── COMPUTE ──
-function computeStrategies(d){
-  var S=d.c, iv=d.iv, T=selDTE/365, r=0.045;
-  var sp=strikeSpacing(S);
-  var K=roundStrike(S,sp);
-  var stdMove=S*iv*Math.sqrt(T);
-  var Kc=roundStrike(S+stdMove*0.5,sp);
-  var Kp=roundStrike(S-stdMove*0.5,sp);
-  var Kcc=roundStrike(S+stdMove*1.0,sp);
-  var Kpp=roundStrike(S-stdMove*1.0,sp);
-
-  var atmCall=bsCall(S,K,T,r,iv);
-  var atmPut=bsPut(S,K,T,r,iv);
-  var otmCall=bsCall(S,Kc,T,r,iv);
-  var otmPut=bsPut(S,Kp,T,r,iv);
-  var farCall=bsCall(S,Kcc,T,r,iv);
-  var farPut=bsPut(S,Kpp,T,r,iv);
-
-  var straddleCost=(atmCall+atmPut)*100;
-  var straddleBEup=K+atmCall+atmPut;
-  var straddleBEdn=K-atmCall-atmPut;
-  var straddleMaxLoss=-straddleCost;
-
-  var strangleCost=(otmCall+otmPut)*100;
-  var strangleBEup=Kc+otmCall+otmPut;
-  var strangleBEdn=Kp-otmCall-otmPut;
-  var strangleMaxLoss=-strangleCost;
-
-  var condorCredit=((otmCall-farCall)+(otmPut-farPut))*100;
-  var condorWingW=(Kcc-Kc)*100;
-  var condorMaxLoss=-(condorWingW-condorCredit);
-  var condorMaxGain=condorCredit;
-  var condorBEup=Kc+otmCall-farCall+otmPut-farPut;
-  var condorBEdn=Kp-(otmCall-farCall)-(otmPut-farPut);
-
-  // Bull Call Spread — buy ATM call, sell OTM call
-  var bcNetDebit = atmCall - otmCall;
-  var bcMaxGain  = (Kc - K - bcNetDebit) * 100;
-  var bcMaxLoss  = bcNetDebit * 100;
-  var bcBE       = K + bcNetDebit;
-
-  // Bear Put Spread — buy ATM put, sell OTM put
-  var bpNetDebit = atmPut - otmPut;
-  var bpMaxGain  = (K - Kp - bpNetDebit) * 100;
-  var bpMaxLoss  = bpNetDebit * 100;
-  var bpBE       = K - bpNetDebit;
-
-  return{
-    spot:S, iv:iv, dte:selDTE, K:K, sp:sp, stdMove:stdMove,
-    straddle:{
-      name:'Straddle', icon:'🎯', tag:'Neutral · High IV Play',
-      tagColor:'#0369a1', tagBg:'#e0f2fe', iconBg:'#e0f2fe',
-      cost:straddleCost, maxGain:null, maxLoss:straddleMaxLoss,
-      BEup:straddleBEup, BEdn:straddleBEdn, netCredit:false,
-      legs:[
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Call',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Put',sub:'Strike $'+K+' · Exp '+getExpiry(),price:atmPut},
-      ],
-      thesis:'Profits from a large move in either direction. Best when you expect volatility but are directionally neutral. Max loss is the premium paid if '+d.sym+' stays pinned at $'+K+' through expiry.',
-      scoreVol:85, scoreRisk:40, scoreProb:35,
-      exit:{
-        profitTarget:'50% of max gain',
-        profitDetail:'Close when combined premium doubles (sell both legs for 2× cost).',
-        stopLoss:'100% of debit paid',
-        stopDetail:'Exit if position value hits zero — full premium lost.',
-        timeTrigger:Math.round(selDTE*0.5)+' DTE (halfway)',
-        timeDetail:'Close or roll if still at a loss at half-life to avoid theta bleed.',
-        rollTrigger:'Spot moves >'+fmtPct(stdMove/S*100*0.8)+' in one direction',
-        rollDetail:'Consider closing the winning leg and rolling the losing leg closer to spot.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Take profit at 50% gain</strong> — options are priced for uncertainty; lock in when the move happens fast.'},
-          {color:'#dc2626',text:'<strong>Hard stop at 2× debit</strong> — if the position doubles your cost before the move, exit to preserve capital.'},
-          {color:'#2563eb',text:'<strong>Avoid holding through expiry</strong> — gamma exposure accelerates losses in the final 2 DTE if spot is near $'+K+'.'},
-          {color:'#d97706',text:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close immediately even without a large price move.'},
-        ]
-      }
-    },
-    strangle:{
-      name:'Strangle', icon:'📐', tag:'Wider Wings · Cheaper Entry',
-      tagColor:'#2563eb', tagBg:'#dbeafe', iconBg:'#dbeafe',
-      cost:strangleCost, maxGain:null, maxLoss:strangleMaxLoss,
-      BEup:strangleBEup, BEdn:strangleBEdn, netCredit:false,
-      legs:[
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'OTM Call',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'OTM Put',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-      ],
-      thesis:'Cheaper than a straddle but needs a bigger move to profit. Long call at $'+Kc+', long put at $'+Kp+'. Breakevens are wider — requires ~'+fmtPct(Math.abs(strangleBEup-S)/S*100)+' up or '+fmtPct(Math.abs(strangleBEdn-S)/S*100)+' down.',
-      scoreVol:75, scoreRisk:50, scoreProb:28,
-      exit:{
-        profitTarget:'100% of debit (double your money)',
-        profitDetail:'Close at 2× cost — OTM options can expand rapidly on a strong move.',
-        stopLoss:'50% of debit paid',
-        stopDetail:'Exit if position loses half its value. OTM decay accelerates fast.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE (60% through)',
-        timeDetail:'Theta decay accelerates on OTM options. Exit by 40% of DTE remaining.',
-        rollTrigger:'Spot clears $'+Kc.toFixed(0)+' or breaks $'+Kp.toFixed(0),
-        rollDetail:'Convert the in-the-money leg to a debit spread to bank partial profit.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Target 100% return</strong> — the lower cost basis means bigger % gains are needed to overcome the wider breakevens.'},
-          {color:'#dc2626',text:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; a half-loss stop preserves most of your capital.'},
-          {color:'#2563eb',text:'<strong>Exit well before '+Math.round(selDTE*0.4)+' DTE</strong> — both options will be near-worthless if spot hasn\'t moved by then.'},
-          {color:'#d97706',text:'<strong>Leg out on big moves</strong> — sell the profitable leg first and let the other run if the move is very strong.'},
-        ]
-      }
-    },
-    condor:{
-      name:'Iron Condor', icon:'🦅', tag:'Income · Range Bound',
-      tagColor:'#d97706', tagBg:'#fef3c7', iconBg:'#fef3c7',
-      cost:-condorCredit, maxGain:condorMaxGain, maxLoss:condorMaxLoss,
-      BEup:condorBEup, BEdn:condorBEdn, netCredit:true,
-      creditReceived:condorCredit, wingWidth:(Kcc-Kc),
-      legs:[
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'Far OTM Call (hedge)',sub:'Strike $'+Kcc+' · Exp '+getExpiry(),price:farCall},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-        {action:'BUY',actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'Far OTM Put (hedge)',sub:'Strike $'+Kpp+' · Exp '+getExpiry(),price:farPut},
-      ],
-      thesis:'Collect premium by selling the $'+Kp+'/$'+Kc+' strangle, hedged with long $'+Kpp+'/$'+Kcc+' wings. Max gain if '+d.sym+' stays between $'+Kp+' and $'+Kc+' through expiry.',
-      scoreVol:30, scoreRisk:75, scoreProb:65,
-      exit:{
-        profitTarget:'50% of credit received ($'+(condorCredit*0.5).toFixed(2)+')',
-        profitDetail:'Buy back the spread for half the credit. Most of the edge is captured quickly.',
-        stopLoss:'2× credit received ($'+(condorCredit*2).toFixed(2)+')',
-        stopDetail:'If the spread widens to 2× your credit, close before max loss is reached.',
-        timeTrigger:'7 DTE (expiry week)',
-        timeDetail:'Close all legs in expiry week to avoid pin risk and gamma spikes.',
-        rollTrigger:'Spot within '+sp+' pts of $'+Kc.toFixed(0)+' or $'+Kp.toFixed(0),
-        rollDetail:'Roll the threatened short strike 1–2 strikes further OTM, or close that wing entirely.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Take profit at 50% credit</strong> — collect $'+(condorCredit*0.5).toFixed(2)+' and close. The remaining 50% isn\'t worth the added risk.'},
-          {color:'#dc2626',text:'<strong>Stop if spread = 2× credit</strong> — defined risk doesn\'t mean hold to max loss. Cut at $'+(condorCredit*2).toFixed(2)+' debit to close.'},
-          {color:'#2563eb',text:'<strong>Always close before expiry week</strong> — short gamma in the final days can move against you violently even on small price swings.'},
-          {color:'#d97706',text:'<strong>Roll the untested side</strong> — if one wing is threatened, roll the opposite (safe) short strike closer to collect more credit and re-center.'},
-        ]
-      }
-    },
-    bullCall:{
-      name:'Bull Call Spread', icon:'🟢', tag:'Bullish · Defined Risk',
-      tagColor:'#15803d', tagBg:'#dcfce7', iconBg:'#dcfce7',
-      cost:bcMaxLoss, maxGain:bcMaxGain, maxLoss:-bcMaxLoss,
-      BEup:bcBE, BEdn:null, netCredit:false,
-      legs:[
-        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Call (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmCall},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Call (short)',sub:'Strike $'+Kc+' · Exp '+getExpiry(),price:otmCall},
-      ],
-      thesis:'Bullish play with defined risk. Pay $'+bcNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' rallies above $'+bcBE.toFixed(2)+'. Max gain $'+bcMaxGain.toFixed(0)+' if '+d.sym+' closes at or above $'+Kc.toFixed(0)+' at expiry.',
-      scoreVol:40, scoreRisk:70, scoreProb:45,
-      exit:{
-        profitTarget:'75–100% of max gain ($'+( bcMaxGain*0.75).toFixed(0)+'–$'+bcMaxGain.toFixed(0)+')',
-        profitDetail:'Close the spread when it approaches max value — the short call caps further gain.',
-        stopLoss:'50% of debit paid ($'+(bcMaxLoss*0.5).toFixed(0)+')',
-        stopDetail:'Exit if the spread loses half its cost. Directional thesis is likely wrong.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
-        timeDetail:'Exit if the move has not materialized by 40% of DTE remaining to recover theta.',
-        rollTrigger:d.sym+' stalls below $'+K.toFixed(0),
-        rollDetail:'Roll the long call strike closer to spot if the stock consolidates near entry.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Need '+d.sym+' above $'+bcBE.toFixed(2)+' to profit</strong> — confirm bullish momentum before entry.'},
-          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bcMaxLoss.toFixed(0)+')</strong> — no further risk, but full loss if stock stays flat or drops.'},
-          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% of gain requires the stock to pin exactly at $'+Kc.toFixed(0)+'.'},
-          {color:'#d97706',text:'<strong>Best in rising IV environment</strong> — entering before a catalyst gives the long call extra vega support.'},
-        ]
-      }
-    },
-    bearPut:{
-      name:'Bear Put Spread', icon:'🔴', tag:'Bearish · Defined Risk',
-      tagColor:'#dc2626', tagBg:'#fee2e2', iconBg:'#fee2e2',
-      cost:bpMaxLoss, maxGain:bpMaxGain, maxLoss:-bpMaxLoss,
-      BEup:null, BEdn:bpBE, netCredit:false,
-      legs:[
-        {action:'BUY', actionC:'#16a34a',actionBg:'#dcfce7',legBg:'#f0fdf4',
-         desc:'ATM Put (long)', sub:'Strike $'+K+' · Exp '+getExpiry(), price:atmPut},
-        {action:'SELL',actionC:'#dc2626',actionBg:'#fee2e2',legBg:'#fff1f2',
-         desc:'OTM Put (short)',sub:'Strike $'+Kp+' · Exp '+getExpiry(),price:otmPut},
-      ],
-      thesis:'Bearish play with defined risk. Pay $'+bpNetDebit.toFixed(2)+' debit per share to profit if '+d.sym+' drops below $'+bpBE.toFixed(2)+'. Max gain $'+bpMaxGain.toFixed(0)+' if '+d.sym+' closes at or below $'+Kp.toFixed(0)+' at expiry.',
-      scoreVol:40, scoreRisk:70, scoreProb:42,
-      exit:{
-        profitTarget:'75–100% of max gain ($'+(bpMaxGain*0.75).toFixed(0)+'–$'+bpMaxGain.toFixed(0)+')',
-        profitDetail:'Close the spread when it approaches max value — the short put caps further gain.',
-        stopLoss:'50% of debit paid ($'+(bpMaxLoss*0.5).toFixed(0)+')',
-        stopDetail:'Exit if the spread loses half its cost. The bearish thesis is likely wrong.',
-        timeTrigger:Math.round(selDTE*0.4)+' DTE remaining',
-        timeDetail:'Exit if the stock has not moved down by 40% of DTE remaining.',
-        rollTrigger:d.sym+' rebounds above $'+K.toFixed(0),
-        rollDetail:'Close immediately if the stock reclaims the long put strike — trend has reversed.',
-        rules:[
-          {color:'#16a34a',text:'<strong>Need '+d.sym+' below $'+bpBE.toFixed(2)+' to profit</strong> — confirm bearish momentum or catalyst before entry.'},
-          {color:'#dc2626',text:'<strong>Max loss is the debit paid ($'+bpMaxLoss.toFixed(0)+')</strong> — defined risk, but full loss if stock stays flat or rises.'},
-          {color:'#2563eb',text:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires the stock to pin at or below $'+Kp.toFixed(0)+'.'},
-          {color:'#d97706',text:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers the debit cost and improves the reward ratio.'},
-        ]
-      }
-    }
-  };
-}
-
-// ── ANALYZE ──
-async function analyze(){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  if(!fk){
-    document.getElementById('apiDrawer').classList.add('open');
-    setTimeout(setTopbarH,50);
-    document.getElementById('fhKey').focus();
-    fk='d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0'; // use demo key as fallback
-  }
-  document.getElementById('errBox').style.display='none';
-  document.getElementById('resultsBox').style.display='none';
-  document.getElementById('loadingBox').style.display='block';
-  var lb=document.getElementById('landingBox');
-  if(lb) lb.style.display='none';
-  document.getElementById('goBtn').disabled=true;
-  document.getElementById('loadingMsg').textContent='📡 Fetching '+selTicker+' live data…';
-  try{
-    var data=await fetchTickerData(selTicker);
-    _liveData[selTicker]=data;
-    var strats=computeStrategies(data);
-    render(data,strats);
-  }catch(e){
-    showErr(e.message||'Failed to fetch data. Check ticker and Finnhub key.');
-  }finally{
-    document.getElementById('loadingBox').style.display='none';
-    document.getElementById('goBtn').disabled=false;
-  }
-}
-
-function reAnalyze(){
-  document.getElementById('resultsBox').style.display='none';
-  loadBannerQuotes();
-  analyze();
-}
-
-function showErr(m){
-  var el=document.getElementById('errBox');
-  el.innerHTML='⚠️ '+m;el.style.display='block';
-  document.getElementById('loadingBox').style.display='none';
-  document.getElementById('goBtn').disabled=false;
-}
-
-// ── TABS ──
-function switchTab(idx){
-  activeTab=idx;
-  document.querySelectorAll('.strat-tab').forEach(function(t,i){
-    t.classList.toggle('active',i===idx);
-  });
-  document.querySelectorAll('.strat-panel').forEach(function(p,i){
-    p.classList.toggle('active',i===idx);
-  });
-
-}
-
-// ── RENDER ──
-function render(d,s){
-  var ivPct=(d.iv*100).toFixed(1);
-  var chgCls=d.dp>0?'up':'dn';
-  var sign=d.dp>0?'+':'';
-  var stdPct=(s.straddle.stdMove/d.c*100).toFixed(1);
-  var _ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-
-  var h='';
-
-  // Ticker header
-  h+='<div class="ticker-hdr">'
-    +'<div class="th-row1">'
-    +'<div><div class="th-sym">'+d.sym+'</div><div class="th-name">'+d.name+'</div></div>'
-    +'<div><div class="th-price">$'+d.c.toFixed(2)+'</div>'
-    +'<div class="th-chg '+chgCls+'">'+sign+d.dp.toFixed(2)+'% today</div>'
-    +'<div class="th-iv">IV '+ivPct+'%</div></div>'
-    +'</div>'
-    +'<div class="th-pills">'
-    +'<div class="th-pill"><div class="th-pill-l">DTE</div><div class="th-pill-v">'+selDTE+'d</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">IV</div><div class="th-pill-v">'+ivPct+'%</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">Expiry</div><div class="th-pill-v">'+getExpiry()+'</div></div>'
-    +'<div class="th-pill"><div class="th-pill-l">±Move</div><div class="th-pill-v">'+stdPct+'%</div></div>'
-    +'</div>'
-    +'<div class="th-footer">'
-    +'<div class="th-ts">📡 Live · '+_ts+'</div>'
-    +'<button class="th-refresh" onclick="reAnalyze()">↻ Refresh</button>'
-    +'</div>'
-    +'</div>';
-
-  // Tab container
-  var strats=[s.straddle,s.strangle,s.condor,s.bullCall,s.bearPut];
-
-  // Tab bar
-  h+='<div class="strat-tabs-wrap">'
-    +'<div class="strat-tab-bar">';
-  strats.forEach(function(st,i){
-    var topVal=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
-    var topCls=st.netCredit?'#16a34a':'#dc2626';
-    h+='<button class="strat-tab'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'
-      +'<div class="strat-tab-icon">'+st.icon+'</div>'
-      +'<div class="strat-tab-name">'+st.name+'</div>'
-      +'<div class="strat-tab-pl" style="color:'+topCls+'">'+topVal+'</div>'
-      +'</button>';
-  });
-  h+='</div>'; // end tab bar
-
-  // Tab panels
-  strats.forEach(function(st,i){
-    h+='<div class="strat-panel'+(i===activeTab?' active':'')+'" id="panel-'+i+'">';
-
-    // P&L grid
-    h+='<div class="pl-grid">'
-      +(st.netCredit
-        ?'<div class="pl-cell"><div class="pl-cell-l">Credit In</div><div class="pl-cell-v pos">+$'+st.creditReceived.toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
-        :'<div class="pl-cell"><div class="pl-cell-l">Cost / Contract</div><div class="pl-cell-v neg">-$'+Math.abs(st.cost).toFixed(2)+'</div><div class="pl-cell-sub">debit paid</div></div>')
-      +'<div class="pl-cell"><div class="pl-cell-l">Max Gain</div><div class="pl-cell-v pos">'+(st.maxGain===null?'Unlimited':'+$'+st.maxGain.toFixed(2))+'</div><div class="pl-cell-sub">per contract</div></div>'
-      +'<div class="pl-cell"><div class="pl-cell-l">Max Loss</div><div class="pl-cell-v neg">-$'+Math.abs(st.maxLoss).toFixed(2)+'</div><div class="pl-cell-sub">per contract</div></div>'
-      +'</div>';
-
-    // Breakevens
-    h+='<div class="be-section">'
-      +'<div class="be-lbl">Breakeven Prices</div>'
-      +'<div class="be-row">'
-      +(st.BEdn!=null?'<div class="be-item"><div class="be-item-l">Lower BE</div><div class="be-item-v">$'+(st.BEdn||0).toFixed(2)+'</div><div class="be-item-d" style="color:#dc2626">'+fmtPct(((st.BEdn||d.c)-d.c)/d.c*100)+'</div></div>':'')
-      +'<div class="be-item" style="background:#f8fafc"><div class="be-item-l">Current</div><div class="be-item-v">$'+d.c.toFixed(2)+'</div>'
-      +'<div class="be-item-d" style="color:#64748b">spot</div></div>'
-      +(st.BEup!=null?'<div class="be-item"><div class="be-item-l">Upper BE</div><div class="be-item-v">$'+(st.BEup||0).toFixed(2)+'</div><div class="be-item-d" style="color:#16a34a">'+fmtPct(((st.BEup||d.c)-d.c)/d.c*100)+'</div></div>':'')
-      +'</div></div>';
-
-    // Legs
-    h+='<div class="legs-section">'
-      +'<div class="legs-lbl">Position Legs</div>'
-      +st.legs.map(function(lg){
-        return '<div class="leg" style="background:'+lg.legBg+';border:1px solid '+lg.actionBg+'">'
-          +'<div class="leg-l"><span class="leg-action" style="background:'+lg.actionBg+';color:'+lg.actionC+'">'+lg.action+'</span>'
-          +'<div><div class="leg-desc">'+lg.desc+'</div><div class="leg-sub">'+lg.sub+'</div></div></div>'
-          +'<div class="leg-price">$'+lg.price.toFixed(2)+'</div>'
-          +'</div>';
-      }).join('')
-      +'</div>';
-
-    // Scores
-    h+='<div class="score-section">'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
-      +scoreBar('Vol Needed',st.scoreVol,'#0369a1')
-      +scoreBar('Risk Defined',st.scoreRisk,'#16a34a')
-      +scoreBar('Win Prob',st.scoreProb,'#2563eb')
-      +'</div></div>';
-
-    // Thesis
-    h+='<div class="thesis-section">'
-      +'<div style="font-size:9px;font-weight:900;color:#1e293b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Strategy Notes</div>'
-      +'<div class="thesis-txt">'+st.thesis+'</div>'
-      +'</div>';
-
-    // Exit Strategy
-    var ex=st.exit;
-    h+='<div class="exit-section">'
-      +'<div class="exit-hdr"><span class="exit-icon">🚪</span><span class="exit-title">Exit Strategy</span></div>'
-      +'<div class="exit-grid">'
-      +'<div class="exit-card profit"><div class="exit-card-label">✅ Profit Target</div><div class="exit-card-val">'+ex.profitTarget+'</div><div class="exit-card-sub">'+ex.profitDetail+'</div></div>'
-      +'<div class="exit-card loss"><div class="exit-card-label">🛑 Stop Loss</div><div class="exit-card-val">'+ex.stopLoss+'</div><div class="exit-card-sub">'+ex.stopDetail+'</div></div>'
-      +'<div class="exit-card time"><div class="exit-card-label">⏱ Time Exit</div><div class="exit-card-val">'+ex.timeTrigger+'</div><div class="exit-card-sub">'+ex.timeDetail+'</div></div>'
-      +'<div class="exit-card roll"><div class="exit-card-label">🔄 Roll Trigger</div><div class="exit-card-val">'+ex.rollTrigger+'</div><div class="exit-card-sub">'+ex.rollDetail+'</div></div>'
-      +'</div>'
-      +'<div class="exit-rules">'
-      +ex.rules.map(function(r){
-        return '<div class="exit-rule">'
-          +'<div class="exit-rule-dot" style="background:'+r.color+'"></div>'
-          +'<div class="exit-rule-txt">'+r.text+'</div>'
-          +'</div>';
-      }).join('')
-      +'</div>'
-      +'</div>';
-
-    h+='</div>'; // end panel
-  });
-
-  h+='</div>'; // end strat-tabs-wrap
-
-  var box=document.getElementById('resultsBox');
-  box.innerHTML=h;
-  box.style.display='block';
-  _hasResults=true;
-  var lb=document.getElementById('landingBox');
-  if(lb) lb.style.display='none';
-  // Scroll results into view below the sticky header
-  setTimeout(function(){
-    var stickyH=document.getElementById('stickyHeader').getBoundingClientRect().height;
-    var top=box.getBoundingClientRect().top+window.pageYOffset-stickyH-8;
-    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
-  },80);
-}
-
-function scoreBar(label,val,color){
-  return '<div>'
-    +'<div style="font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">'+label+'</div>'
-    +'<div style="font-size:13px;font-weight:900;color:'+color+';margin-bottom:3px">'+val+'%</div>'
-    +'<div class="score-bar"><div class="score-fill" style="width:'+val+'%;background:'+color+'"></div></div>'
-    +'</div>';
-}
-
-
-})();
 </script>
 
 
@@ -9070,16 +8251,4 @@ function scoreBar(label,val,color){
 
 
 </body>
-</html><!-- VOL SIGNAL CARD -->
-    <div id="vol-signal-card" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:900;color:#0f172a;letter-spacing:.02em;">⚡ Volatility Signal</div>
-        <div style="display:flex;gap:6px;">
-          <button onclick="runVolSignal('SPY')" id="vs-spy-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">SPY</button>
-          <button onclick="runVolSignal('QQQ')" id="vs-qqq-btn" style="background:#f1f5f9;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.02em;">QQQ</button>
-        </div>
-      </div>
-      <div id="vol-signal-body" style="font-size:13px;color:#64748b;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.01em;">Tap <strong style="color:#0f172a;">SPY</strong> or <strong style="color:#0f172a;">QQQ</strong> to run the volatility signal</div>
-    </div>
-
-  
+</html>
