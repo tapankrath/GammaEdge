@@ -326,15 +326,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* ── STRATEGY LENS INLINE ── */
 #sl-wrap{--sl:1}
 #sl-wrap *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-#sl-wrap html,html,#sl-wrap{overflow-x:hidden;overflow-y:auto;}#sl-wrap{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;width:100%}
-
-/* ── SINGLE STICKY HEADER BLOCK ── */
-#sl-wrap #stickyHeader{
-#sl-wrap   position:sticky;
-#sl-wrap   top:0;
-#sl-wrap   z-index:200;
-#sl-wrap   background:#0f172a;
-#sl-wrap }
+#sl-wrap{background:#090d16;color:#f8fafc;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;width:100%;overflow:visible;}
 
 /* TOPBAR */
 #sl-wrap .topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;gap:8px}
@@ -586,7 +578,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
 
 
-<div class="pane on" id="pane0" style="padding:0;margin:0 -10px;overflow-x:hidden;">
+<div class="pane on" id="pane0" style="padding:0;margin:0 -10px;">
 <div id="sl-wrap">
 
 <style>
@@ -702,15 +694,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .nd-exit-rule-txt strong { color:#e2e8f0; font-weight:800; }
 /* Vol signal */
 #sl-wrap .nd-vol-card { background:#1e293b; border-radius:10px; padding:12px; margin-bottom:14px; border:1px solid #334155; }
-#sl-wrap .nd-modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9,13,22,.9); backdrop-filter:blur(4px); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px; }
-#sl-wrap .nd-modal-overlay.active { display:flex; }
-#sl-wrap .nd-modal { background:#1e293b; border:2px solid #475569; border-radius:12px; width:100%; max-width:380px; padding:18px; }
-#sl-wrap .nd-modal input { width:100%; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:10px; color:#fff; font-family:monospace; font-size:12px; margin-top:6px; margin-bottom:14px; outline:none; }
-#sl-wrap .nd-modal input:focus { border-color:#10b981; }
-#sl-wrap .nd-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
-#sl-wrap .nd-btn-sec { background:#334155; color:#cbd5e1; border:none; padding:8px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-transform:uppercase; font-family:inherit; }
-#sl-wrap .nd-btn-pri { background:#10b981; color:#0f172a; border:none; padding:8px 14px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; text-transform:uppercase; font-family:inherit; }
-#sl-wrap .nd-btn-danger { background:none; border:1px solid #f43f5e; color:#f43f5e; padding:6px 10px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer; text-transform:uppercase; margin-top:14px; width:100%; display:block; text-align:center; font-family:inherit; }
+/* modal handled outside sl-wrap */
 </style>
 
 <div class="nd-container">
@@ -732,7 +716,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div id="nd-token-alert" class="nd-alert" style="display:none;">⚠️ No Finnhub key — tap to configure for live pricing.</div>
 
   <!-- STICKY CONTROLS -->
-  <div class="nd-sticky">
+  <div class="nd-sticky" id="nd-sticky-ctrl">
 
     <!-- Ticker chips + inline add -->
     <div class="nd-ctrl">
@@ -803,21 +787,6 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div id="nd-results" style="display:none;"></div>
 
 </div><!-- end nd-container -->
-
-<!-- Settings Modal -->
-<div id="nd-modal-overlay" class="nd-modal-overlay">
-  <div class="nd-modal">
-    <h3 style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:6px;text-transform:uppercase;">API Configuration</h3>
-    <p style="font-size:11px;color:#e2e8f0;line-height:1.4;margin-bottom:12px;">Enter your free Finnhub.io API key. Same key used across all GammaEdge tabs.</p>
-    <label class="nd-lbl" style="font-size:9px;">Finnhub API Token</label>
-    <input type="password" id="nd-api-inp" placeholder="e.g. c1234567890abcdefg" autocomplete="off">
-    <div class="nd-modal-actions">
-      <button class="nd-btn-sec" id="nd-modal-cancel">Cancel</button>
-      <button class="nd-btn-pri" id="nd-modal-save">Save Token</button>
-    </div>
-    <button class="nd-btn-danger" id="nd-engine-reset">Reset Terminal Data</button>
-  </div>
-</div>
 
 <script>
 // ── STATE ──
@@ -893,8 +862,13 @@ function ndCheckToken(){
 }
 function ndToggleModal(show){
   var o=document.getElementById('nd-modal-overlay');
-  if(show){document.getElementById('nd-api-inp').value=localStorage.getItem('ge_fh_key')||'';o.classList.add('active');}
-  else o.classList.remove('active');
+  if(!o) return;
+  if(show){
+    document.getElementById('nd-api-inp').value=localStorage.getItem('ge_fh_key')||'';
+    o.style.display='flex';
+  } else {
+    o.style.display='none';
+  }
 }
 function ndSaveKey(){
   var v=document.getElementById('nd-api-inp').value.trim();
@@ -1318,10 +1292,31 @@ function ndInit(){
 window.addEventListener('load', function(){
   ndInit();
   if(typeof showTab === 'function') showTab(0);
+  // Set sticky top to clear the GammaEdge header
+  var hdr = document.getElementById('ge-header');
+  var sticky = document.getElementById('nd-sticky-ctrl');
+  if(hdr && sticky){
+    sticky.style.top = hdr.offsetHeight + 'px';
+  }
 });
 </script>
 
 </div><!-- end sl-wrap -->
+</div>
+
+<!-- StratEdge Settings Modal — outside sl-wrap so position:fixed works correctly -->
+<div id="nd-modal-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(9,13,22,.92);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#1e293b;border:2px solid #475569;border-radius:12px;width:100%;max-width:380px;padding:18px;box-shadow:0 25px 50px -12px rgba(0,0,0,.6);">
+    <h3 style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:6px;text-transform:uppercase;font-family:inherit;">API Configuration</h3>
+    <p style="font-size:11px;color:#e2e8f0;line-height:1.4;margin-bottom:12px;font-family:inherit;">Enter your free Finnhub.io API key. Same key used across all GammaEdge tabs.</p>
+    <label style="font-size:9px;font-weight:700;color:#e2e8f0;text-transform:uppercase;display:block;margin-bottom:4px;font-family:inherit;">Finnhub API Token</label>
+    <input type="password" id="nd-api-inp" placeholder="e.g. c1234567890abcdefg" autocomplete="off" style="width:100%;background:#0f172a;border:1px solid #475569;border-radius:6px;padding:10px;color:#fff;font-family:monospace;font-size:12px;margin-bottom:14px;outline:none;display:block;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;">
+      <button id="nd-modal-cancel" style="background:#334155;color:#cbd5e1;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:inherit;">Cancel</button>
+      <button id="nd-modal-save" style="background:#10b981;color:#0f172a;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;font-family:inherit;">Save Token</button>
+    </div>
+    <button id="nd-engine-reset" style="background:none;border:1px solid #f43f5e;color:#f43f5e;padding:6px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;width:100%;font-family:inherit;">Reset Terminal Data</button>
+  </div>
 </div>
 
 
