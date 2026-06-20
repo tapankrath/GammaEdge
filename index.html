@@ -748,9 +748,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
     <label class="nd-lbl">DTE</label>
     <div class="nd-dte-grid">
-      <button id="nd-dte-7" class="nd-dte-btn active" onclick="ndSelectDte(7)">1 Week (7d)</button>
-      <button id="nd-dte-14" class="nd-dte-btn" onclick="ndSelectDte(14)">2 Weeks (14d)</button>
-      <button id="nd-dte-21" class="nd-dte-btn" onclick="ndSelectDte(21)">3 Weeks (21d)</button>
+      <button id="nd-dte-7" class="nd-dte-btn active">1 Week (7d)</button>
+      <button id="nd-dte-14" class="nd-dte-btn">2 Weeks (14d)</button>
+      <button id="nd-dte-21" class="nd-dte-btn">3 Weeks (21d)</button>
     </div>
   </div>
 
@@ -759,8 +759,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ Volatility Signal</div>
       <div style="display:flex;gap:6px;">
-        <button onclick="ndRunVolSignal('SPY')" id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
-        <button onclick="ndRunVolSignal('QQQ')" id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
+        <button id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
+        <button id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
       </div>
     </div>
     <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> to run the volatility signal</div>
@@ -779,7 +779,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
   <div class="nd-err" id="nd-err"></div>
-  <button class="nd-analyze-btn" id="nd-analyze-btn" onclick="ndRunAnalyze()">⚡ Analyze Strategies</button>
+  <button class="nd-analyze-btn" id="nd-analyze-btn">⚡ Analyze Strategies</button>
 
   <div class="nd-loading" id="nd-loading">
     <div class="nd-spinner"></div>
@@ -1171,16 +1171,19 @@ async function ndRunVolSignal(sym){
   }catch(e){body.innerHTML='<span style="color:#f43f5e;">Error: '+e.message+'</span>';}
 }
 
-// ── expose vol signal globally so onclick attrs can reach it ──
-window.ndRunVolSignal = ndRunVolSignal;
-window.ndRunAnalyze  = ndRunAnalyze;
-window.ndSelectDte   = ndSelectDte;
-window.ndSwitchTab   = ndSwitchTab;
+// ndSwitchTab still needs to be global — called from dynamically rendered innerHTML
+window.ndSwitchTab = ndSwitchTab;
 
 // ── INIT (DOM already ready for inline scripts) ──
 function ndInit(){
   if(!document.getElementById('nd-ticker-grid'))return; // pane not in DOM yet
   ndInitWatchlist();
+  document.getElementById('nd-vs-spy').addEventListener('click', function(){ ndRunVolSignal('SPY'); });
+  document.getElementById('nd-vs-qqq').addEventListener('click', function(){ ndRunVolSignal('QQQ'); });
+  document.getElementById('nd-dte-7').addEventListener('click', function(){ ndSelectDte(7); });
+  document.getElementById('nd-dte-14').addEventListener('click', function(){ ndSelectDte(14); });
+  document.getElementById('nd-dte-21').addEventListener('click', function(){ ndSelectDte(21); });
+  document.getElementById('nd-analyze-btn').addEventListener('click', ndRunAnalyze);
   document.getElementById('nd-ticker-grid').addEventListener('click',function(e){
     var del=e.target.closest('.nd-rmx');
     if(del){ndRemoveTicker(del.getAttribute('data-del'),e);return;}
