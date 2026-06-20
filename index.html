@@ -723,7 +723,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       <label class="nd-lbl">Active Ticker</label>
       <div class="nd-ticker-grid" id="nd-ticker-grid"></div>
       <div class="nd-custom-row">
-        <input type="text" id="nd-custom-inp" class="nd-tick-inp" placeholder="+ ADD SYMBOL" maxlength="6">
+        <input type="text" id="nd-custom-inp" class="nd-tick-inp" placeholder="+ ADD SYMBOL" maxlength="6" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
         <button id="nd-add-btn" class="nd-add-btn">+</button>
       </div>
       <!-- Capital + DTE on one row -->
@@ -1268,9 +1268,6 @@ function ndInit(){
     }
     if(e.target.id==='nd-settings-btn'||e.target.closest('#nd-settings-btn')) { ndToggleModal(true); return; }
     if(e.target.id==='nd-token-alert') { ndToggleModal(true); return; }
-    if(e.target.id==='nd-modal-cancel') { ndToggleModal(false); return; }
-    if(e.target.id==='nd-modal-save')   { ndSaveKey(); return; }
-    if(e.target.id==='nd-engine-reset') { localStorage.clear(); alert('Reset. Reloading…'); window.location.reload(); return; }
     // Ticker grid
     var del = e.target.closest('.nd-rmx');
     if(del){ ndRemoveTicker(del.getAttribute('data-del'), e); return; }
@@ -1285,6 +1282,17 @@ function ndInit(){
   wrap.addEventListener('keydown', function(e){
     if(e.target.id==='nd-custom-inp' && e.key==='Enter') ndAddTicker();
   });
+
+  // Modal buttons — wired directly since modal is outside sl-wrap
+  var mc = document.getElementById('nd-modal-cancel');
+  var ms = document.getElementById('nd-modal-save');
+  var mr = document.getElementById('nd-engine-reset');
+  if(mc) mc.addEventListener('click', function(){ ndToggleModal(false); });
+  if(ms) ms.addEventListener('click', ndSaveKey);
+  if(mr) mr.addEventListener('click', function(){ localStorage.clear(); alert('Reset. Reloading…'); window.location.reload(); });
+  // Close modal on overlay click
+  var mo = document.getElementById('nd-modal-overlay');
+  if(mo) mo.addEventListener('click', function(e){ if(e.target === mo) ndToggleModal(false); });
 
   setTimeout(function(){ if(localStorage.getItem('ge_fh_key')) ndRunVolSignal('SPY'); }, 1200);
 }
@@ -1303,22 +1311,6 @@ window.addEventListener('load', function(){
 
 </div><!-- end sl-wrap -->
 </div>
-
-<!-- StratEdge Settings Modal — outside sl-wrap so position:fixed works correctly -->
-<div id="nd-modal-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(9,13,22,.92);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#1e293b;border:2px solid #475569;border-radius:12px;width:100%;max-width:380px;padding:18px;box-shadow:0 25px 50px -12px rgba(0,0,0,.6);">
-    <h3 style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:6px;text-transform:uppercase;font-family:inherit;">API Configuration</h3>
-    <p style="font-size:11px;color:#e2e8f0;line-height:1.4;margin-bottom:12px;font-family:inherit;">Enter your free Finnhub.io API key. Same key used across all GammaEdge tabs.</p>
-    <label style="font-size:9px;font-weight:700;color:#e2e8f0;text-transform:uppercase;display:block;margin-bottom:4px;font-family:inherit;">Finnhub API Token</label>
-    <input type="password" id="nd-api-inp" placeholder="e.g. c1234567890abcdefg" autocomplete="off" style="width:100%;background:#0f172a;border:1px solid #475569;border-radius:6px;padding:10px;color:#fff;font-family:monospace;font-size:12px;margin-bottom:14px;outline:none;display:block;">
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;">
-      <button id="nd-modal-cancel" style="background:#334155;color:#cbd5e1;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:inherit;">Cancel</button>
-      <button id="nd-modal-save" style="background:#10b981;color:#0f172a;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;font-family:inherit;">Save Token</button>
-    </div>
-    <button id="nd-engine-reset" style="background:none;border:1px solid #f43f5e;color:#f43f5e;padding:6px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;width:100%;font-family:inherit;">Reset Terminal Data</button>
-  </div>
-</div>
-
 
 <!-- TAB 1: P&L CALC -->
 <div class="pane" id="pane1" style="padding-top:8px">
@@ -8336,6 +8328,20 @@ function pgGetSuggestions(){
   </div>
 </div>
 
+<!-- StratEdge Settings Modal: direct child of body — position:fixed works correctly here -->
+<div id="nd-modal-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(9,13,22,.92);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:99999;display:none;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
+  <div style="background:#1e293b;border:2px solid #475569;border-radius:12px;width:100%;max-width:360px;padding:18px;box-shadow:0 25px 50px rgba(0,0,0,.7);">
+    <h3 style="font-size:14px;font-weight:800;color:#34d399;margin:0 0 6px;text-transform:uppercase;">API Configuration</h3>
+    <p style="font-size:11px;color:#e2e8f0;line-height:1.5;margin:0 0 12px;">Enter your free Finnhub.io API key. Same key used across all GammaEdge tabs.</p>
+    <label style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Finnhub API Token</label>
+    <input type="password" id="nd-api-inp" placeholder="e.g. c1234567890abcdefg" autocomplete="off" style="width:100%;background:#0f172a;border:1px solid #475569;border-radius:6px;padding:10px;color:#fff;font-family:monospace;font-size:12px;margin:0 0 14px;outline:none;display:block;box-sizing:border-box;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px;">
+      <button id="nd-modal-cancel" style="background:#334155;color:#cbd5e1;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;">Cancel</button>
+      <button id="nd-modal-save" style="background:#10b981;color:#0f172a;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;">Save Token</button>
+    </div>
+    <button id="nd-engine-reset" style="background:none;border:1px solid #f43f5e;color:#f43f5e;padding:7px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;width:100%;">Reset Terminal Data</button>
+  </div>
+</div>
 
 </body>
 </html>
