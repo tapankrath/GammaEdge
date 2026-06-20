@@ -548,20 +548,16 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#fff;border-radius:8px;padding:6px 11px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">⚙️ Keys</button>
   </div>
 
-  <!-- Tools grid — 2 centered rows -->
-  <div style="display:flex;flex-direction:column;gap:5px;padding:0 12px 8px;align-items:center;">
-    <div style="display:flex;gap:6px;justify-content:center;">
-      <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
-      <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
-      <a href="EarningsAI.html"    target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
-      <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
-    </div>
-    <div style="display:flex;gap:6px;justify-content:center;">
-      <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
-      <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
-      <a href="BigChances.html"    target="_blank" rel="noopener" class="ge-tool-link">BigChances</a>
-      <a href="volsignal.html"     target="_blank" rel="noopener" class="ge-tool-link">VolSignal</a>
-    </div>
+  <!-- Tools grid — 2 rows of 4, centered -->
+  <div style="display:grid;grid-template-columns:repeat(4,auto);gap:6px;padding:0 12px 8px;justify-content:center;">
+    <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
+    <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
+    <a href="EarningsAI.html"    target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
+    <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
+    <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
+    <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
+    <a href="BigChances.html"    target="_blank" rel="noopener" class="ge-tool-link">BigChances</a>
+    <a href="volsignal.html"     target="_blank" rel="noopener" class="ge-tool-link">VolSignal</a>
   </div>
 
   <!-- Tab bar — all 5 visible, equal width -->
@@ -1315,7 +1311,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 1: P&L CALC -->
-<div class="pane" id="pane1" style="padding-top:8px">
+<div class="pane" id="pane1" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
   <div class="card">
     <div class="card-title">Position</div>
     <div class="tickers">
@@ -1373,7 +1369,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 2: ALLOCAI -->
-<div class="pane" id="pane7" style="padding-top:8px">
+<div class="pane" id="pane7" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
 
 <!-- ── CAPITAL CARD ── -->
 <div style="background:#fff;border:2px solid #0a0f1e;border-radius:14px;padding:12px;box-shadow:3px 3px 0 #0a0f1e;margin-bottom:10px">
@@ -1773,7 +1769,7 @@ window.addEventListener('load', function(){
 </div><!-- end pane7 AllocAI -->
 
 <!-- OLD STRADDLE PANE (kept for go2() compatibility, hidden) -->
-<div class="pane" id="pane2" style="padding-top:8px">
+<div class="pane" id="pane2" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Delta selector -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
@@ -1840,7 +1836,7 @@ window.addEventListener('load', function(){
 
 
 <!-- TAB 3: SPIKE/CRASH -->
-<div class="pane" id="pane3" style="padding-top:8px">
+<div class="pane" id="pane3" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
   <div class="card">
     <!-- Row 1: Tickers + custom input -->
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
@@ -1891,7 +1887,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 4: SIGNAL -->
-<div class="pane" id="pane4" style="padding-top:8px">
+<div class="pane" id="pane4" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Dual SPY/QQQ signal cards removed — SPY/QQQ now live in the Top Picks
        scanner chips, which verify against the same engine. renderDualCards()
@@ -1993,7 +1989,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- PANE 5: BACKTEST TABLE -->
-<div class="pane" id="pane5" style="padding-top:8px">
+<div class="pane" id="pane5" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- ── SETTINGS (collapsible, collapsed by default) ── -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
@@ -2153,7 +2149,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- PANE 6: PORTFOLIO -->
-<div class="pane" id="pane6" style="padding-top:8px">
+<div class="pane" id="pane6" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Plan Setup -->
   <div class="card" id="pm-setup-card">
@@ -2234,7 +2230,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 5: PORTFOLIO GREEKS DASHBOARD -->
-<div class="pane" id="pane8" style="padding:10px 10px 40px;">
+<div class="pane" id="pane8" style="padding:10px 10px 40px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Top bar -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
