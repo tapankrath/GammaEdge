@@ -282,7 +282,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* ── GE TOOL LINKS ── */
 .ge-tool-link{
   display:flex;align-items:center;justify-content:center;
-  padding:10px 6px;font-size:12px;font-weight:800;
+  padding:13px 8px;font-size:13px;font-weight:800;
   color:#0f172a!important;text-decoration:none;background:transparent;
   text-align:center;letter-spacing:.01em;
   border-right:1px solid #e2e8f0;
@@ -290,7 +290,6 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 }
 .ge-tool-link:last-child{border-right:none;}
 .ge-tool-link:hover,.ge-tool-link:active{background:#dcfce7;color:#15803d!important;}
-.ge-tool-link:hover,.ge-tool-link:active{background:rgba(255,255,255,.15);color:#fff;}
 
 /* ── GE TAB BAR ── */
 .ge-tab{
@@ -557,19 +556,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#fff;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">⚙️ Keys</button>
   </div>
 
-  <!-- Tools grid — 4x2, equal cells, no emoji wrapping issues -->
+  <!-- Tools grid — 3x2, centered, 6 unique tools -->
   <div style="margin:0 12px 8px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);">
-      <a href="chartedge.html"      target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
-      <a href="stockai.html"        target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
-      <a href="EarningsAI.html"     target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
-      <button onclick="showTab(0)" class="ge-tool-link" style="border:none;cursor:pointer;font-family:inherit;">StratEdge</button>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);">
+      <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
+      <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
+      <a href="EarningsAI.html"    target="_blank" rel="noopener" class="ge-tool-link">EarningsAI</a>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #e2e8f0;">
-      <a href="portfolioedge.html"  target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
-      <a href="MoonshotAI.html"     target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
-      <a href="weekly-alpha.html"   target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
-      <a href="optionsai.html"      target="_blank" rel="noopener" class="ge-tool-link">OptionsAI</a>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #e2e8f0;">
+      <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
+      <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
+      <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
     </div>
   </div>
 

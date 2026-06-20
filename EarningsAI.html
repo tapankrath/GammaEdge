@@ -82,6 +82,17 @@ html,body{scroll-padding-top:190px;}
   animation:ldp 1.2s ease-in-out infinite;}
 @keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
 .hdr-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.mkt-pills{display:flex;gap:4px;width:100%;}
+.mkt-q{display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 6px;flex:1;overflow:hidden;min-width:0;white-space:nowrap;}
+.mkt-q.up{border-color:rgba(134,239,172,.4);background:rgba(22,163,74,.12);}
+.mkt-q.dn{border-color:rgba(252,165,165,.3);background:rgba(185,28,28,.1);}
+.mkt-sym{font-size:8px;font-weight:900;color:rgba(255,255,255,.5);letter-spacing:.04em;}
+.mkt-q.up .mkt-sym{color:#4ade80;}.mkt-q.dn .mkt-sym{color:#f87171;}
+.mkt-px{font-size:10px;font-weight:700;color:#fff;}
+.mkt-chg{font-size:9px;font-weight:800;}
+.mkt-q.up .mkt-chg{color:#4ade80;}.mkt-q.dn .mkt-chg{color:#f87171;}
+.mkt-load{animation:ldp 1.2s ease-in-out infinite;}
+@keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
 .live-pill{
   display:inline-flex;align-items:center;gap:3px;
   background:var(--gbg);border:1.5px solid var(--gbd);
@@ -447,6 +458,13 @@ html,body{scroll-padding-top:190px;}
         <button class="btn-gear" onclick="openSettings()">⚙️<div class="gear-dot" id="gearDot"></div></button>
       </div>
     </div>
+    <!-- Row 2: live market quote pills -->
+    <div class="mkt-pills">
+      <div class="mkt-q" id="mq-spy"><span class="mkt-sym">SPY</span><span class="mkt-px mkt-load" id="mq-spy-px">…</span><span class="mkt-chg" id="mq-spy-chg"></span></div>
+      <div class="mkt-q" id="mq-qqq"><span class="mkt-sym">QQQ</span><span class="mkt-px mkt-load" id="mq-qqq-px">…</span><span class="mkt-chg" id="mq-qqq-chg"></span></div>
+      <div class="mkt-q" id="mq-dia"><span class="mkt-sym">DIA</span><span class="mkt-px mkt-load" id="mq-dia-px">…</span><span class="mkt-chg" id="mq-dia-chg"></span></div>
+      <div class="mkt-q" id="mq-vix"><span class="mkt-sym">VIX</span><span class="mkt-px mkt-load" id="mq-vix-px">…</span><span class="mkt-chg" id="mq-vix-chg"></span></div>
+    </div>
   </div>
 
   <!-- NO KEY -->
@@ -661,7 +679,7 @@ function callClaude(key,prompt,model,maxTokens){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:model||'claude-sonnet-4-5',
+        model:model||'claude-sonnet-4-6',
         max_tokens:maxTokens||4500,
         tools:[{type:'web_search_20250305',name:'web_search',max_uses:14}],
         messages:messages
@@ -1128,6 +1146,33 @@ function esc(s){
     return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
   });
 }
+
+// ── LIVE MARKET QUOTES ──
+function fetchQuotes(){
+  var fk = localStorage.getItem('ge_fh_key') || '';
+  if(!fk) return;
+  var syms = [['SPY','spy'],['QQQ','qqq'],['DIA','dia'],['VIX','vix']];
+  syms.forEach(function(s){
+    fetch('https://finnhub.io/api/v1/quote?symbol='+s[0]+'&token='+fk)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d||!d.c) return;
+        var up = d.c >= d.pc;
+        var chg = ((d.c - d.pc)/d.pc*100).toFixed(2);
+        var el = document.getElementById('mq-'+s[1]);
+        var px = document.getElementById('mq-'+s[1]+'-px');
+        var ch = document.getElementById('mq-'+s[1]+'-chg');
+        if(!el||!px||!ch) return;
+        px.textContent = d.c >= 100 ? Math.round(d.c) : d.c.toFixed(2);
+        px.classList.remove('mkt-load');
+        ch.textContent = (up?'+':'')+chg+'%';
+        el.className = 'mkt-q '+(up?'up':'dn');
+      }).catch(function(){});
+  });
+}
+// Use ge_fh_key (same Finnhub key used by StratEdge)
+fetchQuotes();
+setInterval(fetchQuotes, 60000);
 </script>
 </body>
 </html>
