@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vol Signal — IV vs RV</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#f8f9fb;min-height:100vh;padding:20px 14px;color:#111827}
+
+  .wrap{max-width:740px;margin:0 auto}
+
+  /* header */
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+  .hdr h1{font-size:21px;font-weight:700;letter-spacing:-.5px}
+  .hdr h1 span{color:#9ca3af;font-weight:400;font-size:14px}
+  .btn-gear{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 13px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;cursor:pointer}
+  .btn-gear.ready{color:#16a34a}
+  .btn-gear.missing{color:#dc2626}
+
+  /* symbol bar */
+  .sym-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px}
+  .pill-wrap{position:relative;display:inline-flex}
+  .pill{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;border:1.5px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer;transition:all .15s;letter-spacing:.03em}
+  .pill.active{background:#111827;color:#fff;border-color:#111827}
+  .pill.edit-mode{background:#fff1f1;color:#ef4444;border-color:#fca5a5;padding-right:30px}
+  .pill-del{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;font-weight:800;line-height:1;padding:0}
+  .add-form{display:inline-flex}
+  .add-input{padding:8px 12px;border-radius:20px 0 0 20px;font-size:13px;font-weight:700;width:90px;border:1.5px dashed #9ca3af;border-right:none;background:#f9fafb;color:#111827;outline:none}
+  .add-btn{padding:8px 14px;border-radius:0 20px 20px 0;font-size:15px;font-weight:800;background:#111827;color:#fff;border:none;cursor:pointer}
+
+  .sym-controls{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+  .search-form{display:flex}
+  .search-input{padding:8px 14px;border-radius:20px 0 0 20px;font-size:13px;font-weight:600;width:140px;border:1.5px solid #e5e7eb;border-right:none;background:#fff;color:#111827;outline:none}
+  .search-btn{padding:8px 18px;border-radius:0 20px 20px 0;font-size:13px;font-weight:700;background:#111827;color:#fff;border:none;cursor:pointer}
+  .edit-toggle{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer}
+  .edit-toggle.active{background:#111827;color:#fff;border-color:#111827}
+
+  /* cards */
+  .card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:14px}
+  .card-pad{padding:16px 20px}
+
+  /* error */
+  .error-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:14px;display:none}
+
+  /* loading */
+  .loading-box{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:48px 24px;text-align:center;font-size:14px;color:#9ca3af;display:none}
+
+  /* landing */
+  .landing{background:#fff;border-radius:14px;border:1px solid #e5e7eb;padding:32px 24px}
+  .landing-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+  .landing p{font-size:14px;color:#374151;line-height:1.75;margin-bottom:12px}
+  .landing p:last-of-type{margin-bottom:0}
+  .landing-div{border-bottom:1px solid #f3f4f6;margin-bottom:24px;padding-bottom:24px}
+  .landing-cta{text-align:center}
+  .landing-cta .icon{font-size:28px;margin-bottom:10px}
+  .landing-cta p{font-size:14px;color:#6b7280}
+  .landing-cta .cta-title{font-weight:600;color:#111827;margin-bottom:6px}
+  .landing-cta .cta-sub{color:#9ca3af;font-size:13px;margin-bottom:18px}
+  .btn-dark{padding:10px 24px;border-radius:20px;font-size:13px;font-weight:700;background:#111827;color:#fff;border:none;cursor:pointer}
+
+  /* signal banner */
+  .signal-banner{padding:14px 20px;border-bottom:1px solid #e5e7eb}
+  .signal-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .signal-badge{font-weight:700;font-size:13px;padding:3px 12px;border-radius:20px;color:#fff}
+  .signal-conf{font-size:13px;color:#6b7280}
+  .signal-src{font-size:12px;color:#9ca3af;margin-left:auto}
+  .signal-action{font-size:13px;color:#374151;line-height:1.5;margin:0}
+
+  /* stats grid */
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f3f4f6}
+  .stat-cell{padding:14px 16px}
+  .stat-cell:not(:last-child){border-right:1px solid #f3f4f6}
+  .stat-label{font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .stat-val{font-size:24px;font-weight:700;color:#111827;line-height:1}
+  .stat-sub{font-size:11px;color:#9ca3af;margin-top:4px}
+
+  /* chart */
+  .chart-wrap{padding:16px 20px 12px}
+  .chart-legend{display:flex;gap:14px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280}
+  .leg-swatch{width:14px;height:10px;border-radius:2px}
+
+  /* strategy */
+  .strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .strat-card{border-radius:8px;padding:12px 14px;border:2px solid transparent;position:relative}
+  .strat-card.active-card{border-width:2px}
+  .strat-active-badge{position:absolute;top:8px;right:10px;font-size:10px;font-weight:700;text-transform:uppercase}
+  .strat-title{font-size:12px;font-weight:700;margin-bottom:8px}
+  .strat-list{margin:0;padding:0 0 0 14px;font-size:12px;color:#374151;line-height:1.9}
+
+  /* AI */
+  .ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .ai-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .ai-result{font-size:13px;color:#374151;line-height:1.75;background:#f8f9fb;border-radius:8px;padding:12px 14px;margin-top:12px;display:none}
+  .ai-hint{font-size:12px;color:#9ca3af;margin-top:8px}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:#fff;border-radius:14px;border:1px solid #e5e7eb;padding:28px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+  .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .modal-hdr h2{font-size:16px;font-weight:700}
+  .modal-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;padding:2px 6px}
+  .modal-field{margin-bottom:16px}
+  .modal-field:last-of-type{margin-bottom:24px}
+  .field-label{font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+  .field-input{width:100%;padding:9px 12px;border-radius:7px;border:1.5px solid #e5e7eb;font-size:13px;color:#111827;outline:none;font-family:monospace;background:#fff}
+  .field-hint{font-size:11px;color:#9ca3af;margin-top:4px}
+  .modal-btns{display:flex;gap:8px}
+  .btn-cancel{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:600;background:#f3f4f6;color:#374151;border:none;cursor:pointer}
+  .btn-save{flex:2;padding:9px;border-radius:8px;font-size:13px;font-weight:700;background:#111827;color:#fff;border:none;cursor:pointer}
+  .btn-save:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}
+  .modal-note{font-size:11px;color:#d1d5db;margin-top:12px;text-align:center}
+
+  .footer{font-size:11px;color:#d1d5db;text-align:center;margin-top:20px}
+
+  /* results hidden by default */
+  #results{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h2>API Keys</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-field">
+        <label class="field-label">Twelve Data</label>
+        <input class="field-input" type="password" id="input-twelve" placeholder="your_twelve_data_key">
+        <p class="field-hint">Historical prices → realized volatility</p>
+      </div>
+      <div class="modal-field">
+        <label class="field-label">Finnhub</label>
+        <input class="field-input" type="password" id="input-finnhub" placeholder="your_finnhub_key">
+        <p class="field-hint">VIX / VXN as implied volatility proxy</p>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" id="btn-save-keys" onclick="saveKeys()">Save Keys</button>
+      </div>
+      <p class="modal-note">Keys stay in your browser only.</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px">
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:#111827;color:#facc15;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;padding:7px 13px;border-radius:8px;border:2px solid #facc15;white-space:nowrap">
+        ← GammaEdge
+      </a>
+      <h1>Vol Signal <span>— live IV vs RV</span></h1>
+    </div>
+    <button class="btn-gear missing" id="gear-btn" onclick="openModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span id="gear-label">Add keys</span>
+    </button>
+  </div>
+
+  <!-- Symbol Pills -->
+  <div style="margin-bottom:16px">
+    <div class="sym-pills" id="pill-row"></div>
+    <div class="sym-controls">
+      <form class="search-form" id="search-form" onsubmit="handleSearch(event)">
+        <input class="search-input" id="search-input" placeholder="Search ticker…" maxlength="6">
+        <button class="search-btn" type="submit" id="search-btn">Go</button>
+      </form>
+      <button class="edit-toggle" id="edit-toggle" onclick="toggleEditMode()">+ Add / Delete</button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Loading -->
+  <div class="loading-box" id="loading-box">Fetching prices and vol data…</div>
+
+  <!-- Landing -->
+  <div class="landing" id="landing">
+    <div class="landing-div">
+      <div class="landing-label">How it works</div>
+      <p>This tool compares <strong>implied volatility (IV)</strong> — the market's expected move priced into options — against <strong>realized volatility (RV)</strong>, the actual movement that occurred. The spread between them determines whether options are cheap or expensive relative to real risk.</p>
+      <p>When IV > RV, selling volatility has a statistical edge. When RV > IV, buying volatility does. IV is sourced from VIX/VXN via Finnhub; RV is calculated from 30-day price history via Twelve Data.</p>
+    </div>
+    <div class="landing-cta" id="landing-cta">
+      <div class="icon">🔑</div>
+      <p class="cta-title">Connect your data sources to get started</p>
+      <p class="cta-sub">Requires a free Twelve Data key and a free Finnhub key.</p>
+      <button class="btn-dark" onclick="openModal()">⚙ Set API Keys</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <!-- Signal banner -->
+    <div class="card">
+      <div class="signal-banner" id="signal-banner">
+        <div class="signal-row">
+          <span class="signal-badge" id="signal-badge"></span>
+          <span class="signal-conf" id="signal-conf"></span>
+          <span class="signal-src" id="signal-src"></span>
+        </div>
+        <p class="signal-action" id="signal-action"></p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-label">Implied Vol (IV)</div>
+          <div class="stat-val" id="stat-iv"></div>
+          <div class="stat-sub">VIX proxy via Finnhub</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Realized Vol (RV)</div>
+          <div class="stat-val" id="stat-rv"></div>
+          <div class="stat-sub">30-day via Twelve Data</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Vol Premium</div>
+          <div class="stat-val" id="stat-prem"></div>
+          <div class="stat-sub" id="stat-prem-sub"></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-legend">
+          <div class="leg-item">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#111827" stroke-width="2.5"/></svg>
+            IV (VIX proxy)
+          </div>
+          <div class="leg-item">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#9ca3af" stroke-width="2" stroke-dasharray="5,3"/></svg>
+            Realized Vol
+          </div>
+          <div class="leg-item">
+            <div class="leg-swatch" style="background:rgba(220,38,38,.15)"></div>
+            Premium
+          </div>
+        </div>
+        <svg id="vol-chart" width="100%" viewBox="0 0 660 200" style="display:block"></svg>
+      </div>
+    </div>
+
+    <!-- Strategy -->
+    <div class="card card-pad">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Strategy Playbook</div>
+      <div class="strat-grid">
+        <div class="strat-card" id="strat-sell" style="background:#fef2f2">
+          <span class="strat-active-badge" id="strat-sell-badge" style="color:#dc2626;display:none">● Active</span>
+          <div class="strat-title" style="color:#dc2626">Sell Vol (IV &gt; RV)</div>
+          <ul class="strat-list">
+            <li>Short straddle / strangle</li>
+            <li>Iron condor</li>
+            <li>Covered calls</li>
+            <li>Sell calendar spreads</li>
+            <li>Credit spreads</li>
+          </ul>
+        </div>
+        <div class="strat-card" id="strat-buy" style="background:#f0fdf4">
+          <span class="strat-active-badge" id="strat-buy-badge" style="color:#16a34a;display:none">● Active</span>
+          <div class="strat-title" style="color:#16a34a">Buy Vol (RV &gt; IV)</div>
+          <ul class="strat-list">
+            <li>Long straddle / strangle</li>
+            <li>Back-spreads</li>
+            <li>Buy calendars</li>
+            <li>Long gamma scalping</li>
+            <li>Debit spreads</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="card card-pad">
+      <div class="ai-header">
+        <span class="ai-label">AI Vol Desk</span>
+        <button class="btn-dark" id="ai-btn" onclick="runAI()" style="padding:7px 16px;border-radius:7px;font-size:13px">Analyze</button>
+      </div>
+      <p class="ai-hint" id="ai-hint">Get a vol desk breakdown with specific trade ideas for the current setup.</p>
+      <div class="ai-result" id="ai-result"></div>
+    </div>
+  </div>
+
+  <p class="footer">IV sourced from VIX/VXN index — not from the options chain. For educational use only.</p>
+</div>
+
+<script>
+// ── state ────────────────────────────────────────────────────────────────────
+let finnhubKey = '', twelveKey = '';
+let symbols = ['SPY','QQQ','AAPL','TSLA','NVDA','META'];
+let activeTicker = '';
+let editMode = false;
+let currentIV = null, currentRV = null, currentSignal = null, ivSource = '';
+let ivSeries = [], rvSeries = [];
+
+const VIX_MAP = { SPY:'VIX', QQQ:'VXN', IWM:'RVX' };
+const VIX_TICKERS = { VIX:'^VIX', VXN:'^VXN', RVX:'^RVX' };
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+function calcRV(closes, w=30){
+  if(closes.length < w+1) return null;
+  const sl = closes.slice(-(w+1));
+  const lr = [];
+  for(let i=1;i<sl.length;i++) lr.push(Math.log(sl[i]/sl[i-1]));
+  const mean = lr.reduce((a,b)=>a+b,0)/lr.length;
+  const variance = lr.reduce((s,r)=>s+(r-mean)**2,0)/(lr.length-1);
+  return +(Math.sqrt(variance)*Math.sqrt(252)*100).toFixed(2);
+}
+function calcRollingRV(closes, w=20){
+  const out=[];
+  for(let i=w;i<closes.length;i++){
+    const sl=closes.slice(i-w,i+1);
+    const lr=[];
+    for(let j=1;j<sl.length;j++) lr.push(Math.log(sl[j]/sl[j-1]));
+    const mean=lr.reduce((a,b)=>a+b,0)/lr.length;
+    const variance=lr.reduce((s,r)=>s+(r-mean)**2,0)/(lr.length-1);
+    out.push(+(Math.sqrt(variance)*Math.sqrt(252)*100).toFixed(2));
+  }
+  return out;
+}
+function getSignal(iv,rv){
+  const spread=+(iv-rv).toFixed(2);
+  const spreadPct=+((spread/rv)*100).toFixed(1);
+  let signal,confidence,color,bg,action;
+  if(spreadPct>20){signal='SELL VOLATILITY';confidence=Math.min(99,60+spreadPct*.8);color='#dc2626';bg='#fef2f2';action='IV is substantially above RV — you\'re well paid to sell options (iron condors, short strangles, covered calls).';}
+  else if(spreadPct>8){signal='MILD SELL EDGE';confidence=40+spreadPct;color='#ea580c';bg='#fff7ed';action='Modest vol premium. Consider short vol with defined risk (iron condors, credit spreads).';}
+  else if(spreadPct<-5){signal='BUY VOLATILITY';confidence=Math.min(95,50+Math.abs(spreadPct)*1.5);color='#16a34a';bg='#f0fdf4';action='RV exceeds IV — market is underpricing risk. Consider long straddles, back-spreads, or long gamma.';}
+  else{signal='NEUTRAL';confidence=30;color='#6b7280';bg='#f9fafb';action='IV and RV are near parity. No strong vol edge — avoid directional vol bets.';}
+  return{signal,confidence:+confidence.toFixed(0),spread,spreadPct,color,bg,action};
+}
+
+// ── modal ─────────────────────────────────────────────────────────────────────
+function openModal(){
+  document.getElementById('input-twelve').value = twelveKey;
+  document.getElementById('input-finnhub').value = finnhubKey;
+  document.getElementById('modal').classList.add('open');
+  updateSaveBtn();
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function updateSaveBtn(){
+  const ok = document.getElementById('input-twelve').value && document.getElementById('input-finnhub').value;
+  document.getElementById('btn-save-keys').disabled = !ok;
+}
+function saveKeys(){
+  twelveKey = document.getElementById('input-twelve').value.trim();
+  finnhubKey = document.getElementById('input-finnhub').value.trim();
+  closeModal();
+  updateGear();
+  updateLandingCTA();
+}
+document.getElementById('input-twelve').addEventListener('input', updateSaveBtn);
+document.getElementById('input-finnhub').addEventListener('input', updateSaveBtn);
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+function updateGear(){
+  const gear = document.getElementById('gear-btn');
+  const label = document.getElementById('gear-label');
+  const ready = finnhubKey && twelveKey;
+  gear.className = 'btn-gear ' + (ready ? 'ready' : 'missing');
+  label.textContent = ready ? 'Keys set' : 'Add keys';
+}
+function updateLandingCTA(){
+  const cta = document.getElementById('landing-cta');
+  if(finnhubKey && twelveKey){
+    cta.innerHTML = '<div class="icon">📈</div><p style="font-size:14px;color:#6b7280">Select a ticker above to load live vol data.</p>';
+  }
+}
+
+// ── pills ─────────────────────────────────────────────────────────────────────
+function renderPills(){
+  const row = document.getElementById('pill-row');
+  row.innerHTML = '';
+  symbols.forEach(t => {
+    const wrap = document.createElement('div');
+    wrap.className = 'pill-wrap';
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (t===activeTicker && !editMode ? ' active' : '') + (editMode ? ' edit-mode' : '');
+    btn.textContent = t;
+    btn.onclick = () => {
+      if(editMode) return;
+      if(!finnhubKey || !twelveKey){ openModal(); return; }
+      fetchVolData(t);
+    };
+    wrap.appendChild(btn);
+    if(editMode){
+      const del = document.createElement('button');
+      del.className = 'pill-del';
+      del.textContent = '×';
+      del.onclick = () => deleteSymbol(t);
+      wrap.appendChild(del);
+    }
+    row.appendChild(wrap);
+  });
+
+  // add input in edit mode
+  if(editMode){
+    const form = document.createElement('form');
+    form.className = 'add-form';
+    form.onsubmit = addSymbol;
+    const inp = document.createElement('input');
+    inp.className = 'add-input';
+    inp.id = 'add-input';
+    inp.placeholder = 'TICKER';
+    inp.maxLength = 6;
+    inp.oninput = e => e.target.value = e.target.value.toUpperCase();
+    const addbtn = document.createElement('button');
+    addbtn.type = 'submit';
+    addbtn.className = 'add-btn';
+    addbtn.textContent = '+';
+    form.appendChild(inp);
+    form.appendChild(addbtn);
+    row.appendChild(form);
+    setTimeout(()=>inp.focus(), 50);
+  }
+
+  // toggle button
+  const tog = document.getElementById('edit-toggle');
+  tog.textContent = editMode ? '✓ Done' : '+ Add / Delete';
+  tog.className = 'edit-toggle' + (editMode ? ' active' : '');
+
+  // search form visibility
+  document.getElementById('search-form').style.display = editMode ? 'none' : 'flex';
+}
+
+function toggleEditMode(){
+  editMode = !editMode;
+  renderPills();
+}
+function addSymbol(e){
+  e.preventDefault();
+  const inp = document.getElementById('add-input');
+  const val = inp.value.trim().toUpperCase();
+  if(!val || symbols.includes(val)) { inp.value=''; return; }
+  symbols.push(val);
+  inp.value = '';
+  renderPills();
+}
+function deleteSymbol(t){
+  symbols = symbols.filter(s => s!==t);
+  if(activeTicker===t){
+    activeTicker='';
+    showLanding();
+  }
+  renderPills();
+}
+
+// ── search ────────────────────────────────────────────────────────────────────
+function handleSearch(e){
+  e.preventDefault();
+  if(!finnhubKey || !twelveKey){ openModal(); return; }
+  const val = document.getElementById('search-input').value.trim().toUpperCase();
+  if(val) fetchVolData(val);
+}
+document.getElementById('search-input').addEventListener('input', e => {
+  e.target.value = e.target.value.toUpperCase();
+});
+
+// ── fetch ─────────────────────────────────────────────────────────────────────
+async function fetchVolData(tkr){
+  activeTicker = tkr;
+  document.getElementById('ai-btn').textContent = `Analyze ${tkr}`;
+  renderPills();
+  showLoading(true);
+  hideError();
+  hideLanding();
+  hideResults();
+  document.getElementById('ai-result').style.display='none';
+  document.getElementById('ai-hint').style.display='block';
+
+  try {
+    // 1. Twelve Data prices
+    const tdRes = await fetch(`https://api.twelvedata.com/time_series?symbol=${tkr}&interval=1day&outputsize=120&apikey=${twelveKey}`);
+    const tdJson = await tdRes.json();
+    if(tdJson.status==='error' || !tdJson.values) throw new Error(tdJson.message || `No data for ${tkr}`);
+    const closes = tdJson.values.map(d=>parseFloat(d.close)).reverse();
+
+    const rv30 = calcRV(closes, 30);
+    const rollingRV = calcRollingRV(closes, 20);
+    if(!rv30) throw new Error('Not enough price history to calculate RV.');
+
+    // 2. Finnhub VIX proxy
+    const vixKey = VIX_MAP[tkr.toUpperCase()] || 'VIX';
+    const fhSym = VIX_TICKERS[vixKey] || '^VIX';
+    const fhRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${fhSym}&token=${finnhubKey}`);
+    const fhJson = await fhRes.json();
+
+    let ivNow = null, ivSer = [];
+
+    if(fhJson?.c > 0){
+      ivNow = +fhJson.c.toFixed(2);
+      ivSource = `${vixKey} ${ivNow}% (Finnhub)`;
+      ivSer = Array(rollingRV.length).fill(ivNow);
+    } else {
+      const to = Math.floor(Date.now()/1000);
+      const from = to - 86400*100;
+      const cRes = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${fhSym}&resolution=D&from=${from}&to=${to}&token=${finnhubKey}`);
+      const cJson = await cRes.json();
+      if(cJson.s==='ok' && cJson.c?.length){
+        ivNow = +cJson.c[cJson.c.length-1].toFixed(2);
+        ivSource = `${vixKey} ${ivNow}% (Finnhub)`;
+        ivSer = cJson.c.slice(-rollingRV.length);
+        while(ivSer.length < rollingRV.length) ivSer.unshift(ivSer[0]);
+      } else {
+        throw new Error(`Cannot fetch ${vixKey} from Finnhub. Check your key.`);
+      }
+    }
+
+    currentIV = ivNow;
+    currentRV = rv30;
+    ivSeries = ivSer;
+    rvSeries = rollingRV;
+    currentSignal = getSignal(ivNow, rv30);
+
+    showLoading(false);
+    renderResults();
+
+  } catch(err){
+    showLoading(false);
+    showError(err.message);
+    showLanding();
+  }
+}
+
+// ── render results ────────────────────────────────────────────────────────────
+function renderResults(){
+  const s = currentSignal;
+
+  // banner
+  const banner = document.getElementById('signal-banner');
+  banner.style.background = s.bg;
+  const badge = document.getElementById('signal-badge');
+  badge.textContent = s.signal;
+  badge.style.background = s.color;
+  document.getElementById('signal-conf').textContent = `${s.confidence}% confidence`;
+  document.getElementById('signal-src').textContent = `IV: ${ivSource}`;
+  document.getElementById('signal-action').textContent = s.action;
+
+  // stats
+  document.getElementById('stat-iv').textContent = `${currentIV}%`;
+  document.getElementById('stat-rv').textContent = `${currentRV}%`;
+  const prem = document.getElementById('stat-prem');
+  prem.textContent = `${s.spread>0?'+':''}${s.spread}%`;
+  prem.style.color = s.spread>2 ? '#dc2626' : s.spread<-2 ? '#16a34a' : '#6b7280';
+  document.getElementById('stat-prem-sub').textContent = `${s.spreadPct>0?'+':''}${s.spreadPct}% vs RV`;
+
+  // strategy active states
+  const sellCard = document.getElementById('strat-sell');
+  const buyCard  = document.getElementById('strat-buy');
+  const sellBadge = document.getElementById('strat-sell-badge');
+  const buyBadge  = document.getElementById('strat-buy-badge');
+  if(s.spreadPct > 8){
+    sellCard.style.border='2px solid #dc2626'; sellBadge.style.display='block';
+  } else { sellCard.style.border='2px solid transparent'; sellBadge.style.display='none'; }
+  if(s.spreadPct < -5){
+    buyCard.style.border='2px solid #16a34a'; buyBadge.style.display='block';
+  } else { buyCard.style.border='2px solid transparent'; buyBadge.style.display='none'; }
+
+  // chart
+  renderChart();
+
+  document.getElementById('results').style.display='block';
+}
+
+function renderChart(){
+  const svg = document.getElementById('vol-chart');
+  const len = Math.min(ivSeries.length, rvSeries.length);
+  const iv = ivSeries.slice(-len);
+  const rv = rvSeries.slice(-len);
+  const all = [...iv,...rv];
+  const minV = Math.min(...all)-2, maxV = Math.max(...all)+2;
+  const pl=44,pr=16,pt=16,pb=24;
+  const W=660-pl-pr, H=200-pt-pb;
+  const xS=i=>(i/(len-1))*W;
+  const yS=v=>H-((v-minV)/(maxV-minV))*H;
+
+  const ivPath=iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
+  const rvPath=rv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`).join(' ');
+  const fill=[...iv.map((v,i)=>`${i===0?'M':'L'}${xS(i)},${yS(v)}`),...[...rv].reverse().map((v,i,a)=>`L${xS(a.length-1-i)},${yS(v)}`),'Z'].join(' ');
+  const ticks=4;
+  let gridLines='';
+  for(let i=0;i<=ticks;i++){
+    const v=minV+((maxV-minV)/ticks)*i;
+    gridLines+=`<line x1="0" y1="${yS(v)}" x2="${W}" y2="${yS(v)}" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="-6" y="${yS(v)+4}" text-anchor="end" font-size="10" fill="#9ca3af">${v.toFixed(0)}%</text>`;
+  }
+
+  svg.innerHTML = `<g transform="translate(${pl},${pt})">
+    ${gridLines}
+    <path d="${fill}" fill="rgba(220,38,38,0.12)"/>
+    <path d="${rvPath}" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6,4"/>
+    <path d="${ivPath}" fill="none" stroke="#111827" stroke-width="2.5"/>
+    <circle cx="${xS(len-1)}" cy="${yS(iv[len-1])}" r="4" fill="#111827"/>
+    <circle cx="${xS(len-1)}" cy="${yS(rv[len-1])}" r="4" fill="#9ca3af"/>
+    <text x="${W/2}" y="${H+18}" text-anchor="middle" font-size="10" fill="#9ca3af">← ${len} Trading Days →</text>
+  </g>`;
+}
+
+// ── AI ────────────────────────────────────────────────────────────────────────
+async function runAI(){
+  if(!currentSignal) return;
+  const btn = document.getElementById('ai-btn');
+  const result = document.getElementById('ai-result');
+  const hint = document.getElementById('ai-hint');
+  btn.textContent = 'Analyzing…'; btn.disabled=true;
+  result.style.display='none'; hint.style.display='none';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{role:'user',content:`You are a professional options trader and volatility analyst.
+
+${activeTicker} vol setup:
+- IV proxy (${ivSource}): ${currentIV}%
+- 30-day Realized Vol: ${currentRV}%
+- Vol Premium: ${currentSignal.spread>0?'+':''}${currentSignal.spread}% (${currentSignal.spreadPct}% ${currentSignal.spread>0?'above':'below'} RV)
+- Signal: ${currentSignal.signal}
+
+Note: IV is sourced from VIX/VXN as a market IV proxy, not from the options chain directly.
+
+Give a concise, practical 3–4 sentence trading analysis. Cover: what this IV/RV spread means right now, specific option strategies that make sense (name them), key risk to watch. Be direct. Talk like a vol desk trader. No disclaimers.`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(b=>b.text||'').join('') || 'No response.';
+    result.textContent = text;
+    result.style.display = 'block';
+  } catch(e){
+    result.textContent = 'Error fetching analysis.';
+    result.style.display = 'block';
+  }
+  btn.textContent = `Analyze ${activeTicker}`; btn.disabled=false;
+}
+
+// ── ui helpers ────────────────────────────────────────────────────────────────
+function showLoading(v){
+  document.getElementById('loading-box').style.display = v?'block':'none';
+  document.getElementById('search-btn').textContent = v?'…':'Go';
+}
+function showError(msg){
+  const box=document.getElementById('error-box');
+  box.textContent='⚠ '+msg; box.style.display='block';
+}
+function hideError(){ document.getElementById('error-box').style.display='none'; }
+function showLanding(){ document.getElementById('landing').style.display='block'; }
+function hideLanding(){ document.getElementById('landing').style.display='none'; }
+function showResults(){ document.getElementById('results').style.display='block'; }
+function hideResults(){ document.getElementById('results').style.display='none'; }
+
+// ── init ──────────────────────────────────────────────────────────────────────
+renderPills();
+</script>
+</body>
+</html>
