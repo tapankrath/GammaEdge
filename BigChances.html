@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Symmetric Macro Volatility Matrix</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vol Matrix">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23090d16'/><circle cx='50' cy='50' r='44' fill='%230f172a' stroke='%23334155' stroke-width='3'/><path d='M58 14 L30 52 L48 52 L42 86 L70 48 L52 48 Z' fill='url(%23g)' stroke='%23ffffff' stroke-width='1.5'/><rect x='20' y='32' width='12' height='6' rx='2' fill='%23f43f5e'/><rect x='68' y='62' width='12' height='6' rx='2' fill='%2334d399'/><defs><linearGradient id='g' x1='0%27 y1='0%27 x2='100%27 y2='100%27><stop offset='0%' stop-color='%2338bdf8'/><stop offset='100%' stop-color='%23fbbf24'/></linearGradient></defs></svg>">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #090d16; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 14px; padding-top: calc(14px + env(safe-area-inset-top)); min-height: 100vh; }
+        .container { max-width: 440px; margin: 0 auto; background-color: #111827; border: 2px solid #334155; border-radius: 16px; padding: 14px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.7); position: relative; }
+        
+        /* SLEEK SINGLE-LINE HEADER PARSER */
+        .brand-header { display: flex; align-items: center; justify-content: flex-start; gap: 14px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
+        .logo-container { width: 44px; height: 44px; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.35)); }
+        .brand-text-stack { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+        .brand-title { font-size: 15px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.2; }
+        .brand-subtitle { font-size: 9px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; line-height: 1; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 12px; }
+        .title { font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.03em; }
+        .btn-gear { background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* Configuration Panel */
+        .api-modal { display: none; background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+        .api-input-group { display: flex; gap: 8px; margin-top: 4px; }
+        .api-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 6px 10px; color: #f8fafc; font-size: 12px; font-family: monospace; }
+        .btn-save-key { background: #38bdf8; color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        
+        .capital-section { display: flex; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 10px; margin-bottom: 12px; align-items: center; justify-content: space-between; }
+        .capital-wrapper { position: relative; width: 130px; }
+        .capital-currency { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 800; color: #34d399; }
+        .capital-input { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 6px 6px 6px 20px; color: #fff; font-size: 13px; font-weight: 700; }
+
+        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block; letter-spacing: 0.05em; }
+        
+        /* Beautiful Spatial Asset Target Configuration Matrix Rows */
+        .monitor-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+        .status-card { background: #0f172a; padding: 12px; border-radius: 10px; border: 2px solid #1e293b; cursor: pointer; transition: all 0.2s ease; position: relative; }
+        .status-card.selected-focus { border-color: #38bdf8; background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); }
+        .status-card.selected-focus::after { content: 'SELECTED'; position: absolute; top: -7px; right: 12px; background: #38bdf8; color: #0f172a; font-size: 7px; font-weight: 900; padding: 2px 5px; border-radius: 3px; letter-spacing: 0.05em; }
+        .status-card.active-breach { box-shadow: 0 0 8px rgba(244, 63, 94, 0.25); border-color: #f43f5e; }
+        .status-card.active-breach.selected-focus { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.25); }
+        
+        .card-header-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .status-symbol { font-weight: 900; font-size: 15px; color: #fff; }
+        .status-target { font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+
+        .card-data-line { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); }
+        .price-group { display: flex; align-items: baseline; gap: 6px; }
+        .status-price { font-weight: 800; font-size: 14px; color: #e2e8f0; }
+        .status-change { font-weight: 800; font-size: 12px; }
+
+        .inline-sim-actions { display: flex; gap: 4px; }
+        .btn-inline-sim { background: #1e293b; border: 1px solid #475569; color: #cbd5e1; padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 4px; cursor: pointer; min-width: 34px; text-align: center; }
+        .btn-inline-sim.shock-down { color: #f43f5e; border-color: #f43f5e; background: rgba(244,63,94,0.05); }
+        .btn-inline-sim.shock-up { color: #34d399; border-color: #34d399; background: rgba(16,185,129,0.05); }
+
+        /* Output Workspace Playbook Panels */
+        .engine-card { background: #1e293b; border-radius: 10px; padding: 12px; border: 1px solid #334155; }
+        .engine-title { font-size: 11px; font-weight: 900; color: #fbbf24; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+        .news-box { background: #0f172a; border: 1px solid #334155; padding: 8px 10px; border-radius: 6px; font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 10px; }
+        
+        .recom-box { display: block; background: linear-gradient(135deg, #0f172a 0%, #111827 100%); border-radius: 8px; padding: 12px; border: 1px solid #334155; }
+        .recom-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
+        
+        .strategy-matrix { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        .matrix-cell { background: #1e293b; border: 1px solid #475569; padding: 6px 4px; border-radius: 6px; font-size: 10px; font-weight: 800; text-align: center; color: #94a3b8; text-transform: uppercase; cursor: pointer; }
+        .matrix-cell.user-selected { background: rgba(56, 189, 248, 0.1); border: 2px solid #38bdf8; color: #38bdf8; font-weight: 900; }
+        .matrix-cell.best-fit { border-color: #fbbf24; color: #fbbf24; }
+
+        .playbook-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .playbook-block { background: rgba(255,255,255,0.02); border: 1px solid #1e293b; padding: 8px; border-radius: 6px; }
+        .playbook-block.full-width { grid-column: span 2; }
+        .block-title { font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 3px; }
+        .block-val { color: #e2e8f0; font-weight: 700; font-size: 11px; line-height: 1.4; }
+        
+        .btn-action { width: 100%; background: #38bdf8; color: #0f172a; font-weight: 800; border: none; padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="brand-header">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="4 3"/>
+                <line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="1"/>
+                <line x1="8" y1="50" x2="92" y2="50" stroke="#1e293b" stroke-width="1"/>
+                <rect x="22" y="32" width="12" height="6" rx="2" fill="#f43f5e" opacity="0.85"/>
+                <rect x="66" y="62" width="12" height="6" rx="2" fill="#34d399" opacity="0.85"/>
+                <circle cx="28" cy="65" r="4" fill="#38bdf8" opacity="0.6"/>
+                <circle cx="72" cy="35" r="4" fill="#38bdf8" opacity="0.6"/>
+                <path d="M58 14 L30 52 L48 52 L42 86 L70 48 L52 48 Z" fill="url(#boltGrad)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" />
+                        <stop offset="50%" stop-color="#0ea5e9" />
+                        <stop offset="100%" stop-color="#fbbf24" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+        <div class="brand-text-stack">
+            <div class="brand-title">VOLATILITY MATRIX</div>
+            <div class="brand-subtitle">Macro Tail Risk Engine</div>
+            <a href="index.html" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;font-weight:900;color:#38bdf8;text-decoration:none;letter-spacing:.04em;text-transform:uppercase;">
+                <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>
+                GammaEdge
+            </a>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <h2 class="title">⚡ System Status Monitor</h2>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="timestamp" style="font-size: 10px; color: #64748b; font-weight: 700;">Live</span>
+            <button class="btn-gear" onclick="toggleApiModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="apiConfigModal" class="api-modal">
+        <label class="input-label" style="color: #38bdf8;">Finnhub Core API Authentication</label>
+        <div class="api-input-group">
+            <input type="password" id="fhApiKeyInput" class="api-input" placeholder="Paste token here...">
+            <button class="btn-save-key" onclick="saveApiKey()">Secure</button>
+        </div>
+    </div>
+
+    <div class="capital-section">
+        <div>
+            <label class="input-label" style="margin-bottom: 1px; color: #f8fafc;">Allocation Capital</label>
+            <span style="font-size: 9px; color: #64748b; font-weight: 600; display:block;">Calculates position sizing parameters</span>
+        </div>
+        <div class="capital-wrapper">
+            <span class="capital-currency">$</span>
+            <input type="number" id="capitalInput" class="capital-input" value="5000" oninput="renderTerminalUI()">
+        </div>
+    </div>
+
+    <div class="monitor-grid">
+        
+        <div class="status-card" id="card-QQQ" onclick="selectActiveTicker('QQQ')">
+            <div class="card-header-line">
+                <div class="status-symbol">QQQ (Nasdaq 100)</div>
+                <div class="status-target">Threshold: ±2.0%</div>
+            </div>
+            <div class="card-data-line">
+                <div class="price-group">
+                    <span class="status-price" id="qqqPrice">$480.00</span>
+                    <span class="status-change" id="qqqChange">0.00%</span>
+                </div>
+                <div class="inline-sim-actions" onclick="event.stopPropagation();">
+                    <button class="btn-inline-sim shock-down" onclick="applySimulation('QQQ', -3.5, 'FLASH_CRASH')">--</button>
+                    <button class="btn-inline-sim" onclick="applySimulation('QQQ', -2.0, 'STANDARD_DOWN')">-</button>
+                    <button class="btn-inline-sim" onclick="applySimulation('QQQ', 2.0, 'STANDARD_UP')">+</button>
+                    <button class="btn-inline-sim shock-up" onclick="applySimulation('QQQ', 3.5, 'FLASH_SPIKE')">++</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-card" id="card-SPY" onclick="selectActiveTicker('SPY')">
+            <div class="card-header-line">
+                <div class="status-symbol">SPY (S&P 500)</div>
+                <div class="status-target">Threshold: ±1.5%</div>
+            </div>
+            <div class="card-data-line">
+                <div class="price-group">
+                    <span class="status-price" id="spyPrice">$540.00</span>
+                    <span class="status-change" id="spyChange">0.00%</span>
+                </div>
+                <div class="inline-sim-actions" onclick="event.stopPropagation();">
+                    <button class="btn-inline-sim shock-down" onclick="applySimulation('SPY', -2.5, 'FLASH_CRASH')">--</button>
+                    <button class="btn-inline-sim" onclick="applySimulation('SPY', -1.5, 'STANDARD_DOWN')">-</button>
+                    <button class="btn-inline-sim" onclick="applySimulation('SPY', 1.5, 'STANDARD_UP')">+</button>
+                    <button class="btn-inline-sim shock-up" onclick="applySimulation('SPY', 2.5, 'FLASH_SPIKE')">++</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="engine-card">
+        <div class="engine-title">🔍 Context Engine & Sizing Parser</div>
+        <div class="news-box" id="newsNarrative">System nominal. Select an asset or tap a deviation alternative badge to configure strategy rules.</div>
+        
+        <div class="recom-box">
+            <div class="recom-header">
+                <span id="recomTarget" style="font-size: 11px; font-weight: 900; color: #38bdf8;">PLAYBOOK TARGET DEVIATION MATRIX</span>
+            </div>
+
+            <div class="strategy-matrix">
+                <div id="opt-CALL" class="matrix-cell" onclick="selectStrategyManual('CALL')">Call Option</div>
+                <div id="opt-PUT" class="matrix-cell" onclick="selectStrategyManual('PUT')">Put Option</div>
+                <div id="opt-STRADDLE" class="matrix-cell" onclick="selectStrategyManual('STRADDLE')">Straddle</div>
+            </div>
+            
+            <div class="playbook-layout">
+                <div class="playbook-block">
+                    <div class="block-title">Target Structure / Strike</div>
+                    <div id="pbStrikes" class="block-val">-</div>
+                </div>
+                <div class="playbook-block">
+                    <div class="block-title">Position Sizing / Expiry</div>
+                    <div id="pbSizing" class="block-val" style="color: #fbbf24;">-</div>
+                </div>
+                <div class="playbook-block full-width">
+                    <div class="block-title">Strategic Play Thesis</div>
+                    <div id="pbThesis" class="block-val" style="color: #cbd5e1; font-weight:500;">-</div>
+                </div>
+                <div class="playbook-block full-width">
+                    <div class="block-title">Tactical Trade Execution Rules</div>
+                    <div id="pbExit" class="block-val" style="color: #fca5a5; font-weight:500;">-</div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-action" onclick="scanLiveMarket()">🔄 Scan Live Market</button>
+    </div>
+</div>
+
+<script>
+    const targets = {
+        'QQQ': { threshold: 2.0, basePrice: 480.00 },
+        'SPY': { threshold: 1.5, basePrice: 540.00 }
+    };
+
+    const newsDatabase = {
+        'STANDARD_DOWN': "BEARISH: Velocity break confirming standard programmatic dealer redistribution blocks.",
+        'FLASH_CRASH': "LIQUIDITY CRASH: Extreme structural market volatility expanding outer error bands. IV skew warped.",
+        'STANDARD_UP': "BULLISH: Systematic momentum breaks above standard deviation barriers. High follow-through probability.",
+        'FLASH_SPIKE': "GAMMA SQUEEZE: Forced market maker short cover requirements triggering asset spot price acceleration.",
+        'NORMAL': "Index currently filtering transactions inside localized standard deviation boundaries."
+    };
+
+    let currentFocusTicker = 'QQQ';
+    let userStrategyOverride = null; 
+
+    let marketState = {
+        'QQQ': { price: 480.00, change: 0.0, scenario: 'NORMAL' },
+        'SPY': { price: 540.00, change: 0.0, scenario: 'NORMAL' }
+    };
+
+    function toggleApiModal() {
+        const modal = document.getElementById('apiConfigModal');
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveApiKey() {
+        const inputVal = document.getElementById('fhApiKeyInput').value.trim();
+        if(inputVal) {
+            localStorage.setItem('ge_fh_key', inputVal);
+            document.getElementById('apiConfigModal').style.display = 'none';
+            scanLiveMarket();
+        }
+    }
+
+    function selectActiveTicker(symbol) {
+        currentFocusTicker = symbol;
+        userStrategyOverride = null; 
+        renderTerminalUI();
+    }
+
+    function selectStrategyManual(strategyKey) {
+        userStrategyOverride = strategyKey;
+        renderTerminalUI();
+    }
+
+    function applySimulation(symbol, customChange, contextKey) {
+        const generatedPrice = targets[symbol].basePrice * (1 + (customChange / 100));
+        marketState[symbol] = { price: generatedPrice, change: customChange, scenario: contextKey };
+        currentFocusTicker = symbol;
+        userStrategyOverride = null; 
+        renderTerminalUI();
+    }
+
+    async function scanLiveMarket() {
+        const apiKey = localStorage.getItem('ge_fh_key');
+        if (!apiKey) { renderTerminalUI(); return; }
+        for (let symbol of ['QQQ', 'SPY']) {
+            try {
+                const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`);
+                const data = await res.json();
+                if (data && data.dp !== undefined) {
+                    let scenario = 'NORMAL';
+                    const dev = data.dp;
+                    const lim = targets[symbol].threshold;
+                    if (dev <= -lim * 1.3) scenario = 'FLASH_CRASH';
+                    else if (dev <= -lim) scenario = 'STANDARD_DOWN';
+                    else if (dev >= lim * 1.3) scenario = 'FLASH_SPIKE';
+                    else if (dev >= lim) scenario = 'STANDARD_UP';
+                    marketState[symbol] = { price: data.c, change: data.dp, scenario: scenario };
+                }
+            } catch (e) { console.error(e); }
+        }
+        renderTerminalUI();
+    }
+
+    function renderTerminalUI() {
+        document.getElementById('timestamp').innerText = `Live: ` + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        for (let symbol of ['QQQ', 'SPY']) {
+            const state = marketState[symbol];
+            const conf = targets[symbol];
+            const isBreached = Math.abs(state.change) >= conf.threshold;
+            const prefix = symbol.toLowerCase();
+            const card = document.getElementById(`card-${symbol}`);
+
+            document.getElementById(`${prefix}Price`).innerText = `$${state.price.toFixed(2)}`;
+            document.getElementById(`${prefix}Change`).innerText = `${state.change >= 0 ? '+' : ''}${state.change.toFixed(2)}%`;
+            document.getElementById(`${prefix}Change`).style.color = state.change >= 0 ? '#34d399' : '#f43f5e';
+
+            card.className = "status-card";
+            if (symbol === currentFocusTicker) card.classList.add('selected-focus');
+            if (isBreached) card.classList.add('active-breach');
+        }
+
+        const activeState = marketState[currentFocusTicker];
+        document.getElementById('newsNarrative').innerText = newsDatabase[activeState.scenario] || newsDatabase['NORMAL'];
+        document.getElementById('recomTarget').innerText = `PLAYBOOK FOCUS: ${currentFocusTicker}`;
+
+        calculateOptionPlaybookData(currentFocusTicker, activeState);
+    }
+
+    function calculateOptionPlaybookData(symbol, state) {
+        ['CALL', 'PUT', 'STRADDLE'].forEach(opt => {
+            document.getElementById(`opt-${opt}`).className = 'matrix-cell';
+        });
+
+        let bestFitStrategy = 'STRADDLE'; 
+        if (state.scenario === 'STANDARD_DOWN') bestFitStrategy = 'PUT';
+        else if (state.scenario === 'FLASH_CRASH') bestFitStrategy = 'STRADDLE'; 
+        else if (state.scenario === 'STANDARD_UP') bestFitStrategy = 'CALL';
+        else if (state.scenario === 'FLASH_SPIKE') bestFitStrategy = 'CALL'; 
+        else {
+            bestFitStrategy = state.change >= 0 ? 'CALL' : 'PUT';
+        }
+
+        document.getElementById(`opt-${bestFitStrategy}`).classList.add('best-fit');
+        const activeStrategy = userStrategyOverride || bestFitStrategy;
+        document.getElementById(`opt-${activeStrategy}`).classList.add('user-selected');
+
+        const capitalInput = parseFloat(document.getElementById('capitalInput').value) || 0;
+        const spot = state.price;
+        const isShock = (state.scenario === 'FLASH_CRASH' || state.scenario === 'FLASH_SPIKE');
+        
+        let strikeText = '', sizingText = '', thesisText = '', exitText = '';
+
+        if (activeStrategy === 'STRADDLE') {
+            const dte = isShock ? "3 DTE" : "7 DTE";
+            const premium = isShock ? (spot * 0.035) * 100 : (spot * 0.02) * 100; 
+            strikeText = `ATM Straddle<br>Strike: $${Math.round(spot)}`;
+            sizingText = `${Math.floor(capitalInput / premium)} Lots / Expiry: ${dte}`;
+            thesisText = `Direction-agnostic matrix hedge option setup. Captures rapid expansions in near-term implied variance indices.`;
+            exitText = `Close layout at +35% total value gain. Liquidate immediately if technical variance prints flat for 3 hours.`;
+        } 
+        else if (activeStrategy === 'PUT') {
+            const dte = isShock ? "1 DTE" : "7 DTE"; 
+            const targetStrike = Math.round(spot * (isShock ? 0.97 : 0.99));
+            const premium = isShock ? (spot * 0.012) * 100 : (spot * 0.01) * 100;
+            strikeText = `${isShock ? 'OTM' : 'ATM'} Put Strategy<br>Strike: $${targetStrike}`;
+            sizingText = `${Math.floor(capitalInput / premium)} Lots / Expiry: ${dte}`;
+            thesisText = `Programmatic distributions accelerating underneath standard criteria lines. Momentum target structures favoring short delta options.`;
+            exitText = `Take profit ceiling fixed at +60% value capture. Protect position capital if asset price reverses past entry thresholds.`;
+        } 
+        else if (activeStrategy === 'CALL') {
+            const dte = isShock ? "1 DTE" : "7 DTE";
+            const targetStrike = Math.round(spot * (isShock ? 1.02 : 1.00));
+            const premium = isShock ? (spot * 0.011) * 100 : (spot * 0.01) * 100;
+            strikeText = `${isShock ? 'OTM' : 'ATM'} Momentum Call<br>Strike: $${targetStrike}`;
+            sizingText = `${Math.floor(capitalInput / premium)} Lots / Expiry: ${dte}`;
+            thesisText = `Clean structural parameters clearance. Macro flow trends indicate structural buyer blocks holding systematic index leadership.`;
+            exitText = `Scale out 50% risk profiles at +40% trade premium increase. Move trailing calculation points to flat entry break-even.`;
+        }
+
+        document.getElementById('pbStrikes').innerHTML = strikeText;
+        document.getElementById('pbSizing').innerHTML = sizingText;
+        document.getElementById('pbThesis').innerText = thesisText;
+        document.getElementById('pbExit').innerText = exitText;
+    }
+
+    window.onload = function() {
+        const savedKey = localStorage.getItem('ge_fh_key');
+        if(savedKey) document.getElementById('fhApiKeyInput').value = savedKey;
+        renderTerminalUI();
+        scanLiveMarket();
+        setInterval(scanLiveMarket, 60000);
+    };
+</script>
+</body>
+</html>
