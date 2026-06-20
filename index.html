@@ -949,7 +949,7 @@ function ndCompute(d,cap){
            sl:'50% of debit paid',sd:'If the straddle loses half its value, the "big move" thesis is wrong — exit and redeploy.',
            tt:Math.round(ndDte*.5)+' DTE (half-life)',td:'Close or roll at half-life if still at a loss. Theta accelerates rapidly near expiry.',
            rt:'Spot moves >'+ndPct(stdM/S*80)+' in one direction',rd:'Close the winning leg and roll the losing leg closer to spot.',
-           rules:[{c:'#34d399',t:'<strong>Target 50% gain</strong> — lock in when the move materializes; don't wait for a perfect exit.'},
+           rules:[{c:'#34d399',t:'<strong>Target 50% gain</strong> — lock in when the move materializes; don\'t wait for a perfect exit.'},
                   {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — if the straddle loses half before expiry, the thesis has failed.'},
                   {c:'#38bdf8',t:'<strong>Never hold to expiry</strong> — gamma risk explodes in the final 2 DTE near $'+K+'.'},
                   {c:'#fbbf24',t:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close even without a price move.'}]}},
@@ -958,8 +958,8 @@ function ndCompute(d,cap){
      sV:75,sR:50,sP:28,
      thesis:'Cheaper than a straddle but needs a bigger move. Call at $'+Kc+', put at $'+Kp+'. Requires ~'+ndPct(Math.abs(Kc+oC+oP-S)/S*100)+' up or '+ndPct(Math.abs(Kp-oC-oP-S)/S*100)+' down to break even.',
      exit:{pt:'100% of debit (2× your money)',pd:'OTM options can expand rapidly on a strong move — target 2× cost.',
-           sl:'50% of debit paid',sd:'Exit if position loses half its value. OTM theta decay accelerates fast — don't let it go to zero.',
-           tt:Math.round(ndDte*.4)+' DTE (60% through)',td:'Both legs will be near-worthless if spot hasn't moved. Exit to salvage remaining value.',
+           sl:'50% of debit paid',sd:'Exit if position loses half its value. OTM theta decay accelerates fast — don\'t let it go to zero.',
+           tt:Math.round(ndDte*.4)+' DTE (60% through)',td:'Both legs will be near-worthless if spot hasn\'t moved. Exit to salvage remaining value.',
            rt:'Spot clears $'+Kc+' or breaks $'+Kp,rd:'Sell the in-the-money leg into strength and let the other run.',
            rules:[{c:'#34d399',t:'<strong>Target 100% return</strong> — wider breakevens mean bigger % gains needed.'},
                   {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; half-loss stop preserves capital.'},
@@ -974,7 +974,7 @@ function ndCompute(d,cap){
            sl:'2× credit ($'+(icCr*2).toFixed(2)+')',sd:'If spread widens to 2× your credit, close before max loss.',
            tt:'7 DTE (expiry week)',td:'Close all legs in expiry week to avoid pin risk and gamma spikes.',
            rt:'Spot within '+sp+' pts of $'+Kc+' or $'+Kp,rd:'Roll the threatened short strike further OTM or close that wing.',
-           rules:[{c:'#34d399',t:'<strong>Take profit at 50% credit</strong> — the remaining 50% isn't worth the gamma risk.'},
+           rules:[{c:'#34d399',t:'<strong>Take profit at 50% credit</strong> — the remaining 50% isn\'t worth the gamma risk.'},
                   {c:'#f43f5e',t:'<strong>Stop at 2× credit</strong> — cut at $'+(icCr*2).toFixed(2)+' debit well before max loss.'},
                   {c:'#38bdf8',t:'<strong>Close before expiry week</strong> — short gamma in final days can move violently.'},
                   {c:'#fbbf24',t:'<strong>Roll the untested side</strong> — tighten the safe short to collect more credit.'}]}},
@@ -984,7 +984,7 @@ function ndCompute(d,cap){
      thesis:'Bullish play with defined risk. Pay $'+bcD.toFixed(2)+'/share to profit if '+d.sym+' rallies above $'+(K+bcD).toFixed(2)+'. Max gain $'+bcG.toFixed(0)+' if '+d.sym+' closes at or above $'+Kc+'.',
      exit:{pt:'75% of max gain ($'+(bcG*.75).toFixed(0)+')',pd:'Close when spread approaches max value — the short call caps further gain.',
            sl:'50% of debit ($'+(bcC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bullish thesis likely wrong.',
-           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the move hasn't materialized by 40% DTE remaining.',
+           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the move hasn\'t materialized by 40% DTE remaining.',
            rt:d.sym+' stalls below $'+K,rd:'Roll the long call closer to spot if the stock consolidates near entry.',
            rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' above $'+(K+bcD).toFixed(2)+'</strong> — confirm bullish momentum first.'},
                   {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bcC.toFixed(0)+')</strong> — full loss if stock stays flat or drops.'},
@@ -996,7 +996,7 @@ function ndCompute(d,cap){
      thesis:'Bearish play with defined risk. Pay $'+bpD.toFixed(2)+'/share to profit if '+d.sym+' drops below $'+(K-bpD).toFixed(2)+'. Max gain $'+bpG.toFixed(0)+' if '+d.sym+' closes at or below $'+Kp+'.',
      exit:{pt:'75% of max gain ($'+(bpG*.75).toFixed(0)+')',pd:'Close when spread approaches max value — the short put caps further gain.',
            sl:'50% of debit ($'+(bpC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bearish thesis likely wrong.',
-           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the stock hasn't moved down by 40% DTE remaining.',
+           tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the stock hasn\'t moved down by 40% DTE remaining.',
            rt:d.sym+' rebounds above $'+K,rd:'Close immediately if stock reclaims the long put strike.',
            rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' below $'+(K-bpD).toFixed(2)+'</strong> — confirm bearish catalyst first.'},
                   {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bpC.toFixed(0)+')</strong> — full loss if stock stays flat or rises.'},
@@ -1175,61 +1175,72 @@ window.ndSwitchTab = ndSwitchTab;
 
 // ── INIT (DOM already ready for inline scripts) ──
 function ndInit(){
-  if(!document.getElementById('nd-ticker-grid'))return; // pane not in DOM yet
   ndInitWatchlist();
-  document.getElementById('nd-vs-spy').addEventListener('click', function(){ ndRunVolSignal('SPY'); });
-  document.getElementById('nd-vs-qqq').addEventListener('click', function(){ ndRunVolSignal('QQQ'); });
-  document.getElementById('nd-dte-7').addEventListener('click', function(){ ndSelectDte(7); });
-  document.getElementById('nd-dte-14').addEventListener('click', function(){ ndSelectDte(14); });
-  document.getElementById('nd-dte-21').addEventListener('click', function(){ ndSelectDte(21); });
-  document.getElementById('nd-analyze-btn').addEventListener('click', ndRunAnalyze);
-  document.getElementById('nd-ticker-grid').addEventListener('click',function(e){
-    var del=e.target.closest('.nd-rmx');
-    if(del){ndRemoveTicker(del.getAttribute('data-del'),e);return;}
-    var btn=e.target.closest('.nd-tick-btn');
-    if(btn)ndSelectTicker(btn.getAttribute('data-sym'));
-  });
-  document.getElementById('nd-add-btn').addEventListener('click',ndAddTicker);
-  document.getElementById('nd-custom-inp').addEventListener('keydown',function(e){if(e.key==='Enter')ndAddTicker();});
-  document.getElementById('nd-capital').addEventListener('change',function(){if(ndHasResults)ndRunAnalyze();});
-  document.getElementById('nd-refresh-btn').addEventListener('click',function(){
-    // Re-fetch live quote for active ticker and re-run analysis if results exist
-    if(ndHasResults){
-      ndRunAnalyze();
-    } else {
-      // Just refresh the banner price
-      var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-      if(fk){
-        fetch('https://finnhub.io/api/v1/quote?symbol='+ndTicker+'&token='+fk)
-          .then(function(r){return r.json();})
-          .then(function(q){
-            if(q&&q.c){
-              document.getElementById('nd-disp-price').innerText='$'+q.c.toFixed(2);
-              document.getElementById('nd-disp-chg').innerText=(q.dp>=0?'+':'')+q.dp.toFixed(2)+'%';
-              document.getElementById('nd-disp-chg').style.color=q.dp>=0?'#34d399':'#f43f5e';
-              document.getElementById('nd-disp-sym').innerText=ndTicker;
-            }
-          }).catch(function(){ndUpdateBanner();});
-      } else {
-        ndUpdateBanner();
+  ndCheckToken();
+  ndUpdateBanner();
+
+  // Single delegated listener on sl-wrap — survives pane hide/show cycles
+  var wrap = document.getElementById('sl-wrap');
+  if(!wrap) return;
+
+  wrap.addEventListener('click', function(e){
+    // Vol signal buttons
+    if(e.target.id==='nd-vs-spy'||e.target.closest('#nd-vs-spy')) { ndRunVolSignal('SPY'); return; }
+    if(e.target.id==='nd-vs-qqq'||e.target.closest('#nd-vs-qqq')) { ndRunVolSignal('QQQ'); return; }
+    // Analyze button
+    if(e.target.id==='nd-analyze-btn'||e.target.closest('#nd-analyze-btn')) { ndRunAnalyze(); return; }
+    // DTE buttons
+    if(e.target.id==='nd-dte-7')  { ndSelectDte(7);  return; }
+    if(e.target.id==='nd-dte-14') { ndSelectDte(14); return; }
+    if(e.target.id==='nd-dte-21') { ndSelectDte(21); return; }
+    // Add ticker
+    if(e.target.id==='nd-add-btn') { ndAddTicker(); return; }
+    // Settings / modal
+    if(e.target.id==='nd-refresh-btn'||e.target.closest('#nd-refresh-btn')){
+      if(ndHasResults){ ndRunAnalyze(); } else {
+        var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+        if(fk){
+          fetch('https://finnhub.io/api/v1/quote?symbol='+ndTicker+'&token='+fk)
+            .then(function(r){return r.json();})
+            .then(function(q){
+              if(q&&q.c){
+                document.getElementById('nd-disp-price').innerText='$'+q.c.toFixed(2);
+                document.getElementById('nd-disp-chg').innerText=(q.dp>=0?'+':'')+q.dp.toFixed(2)+'%';
+                document.getElementById('nd-disp-chg').style.color=q.dp>=0?'#34d399':'#f43f5e';
+                document.getElementById('nd-disp-sym').innerText=ndTicker;
+              }
+            }).catch(function(){ndUpdateBanner();});
+        } else { ndUpdateBanner(); }
       }
+      return;
     }
+    if(e.target.id==='nd-settings-btn'||e.target.closest('#nd-settings-btn')) { ndToggleModal(true); return; }
+    if(e.target.id==='nd-token-alert') { ndToggleModal(true); return; }
+    if(e.target.id==='nd-modal-cancel') { ndToggleModal(false); return; }
+    if(e.target.id==='nd-modal-save')   { ndSaveKey(); return; }
+    if(e.target.id==='nd-engine-reset') { localStorage.clear(); alert('Reset. Reloading…'); window.location.reload(); return; }
+    // Ticker grid
+    var del = e.target.closest('.nd-rmx');
+    if(del){ ndRemoveTicker(del.getAttribute('data-del'), e); return; }
+    var tick = e.target.closest('.nd-tick-btn');
+    if(tick){ ndSelectTicker(tick.getAttribute('data-sym')); return; }
   });
-  document.getElementById('nd-settings-btn').addEventListener('click',function(){ndToggleModal(true);});
-  document.getElementById('nd-token-alert').addEventListener('click',function(){ndToggleModal(true);});
-  document.getElementById('nd-modal-cancel').addEventListener('click',function(){ndToggleModal(false);});
-  document.getElementById('nd-modal-save').addEventListener('click',ndSaveKey);
-  document.getElementById('nd-engine-reset').addEventListener('click',function(){localStorage.clear();alert('Reset. Reloading…');window.location.reload();});
-  ndCheckToken(); ndUpdateBanner();
-  setTimeout(function(){if(localStorage.getItem('ge_fh_key'))ndRunVolSignal('SPY');},1200);
+
+  wrap.addEventListener('change', function(e){
+    if(e.target.id==='nd-capital' && ndHasResults) ndRunAnalyze();
+  });
+
+  wrap.addEventListener('keydown', function(e){
+    if(e.target.id==='nd-custom-inp' && e.key==='Enter') ndAddTicker();
+  });
+
+  setTimeout(function(){ if(localStorage.getItem('ge_fh_key')) ndRunVolSignal('SPY'); }, 1200);
 }
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',function(){ndInit();if(typeof showTab==='function')showTab(0);});
-}else{
+// Run after full page load so showTab and all other scripts are ready
+window.addEventListener('load', function(){
   ndInit();
-  // showTab(0) must run after the rest of index.html's scripts have loaded
-  setTimeout(function(){if(typeof showTab==='function')showTab(0);},0);
-}
+  if(typeof showTab === 'function') showTab(0);
+});
 </script>
 
 </div><!-- end sl-wrap -->
