@@ -145,23 +145,32 @@ body{background:#090d16;color:#f8fafc;font-family:'Inter',-apple-system,BlinkMac
 <body>
 <div class="container">
 
-  <!-- Back button -->
-  <div style="margin-bottom:12px">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:#111827;color:#facc15;font-size:12px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:8px 14px;border-radius:8px;border:2px solid #facc15">
-      ← GammaEdge
-    </a>
-  </div>
-
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="top-bar-title"><span>⚡</span> Vol Signal — IV vs RV</div>
-    <button class="gear-btn missing" id="gear-btn" onclick="toggleConfig()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-      <span id="gear-label">Add Keys</span>
-    </button>
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">
+        <div style="width:4px;height:6px;background:#dc2626"></div>
+        <div style="width:4px;height:10px;background:#f97316"></div>
+        <div style="width:4px;height:14px;background:#eab308"></div>
+        <div style="width:4px;height:19px;background:#16a34a"></div>
+      </div>
+      <div>
+        <div style="font-size:17px;font-weight:900;color:#f8fafc;letter-spacing:-.4px;line-height:1">VolSignal</div>
+        <div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin-top:2px">IV vs Realized Vol</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="gear-btn missing" id="gear-btn" onclick="toggleConfig()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span id="gear-label">Add Keys</span>
+      </button>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;background:#111827;color:#facc15;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:7px 12px;border-radius:8px;border:2px solid #facc15;white-space:nowrap">
+        ← GammaEdge
+      </a>
+    </div>
   </div>
 
   <!-- Config Panel -->
