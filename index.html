@@ -605,11 +605,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .nd-tick-btn.active { background:#10b981; color:#0f172a; border-color:#10b981; box-shadow:0 0 10px rgba(16,185,129,.2); }
 #sl-wrap .nd-tick-btn .nd-rmx { font-size:12px; font-weight:900; color:#cbd5e1; padding:0 2px; border-radius:50%; }
 #sl-wrap .nd-tick-btn.active .nd-rmx { color:#065f46; }
+#sl-wrap .nd-sticky { position:sticky; top:0; z-index:49; background:#090d16; padding-bottom:8px; padding-top:4px; }
 #sl-wrap .nd-custom-row { display:flex; gap:6px; margin-bottom:12px; }
-#sl-wrap .nd-tick-inp { flex:1; background:#0f172a; border:1px solid #475569; color:#fff; padding:8px; border-radius:6px; font-weight:700; font-size:12px; text-transform:uppercase; text-align:center; outline:none; }
+#sl-wrap .nd-tick-inp { flex:1; min-width:0; background:#0f172a; border:1px solid #475569; color:#fff; padding:6px 8px; border-radius:6px; font-weight:700; font-size:11px; text-transform:uppercase; text-align:center; outline:none; height:32px; }
 #sl-wrap .nd-tick-inp:focus { border-color:#10b981; }
-#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:16px; border:none; padding:0 18px; border-radius:6px; cursor:pointer; }
-#sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:2px 8px; margin-bottom:12px; }
+#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:16px; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:2px 8px; }
 #sl-wrap .nd-cap-sym { color:#cbd5e1; font-weight:800; font-size:13px; margin-right:4px; }
 #sl-wrap .nd-cap-inp { width:100%; background:none; border:none; color:#fff; font-size:13px; font-weight:700; outline:none; padding:6px 0; }
 #sl-wrap .nd-dte-grid { display:flex; gap:6px; }
@@ -730,28 +731,59 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div id="nd-token-alert" class="nd-alert" style="display:none;">⚠️ No Finnhub key — tap to configure for live pricing.</div>
 
-  <!-- Controls -->
-  <div class="nd-ctrl">
-    <label class="nd-lbl">Active Ticker</label>
-    <div class="nd-ticker-grid" id="nd-ticker-grid"></div>
-    <div class="nd-custom-row">
-      <input type="text" id="nd-custom-inp" class="nd-tick-inp" placeholder="ADD SYMBOL" maxlength="6">
-      <button id="nd-add-btn" class="nd-add-btn">+</button>
-    </div>
-    <label class="nd-lbl">Capital Allocation</label>
-    <div class="nd-cap-wrap">
-      <span class="nd-cap-sym">$</span>
-      <input type="number" id="nd-capital" class="nd-cap-inp" value="10000" step="500" min="500">
-    </div>
-    <label class="nd-lbl">DTE</label>
-    <div class="nd-dte-grid">
-      <button id="nd-dte-7" class="nd-dte-btn active">1 Week (7d)</button>
-      <button id="nd-dte-14" class="nd-dte-btn">2 Weeks (14d)</button>
-      <button id="nd-dte-21" class="nd-dte-btn">3 Weeks (21d)</button>
-    </div>
-  </div>
+  <!-- STICKY CONTROLS -->
+  <div class="nd-sticky">
 
-  <!-- Vol Signal -->
+    <!-- Ticker chips + inline add -->
+    <div class="nd-ctrl">
+      <label class="nd-lbl">Active Ticker</label>
+      <div class="nd-ticker-grid" id="nd-ticker-grid"></div>
+      <div class="nd-custom-row">
+        <input type="text" id="nd-custom-inp" class="nd-tick-inp" placeholder="+ ADD SYMBOL" maxlength="6">
+        <button id="nd-add-btn" class="nd-add-btn">+</button>
+      </div>
+      <!-- Capital + DTE on one row -->
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label class="nd-lbl">Capital</label>
+          <div class="nd-cap-wrap" style="margin-bottom:0;">
+            <span class="nd-cap-sym">$</span>
+            <input type="number" id="nd-capital" class="nd-cap-inp" value="10000" step="500" min="500">
+          </div>
+        </div>
+        <div style="flex:2;">
+          <label class="nd-lbl">DTE</label>
+          <div class="nd-dte-grid">
+            <button id="nd-dte-7"  class="nd-dte-btn active">7d</button>
+            <button id="nd-dte-14" class="nd-dte-btn">14d</button>
+            <button id="nd-dte-21" class="nd-dte-btn">21d</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner (always visible) -->
+    <div class="nd-banner">
+      <div>
+        <div id="nd-disp-sym" class="nd-sym">SPY</div>
+        <div style="font-size:9px;color:#cbd5e1;font-weight:bold;margin-top:1px;" id="nd-disp-iv">IV: —</div>
+      </div>
+      <div style="text-align:right;">
+        <div id="nd-disp-price" class="nd-price">—</div>
+        <div id="nd-disp-chg" style="font-size:10px;font-weight:700;color:#34d399;">—</div>
+      </div>
+    </div>
+
+    <div class="nd-err" id="nd-err"></div>
+    <button class="nd-analyze-btn" id="nd-analyze-btn">⚡ Analyze Strategies</button>
+
+  </div><!-- end nd-sticky -->
+
+
+
+  </div><!-- end nd-sticky -->
+
+  <!-- Vol Signal (scrolls with page) -->
   <div class="nd-vol-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ Volatility Signal</div>
@@ -763,27 +795,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> to run the volatility signal</div>
   </div>
 
-  <!-- Banner -->
-  <div class="nd-banner">
-    <div>
-      <div id="nd-disp-sym" class="nd-sym">SPY</div>
-      <div style="font-size:9px;color:#cbd5e1;font-weight:bold;margin-top:1px;" id="nd-disp-iv">IV: —</div>
-    </div>
-    <div style="text-align:right;">
-      <div id="nd-disp-price" class="nd-price">—</div>
-      <div id="nd-disp-chg" style="font-size:10px;font-weight:700;color:#34d399;">—</div>
-    </div>
-  </div>
-
-  <div class="nd-err" id="nd-err"></div>
-  <button class="nd-analyze-btn" id="nd-analyze-btn">⚡ Analyze Strategies</button>
-
   <div class="nd-loading" id="nd-loading">
     <div class="nd-spinner"></div>
     <div class="nd-loading-msg" id="nd-loading-msg">Fetching live data…</div>
   </div>
-
-
 
   <div id="nd-results" style="display:none;"></div>
 
