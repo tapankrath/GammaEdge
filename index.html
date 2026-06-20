@@ -2361,8 +2361,8 @@ function iv(i){return parseInt($(i).value)||0;}
 function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
-  var paneMap={0:0,1:5,2:7,3:6,4:3,5:8};
-  var onS='color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;border-bottom:2.5px solid transparent;';var offS='color:#64748b;background:transparent;';for(var i=0;i<=5;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel)pel.className='pane'+(i===n?' on':'');}
+  var paneMap={0:0,1:5,2:7,3:6,4:3};
+  var onS='color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;border-bottom:2.5px solid transparent;';var offS='color:#64748b;background:transparent;';for(var i=0;i<=4;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel){pel.className='pane'+(i===n?' on':'');pel.style.display=(i===n)?'block':'none';}}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
@@ -7959,14 +7959,15 @@ window.onerror=function(msg,src,line,col,err){
 };
 go1();go2();go3();
 renderDayInputs();
-$('pane0').className='pane on';
-$('pane1').className='pane';
-$('pane2').className='pane';
-$('pane3').className='pane';
-$('pane4').className='pane';
-$('pane6').className='pane';
-$('pane7').className='pane';
-$('pane5').className='pane';
+// Initialize all panes — explicit display to beat any CSS override
+(function(){
+  [0,1,2,3,4,5,6,7,8].forEach(function(n){
+    var p=document.getElementById('pane'+n);
+    if(p){p.className='pane';p.style.display='none';}
+  });
+  var p0=document.getElementById('pane0');
+  if(p0){p0.className='pane on';p0.style.display='block';}
+})();
 $('pane8').className='pane';
 go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);
 fetchAll();setInterval(fetchAll,60000);
