@@ -36,7 +36,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 
 .tab:hover:not(.on){color:#0f172a;background:#f8fafc;}
 .tab.on{color:#0f172a!important;font-weight:900!important;border-bottom:2.5px solid #2563eb!important;background:transparent!important;}
-.pane{display:none}.pane.on{display:block}
+.pane{display:none!important}.pane.on{display:block!important}
 /* MKT STATUS PILL */
 .mkt-pill{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.06em;transition:all .5s;white-space:nowrap;text-transform:uppercase}
 .mkt-pill.bull{background:#f0fdf4;color:#15803d;border:1.5px solid #86efac}
@@ -532,17 +532,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <!-- Logo + Keys row -->
   <div style="display:flex;align-items:center;gap:8px;padding:7px 12px 6px;">
     <button onclick="showTab(0)" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;flex:1;-webkit-tap-highlight-color:transparent;">
-      <div style="width:32px;height:32px;background:#0f172a;border-radius:9px;display:flex;align-items:flex-end;justify-content:center;padding:5px 5px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);gap:2px;">
-        <div style="width:4px;height:6px;border-radius:2px 2px 1px 1px;background:#dc2626;"></div>
-        <div style="width:4px;height:10px;border-radius:2px 2px 1px 1px;background:#f97316;"></div>
-        <div style="width:4px;height:15px;border-radius:2px 2px 1px 1px;background:#eab308;"></div>
-        <div style="width:4px;height:20px;border-radius:2px 2px 1px 1px;background:#16a34a;"></div>
+      <div style="width:46px;height:46px;background:#0f172a;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;padding:7px 7px;flex-shrink:0;box-shadow:0 3px 12px rgba(0,0,0,.3);gap:3px;">
+        <div style="width:5px;height:9px;border-radius:2px 2px 1px 1px;background:#dc2626;"></div>
+        <div style="width:5px;height:14px;border-radius:2px 2px 1px 1px;background:#f97316;"></div>
+        <div style="width:5px;height:21px;border-radius:2px 2px 1px 1px;background:#eab308;"></div>
+        <div style="width:5px;height:28px;border-radius:2px 2px 1px 1px;background:#16a34a;"></div>
       </div>
       <div style="text-align:left;">
-        <div style="font-size:18px;font-weight:900;letter-spacing:-.5px;line-height:1;font-family:'Inter',-apple-system,sans-serif;">
+        <div style="font-size:26px;font-weight:900;letter-spacing:-.5px;line-height:1;font-family:'Inter',-apple-system,sans-serif;">
           <span style="color:#16a34a;">Gamma</span><span style="color:#0f172a;">Edge</span>
         </div>
-        <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;margin-top:1px;">Options Intelligence</div>
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Options Intelligence</div>
       </div>
     </button>
     <button onclick="openGeSettings()" style="background:#0f172a;border:none;color:#fff;border-radius:8px;padding:6px 11px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">⚙️ Keys</button>
@@ -2557,6 +2557,8 @@ function fmt(n){return Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',
 function fp(v){return (v>=0?'+':'-')+'$'+fmt(Math.abs(v));}
 function showTab(n){
   var paneMap={0:0,1:5,2:7,3:6,4:3};
+  // Hide ALL panes first to prevent bleed-through when scrolling
+  [0,1,2,3,4,5,6,7,8].forEach(function(pid){var p=$('pane'+pid);if(p){p.className='pane';p.style.display='none';}});
   var onS='color:#ffffff!important;background:#16a34a;border-radius:0;font-weight:900;border-bottom:2.5px solid transparent;';var offS='color:#64748b;background:transparent;';for(var i=0;i<=4;i++){var tb=$('tab'+i);if(tb){tb.className='ge-tab'+(i===n?' ge-tab-on':'');tb.setAttribute('style',i===n?onS:offS);}var pid=paneMap[i];var pel=$('pane'+pid);if(pel){pel.className='pane'+(i===n?' on':'');pel.style.display=(i===n)?'block':'none';}}
   if(n===1){go5();renderBtSummary();if(!BT_DAYS[0].o)fetchOHLC(T5);}
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
