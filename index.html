@@ -761,10 +761,6 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   </div><!-- end nd-sticky -->
 
-
-
-  </div><!-- end nd-sticky -->
-
   <!-- Vol Signal (scrolls with page) -->
   <div class="nd-vol-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1311,7 +1307,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 1: P&L CALC -->
-<div class="pane" id="pane1" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane1" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
   <div class="card">
     <div class="card-title">Position</div>
     <div class="tickers">
@@ -1369,7 +1365,193 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 2: ALLOCAI -->
-<div class="pane" id="pane7" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane7" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
+
+<!-- ── STOCK ALLOCATION GROUPS ── -->
+<div style="background:#fff;border:2px solid #0a0f1e;border-radius:14px;overflow:hidden;box-shadow:3px 3px 0 #0a0f1e;margin-bottom:10px">
+  <!-- Header -->
+  <div style="background:#0a0f1e;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:-.2px">📊 Stock Allocation Groups</div>
+      <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin-top:2px">Tradeable Universe by Group</div>
+    </div>
+    <button onclick="toggleAllocGroups()" id="alloc-groups-toggle" style="background:#1e293b;border:1.5px solid #334155;color:#94a3b8;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.04em">Hide ▲</button>
+  </div>
+
+  <!-- Donut + legend row -->
+  <div id="alloc-groups-body">
+  <div style="padding:12px 14px 0">
+    <div style="display:flex;align-items:center;gap:12px">
+      <!-- Mini donut SVG -->
+      <svg width="88" height="88" viewBox="0 0 88 88" style="flex-shrink:0">
+        <!-- segments: total 100%, conic-style via stroke-dasharray on a circle r=27, circumference≈169.6 -->
+        <!-- 35% Mega-Cap #2563eb -->
+        <circle cx="44" cy="44" r="27" fill="none" stroke="#2563eb" stroke-width="14"
+          stroke-dasharray="59.4 110.2" stroke-dashoffset="0" transform="rotate(-90 44 44)"/>
+        <!-- 20% High-Vol #f59e0b -->
+        <circle cx="44" cy="44" r="27" fill="none" stroke="#f59e0b" stroke-width="14"
+          stroke-dasharray="33.9 135.7" stroke-dashoffset="-59.4" transform="rotate(-90 44 44)"/>
+        <!-- 35% ETFs #10b981 -->
+        <circle cx="44" cy="44" r="27" fill="none" stroke="#10b981" stroke-width="14"
+          stroke-dasharray="59.4 110.2" stroke-dashoffset="-93.3" transform="rotate(-90 44 44)"/>
+        <!-- 10% Speculative #f43f5e -->
+        <circle cx="44" cy="44" r="27" fill="none" stroke="#f43f5e" stroke-width="14"
+          stroke-dasharray="17.0 152.6" stroke-dashoffset="-152.7" transform="rotate(-90 44 44)"/>
+        <!-- 10% Lottery #a855f7 — fills remaining gap -->
+        <circle cx="44" cy="44" r="27" fill="none" stroke="#a855f7" stroke-width="14"
+          stroke-dasharray="17.0 152.6" stroke-dashoffset="-169.7" transform="rotate(-90 44 44)"/>
+        <!-- inner fill -->
+        <circle cx="44" cy="44" r="20" fill="#fff"/>
+        <text x="44" y="47" text-anchor="middle" font-size="9" font-weight="900" fill="#0a0f1e" font-family="Inter,-apple-system,sans-serif">100%</text>
+      </svg>
+      <!-- Legend -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:#2563eb;flex-shrink:0"></div><span style="font-size:10px;font-weight:700;color:#334155">Mega-Cap Liquid</span></div>
+          <span style="font-size:11px;font-weight:900;color:#2563eb">35%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div><span style="font-size:10px;font-weight:700;color:#334155">High-Vol Growth</span></div>
+          <span style="font-size:11px;font-weight:900;color:#f59e0b">20%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:#10b981;flex-shrink:0"></div><span style="font-size:10px;font-weight:700;color:#334155">ETFs — Core Bucket</span></div>
+          <span style="font-size:11px;font-weight:900;color:#10b981">35%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:#f43f5e;flex-shrink:0"></div><span style="font-size:10px;font-weight:700;color:#334155">Speculative / Emerging</span></div>
+          <span style="font-size:11px;font-weight:900;color:#f43f5e">10%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:#a855f7;flex-shrink:0"></div><span style="font-size:10px;font-weight:700;color:#334155">Lottery / Opportunistic</span></div>
+          <span style="font-size:11px;font-weight:900;color:#a855f7">10%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group cards -->
+  <div style="padding:10px 10px 12px;display:flex;flex-direction:column;gap:7px">
+
+    <!-- 1. Mega-Cap -->
+    <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:11px;padding:11px 13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:13px">🏦</div>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:#1e3a8a">1. Mega-Cap Liquid Stocks</div>
+            <div style="font-size:9px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.1em">Highest liquidity · tight spreads</div>
+          </div>
+        </div>
+        <div style="background:#2563eb;color:#fff;font-size:13px;font-weight:900;padding:4px 10px;border-radius:20px">35%</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">MSFT</span>
+        <span style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">AAPL</span>
+        <span style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">AMZN</span>
+        <span style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">GOOGL</span>
+        <span style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">JPM</span>
+      </div>
+    </div>
+
+    <!-- 2. High-Vol Growth -->
+    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:11px;padding:11px 13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:13px">⚡</div>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:#78350f">2. High-Volatility Growth Names</div>
+            <div style="font-size:9px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.1em">High IV · premium rich</div>
+          </div>
+        </div>
+        <div style="background:#f59e0b;color:#fff;font-size:13px;font-weight:900;padding:4px 10px;border-radius:20px">20%</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">NVDA</span>
+        <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">TSLA</span>
+        <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">AMD</span>
+        <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">PLTR</span>
+        <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">COIN</span>
+      </div>
+    </div>
+
+    <!-- 3. ETFs -->
+    <div style="background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:11px;padding:11px 13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:13px">🛡️</div>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:#064e3b">3. ETFs (Core Bucket)</div>
+            <div style="font-size:9px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.1em">Broadest liquidity · core hedge</div>
+          </div>
+        </div>
+        <div style="background:#10b981;color:#fff;font-size:13px;font-weight:900;padding:4px 10px;border-radius:20px">35%</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span style="background:#dcfce7;color:#166534;border:1px solid #6ee7b7;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">SPY</span>
+        <span style="background:#dcfce7;color:#166534;border:1px solid #6ee7b7;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">QQQ</span>
+        <span style="background:#dcfce7;color:#166534;border:1px solid #6ee7b7;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">IWM</span>
+        <span style="background:#dcfce7;color:#166534;border:1px solid #6ee7b7;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">DIA</span>
+        <span style="background:#dcfce7;color:#166534;border:1px solid #6ee7b7;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">XLF</span>
+      </div>
+    </div>
+
+    <!-- 4. Speculative -->
+    <div style="background:#fff1f2;border:1.5px solid #fda4af;border-radius:11px;padding:11px 13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#f43f5e;display:flex;align-items:center;justify-content:center;font-size:13px">🚀</div>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:#881337">4. Speculative / Emerging Names</div>
+            <div style="font-size:9px;font-weight:700;color:#e11d48;text-transform:uppercase;letter-spacing:.1em">Higher risk · explosive moves</div>
+          </div>
+        </div>
+        <div style="background:#f43f5e;color:#fff;font-size:13px;font-weight:900;padding:4px 10px;border-radius:20px">10%</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span style="background:#ffe4e6;color:#9f1239;border:1px solid #fda4af;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">RKLB</span>
+        <span style="background:#ffe4e6;color:#9f1239;border:1px solid #fda4af;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">SOFI</span>
+        <span style="background:#ffe4e6;color:#9f1239;border:1px solid #fda4af;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">DKNG</span>
+        <span style="background:#ffe4e6;color:#9f1239;border:1px solid #fda4af;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">RBLX</span>
+        <span style="background:#ffe4e6;color:#9f1239;border:1px solid #fda4af;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">UPST</span>
+      </div>
+    </div>
+
+    <!-- 5. Lottery -->
+    <div style="background:#faf5ff;border:1.5px solid #d8b4fe;border-radius:11px;padding:11px 13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#a855f7;display:flex;align-items:center;justify-content:center;font-size:13px">🎯</div>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:#4c1d95">5. Lottery / Opportunistic Trades</div>
+            <div style="font-size:9px;font-weight:700;color:#9333ea;text-transform:uppercase;letter-spacing:.1em">Event-driven · asymmetric bets</div>
+          </div>
+        </div>
+        <div style="background:#a855f7;color:#fff;font-size:13px;font-weight:900;padding:4px 10px;border-radius:20px">10%</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span style="background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">Earnings plays</span>
+        <span style="background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">Event-driven</span>
+        <span style="background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">Long calls/puts</span>
+        <span style="background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">Straddles</span>
+      </div>
+    </div>
+
+  </div><!-- end group cards -->
+  </div><!-- end alloc-groups-body -->
+</div>
+<!-- ── END STOCK ALLOCATION GROUPS ── -->
+
+<script>
+function toggleAllocGroups(){
+  var body=document.getElementById('alloc-groups-body');
+  var btn=document.getElementById('alloc-groups-toggle');
+  if(!body||!btn)return;
+  var hidden=body.style.display==='none';
+  body.style.display=hidden?'block':'none';
+  btn.textContent=hidden?'Hide ▲':'Show ▼';
+}
+</script>
 
 <!-- ── CAPITAL CARD ── -->
 <div style="background:#fff;border:2px solid #0a0f1e;border-radius:14px;padding:12px;box-shadow:3px 3px 0 #0a0f1e;margin-bottom:10px">
@@ -1380,53 +1562,63 @@ window.addEventListener('load', function(){
       <input type="number" id="al-cap" value="500000" step="10000" inputmode="decimal" oninput="alSplit()" style="background:transparent;border:none;width:100%;font-size:18px;font-weight:900;color:#0a0f1e;outline:none;-webkit-appearance:none;-moz-appearance:textfield"/>
     </div>
   </div>
-  <!-- Bucket tiles — click to switch card -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-    <div id="al-bkt-cons" onclick="alShow('cons')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #1d4ed8;background:#eff6ff;cursor:pointer;transition:box-shadow .15s">
-      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1d4ed8;margin-bottom:3px">Conservative</div>
-      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-cons-amt">$200K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-cons" value="40" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #93c5fd;border-radius:4px;font-size:10px;font-weight:800;color:#1d4ed8;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Wheel</div>
+  <!-- Group tiles — click to expand that group's strategy card -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <div id="al-bkt-mega" onclick="alShow('mega')" style="border-radius:10px;padding:9px 8px;text-align:center;border:2px solid #2563eb;background:#eff6ff;cursor:pointer;transition:box-shadow .15s;box-shadow:0 0 0 3px #0a0f1e">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#2563eb;margin-bottom:3px">🏦 Mega-Cap</div>
+      <div style="font-size:15px;font-weight:900;color:#0a0f1e" id="al-mega-amt">$175K</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-mega" value="35" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:28px;background:rgba(255,255,255,.7);border:1px solid #93c5fd;border-radius:4px;font-size:10px;font-weight:800;color:#2563eb;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Wheel</div>
     </div>
-    <div id="al-bkt-mod" onclick="alShow('mod')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #059669;background:#ecfdf5;cursor:pointer;transition:box-shadow .15s">
-      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#059669;margin-bottom:3px">Moderate</div>
-      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-mod-amt">$200K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-mod" value="40" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #6ee7b7;border-radius:4px;font-size:10px;font-weight:800;color:#059669;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Hedge</div>
+    <div id="al-bkt-etf" onclick="alShow('etf')" style="border-radius:10px;padding:9px 8px;text-align:center;border:2px solid #10b981;background:#f0fdf4;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#059669;margin-bottom:3px">🛡️ ETFs</div>
+      <div style="font-size:15px;font-weight:900;color:#0a0f1e" id="al-etf-amt">$175K</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-etf" value="35" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:28px;background:rgba(255,255,255,.7);border:1px solid #6ee7b7;border-radius:4px;font-size:10px;font-weight:800;color:#059669;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Hedge</div>
     </div>
-    <div id="al-bkt-agg" onclick="alShow('agg')" style="border-radius:10px;padding:10px 8px;text-align:center;border:2px solid #b45309;background:#fffbeb;cursor:pointer;transition:box-shadow .15s">
-      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#b45309;margin-bottom:3px">Aggressive</div>
-      <div style="font-size:17px;font-weight:900;color:#0a0f1e" id="al-agg-amt">$100K</div>
-      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-agg" value="20" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:30px;background:rgba(255,255,255,.7);border:1px solid #fcd34d;border-radius:4px;font-size:10px;font-weight:800;color:#b45309;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Options</div>
+    <div id="al-bkt-hivol" onclick="alShow('hivol')" style="border-radius:10px;padding:9px 8px;text-align:center;border:2px solid #f59e0b;background:#fffbeb;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#b45309;margin-bottom:3px">⚡ High-Vol</div>
+      <div style="font-size:15px;font-weight:900;color:#0a0f1e" id="al-hivol-amt">$100K</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-hivol" value="20" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:28px;background:rgba(255,255,255,.7);border:1px solid #fcd34d;border-radius:4px;font-size:10px;font-weight:800;color:#b45309;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Premium</div>
+    </div>
+    <div id="al-bkt-spec" onclick="alShow('spec')" style="border-radius:10px;padding:9px 8px;text-align:center;border:2px solid #f43f5e;background:#fff1f2;cursor:pointer;transition:box-shadow .15s">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#e11d48;margin-bottom:3px">🚀 Speculative</div>
+      <div style="font-size:15px;font-weight:900;color:#0a0f1e" id="al-spec-amt">$50K</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-spec" value="10" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:28px;background:rgba(255,255,255,.7);border:1px solid #fda4af;border-radius:4px;font-size:10px;font-weight:800;color:#e11d48;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Calls/Puts</div>
+    </div>
+    <div id="al-bkt-lotto" onclick="alShow('lotto')" style="border-radius:10px;padding:9px 8px;text-align:center;border:2px solid #a855f7;background:#faf5ff;cursor:pointer;transition:box-shadow .15s;grid-column:1/-1">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#9333ea;margin-bottom:3px">🎯 Lottery / Opportunistic</div>
+      <div style="font-size:15px;font-weight:900;color:#0a0f1e" id="al-lotto-amt">$50K</div>
+      <div style="font-size:9px;color:#475569;font-weight:700;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:1px"><input type="number" id="al-pct-lotto" value="10" min="0" max="100" step="5" inputmode="decimal" oninput="alSplit()" onclick="event.stopPropagation()" style="width:28px;background:rgba(255,255,255,.7);border:1px solid #d8b4fe;border-radius:4px;font-size:10px;font-weight:800;color:#9333ea;text-align:center;outline:none;padding:1px 0;-webkit-appearance:none;-moz-appearance:textfield"/>% · Straddles</div>
     </div>
   </div>
   <div id="al-pct-warn" style="display:none;margin-top:8px;text-align:center;font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:6px 10px"></div>
 </div>
 
-<!-- ── CONSERVATIVE CARD: Wheel (Sell Put → Covered Call) ── -->
-<div id="al-sec-cons" style="background:#fff;border:1.5px solid #93c5fd;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:block">
+<!-- ── MEGA-CAP CARD: Wheel (Sell Put → Covered Call) ── -->
+<div id="al-sec-mega" style="background:#fff;border:1.5px solid #93c5fd;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:block">
   <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
-    <div style="width:34px;height:34px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🛡️</div>
+    <div style="width:34px;height:34px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🏦</div>
     <div style="flex:1">
-      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Conservative — Wheel Strategy</div>
+      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Mega-Cap Liquid — Wheel Strategy</div>
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#1d4ed8;margin-top:1px">Sell Put → Covered Call → Repeat</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:16px;font-weight:900" id="al-cons-cap-disp">$200,000</div>
-      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-cons-pct-disp">40% of capital</div>
+      <div style="font-size:16px;font-weight:900" id="al-mega-cap-disp">$175,000</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-mega-pct-disp">35% of capital</div>
     </div>
   </div>
   <div style="padding:14px">
     <!-- Strategy explainer -->
     <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 12px;font-size:11px;color:#1d4ed8;font-weight:700;margin-bottom:12px;line-height:1.6">
-      <b>Step 1 — Sell a Cash-Secured Put:</b> Collect premium. If assigned, you buy shares at the strike. If not assigned, keep premium and repeat.<br>
+      <b>Step 1 — Sell a Cash-Secured Put:</b> Collect premium on a mega-cap name (MSFT, AAPL, AMZN, GOOGL, JPM…). If assigned, you buy shares at the strike. If not assigned, keep premium and repeat.<br>
       <b>Step 2 — If Assigned, Sell a Covered Call:</b> Sell a call against your shares at or above cost basis. Collect more premium.<br>
       <b>Step 3 — Repeat (The Wheel):</b> Keep cycling until shares are called away. Net result: income + potential capital gains.
     </div>
 
     <!-- Ticker input with live fetch -->
     <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:12px">
-      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What are you selling the put on?</div>
+      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What mega-cap are you selling the put on?</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="al-c-ticker" value="SPY" maxlength="6"
+        <input type="text" id="al-c-ticker" value="MSFT" maxlength="6"
           oninput="this.value=this.value.toUpperCase()"
           onchange="alFetchTicker('c')"
           style="background:rgba(255,255,255,.08);border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-size:20px;font-weight:900;color:#fff;width:110px;outline:none;letter-spacing:2px;text-transform:uppercase;font-family:inherit"/>
@@ -1487,7 +1679,7 @@ window.addEventListener('load', function(){
       Wheel income compounds over time. Target 2–4% monthly premium on capital deployed.
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
-      <button onclick="alPrefillLog('Conservative','wheel')" style="background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="alPrefillLog('Mega-Cap','wheel')" style="background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
       <button onclick="openOptionStrat('c')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
       </button>
@@ -1495,30 +1687,30 @@ window.addEventListener('load', function(){
   </div>
 </div>
 
-<!-- ── MODERATE CARD: Hedged Portfolio (Collar / Protective Put) ── -->
-<div id="al-sec-mod" style="background:#fff;border:1.5px solid #6ee7b7;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:none">
+<!-- ── ETFS CARD: Hedged Position (Collar / Protective Put) ── -->
+<div id="al-sec-etf" style="background:#fff;border:1.5px solid #6ee7b7;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:none">
   <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
-    <div style="width:34px;height:34px;border-radius:9px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🔒</div>
+    <div style="width:34px;height:34px;border-radius:9px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🛡️</div>
     <div style="flex:1">
-      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Moderate — Hedged Position</div>
+      <div style="font-size:14px;font-weight:900;color:#0a0f1e">ETFs — Hedged Core</div>
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#059669;margin-top:1px">Collar · Protective Put · Hedging</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:16px;font-weight:900" id="al-mod-cap-disp">$200,000</div>
-      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-mod-pct-disp">40% of capital</div>
+      <div style="font-size:16px;font-weight:900" id="al-etf-cap-disp">$175,000</div>
+      <div style="font-size:9px;font-weight:700;color:#6b7280" id="al-etf-pct-disp">35% of capital</div>
     </div>
   </div>
   <div style="padding:14px">
     <!-- Strategy explainer -->
     <div style="background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:8px;padding:10px 12px;font-size:11px;color:#059669;font-weight:700;margin-bottom:12px;line-height:1.6">
-      <b>Collar:</b> Own stock → Buy protective put (downside floor) + Sell covered call (cap upside, fund the put). Near zero net cost hedge.<br>
-      <b>Protective Put:</b> Own stock → Buy put below spot. Full upside kept; put activates if stock drops below strike.<br>
-      Best when: you hold a position and want insurance without fully exiting.
+      <b>Collar:</b> Own ETF (SPY/QQQ/IWM/DIA/XLF…) → Buy protective put (downside floor) + Sell covered call (cap upside, fund the put). Near zero net cost hedge.<br>
+      <b>Protective Put:</b> Own ETF → Buy put below spot. Full upside kept; put activates if ETF drops below strike.<br>
+      Best when: you hold the core position and want broad-market insurance without fully exiting.
     </div>
 
     <!-- Ticker input with live fetch -->
     <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:12px">
-      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What stock / ETF are you hedging?</div>
+      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What ETF are you hedging?</div>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="text" id="al-m-ticker" value="SPY" maxlength="6"
           oninput="this.value=this.value.toUpperCase()"
@@ -1581,7 +1773,7 @@ window.addEventListener('load', function(){
       Collar: near-zero net cost hedge. Protective Put: full upside kept, pay premium for floor.
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
-      <button onclick="alPrefillLog('Moderate','collar')" style="background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="alPrefillLog('ETFs','collar')" style="background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
       <button onclick="openOptionStrat('m')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
       </button>
@@ -1589,13 +1781,13 @@ window.addEventListener('load', function(){
   </div>
 </div>
 
-<!-- ── AGGRESSIVE CARD: Directional Calls / Puts / Straddle ── -->
+<!-- ── SHARED OPTIONS CARD: High-Vol / Speculative / Lottery (Directional · Straddle/Strangle) ── -->
 <div id="al-sec-agg" style="background:#fff;border:1.5px solid #fcd34d;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:none">
   <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1.5px solid #e2e8f0">
-    <div style="width:34px;height:34px;border-radius:9px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">⚡</div>
+    <div id="al-agg-icon" style="width:34px;height:34px;border-radius:9px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">⚡</div>
     <div style="flex:1">
-      <div style="font-size:14px;font-weight:900;color:#0a0f1e">Aggressive — Directional / Volatility</div>
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#b45309;margin-top:1px">Calls · Puts · Straddle / Strangle</div>
+      <div id="al-agg-title" style="font-size:14px;font-weight:900;color:#0a0f1e">High-Volatility Growth — Options</div>
+      <div id="al-agg-subtitle" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#b45309;margin-top:1px">Covered Calls · Buy Premium</div>
     </div>
     <div style="text-align:right">
       <div style="font-size:16px;font-weight:900" id="al-agg-cap-disp">$100,000</div>
@@ -1603,7 +1795,7 @@ window.addEventListener('load', function(){
     </div>
   </div>
   <div style="padding:14px">
-    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#b45309;font-weight:700;margin-bottom:12px;line-height:1.6">
+    <div id="al-agg-explainer" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#b45309;font-weight:700;margin-bottom:12px;line-height:1.6">
       <b>Calls:</b> Bullish bet. Buy OTM calls if you expect a strong upward move.<br>
       <b>Puts:</b> Bearish bet. Buy OTM puts if you expect a drop or hedge a long position.<br>
       <b>Straddle / Strangle:</b> Expect a big move but unsure of direction. Buy both call + put around the same strike (straddle) or wider (strangle).
@@ -1611,9 +1803,9 @@ window.addEventListener('load', function(){
 
     <!-- Ticker input with live fetch -->
     <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:10px">
-      <div style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What ticker are you trading options on?</div>
+      <div id="al-a-tickerlbl" style="font-size:8px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px">What ticker are you trading options on?</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="al-a-ticker-inp" value="QQQ" maxlength="6"
+        <input type="text" id="al-a-ticker-inp" value="NVDA" maxlength="6"
           oninput="this.value=this.value.toUpperCase()"
           onchange="alFetchTicker('a')"
           style="background:rgba(255,255,255,.08);border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-size:20px;font-weight:900;color:#fff;width:110px;outline:none;letter-spacing:2px;text-transform:uppercase;font-family:inherit"/>
@@ -1685,7 +1877,7 @@ window.addEventListener('load', function(){
       Exit straddle/strangle at 50–100% profit or when move materializes. Never hold to expiry — theta kills value fast.
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px">
-      <button onclick="alPrefillLog('Aggressive','options')" style="background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+      <button onclick="alPrefillLog(AL_AGG_GROUP_LABEL,'options')" style="background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
       <button onclick="openOptionStrat('a')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Model on OptionStrat">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
       </button>
@@ -1742,9 +1934,11 @@ window.addEventListener('load', function(){
         <div style="display:flex;flex-direction:column;gap:3px">
           <label style="font-size:9px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Bucket</label>
           <select id="al-lg-bucket" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;color:#0a0f1e;width:100%;outline:none;font-family:inherit">
-            <option value="Conservative">Conservative</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Aggressive">Aggressive</option>
+            <option value="Mega-Cap">Mega-Cap</option>
+            <option value="ETFs">ETFs</option>
+            <option value="High-Vol">High-Vol</option>
+            <option value="Speculative">Speculative</option>
+            <option value="Lottery">Lottery</option>
           </select>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px">
@@ -1769,7 +1963,7 @@ window.addEventListener('load', function(){
 </div><!-- end pane7 AllocAI -->
 
 <!-- OLD STRADDLE PANE (kept for go2() compatibility, hidden) -->
-<div class="pane" id="pane2" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane2" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Delta selector -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--p1);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
@@ -1836,7 +2030,7 @@ window.addEventListener('load', function(){
 
 
 <!-- TAB 3: SPIKE/CRASH -->
-<div class="pane" id="pane3" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane3" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
   <div class="card">
     <!-- Row 1: Tickers + custom input -->
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
@@ -1887,7 +2081,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 4: SIGNAL -->
-<div class="pane" id="pane4" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane4" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Dual SPY/QQQ signal cards removed — SPY/QQQ now live in the Top Picks
        scanner chips, which verify against the same engine. renderDualCards()
@@ -1989,7 +2183,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- PANE 5: BACKTEST TABLE -->
-<div class="pane" id="pane5" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane5" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
 
   <!-- ── SETTINGS (collapsible, collapsed by default) ── -->
   <div style="background:var(--p1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
@@ -2149,7 +2343,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- PANE 6: PORTFOLIO -->
-<div class="pane" id="pane6" style="padding-top:8px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane6" style="padding-top:0;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Plan Setup -->
   <div class="card" id="pm-setup-card">
@@ -2230,7 +2424,7 @@ window.addEventListener('load', function(){
 </div>
 
 <!-- TAB 5: PORTFOLIO GREEKS DASHBOARD -->
-<div class="pane" id="pane8" style="padding:10px 10px 40px;max-width:480px;margin:0 auto;width:100%">
+<div class="pane" id="pane8" style="padding:0 10px 40px;max-width:480px;margin:0 auto;width:100%">
 
   <!-- Top bar -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -7027,53 +7221,98 @@ function alFetchTicker(card){
   tryNext(0);
 }
 
-/* ── capital split (percentages are user-editable; defaults 40/40/20) ── */
+/* ── capital split (percentages are user-editable; defaults 35/20/35/10/10) ── */
+var AL_GROUP_DEFAULTS={mega:35,etf:35,hivol:20,spec:10,lotto:10};
+var AL_AGG_GROUP='hivol'; // which of hivol/spec/lotto is currently shown in the shared options card
+var AL_AGG_GROUP_LABEL='High-Vol';
+var AL_AGG_GROUP_META={
+  hivol:{label:'High-Vol',title:'High-Volatility Growth — Options',sub:'Covered Calls · Buy Premium',icon:'⚡',iconBg:'#fffbeb',ticker:'NVDA',dir:'call',accent:'#b45309'},
+  spec: {label:'Speculative',title:'Speculative / Emerging — Directional',sub:'Long Calls · Long Puts',icon:'🚀',iconBg:'#fff1f2',ticker:'RKLB',dir:'call',accent:'#e11d48'},
+  lotto:{label:'Lottery',title:'Lottery / Opportunistic — Event Plays',sub:'Straddles · Earnings Plays',icon:'🎯',iconBg:'#faf5ff',ticker:'QQQ',dir:'straddle',accent:'#9333ea'}
+};
 function alPct(b){
   var el=$('al-pct-'+b);
   var v=el?parseFloat(el.value):NaN;
-  if(isNaN(v)||v<0)v=(b==='agg'?20:40);
+  if(isNaN(v)||v<0)v=AL_GROUP_DEFAULTS[b]||0;
   if(v>100)v=100;
   return v/100;
 }
 function alSplit(){
   var total=alFv('al-cap')||500000;
-  var pc=alPct('cons'),pm=alPct('mod'),pa=alPct('agg');
-  var cons=Math.round(total*pc),mod=Math.round(total*pm),agg=Math.round(total*pa);
-  $('al-cons-amt')&&($('al-cons-amt').textContent=alFmtK(cons));
-  $('al-mod-amt')&&($('al-mod-amt').textContent=alFmtK(mod));
-  $('al-agg-amt')&&($('al-agg-amt').textContent=alFmtK(agg));
-  $('al-cons-cap-disp')&&($('al-cons-cap-disp').textContent=alFmtK(cons));
-  $('al-mod-cap-disp')&&($('al-mod-cap-disp').textContent=alFmtK(mod));
-  $('al-agg-cap-disp')&&($('al-agg-cap-disp').textContent=alFmtK(agg));
+  var groups=['mega','etf','hivol','spec','lotto'];
+  var pcts={},amts={},sum=0;
+  groups.forEach(function(g){
+    pcts[g]=alPct(g);
+    amts[g]=Math.round(total*pcts[g]);
+    sum+=pcts[g]*100;
+  });
   var fmtP=function(p){var x=p*100;return (x%1===0?x.toFixed(0):x.toFixed(1));};
-  $('al-cons-pct-disp')&&($('al-cons-pct-disp').textContent=fmtP(pc)+'% of capital');
-  $('al-mod-pct-disp')&&($('al-mod-pct-disp').textContent=fmtP(pm)+'% of capital');
-  $('al-agg-pct-disp')&&($('al-agg-pct-disp').textContent=fmtP(pa)+'% of capital');
+  groups.forEach(function(g){
+    $('al-'+g+'-amt')&&($('al-'+g+'-amt').textContent=alFmtK(amts[g]));
+  });
+  // Mega-Cap + ETF cards have their own dedicated detail sections
+  $('al-mega-cap-disp')&&($('al-mega-cap-disp').textContent=alFmtK(amts.mega));
+  $('al-mega-pct-disp')&&($('al-mega-pct-disp').textContent=fmtP(pcts.mega)+'% of capital');
+  $('al-etf-cap-disp')&&($('al-etf-cap-disp').textContent=alFmtK(amts.etf));
+  $('al-etf-pct-disp')&&($('al-etf-pct-disp').textContent=fmtP(pcts.etf)+'% of capital');
+  // Shared options card shows whichever of hivol/spec/lotto is active
+  $('al-agg-cap-disp')&&($('al-agg-cap-disp').textContent=alFmtK(amts[AL_AGG_GROUP]));
+  $('al-agg-pct-disp')&&($('al-agg-pct-disp').textContent=fmtP(pcts[AL_AGG_GROUP])+'% of capital');
   var w=$('al-pct-warn');
   if(w){
-    var sum=(pc+pm+pa)*100;
     if(Math.abs(sum-100)>0.01){
       w.style.display='block';
-      w.textContent='⚠ Buckets total '+fmtP((pc+pm+pa))+'% ('+(sum>100?alFmtK(Math.round(total*(pc+pm+pa)-total))+' over':alFmtK(Math.round(total-total*(pc+pm+pa)))+' unallocated')+')';
+      w.textContent='⚠ Groups total '+fmtP(sum/100)+'% ('+(sum>100?alFmtK(Math.round(total*sum/100-total))+' over':alFmtK(Math.round(total-total*sum/100))+' unallocated')+')';
     }else{w.style.display='none';}
   }
-  /* refresh the three calculators so contract counts track the new split */
+  /* refresh the calculators so contract counts track the new split */
   try{typeof alGoC==='function'&&alGoC();}catch(e){}
   try{typeof alGoM==='function'&&alGoM();}catch(e){}
   try{typeof alGoA==='function'&&alGoA();}catch(e){}
 }
 
+/* ── apply theming to the shared options card for the active group ── */
+function alApplyAggTheme(g){
+  var m=AL_AGG_GROUP_META[g];
+  if(!m)return;
+  AL_AGG_GROUP=g;
+  AL_AGG_GROUP_LABEL=m.label;
+  $('al-agg-icon')&&($('al-agg-icon').textContent=m.icon);
+  $('al-agg-icon')&&($('al-agg-icon').style.background=m.iconBg);
+  $('al-agg-title')&&($('al-agg-title').textContent=m.title);
+  $('al-agg-subtitle')&&($('al-agg-subtitle').textContent=m.sub);
+  $('al-agg-subtitle')&&($('al-agg-subtitle').style.color=m.accent);
+  $('al-a-tickerlbl')&&($('al-a-tickerlbl').textContent='What ticker are you trading '+m.label.toLowerCase()+' options on?');
+}
+
 /* ── section show/hide ── */
+var AL_AGG_GROUP_TOUCHED={};
 function alShow(id){
-  ['cons','mod','agg'].forEach(function(s){
-    var sec=$('al-sec-'+s);
-    var bkt=$('al-bkt-'+s);
-    if(sec)sec.style.display=s===id?'block':'none';
-    if(bkt)bkt.style.boxShadow=s===id?'0 0 0 3px #0a0f1e':'none';
+  // id is one of: mega, etf, hivol, spec, lotto
+  var sections={mega:'mega',etf:'etf',hivol:'agg',spec:'agg',lotto:'agg'};
+  var allTiles=['mega','etf','hivol','spec','lotto'];
+  allTiles.forEach(function(t){
+    var bkt=$('al-bkt-'+t);
+    if(bkt)bkt.style.boxShadow=t===id?'0 0 0 3px #0a0f1e':'none';
   });
-  if(id==='cons')alGoC();
-  if(id==='mod')alGoM();
-  if(id==='agg')alGoA();
+  ['al-sec-mega','al-sec-etf','al-sec-agg'].forEach(function(secId){
+    var sec=$(secId);
+    if(sec)sec.style.display=(secId==='al-sec-'+sections[id])?'block':'none';
+  });
+  if(id==='mega'){alGoC();}
+  else if(id==='etf'){alGoM();}
+  else{
+    alApplyAggTheme(id);
+    // pre-select sensible defaults the first time a group's card is opened
+    var m=AL_AGG_GROUP_META[id];
+    if(m&&$('al-a-ticker-inp')&&!AL_AGG_GROUP_TOUCHED[id]){
+      AL_AGG_GROUP_TOUCHED[id]=true;
+      $('al-a-ticker-inp').value=m.ticker;
+      AL_A_TICKER=m.ticker.toLowerCase();
+      alSetDir(m.dir);
+    }
+    alGoA();
+  }
 }
 
 /* ── TRADE PLAN BOX — auto-recommended exits, no input needed ── */
@@ -7119,7 +7358,7 @@ function alCPhase(ph){
 
 function alGoC(){
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*alPct('cons'));
+  var capital=Math.round(total*alPct('mega'));
   var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otmPct=alFv('al-c4')||5;
   if(!spot||!iv3){
     if($('al-c-stats'))$('al-c-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#475569;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
@@ -7242,14 +7481,15 @@ function alMStrat(s){
   });
   var callField=$('al-m-call-field');
   if(callField)callField.style.display=s==='collar'?'':'none';
-  if($('al-m-rec-hdr'))$('al-m-rec-hdr').textContent=s==='collar'?sym_m+' Collar — Sizing':sym_m+' Protective Put — Sizing';
+  var sym_m_hdr=($('al-m-ticker')&&$('al-m-ticker').value)||'SPY';
+  if($('al-m-rec-hdr'))$('al-m-rec-hdr').textContent=s==='collar'?sym_m_hdr+' Collar — Sizing':sym_m_hdr+' Protective Put — Sizing';
   alGoM();
 }
 
 function alGoM(){
   var sym_m=($('al-m-ticker')&&$('al-m-ticker').value)||'SPY';
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*alPct('mod'));
+  var capital=Math.round(total*alPct('etf'));
   var spot=alFv('al-m1'),iv3=alFv('al-m2')/100,dte=alIv('al-m3')||30;
   var putOtm=alFv('al-m4')||5,callOtm=alFv('al-m5')||5;
   if(!spot||!iv3){
@@ -7429,7 +7669,7 @@ function alGoA(){
   var sym_a=(($('al-a-ticker-inp')&&$('al-a-ticker-inp').value)||AL_A_TICKER||'QQQ').toUpperCase();
   AL_A_TICKER=sym_a.toLowerCase();
   var total=alFv('al-cap')||500000;
-  var capital=Math.round(total*alPct('agg'));
+  var capital=Math.round(total*alPct(AL_AGG_GROUP));
   var spot=alFv('al-a1'),iv3=alFv('al-a2')/100,dte=alIv('al-a3')||7;
   if(!spot||!iv3){
     if($('al-a-stats'))$('al-a-stats').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#475569;font-size:12px;font-weight:600">Tap <b>↻ Get Price</b> above to load live price</div>';
@@ -7658,16 +7898,17 @@ function alExpDate(dte){
 /* ── ALLOCAI TRADE LOG ── */
 function alPrefillLog(bucket,type){
   if($('al-lg-bucket'))$('al-lg-bucket').value=bucket;
-  var typeMap={wheel:'sell-put',collar:'collar','options':'straddle'};
+  var typeMap={wheel:'sell-put',collar:'collar','options':AL_A_DIR||'straddle'};
   if($('al-lg-type'))$('al-lg-type').value=typeMap[type]||type;
-  if($('al-lg-ticker'))$('al-lg-ticker').value=bucket==='Aggressive'?sym_a:'SPY';
+  var aggTicker=($('al-a-ticker-inp')&&$('al-a-ticker-inp').value)||(AL_A_TICKER||'QQQ').toUpperCase();
+  if($('al-lg-ticker'))$('al-lg-ticker').value=(bucket==='High-Vol'||bucket==='Speculative'||bucket==='Lottery')?aggTicker:(bucket==='ETFs'?(($('al-m-ticker')&&$('al-m-ticker').value)||'SPY'):(($('al-c-ticker')&&$('al-c-ticker').value)||'MSFT'));
   // Pre-fill entry cost
   try{
-    if(bucket==='Conservative'){
+    if(bucket==='Mega-Cap'){
       var spot=alFv('al-c1'),iv3=alFv('al-c2')/100,dte=alIv('al-c3')||30,otm=alFv('al-c4')||5;
       var K=AL_C_PHASE==='put'?spot*(1-otm/100):spot*(1+otm/100);
       var prem2=AL_C_PHASE==='put'?bsP(spot,K,dte/252,iv3):bsC(spot,K,dte/252,iv3);
-      var capital2=Math.round((alFv('al-cap')||500000)*alPct('cons'));
+      var capital2=Math.round((alFv('al-cap')||500000)*alPct('mega'));
       var contracts=(AL_C_PHASE==='put'?Math.max(1,Math.floor(capital2/(K*100))):Math.max(1,Math.floor(capital2/spot/100)));
       if($('al-lg-entry'))$('al-lg-entry').value=(prem2*100*contracts).toFixed(0);
     }
@@ -7715,7 +7956,7 @@ function alRenderLog(){
   if($('al-ls-wr'))$('al-ls-wr').textContent=wr;
   if(!alLog.length){if($('al-log-list'))$('al-log-list').innerHTML='<div style="text-align:center;padding:24px;color:#94a3b8;font-size:12px;font-weight:600">No trades logged yet.<br>Use a strategy card above and tap "+ Log This Trade"</div>';return;}
   var typeLabels={'sell-put':'Sell Put','covered-call':'Covered Call','collar':'Collar','protective-put':'Protective Put','call':'Buy Call','put':'Buy Put','straddle':'Straddle','strangle':'Strangle'};
-  var bktColors={Conservative:'#1d4ed8',Moderate:'#059669',Aggressive:'#b45309'};
+  var bktColors={'Mega-Cap':'#2563eb','ETFs':'#059669','High-Vol':'#b45309','Speculative':'#e11d48','Lottery':'#9333ea'};
   var html='';
   alLog.forEach(function(e){
     var isOpen=e.pnl===null;
@@ -7764,6 +8005,7 @@ function alToast(msg){
 }
 
 /* ─── init AllocAI ─── */
+alApplyAggTheme('hivol');
 alSplit();
 alGoC();
 alRenderLog();
