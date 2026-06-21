@@ -3758,7 +3758,7 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
   var today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   var priceStr=livePrice?'$'+livePrice.toFixed(2):'unknown (use RSI/MA context)';
   var oiStr=optionsData?
-    'Put/Call OI Ratio: '+optionsData.pcRatio+'\nMax Pain: $'+optionsData.maxPain+'\nTop Call OI walls: '+optionsData.topCalls+'\nTop Put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:'')+'\nBest expiry: '+optionsData.expiry+' ('+optionsData.daysOut+'d out)'
+    'Put/Call OI Ratio: '+optionsData.pcRatio+'\nMax Pain: $'+optionsData.maxPain+'\nTop Call OI walls: '+optionsData.topCalls+'\nTop Put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:'')+'\nBest expiry: ~'+optionsData.daysOut+'d DTE'
     :'Options chain unavailable.';
 
   var prompt='You are a concise options trading advisor. Analyze this signal and respond in JSON only.\n\n'
@@ -3772,7 +3772,7 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
     +(optionsData?'P/C OI ratio: '+optionsData.pcRatio+' | Max pain: $'+optionsData.maxPain+'\nTop call OI walls: '+optionsData.topCalls+'\nTop put OI walls: '+optionsData.topPuts+(optionsData.callSpike?'\nUnusual call volume: '+optionsData.callSpike:''):'Options chain: unavailable')+'\n\n'
     +'Return ONLY valid JSON:\n'
     +'IMPORTANT: "verdict" is a GO / NO-GO double-check on THIS trade — it is NOT a market direction call. A bearish signal whose data checks out is still GO (take the put). GO = data confirms the signal, take the trade as configured. ADJUST = take it only with the stated adjustment. WAIT = do not enter now (data contradicts the signal, or setup is poor).\n'
-    +'{"verdict":"GO"|"WAIT"|"ADJUST","headline":"<8 words max>","summary":"<2-3 sentences: does OI/macro confirm? Is stop/target ratio sensible for this setup?>","adjustment":"<one sentence tweak if needed, e.g. tighten stop or reduce size, else empty string>","trade":"<specific: e.g. Buy $738 call exp Jun 13, risk $400 (2% of capital), exit at +50% or −30%> or empty if WAIT","risk":"<one sentence on key risk>"}';
+    +'{"verdict":"GO"|"WAIT"|"ADJUST","headline":"<8 words max>","summary":"<2-3 sentences: does OI/macro confirm? Is stop/target ratio sensible for this setup?>","adjustment":"<one sentence tweak if needed, e.g. tighten stop or reduce size, else empty string>","trade":"<use DTE + delta, not specific price/date: e.g. Buy ~0.40Δ call, '+sig.dte+'d DTE, risk ~$400 (2% capital), exit +50% or −30%> or empty if WAIT","risk":"<one sentence on key risk>"}';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -5277,7 +5277,7 @@ function processSignal(valid,capital,target,stopPct,sym){
     var prompt='Search Yahoo Finance options for '+sym+' today '+today+'. '
       +'Find the '+dte+'-day expiry (approximately '+dte+' days from now). '
       +'Find the ATM '+optType+' closest to strike $'+K+'. '
-      +'Return ONLY JSON, no markdown: {"strike":<number>,"bid":<number>,"ask":<number>,"mid":<number>,"iv":"<e.g. 19.2%>","expiry":"<e.g. Jun 13>"}';
+      +'Return ONLY JSON, no markdown: {"strike":<number>,"bid":<number>,"ask":<number>,"mid":<number>,"iv":"<e.g. 19.2%>","dte":<days to expiry as integer>,"delta":"<e.g. 0.48>"}';
 
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
