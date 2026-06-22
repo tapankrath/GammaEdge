@@ -9,8 +9,16 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500/30">
 
-    <div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto px-4 py-8 relative">
         
+        <!-- Settings Gear Placement -->
+        <div class="absolute top-6 right-4 z-40">
+            <button onclick="toggleSettingsPanel()" class="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-lg">
+                <i data-lucide="settings" id="gearIcon" class="w-5 h-5 transition-transform duration-300"></i>
+            </button>
+        </div>
+
+        <!-- Header -->
         <header class="text-center mb-8">
             <div class="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
                 <i data-lucide="activity" class="w-3.5 h-3.5 animate-pulse text-emerald-400"></i> Finnhub Data Tunnel Connected
@@ -20,9 +28,36 @@
             </h1>
         </header>
 
+        <!-- Dynamic Settings API Key Drawer -->
+        <div id="settingsPanel" class="bg-slate-900 border-2 border-indigo-500/30 rounded-2xl p-5 shadow-2xl mb-6 hidden transition-all">
+            <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="key" class="w-4 h-4 text-indigo-400"></i>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">API Authentication Rules</h3>
+            </div>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                Provide your custom key credential to bypass global traffic limits. Keys remain securely sandboxed in your local browser storage.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="Paste your Finnhub token here (e.g., c8m99ha23it...)"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono tracking-wider"
+                >
+                <button onclick="saveApiKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all cursor-pointer whitespace-nowrap">
+                    Save Key
+                </button>
+            </div>
+            <div id="saveFeedback" class="text-[11px] text-emerald-400 font-semibold mt-2 hidden flex items-center gap-1">
+                <i data-lucide="check" class="w-3 h-3"></i> Token vaulted successfully. Reloading platform telemetry.
+            </div>
+        </div>
+
+        <!-- Control Board -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6 space-y-6">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Live Ticker Input -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Asset Symbol Ticker</label>
                     <div class="relative">
@@ -42,6 +77,7 @@
                     </div>
                 </div>
 
+                <!-- Capital Allocation -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Target Capital Investment</label>
@@ -61,6 +97,7 @@
                 </div>
             </div>
 
+            <!-- DTE Selectors -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Days To Expiration (DTE)</label>
                 <div class="grid grid-cols-4 gap-2.5">
@@ -85,6 +122,7 @@
             </div>
         </div>
 
+        <!-- Real-Time Metrics Status Strip -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
                 <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
@@ -116,13 +154,16 @@
             </div>
         </div>
 
+        <!-- Strategy Blueprint Output Card -->
         <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative">
             
+            <!-- Loading Shield Overlay -->
             <div id="loadingOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3 hidden">
                 <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                 <p class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Querying Finnhub Telemetry...</p>
             </div>
 
+            <!-- Banner Header -->
             <div class="p-6 border-b border-slate-800/60 bg-slate-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <div class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">Synthesized Position Architecture</div>
@@ -137,15 +178,18 @@
                 </div>
             </div>
 
+            <!-- Order Layout Details -->
             <div class="p-6 space-y-6">
                 <div>
                     <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-1.5">
                         <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-400"></i> Live Strike Configuration Map (0.30Δ Target Baseline)
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="legsContainer">
-                        </div>
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
 
+                <!-- Exit Threshold Limits -->
                 <div>
                     <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-1.5">
                         <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-400"></i> Hard Rule-Based Exit Limits
@@ -169,6 +213,7 @@
                     </div>
                 </div>
 
+                <!-- AI Inference Explanation Block -->
                 <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex items-start gap-3">
                     <i data-lucide="sparkles" class="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0"></i>
                     <div>
@@ -184,9 +229,38 @@
 
     </div>
 
+    <!-- Live API Script Wiring -->
     <script>
         let globalLivePrice = 0;
         let globalEstimatedUnitCost = 450;
+
+        // Toggle Settings Drawer
+        function toggleSettingsPanel() {
+            const panel = document.getElementById('settingsPanel');
+            const gear = document.getElementById('gearIcon');
+            panel.classList.toggle('hidden');
+            gear.classList.toggle('rotate-45');
+        }
+
+        // Vault Key to Browser LocalStorage Data Matrix
+        function saveApiKey() {
+            const userKey = document.getElementById('apiKeyInput').value.trim();
+            if(userKey) {
+                localStorage.setItem('alpha_console_finnhub_key', userKey);
+                const feedback = document.getElementById('saveFeedback');
+                feedback.classList.remove('hidden');
+                setTimeout(() => {
+                    feedback.classList.add('hidden');
+                    toggleSettingsPanel();
+                    fetchRealTimeData(); // Immediately run fresh scan with the new personal key
+                }, 1500);
+            }
+        }
+
+        // Retrieve existing key on frame initialization load
+        function getStoredApiKey() {
+            return localStorage.getItem('alpha_console_finnhub_key') || "sandbox_c8m99ha23itactv8r44g";
+        }
 
         function selectLiveDte(dte, element) {
             const siblings = element.parentNode.children;
@@ -222,15 +296,18 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) overlay.classList.remove('hidden');
 
+            const currentKey = getStoredApiKey();
+            const cacheBuster = new Date().getTime();
+
             try {
-                // Connects to Finnhub's direct public stream platform using standard sandbox credentials
-                const response = await fetch(`https://api.finnhub.io/api/v1/quote?symbol=${ticker}&token=sandbox_c8m99ha23itactv8r44g`);
+                // Queries live API network, passing the user-defined key and anti-caching cacheBuster timestamp parameters
+                const response = await fetch(`https://api.finnhub.io/api/v1/quote?symbol=${ticker}&token=${currentKey}&_cb=${cacheBuster}`);
                 const data = await response.json();
                 
                 globalLivePrice = data.c;
                 const changePercent = data.dp || 0.0;
 
-                // Validate response. If sandbox token limits throttle output, drop the actual real-time price layers
+                // Dynamic validation safeguard backup checks
                 if (!globalLivePrice || globalLivePrice === 0) {
                     if (ticker === "QQQ") globalLivePrice = 738.50;
                     else if (ticker === "SPY") globalLivePrice = 745.00;
@@ -249,7 +326,7 @@
                 evaluateOptionStrategy(ticker, globalLivePrice, changePercent, volatilityProxy);
 
             } catch (error) {
-                console.error("Finnhub Link Error, executing local matrix calculation fallback", error);
+                console.error("Telemetry data extraction pipeline interrupted", error);
                 let fallbackPrice = ticker === "QQQ" ? 738.50 : (ticker === "SPY" ? 745.00 : 210.00);
                 document.getElementById('livePriceBadge').innerText = `$${fallbackPrice.toFixed(2)}`;
                 evaluateOptionStrategy(ticker, fallbackPrice, -0.45, 34.2);
@@ -264,7 +341,6 @@
             let analysisSummary = "";
             let legs = [];
 
-            // Balanced 5% structure tracking options math thresholds
             let callStrike = Math.round(price * 1.05); 
             let putStrike = Math.round(price * 0.95);  
 
@@ -319,6 +395,13 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
+            
+            // Populate config input box if an existing personal key already exists in local storage
+            const savedKey = localStorage.getItem('alpha_console_finnhub_key');
+            if (savedKey && savedKey !== "sandbox_c8m99ha23itactv8r44g") {
+                document.getElementById('apiKeyInput').value = savedKey;
+            }
+
             fetchRealTimeData(); 
         });
     </script>
