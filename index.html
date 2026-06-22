@@ -588,28 +588,34 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 #sl-wrap .nd-actions { display:flex; align-items:center; gap:8px; }
 #sl-wrap .nd-icon-btn { background:none; border:none; color:#cbd5e1; cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; transition:color .2s; }
 #sl-wrap .nd-icon-btn:hover, #sl-wrap .nd-icon-btn:active { color:#34d399; }
-#sl-wrap .nd-ctrl { background:#1e293b; padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid rgba(255,255,255,.02); }
+#sl-wrap .nd-ctrl { background:#1e293b; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid rgba(255,255,255,.02); }
 #sl-wrap .nd-lbl { font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; margin-bottom:6px; display:block; }
-#sl-wrap .nd-ticker-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
-#sl-wrap .nd-tick-btn { display:inline-flex; align-items:center; padding:6px 10px; background:#0f172a; border:1px solid #475569; color:#cbd5e1; border-radius:14px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap; gap:6px; transition:all .15s; }
+#sl-wrap .nd-ticker-grid { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+#sl-wrap .nd-tick-btn { display:inline-flex; align-items:center; padding:4px 8px; background:#0f172a; border:1px solid #475569; color:#cbd5e1; border-radius:12px; font-weight:800; font-size:10px; cursor:pointer; white-space:nowrap; gap:5px; transition:all .15s; }
 #sl-wrap .nd-tick-btn.active { background:#10b981; color:#0f172a; border-color:#10b981; box-shadow:0 0 10px rgba(16,185,129,.2); }
 #sl-wrap .nd-tick-btn .nd-rmx { font-size:12px; font-weight:900; color:#cbd5e1; padding:0 2px; border-radius:50%; }
 #sl-wrap .nd-tick-btn.active .nd-rmx { color:#065f46; }
 #sl-wrap .nd-sticky { position:sticky; top:0; z-index:49; background:#090d16; padding-bottom:8px; padding-top:4px; }
-#sl-wrap .nd-custom-row { display:flex; gap:6px; margin-bottom:12px; }
-#sl-wrap .nd-tick-inp { flex:1; min-width:0; background:#0f172a; border:1px solid #475569; color:#fff; padding:6px 8px; border-radius:6px; font-weight:700; font-size:11px; text-transform:uppercase; text-align:center; outline:none; height:32px; }
+#sl-wrap .nd-mini-bar { display:none; align-items:center; justify-content:space-between; background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:7px 10px; margin-bottom:0; }
+#sl-wrap .nd-mini-bar.visible { display:flex; }
+#sl-wrap .nd-mini-sym { font-size:14px; font-weight:900; color:#fff; }
+#sl-wrap .nd-mini-price { font-size:13px; font-weight:800; color:#34d399; }
+#sl-wrap .nd-mini-dte { font-size:10px; font-weight:800; color:#3b82f6; background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); border-radius:5px; padding:2px 7px; }
+#sl-wrap .nd-mini-expand { font-size:10px; font-weight:800; color:#64748b; background:#1e293b; border:1px solid #334155; border-radius:5px; padding:3px 8px; cursor:pointer; white-space:nowrap; }
+#sl-wrap .nd-custom-row { display:flex; gap:5px; margin-bottom:8px; }
+#sl-wrap .nd-tick-inp { flex:1; min-width:0; background:#0f172a; border:1px solid #475569; color:#fff; padding:4px 8px; border-radius:6px; font-weight:700; font-size:10px; text-transform:uppercase; text-align:center; outline:none; height:28px; }
 #sl-wrap .nd-tick-inp:focus { border-color:#10b981; }
-#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:16px; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:14px; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
 #sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:2px 8px; }
 #sl-wrap .nd-cap-sym { color:#cbd5e1; font-weight:800; font-size:13px; margin-right:4px; }
 #sl-wrap .nd-cap-inp { width:100%; background:none; border:none; color:#fff; font-size:13px; font-weight:700; outline:none; padding:6px 0; }
 #sl-wrap .nd-dte-grid { display:flex; gap:6px; }
-#sl-wrap .nd-dte-btn { flex:1; padding:10px 0; background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
+#sl-wrap .nd-dte-btn { flex:1; padding:7px 0; background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
 #sl-wrap .nd-dte-btn.active { background:#3b82f6; color:#fff; border-color:#3b82f6; font-weight:800; }
-#sl-wrap .nd-banner { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#0f172a,#1e293b); padding:10px 14px; border-radius:8px; margin-bottom:14px; border-left:4px solid #10b981; }
-#sl-wrap .nd-sym { font-size:18px; font-weight:900; color:#fff; }
-#sl-wrap .nd-price { font-size:16px; font-weight:800; color:#34d399; }
-#sl-wrap .nd-analyze-btn { width:100%; background:#10b981; color:#0f172a; border:none; border-radius:8px; padding:11px; font-size:13px; font-weight:900; cursor:pointer; margin-bottom:14px; letter-spacing:.02em; transition:background .15s; font-family:inherit; }
+#sl-wrap .nd-banner { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#0f172a,#1e293b); padding:7px 12px; border-radius:8px; margin-bottom:8px; border-left:4px solid #10b981; }
+#sl-wrap .nd-sym { font-size:15px; font-weight:900; color:#fff; }
+#sl-wrap .nd-price { font-size:14px; font-weight:800; color:#34d399; }
+#sl-wrap .nd-analyze-btn { width:100%; background:#10b981; color:#0f172a; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:900; cursor:pointer; margin-bottom:10px; letter-spacing:.02em; transition:background .15s; font-family:inherit; }
 #sl-wrap .nd-analyze-btn:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
 #sl-wrap .nd-analyze-btn:not(:disabled):active { background:#059669; }
 #sl-wrap .nd-loading { display:none; text-align:center; padding:30px 20px; }
@@ -716,8 +722,20 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <!-- STICKY CONTROLS -->
   <div class="nd-sticky" id="nd-sticky-ctrl">
 
+    <!-- Mini collapsed bar (shown after analyze) -->
+    <div class="nd-mini-bar" id="nd-mini-bar">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="nd-mini-sym" id="nd-mini-sym">SPY</span>
+        <span class="nd-mini-price" id="nd-mini-price">—</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="nd-mini-dte" id="nd-mini-dte">7d</span>
+        <button class="nd-mini-expand" onclick="ndExpandControls()">⚙ Edit</button>
+      </div>
+    </div>
+
     <!-- Ticker chips + inline add -->
-    <div class="nd-ctrl">
+    <div class="nd-ctrl" id="nd-ctrl-panel">
       <label class="nd-lbl">Active Ticker</label>
       <div class="nd-ticker-grid" id="nd-ticker-grid"></div>
       <div class="nd-custom-row">
@@ -742,10 +760,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
           </div>
         </div>
       </div>
-    </div>
+    </div><!-- end nd-ctrl-panel -->
 
-    <!-- Banner (always visible) -->
-    <div class="nd-banner">
+    <!-- Banner (always visible, hidden after analyze) -->
+    <div class="nd-banner" id="nd-banner-row">
       <div>
         <div id="nd-disp-sym" class="nd-sym">SPY</div>
         <div style="font-size:9px;color:#cbd5e1;font-weight:bold;margin-top:1px;" id="nd-disp-iv">IV: —</div>
@@ -787,6 +805,41 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 var ndTicker = 'SPY';
 var ndDte = 7;
 var ndHasResults = false;
+var ndControlsCollapsed = false;
+
+function ndCollapseControls() {
+  var ctrl = document.getElementById('nd-ctrl-panel');
+  var banner = document.getElementById('nd-banner-row');
+  var analyzeBtn = document.getElementById('nd-analyze-btn');
+  var miniBar = document.getElementById('nd-mini-bar');
+  if (ctrl) ctrl.style.display = 'none';
+  if (banner) banner.style.display = 'none';
+  if (analyzeBtn) analyzeBtn.style.display = 'none';
+  if (miniBar) miniBar.classList.add('visible');
+  // Update mini bar values
+  var miniSym = document.getElementById('nd-mini-sym');
+  var miniPrice = document.getElementById('nd-mini-price');
+  var miniDte = document.getElementById('nd-mini-dte');
+  if (miniSym) miniSym.textContent = ndTicker;
+  if (miniPrice) {
+    var priceEl = document.getElementById('nd-disp-price');
+    miniPrice.textContent = priceEl ? priceEl.textContent : '—';
+  }
+  if (miniDte) miniDte.textContent = ndDte + 'd';
+  ndControlsCollapsed = true;
+}
+
+function ndExpandControls() {
+  var ctrl = document.getElementById('nd-ctrl-panel');
+  var banner = document.getElementById('nd-banner-row');
+  var analyzeBtn = document.getElementById('nd-analyze-btn');
+  var miniBar = document.getElementById('nd-mini-bar');
+  if (ctrl) ctrl.style.display = '';
+  if (banner) banner.style.display = '';
+  if (analyzeBtn) analyzeBtn.style.display = '';
+  if (miniBar) miniBar.classList.remove('visible');
+  ndControlsCollapsed = false;
+}
 var ndWatchlist = [];
 var ndDefaults = ['SPY','QQQ','IWM','NVDA','AAPL','MSFT','AMZN','META','GOOG','TSLA'];
 var ndFallback = {
@@ -1134,7 +1187,7 @@ function ndRender(d,strats){
   var box=document.getElementById('nd-results');
   box.innerHTML=h; box.style.display='block';
   ndHasResults=true;
-  
+  ndCollapseControls();
   setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 
