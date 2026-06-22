@@ -6,7 +6,7 @@
     <title>Alpha Yield Engine</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaYield">
     <link rel="apple-touch-icon" href="icon.png">
     
@@ -16,8 +16,8 @@
         /* Base Reset & Variables */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            background:#f0f4f8; 
-            color:#09101f; 
+            background-color: #090d16; 
+            color: #f8fafc; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 12px;
             -webkit-tap-highlight-color: transparent;
@@ -28,11 +28,11 @@
         .container { 
             max-width: 440px; 
             margin: 0 auto; 
-            background:#f8fafc; 
-            border: 1.5px solid #c8d5e8; 
+            background-color: #111827; 
+            border: 2px solid #334155; 
             border-radius: 16px;
             padding: 0 14px 16px 14px; 
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
             display: flex;
             flex-direction: column;
             position: relative;
@@ -42,7 +42,7 @@
         .sticky-header-container {
             position: sticky;
             top: 0;
-            background:#f8fafc; 
+            background-color: #111827; 
             z-index: 100;
             padding-top: 12px;
             padding-bottom: 2px;
@@ -98,8 +98,8 @@
         /* Mini Header Refresh Interactive Token Elements */
         .subtitle-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
         .refresh-trigger-btn {
-            background:#ffffff;
-            border:1px solid #c8d5e8;
+            background-color: #1e293b;
+            border: 1px solid #475569;
             color: #34d399;
             font-size: 8.5px;
             font-weight: 700;
@@ -112,18 +112,18 @@
         }
         .refresh-trigger-btn:active {
             transform: scale(0.93);
-            background:#e2e8f0;
+            background-color: #334155;
             border-color: #10b981;
         }
 
         /* Navigation Tab Buttons Layout */
         .tab-navigation {
             display: flex;
-            background:#ffffff;
+            background-color: #1e293b;
             padding: 4px;
             border-radius: 10px;
             margin-bottom: 12px;
-            border:1px solid #c8d5e8;
+            border: 1px solid #475569;
             gap: 2px;
         }
         .tab-btn {
@@ -131,7 +131,7 @@
             padding: 10px 0;
             background: none;
             border: none;
-            color:#64748b;
+            color: #94a3b8;
             font-size: 10px;
             font-weight: 800;
             cursor: pointer;
@@ -155,13 +155,13 @@
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         header { padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .title { font-size: 18px; font-weight: 700; color: #34d399; }
-        .subtitle { font-size: 10px; color:#64748b; }
+        .subtitle { font-size: 10px; color: #94a3b8; }
         .grand-payout { font-size: 20px; font-weight: 900; color: #34d399; text-align: right; }
         .annualized-text { font-size: 11px; color: #fbbf24; font-weight: 600; text-align: right; margin-top: 2px; }
 
         /* Control Panel Styles */
         .control-panel { 
-            background:#ffffff; 
+            background-color: #1e293b; 
             border-radius: 12px; 
             padding: 14px; 
             margin-bottom: 16px;
@@ -169,18 +169,18 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
         .grid-3 { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .input-label { font-size: 10px; font-weight: 700; color:#64748b; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.05em; }
+        .input-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.05em; }
         
         .input-wrapper { position: relative; display: flex; align-items: center; }
-        .currency-symbol { position: absolute; left: 8px; color:#64748b; font-size: 12px; font-weight: 600; }
+        .currency-symbol { position: absolute; left: 8px; color: #94a3b8; font-size: 12px; font-weight: 600; }
         .capital-input, .text-input { 
-            width: 100%; background:#e2e8f0; border: none; border-radius: 6px; 
+            width: 100%; background-color: #334155; border: none; border-radius: 6px; 
             padding: 8px; color: #fff; font-weight: 700; font-size: 13px;
         }
         .capital-input { padding-left: 20px; }
         .text-input { text-transform: uppercase; }
         .select-input {
-            width: 100%; background:#e2e8f0; border: none; border-radius: 6px; 
+            width: 100%; background-color: #334155; border: none; border-radius: 6px; 
             padding: 8px; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
             outline: none; -webkit-appearance: none; appearance: none;
         }
@@ -192,7 +192,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background:#f8fafc;
+            background-color: #111827;
             padding: 10px;
             border-radius: 8px;
             border: 1px dashed #eab308;
@@ -202,7 +202,7 @@
         
         /* Action Buttons */
         .action-btn { 
-            width: 100%; background:#e2e8f0; color: #34d399; font-weight: 700; 
+            width: 100%; background-color: #334155; color: #34d399; font-weight: 700; 
             padding: 10px; border-radius: 6px; font-size: 11px; text-transform: uppercase; 
             letter-spacing: 0.05em; border: 1px solid #10b981; cursor: pointer; text-align: center; margin-top: 4px;
         }
@@ -222,9 +222,9 @@
         }
 
         /* Allocations Summary Card Component */
-        .card-summary { background:#ffffff; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
+        .card-summary { background-color: #1e293b; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; font-size: 11px; }
-        .progress-container { width: 100%; background:#e2e8f0; height: 4px; border-radius: 2px; margin-top: 3px; overflow: hidden; }
+        .progress-container { width: 100%; background-color: #334155; height: 4px; border-radius: 2px; margin-top: 3px; overflow: hidden; }
         .progress-bar { height: 100%; border-radius: 2px; transition: width 0.2s ease; }
         
         /* Strategy Specific Color Tags */
@@ -236,13 +236,13 @@
         .tactic-card { background-color: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
         .tactic-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 6px; }
         .tactic-title { font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .tactic-body { font-size: 11px; color:#475569; line-height: 1.4; }
-        .live-ticker-price { font-size: 9.5px; color: #64748b; font-weight: bold; text-transform: none; background:#ffffff; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
+        .tactic-body { font-size: 11px; color: #cbd5e1; line-height: 1.4; }
+        .live-ticker-price { font-size: 9.5px; color: #64748b; font-weight: bold; text-transform: none; background-color: #0f172a; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
 
         /* Scanner Execution Layout Plan Modules */
-        .scanner-card { background:#ffffff; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #64748b; }
+        .scanner-card { background-color: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #64748b; }
         .ai-box { background-color: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 10.5px; line-height: 1.4; }
-        .execution-blueprint { background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px; margin-top: 6px; font-size: 10.5px; color:#334155; }
+        .execution-blueprint { background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px; margin-top: 6px; font-size: 10.5px; color: #e2e8f0; }
 
         /* Secure Settings Modal Layer */
         .modal-overlay {
@@ -259,7 +259,7 @@
         }
         .modal-overlay.active { display: flex; }
         .settings-modal {
-            background:#ffffff;
+            background-color: #1e293b;
             border: 2px solid #475569;
             border-radius: 12px;
             width: 100%;
@@ -269,8 +269,8 @@
         }
         .settings-input {
             width: 100%;
-            background:#ffffff;
-            border:1px solid #c8d5e8;
+            background-color: #0f172a;
+            border: 1px solid #475569;
             border-radius: 6px;
             padding: 10px;
             color: #fff;
@@ -281,7 +281,7 @@
             outline: none;
         }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-secondary { background:#e2e8f0; color:#475569; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-secondary { background-color: #334155; color: #cbd5e1; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
         .btn-primary { background-color: #10b981; color: #0f172a; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
@@ -374,7 +374,7 @@
         </div>
 
         <div id="scannerTab" class="tab-content">
-            <div style="padding: 2px 2px 8px 2px; font-size: 11px; color:#64748b; display: flex; justify-content: space-between;">
+            <div style="padding: 2px 2px 8px 2px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between;">
                 <span>Derivatives Execution Blueprint Integration</span>
                 <span id="scanTimestamp" style="color: #10b981; font-weight: 700;">Live Engine Active</span>
             </div>
@@ -386,7 +386,7 @@
     <div id="settingsModalOverlay" class="modal-overlay">
         <div class="settings-modal">
             <h3 style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;">Engine Configuration</h3>
-            <p style="font-size: 11px; color:#64748b; line-height: 1.4; margin-bottom: 12px;">Enter your free Finnhub.io API key below. The token is securely isolated inside your personal browser storage layer.</p>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 12px;">Enter your free Finnhub.io API key below. The token is securely isolated inside your personal browser storage layer.</p>
             
             <label class="input-label" style="font-size: 9px;">Finnhub API Token</label>
             <input type="password" id="apiKeyInput" placeholder="e.g. c1234567890abcdefg" class="settings-input">
@@ -596,8 +596,8 @@
             var htmlBlock = '';
             htmlBlock += '<div class="card-summary">';
             htmlBlock += '  <div class="summary-grid">';
-            htmlBlock += '    <div><div class="flex-between"><span style="color:#64748b;">1. Iron Condor (70%)</span><span style="font-weight:700;" class="color-ic">' + fmtCompact(icPrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-ic" style="width: 70%"></div></div></div>';
-            htmlBlock += '    <div><div class="flex-between"><span style="color:#64748b;">2. Straddle (30%)</span><span style="font-weight:700;" class="color-straddle">' + fmtCompact(straddlePrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-straddle" style="width: 30%"></div></div></div>';
+            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">1. Iron Condor (70%)</span><span style="font-weight:700;" class="color-ic">' + fmtCompact(icPrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-ic" style="width: 70%"></div></div></div>';
+            htmlBlock += '    <div><div class="flex-between"><span style="color: #94a3b8;">2. Straddle (30%)</span><span style="font-weight:700;" class="color-straddle">' + fmtCompact(straddlePrincipal) + '</span></div><div class="progress-container"><div class="progress-bar bg-straddle" style="width: 30%"></div></div></div>';
             htmlBlock += '  </div>';
             htmlBlock += '</div>';
 
@@ -607,23 +607,23 @@
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
             htmlBlock += '      <span class="tactic-title color-ic">🛡️ Iron Condor Setup <span class="live-ticker-price">' + symbol + ': $' + currentAssetPrice.toFixed(2) + '</span></span>';
-            htmlBlock += '      <div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#09101f;">' + fmtCompact(icPrincipal) + '</span></div>';
+            htmlBlock += '      <div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#f1f5f9;">' + fmtCompact(icPrincipal) + '</span></div>';
             htmlBlock += '    </div>';
             htmlBlock += '    <p class="tactic-body" style="margin-bottom: 6px;"><b>Horizon:</b> ' + icDTE + '<br><b>Algorithmic Recommended Strikes:</b><br>';
             htmlBlock += '    <span style="color: #34d399; font-family: monospace;">Put Wing: $' + calculationMatrix.ic.longPut + ' / $' + calculationMatrix.ic.shortPut + ' Spread</span><br>';
             htmlBlock += '    <span style="color: #ef4444; font-family: monospace;">Call Wing: $' + calculationMatrix.ic.shortCall + ' / $' + calculationMatrix.ic.longCall + ' Spread</span></p>';
-            htmlBlock += '    <p class="tactic-body" style="font-size: 10px; color:#64748b;"><b>OI Context:</b> ' + calculationMatrix.oiInsight + '</p>';
+            htmlBlock += '    <p class="tactic-body" style="font-size: 10px; color: #94a3b8;"><b>OI Context:</b> ' + calculationMatrix.oiInsight + '</p>';
             htmlBlock += '  </div>';
             
             // Straddle Outputs
             htmlBlock += '  <div class="tactic-card">';
             htmlBlock += '    <div class="tactic-header">';
             htmlBlock += '      <span class="tactic-title color-straddle">⚡ ATM Volatility Straddle</span>';
-            htmlBlock += '      <div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#09101f;">' + fmtCompact(straddlePrincipal) + '</span></div>';
+            htmlBlock += '      <div style="text-align: right;"><span style="font-size:11px; font-weight:700; color:#f1f5f9;">' + fmtCompact(straddlePrincipal) + '</span></div>';
             htmlBlock += '    </div>';
             htmlBlock += '    <p class="tactic-body" style="margin-bottom: 6px;"><b>Horizon:</b> ' + straddleDTE + '<br><b>Recommended ATM Target Strike:</b><br>';
             htmlBlock += '    <span style="color: #c084fc; font-family: monospace; font-weight: bold;">Buy ATM Strike: $' + calculationMatrix.straddle.strike + ' (Call + Put)</span></p>';
-            htmlBlock += '    <p class="tactic-body" style="font-size: 10px; color:#64748b;">Captures rapid price breakouts following major data releases.</p>';
+            htmlBlock += '    <p class="tactic-body" style="font-size: 10px; color: #94a3b8;">Captures rapid price breakouts following major data releases.</p>';
             htmlBlock += '  </div>';
             
             htmlBlock += '</div>';
@@ -646,7 +646,7 @@
             };
 
             var html = "";
-            html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase;">Derivative Allocation Deployment Workspace</span></div>';
+            html += '<div class="flex-between" style="margin: 4px 0 10px 0;"><span style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Derivative Allocation Deployment Workspace</span></div>';
             
             // Iron Condor Blueprint Output Node
             html += '<div class="scanner-card" style="border-left-color: #34d399; padding: 14px; margin-bottom: 12px;">';
