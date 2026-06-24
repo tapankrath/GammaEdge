@@ -1269,8 +1269,8 @@ function callClaude(apiKey,prompt){
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-direct-browser-access':'true'
       },
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2400,
-        tools:[{type:'web_search_20250305',name:'web_search',max_uses:6}],
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
         messages:messages})
     }).then(function(res){
       return res.json().then(function(data){
@@ -1281,13 +1281,12 @@ function callClaude(apiKey,prompt){
           if(res.status===529)msg='Anthropic overloaded — retry in a few seconds';
           throw new Error(msg);
         }
+        if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
         var blocks=data.content||[];
-        // Long research turn paused — send assistant content back and continue
-        if(data.stop_reason==='pause_turn'){
+        if(data.stop_reason==='pause_turn'||data.stop_reason==='tool_use'){
           messages.push({role:'assistant',content:blocks});
           return doTurn(turnsLeft-1);
         }
-        // Extract text from content blocks (may include tool_use/tool_result blocks)
         var text='';
         for(var i=0;i<blocks.length;i++){if(blocks[i].type==='text')text+=blocks[i].text;}
         if(text) return text;
@@ -1422,10 +1421,9 @@ function buildPrompt(ticker,hLabel,hz,livePrice,optionsData,flowData){
 
 // PARSE
 function parseJSON(raw){
-  var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-  var s=clean.indexOf('{'),e=clean.lastIndexOf('}');
-  if(s>-1&&e>-1)clean=clean.slice(s,e+1);
-  var parsed=JSON.parse(clean); // throws on bad JSON — caller must catch and show real error
+  var s=raw.indexOf('{'), e=raw.lastIndexOf('}');
+  if(s===-1||e===-1||e<=s) throw new Error('No JSON found — try again');
+  var parsed=JSON.parse(raw.slice(s,e+1));
   return parsed;
 }
 
