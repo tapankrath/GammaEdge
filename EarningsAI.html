@@ -629,13 +629,59 @@ function runAnalysis(){
     });
 }
 
-// ── CLAUDE (Tavily context + web_search safety net) ──
-function callClaude(key,prompt){
-  var messages=[{role:'user',content:prompt}];
-  var MAX_TURNS=6;
+// ── CLAUDE TWO-STEP: search then format ──
+function callClaude(key, prompt){
+  var today=new Date().toISOString().slice(0,10);
 
-  function doTurn(n){
-    if(n<=0) return Promise.reject(new Error('Took too long — try again'));
+  // Step A: search with web_search tool, free-form response ok
+  var searchPrompt='Search for the earnings calendar for the week ending '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'. '
+    +'List every company reporting earnings that week with their exact date (YYYY-MM-DD) and time (AMC or BMO). '
+    +'Today is '+today+'. Include companies reporting today AMC if not yet reported. '
+    +'For the top picks also note: options IV level, bullish or bearish analyst sentiment, and why it moves.';
+
+  return fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:2000,
+      tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
+      messages:[{role:'user',content:searchPrompt}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.content) throw new Error('Search failed');
+    // collect all text from search response
+    var searchText='';
+    (data.content||[]).forEach(function(b){if(b.type==='text')searchText+=b.text;});
+
+    // Step B: format to JSON — NO tools, pure formatting call
+    var formatPrompt='Convert the following earnings research into a JSON object.\n\n'
+      +'RESEARCH:\n'+searchText+'\n\n'
+      +'OUTPUT RULES:\n'
+      +'- Respond with ONLY a raw JSON object. Nothing else. No prose.\n'
+      +'- Start with { and end with }\n'
+      +'- Pick the top 5 plays for section1, top 5 sympathy movers for section2\n'
+      +'- All dte values must be integers (days from '+today+' to nearest Friday expiry)\n\n'
+      +'{"week":"'+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'",'
+      +'"macroSnapshot":"brief regime in 15 words",'
+      +'"section1":{"label":"Top 5 Earnings Plays — HIGH Quality","plays":['
+      +'{"rank":1,"ticker":"MU","company":"Micron Technology","reportDate":"2026-06-24","reportTime":"AMC","verifySource":"stockanalysis.com","verifyQuote":"MU reports Q3 2026 after close June 24","quality":"High","signal":"CALL","confidence":"HIGH","why":"AI memory demand surging beats estimates","earningsNote":"EPS est $1.48 strong data center demand","iv":"65%","ivRank":"IV Rank 80","execPriority":1,"straddleNote":"High IV crush risk prefer directional call","scenarios":['
+      +'{"name":"Bull","move":"+10%","strategy":"ATM Call","delta":"Δ0.50","dte":1,"exitAt":"+90%","maxLoss":"-100%","prob":"55%"},'
+      +'{"name":"Base","move":"+5%","strategy":"ATM Bull Call Spread","delta":"Δ0.45","dte":1,"exitAt":"+50%","maxLoss":"-100%","prob":"62%"},'
+      +'{"name":"Bear","move":"-8%","strategy":"ATM Put","delta":"Δ-0.50","dte":1,"exitAt":"+80%","maxLoss":"-100%","prob":"30%"}'
+      +']}]},'
+      +'"section2":{"label":"Top 5 Related Stocks — Sympathy Movers","plays":['
+      +'{"rank":1,"ticker":"LRCX","company":"Lam Research","relatedTo":"MU","relationship":"Semiconductor equipment supplier moves on MU results","signal":"CALL","confidence":"HIGH","why":"Memory capex spend lifts equipment names","catalystTiming":"post-earnings read-across within 24h","iv":"45%","ivRank":"IV Rank 60","execPriority":1,"scenarios":['
+      +'{"name":"Base","move":"+5%","strategy":"ATM Call","delta":"Δ0.50","dte":1,"exitAt":"+60%","maxLoss":"-100%","prob":"58%"}'
+      +']}]}}';
+
     return fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
@@ -646,40 +692,24 @@ function callClaude(key,prompt){
       },
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
-        max_tokens:4000,
-        system:'You are a JSON API. You must ALWAYS respond with a single raw JSON object only. Never write prose, explanations, or reasoning. Never say "I will search" or "I found". Just output the JSON object starting with { and ending with }. If you need to search, do it silently then output only the JSON.',
-        tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
-        messages:messages
+        max_tokens:3000,
+        system:'You are a JSON formatter. Output only raw JSON. No prose. No markdown. No explanations. Start with { end with }.',
+        messages:[{role:'user',content:formatPrompt}]
       })
-    }).then(function(res){
-      return res.json().then(function(data){
-        if(!res.ok){
-          var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
-          if(res.status===401)m='Invalid API key — tap ⚙️ to update';
-          if(res.status===429)m='Rate limit — wait a moment and retry';
-          if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
-          throw new Error(m);
-        }
-        if(data.stop_reason==='max_tokens'){console.error('max_tokens hit');throw new Error('Response cut off — try again');}
-        var blocks=data.content||[];
-        console.log('stop_reason:',data.stop_reason,'blocks:',blocks.length);
-        // If still searching, append assistant turn and continue
-        if(data.stop_reason==='tool_use'||data.stop_reason==='pause_turn'){
-          messages.push({role:'assistant',content:blocks});
-          return doTurn(n-1);
-        }
-        // Done — collect all text blocks
-        var text='';
-        blocks.forEach(function(b){if(b.type==='text')text+=b.text;});
-        if(text) return text;
-        throw new Error('Empty response — try again');
-      });
-    }).catch(function(e){
-      if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
-      throw e;
     });
-  }
-  return doTurn(MAX_TURNS);
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.content) throw new Error('Format failed');
+    var text='';
+    (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    if(!text) throw new Error('Empty response — try again');
+    return text;
+  })
+  .catch(function(e){
+    if(e.message&&e.message.indexOf('Failed to fetch')>-1) throw new Error('Network error — check connection');
+    throw e;
+  });
 }
 
 // ── PROMPT ──
