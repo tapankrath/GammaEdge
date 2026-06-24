@@ -629,7 +629,7 @@ function tavilySearch(query,maxResults){
       out+='['+(i+1)+'] '+r.title+' ('+r.url+')\n'+r.content.slice(0,300)+'\n';
     });
     return out;
-  }).catch(function(){return 'SEARCH: '+query+'\n[search unavailable]\n';});
+  }).catch(function(){return 'SEARCH: '+query+'\n[Search unavailable — use training knowledge as fallback]\n';});
 }
 
 // ── MAIN ──
@@ -658,7 +658,7 @@ function runAnalysis(){
         tavilySearch('top earnings reports week of '+targetFri+' options implied volatility',5),
         tavilySearch('stock market macro outlook fed rates VIX sector rotation '+todayISO,3)
       ])
-    : Promise.resolve(['[No Tavily key — use best available knowledge for earnings dates. Be explicit that dates are estimates.]']);
+    : Promise.resolve(['No live search available. Use your training knowledge to identify real earnings reporters for the week of '+targetFri+'. Flag all dates with verifySource:"training-knowledge".']);
 
   searches.then(function(searchResults){
     st.textContent='AI building plays…';
@@ -680,40 +680,55 @@ function runAnalysis(){
   });
 }
 
-// ── CLAUDE (analysis only — no web_search tool needed) ──
+// ── CLAUDE (Tavily context + web_search safety net) ──
 function callClaude(key,prompt){
-  return fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':key,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:6000,
-      messages:[{role:'user',content:prompt}]
-    })
-  }).then(function(res){
-    return res.json().then(function(data){
-      if(!res.ok){
-        var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
-        if(res.status===401)m='Invalid API key — tap ⚙️ to update';
-        if(res.status===429)m='Rate limit — wait a moment and retry';
-        if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
-        throw new Error(m);
-      }
-      if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
-      var text='';
-      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-      if(text) return text;
-      throw new Error('Empty response — try again');
+  var messages=[{role:'user',content:prompt}];
+  var MAX_TURNS=6;
+
+  function doTurn(n){
+    if(n<=0) return Promise.reject(new Error('Took too long — try again'));
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:6000,
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:5}],
+        messages:messages
+      })
+    }).then(function(res){
+      return res.json().then(function(data){
+        if(!res.ok){
+          var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+          if(res.status===401)m='Invalid API key — tap ⚙️ to update';
+          if(res.status===429)m='Rate limit — wait a moment and retry';
+          if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
+          throw new Error(m);
+        }
+        if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
+        var blocks=data.content||[];
+        // If still searching, append assistant turn and continue
+        if(data.stop_reason==='tool_use'||data.stop_reason==='pause_turn'){
+          messages.push({role:'assistant',content:blocks});
+          return doTurn(n-1);
+        }
+        // Done — collect all text blocks
+        var text='';
+        blocks.forEach(function(b){if(b.type==='text')text+=b.text;});
+        if(text) return text;
+        throw new Error('Empty response — try again');
+      });
+    }).catch(function(e){
+      if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
+      throw e;
     });
-  }).catch(function(e){
-    if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
-    throw e;
-  });
+  }
+  return doTurn(MAX_TURNS);
 }
 
 // ── PROMPT (data pre-fetched by Tavily, Claude does pure analysis) ──
@@ -730,7 +745,8 @@ function buildPrompt(searchContext){
     +searchContext+'\n'
     +'══ END SEARCH DATA ══\n\n'
 
-    +'Using ONLY the search data above (do not use training-data earnings dates), build the following:\n\n'
+    +'Use the search data above to ground your earnings dates. If the search data is missing or incomplete, '
+    +'use your own training knowledge to identify likely earnings reporters for this week — but flag those with verifySource:"training-knowledge".\n\n'
 
     +'SECTION 1 — Top 5 HIGH-Quality Earnings Plays for the week ending '+targetFri+':\n'
     +'• Pick stocks whose report date falls STRICTLY after '+todayISO+' within the target week.\n'
