@@ -549,14 +549,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   </div>
 
   <!-- Tools grid — centered -->
-  <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px;justify-content:center;">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 8px;">
     <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
     <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
     <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
     <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
     <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
     <a href="BigChances.html"    target="_blank" rel="noopener" class="ge-tool-link">BigChances</a>
-    <a href="volsignal.html"     target="_blank" rel="noopener" class="ge-tool-link">VolSignal</a>
   </div>
 
   <!-- Tab bar — all 5 visible, equal width -->
@@ -778,17 +777,234 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   </div><!-- end nd-sticky -->
 
-  <!-- Vol Signal (scrolls with page) -->
-  <div class="nd-vol-card">
+  <!-- VolSignal — full IV vs RV signal, merged from volsignal.html -->
+  <div class="nd-vol-card" id="vs-card">
+    <!-- Header row -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ Volatility Signal</div>
-      <div style="display:flex;gap:6px;">
-        <button id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
-        <button id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
+      <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ VolSignal · IV vs RV</div>
+      <div style="display:flex;gap:5px;align-items:center;">
+        <!-- Quick preset pills -->
+        <button id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
+        <button id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
+        <!-- Custom ticker search -->
+        <form id="vs-search-form" onsubmit="vsRunSearch(event)" style="display:flex;">
+          <input id="vs-search-inp" placeholder="TICKER" maxlength="6" autocomplete="off"
+            style="width:68px;background:#0f172a;border:1px solid #475569;border-right:none;border-radius:6px 0 0 6px;padding:5px 8px;color:#f8fafc;font-size:11px;font-weight:800;font-family:inherit;outline:none;text-transform:uppercase;">
+          <button type="submit" style="background:#34d399;border:none;border-radius:0 6px 6px 0;padding:5px 8px;font-size:11px;font-weight:900;color:#0f172a;cursor:pointer;">Go</button>
+        </form>
       </div>
     </div>
-    <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> to run the volatility signal</div>
+    <!-- Body: signal output -->
+    <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">
+      Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> or search any ticker
+    </div>
+    <!-- IV/RV stats row (hidden until loaded) -->
+    <div id="vs-stats-row" style="display:none;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;"></div>
+    <!-- Mini chart canvas (hidden until loaded) -->
+    <canvas id="vs-chart" style="display:none;width:100%;height:80px;margin-top:10px;" height="80"></canvas>
+    <!-- AI analysis (hidden until run) -->
+    <div id="vs-ai-wrap" style="display:none;margin-top:10px;">
+      <button id="vs-ai-btn" onclick="vsRunAI()"
+        style="width:100%;background:#1e3a5f;border:1px solid #38bdf8;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#38bdf8;cursor:pointer;letter-spacing:.04em;">
+        ✦ AI Vol Analysis
+      </button>
+      <div id="vs-ai-result" style="display:none;margin-top:8px;background:#0f172a;border-radius:7px;padding:9px 11px;font-size:11px;color:#cbd5e1;line-height:1.65;font-weight:500;"></div>
+    </div>
   </div>
+
+  <script>
+  // ── VOLSIGNAL MERGED ──────────────────────────────────────────────────────
+  var vsCurrentTicker='', vsCurrentIV=0, vsCurrentRV=0, vsCurrentSignal=null, vsIVSource='';
+
+  document.getElementById('vs-search-inp').addEventListener('input',function(e){e.target.value=e.target.value.toUpperCase();});
+
+  function vsRunSearch(e){
+    e.preventDefault();
+    var v=document.getElementById('vs-search-inp').value.trim().toUpperCase();
+    if(v) vsRun(v);
+  }
+
+  // Wire the SPY/QQQ buttons (replaces old ndRunVolSignal delegation)
+  document.getElementById('nd-vs-spy').addEventListener('click',function(){ vsRun('SPY'); });
+  document.getElementById('nd-vs-qqq').addEventListener('click',function(){ vsRun('QQQ'); });
+
+  async function vsRun(sym){
+    vsCurrentTicker=sym;
+    var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+    var tk=(localStorage.getItem('ge_td_key')||localStorage.getItem('ge_twelvedata_key')||'').trim();
+    var body=document.getElementById('nd-vol-body');
+    var statsRow=document.getElementById('vs-stats-row');
+    var chartEl=document.getElementById('vs-chart');
+    var aiWrap=document.getElementById('vs-ai-wrap');
+    var aiResult=document.getElementById('vs-ai-result');
+
+    // Reset
+    statsRow.style.display='none';
+    chartEl.style.display='none';
+    aiWrap.style.display='none';
+    aiResult.style.display='none';
+
+    // Highlight active preset
+    ['nd-vs-spy','nd-vs-qqq'].forEach(function(id){
+      var b=document.getElementById(id);
+      b.style.background='#0f172a';b.style.color='#94a3b8';b.style.borderColor='#334155';
+    });
+    if(sym==='SPY'||sym==='QQQ'){
+      var ab=document.getElementById(sym==='SPY'?'nd-vs-spy':'nd-vs-qqq');
+      ab.style.background='#10b981';ab.style.color='#0f172a';ab.style.borderColor='#10b981';
+    }
+
+    if(!fk){body.innerHTML='<span style="color:#f59e0b;">⚠️ Add Finnhub key via ⚙️ Keys</span>';return;}
+
+    body.innerHTML='<span style="color:#64748b;">⏳ Fetching IV & RV for '+sym+'…</span>';
+
+    try{
+      // Fetch quote + VIX proxy for IV
+      var[qR,vR]=await Promise.all([
+        fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
+        fetch('https://finnhub.io/api/v1/quote?symbol='+(sym==='QQQ'?'VXN':'VIX')+'&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
+      ]);
+
+      var iv=vR&&vR.c?vR.c:0;
+      vsIVSource=sym==='QQQ'?'VXN':'VIX';
+      vsCurrentIV=iv;
+
+      // Fetch 30-day historical closes for RV calculation
+      var rvPrices=[];
+      if(tk){
+        try{
+          var hR=await fetch('https://api.twelvedata.com/time_series?symbol='+sym+'&interval=1day&outputsize=32&apikey='+tk).then(function(r){return r.json();});
+          if(hR.values&&hR.values.length>=2){
+            var closes=hR.values.slice(0,31).map(function(v){return parseFloat(v.close);}).reverse();
+            var returns=[];
+            for(var i=1;i<closes.length;i++) returns.push(Math.log(closes[i]/closes[i-1]));
+            if(returns.length>=2){
+              var mean=returns.reduce(function(a,b){return a+b;},0)/returns.length;
+              var variance=returns.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(returns.length-1);
+              rvPrices=closes;
+              vsCurrentRV=+(Math.sqrt(variance*252)*100).toFixed(1);
+            }
+          }
+        }catch(ex){}
+      }
+
+      // Fallback RV from daily move if no TwelveData
+      if(!vsCurrentRV&&qR.dp){
+        vsCurrentRV=+(Math.abs(qR.dp)*Math.sqrt(252)).toFixed(1);
+      }
+
+      // Compute signal
+      var spread=+(iv-vsCurrentRV).toFixed(1);
+      var spreadPct=vsCurrentRV>0?+(spread/vsCurrentRV*100).toFixed(0):0;
+      var signal,confidence,color,bg,action;
+      if(spread>=5){signal='SELL VOL';confidence=Math.min(95,60+spreadPct);color='#f43f5e';bg='rgba(244,63,94,.08)';action='IV is <strong>rich vs RV</strong> — premium selling favored. Consider Iron Condor or short Strangle.';}
+      else if(spread<=-3){signal='BUY VOL';confidence=Math.min(95,60+Math.abs(spreadPct));color='#34d399';bg='rgba(52,211,153,.08)';action='IV is <strong>cheap vs RV</strong> — long vol favored. Consider Straddle or Strangle.';}
+      else{signal='NEUTRAL';confidence=30;color='#64748b';bg='rgba(100,116,139,.08)';action='IV and RV <strong>near parity</strong> — no strong vol edge.';}
+
+      vsCurrentSignal={signal:signal,confidence:+confidence.toFixed(0),spread:spread,spreadPct:spreadPct,color:color,bg:bg,action:action};
+
+      // Render signal banner
+      body.innerHTML='<div style="background:'+bg+';border-radius:8px;padding:9px 11px;text-align:center;">'
+        +'<div style="font-size:14px;font-weight:900;color:'+color+';margin-bottom:3px;">'+signal+' <span style="font-size:11px;color:#64748b;font-weight:700;">('+confidence+'% conf)</span></div>'
+        +'<div style="font-size:11px;color:#cbd5e1;line-height:1.5;">'+action+'</div>'
+        +'<div style="font-size:9px;color:#475569;margin-top:5px;">IV ('+vsIVSource+'): <strong style="color:#f8fafc;">'+iv.toFixed(1)+'%</strong> · 30d RV: <strong style="color:#f8fafc;">'+vsCurrentRV.toFixed(1)+'%</strong> · Spread: <strong style="color:'+color+';">'+(spread>0?'+':'')+spread+'%</strong></div>'
+        +'</div>';
+
+      // Stats row
+      statsRow.innerHTML=''
+        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #334155;">'
+          +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">IV ('+vsIVSource+')</div>'
+          +'<div style="font-size:18px;font-weight:900;color:#f8fafc;">'+iv.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
+        +'</div>'
+        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #334155;">'
+          +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">30d RV</div>'
+          +'<div style="font-size:18px;font-weight:900;color:#f8fafc;">'+vsCurrentRV.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
+        +'</div>'
+        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid '+(Math.abs(spread)>3?color:'#334155')+';">'
+          +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Spread</div>'
+          +'<div style="font-size:18px;font-weight:900;color:'+color+';">'+(spread>0?'+':'')+spread+'<span style="font-size:10px;">%</span></div>'
+        +'</div>';
+      statsRow.style.display='grid';
+
+      // Mini chart
+      if(rvPrices.length>=2){
+        vsDrawChart(iv, vsCurrentRV, rvPrices, color);
+      }
+
+      // Show AI button
+      document.getElementById('vs-ai-btn').textContent='✦ AI Vol Analysis — '+sym;
+      aiWrap.style.display='block';
+
+    }catch(err){
+      body.innerHTML='<span style="color:#f43f5e;">Error: '+err.message+'</span>';
+    }
+  }
+
+  function vsDrawChart(iv, rv, prices, signalColor){
+    var canvas=document.getElementById('vs-chart');
+    var ctx=canvas.getContext('2d');
+    canvas.style.display='block';
+    var W=canvas.offsetWidth||320, H=80;
+    canvas.width=W; canvas.height=H;
+    ctx.clearRect(0,0,W,H);
+
+    // Draw price sparkline (normalized to canvas)
+    var min=Math.min.apply(null,prices), max=Math.max.apply(null,prices);
+    var range=max-min||1;
+    ctx.beginPath();
+    ctx.strokeStyle='#334155';
+    ctx.lineWidth=1;
+    prices.forEach(function(p,i){
+      var x=(i/(prices.length-1))*(W-4)+2;
+      var y=H-4-((p-min)/range)*(H-12);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // IV line (horizontal)
+    var ivY=H-4-((iv/100-min/max)*(H-12));
+    ivY=Math.max(4,Math.min(H-4,ivY));
+    ctx.beginPath();ctx.strokeStyle=signalColor;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.moveTo(0,H*0.25);ctx.lineTo(W,H*0.25);ctx.stroke();
+
+    // RV line
+    ctx.beginPath();ctx.strokeStyle='#38bdf8';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.moveTo(0,H*0.55);ctx.lineTo(W,H*0.55);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.font='8px Inter,sans-serif';ctx.fillStyle=signalColor;ctx.fillText('IV '+iv.toFixed(1)+'%',4,H*0.25-3);
+    ctx.fillStyle='#38bdf8';ctx.fillText('RV '+rv.toFixed(1)+'%',4,H*0.55-3);
+  }
+
+  async function vsRunAI(){
+    if(!vsCurrentSignal)return;
+    var btn=document.getElementById('vs-ai-btn');
+    var result=document.getElementById('vs-ai-result');
+    var ak=(localStorage.getItem('ge_anthropic_key')||localStorage.getItem('ge_claude_key')||'').trim();
+    if(!ak){result.textContent='⚠️ Add Anthropic key via ⚙️ Keys to use AI analysis.';result.style.display='block';return;}
+    btn.textContent='Analyzing…';btn.disabled=true;
+    result.style.display='none';
+    try{
+      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        messages:[{role:'user',content:'You are a professional options trader and volatility analyst.\n\n'+vsCurrentTicker+' vol setup:\n- IV proxy ('+vsIVSource+'): '+vsCurrentIV.toFixed(1)+'%\n- 30-day Realized Vol: '+vsCurrentRV.toFixed(1)+'%\n- Vol Premium: '+(vsCurrentSignal.spread>0?'+':'')+vsCurrentSignal.spread+'% ('+(vsCurrentSignal.spread>0?'above':'below')+' RV)\n- Signal: '+vsCurrentSignal.signal+'\n\nGive a concise, practical 3–4 sentence trading analysis. Cover: what this IV/RV spread means right now, specific option strategies that make sense (name them), key risk to watch. Be direct. Talk like a vol desk trader. No disclaimers.'}]
+      })});
+      var data=await res.json();
+      result.innerHTML=(data.content?.map(function(b){return b.text||'';}).join('')||'No response.').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      result.style.display='block';
+    }catch(e){result.textContent='Error: '+e.message;result.style.display='block';}
+    btn.textContent='✦ AI Vol Analysis — '+vsCurrentTicker;
+    btn.disabled=false;
+  }
+
+  // Auto-run SPY on load if keys are present
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      if(localStorage.getItem('ge_fh_key')) vsRun('SPY');
+    },1400);
+  });
+  </script>
 
   <div class="nd-loading" id="nd-loading">
     <div class="nd-spinner"></div>
@@ -1230,44 +1446,6 @@ async function ndRunAnalyze(){
 }
 
 // ── VOL SIGNAL ──
-async function ndRunVolSignal(sym){
-  var fk=(localStorage.getItem('ge_fh_key')||'').trim();
-  var body=document.getElementById('nd-vol-body');
-  var sb=document.getElementById('nd-vs-spy'),qb=document.getElementById('nd-vs-qqq');
-  [sb,qb].forEach(function(b){b.style.background='#0f172a';b.style.color='#94a3b8';b.style.borderColor='#334155';});
-  var ab=sym==='SPY'?sb:qb;
-  ab.style.background='#10b981';ab.style.color='#0f172a';ab.style.borderColor='#10b981';
-  body.innerHTML='<span style="color:#64748b;">⏳ Fetching…</span>';
-  if(!fk){body.innerHTML='<span style="color:#f59e0b;">⚠️ No Finnhub key — tap ⚙️ to configure.</span>';return;}
-  try{
-    var[sR,vR]=await Promise.all([
-      fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
-      fetch('https://finnhub.io/api/v1/quote?symbol=VIX&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
-    ]);
-    var pr=sR.c||0,pc=sR.pc||pr,dp=pc>0?Math.abs((pr-pc)/pc*100):0,vix=vR?(vR.c||0):0;
-    var pcR=null;
-    try{var po=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk).then(function(r){return r.json();});
-      if(po&&po.data&&po.data.length){var tv=0,tc2=0;po.data.forEach(function(e){((e.options||{}).CALL||[]).forEach(function(o){tc2+=(o.volume||0);});((e.options||{}).PUT||[]).forEach(function(o){tv+=(o.volume||0);});});if(tc2>0)pcR=tv/tc2;}}catch(e){}
-    var mt=sym==='QQQ'?1.5:2,c1=dp>mt,c2=vix>20,c3=pcR!==null?pcR>1.2:null;
-    var cm=[c1,c2].filter(Boolean).length+(c3===true?1:0);
-    var sig,sc,sb2,rec;
-    if(c1&&c2&&c3===true){sig='🔥 STRONG SIGNAL';sc='#34d399';sb2='rgba(16,185,129,.10)';rec='All conditions met → <strong>Buy a Straddle or Strangle</strong>.';}
-    else if(c1&&c2&&c3===null){sig='⚡ MODERATE SIGNAL';sc='#fbbf24';sb2='rgba(251,191,36,.10)';rec='Move + elevated VIX → <strong>Consider a Strangle</strong>. Size conservatively.';}
-    else if(cm>=2){sig='⚡ MODERATE SIGNAL';sc='#fbbf24';sb2='rgba(251,191,36,.10)';rec='Most conditions met → <strong>Consider a Strangle</strong> with wider strikes.';}
-    else if(c1||c2){sig='📡 WEAK SIGNAL';sc='#fb923c';sb2='rgba(251,146,60,.08)';rec='Partial conditions → <strong>Wait or reduce size</strong>.';}
-    else{sig='😴 NO SIGNAL';sc='#94a3b8';sb2='rgba(148,163,184,.08)';rec='Market calm → <strong>Sell premium</strong>. Iron Condor favored.';}
-    var md=pr>=pc?'▲':'▼',mc=pr>=pc?'#34d399':'#f43f5e';
-    body.innerHTML='<div style="background:'+sb2+';border-radius:8px;padding:9px 11px;margin-bottom:9px;text-align:center;">'
-      +'<div style="font-size:14px;font-weight:900;color:'+sc+';margin-bottom:4px;">'+sig+'</div>'
-      +'<div style="font-size:10px;color:#cbd5e1;font-weight:600;line-height:1.5;">'+rec+'</div></div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
-      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c1?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Daily Move</div><div style="font-size:15px;font-weight:900;color:'+mc+';">'+md+dp.toFixed(1)+'%</div><div style="font-size:8px;font-weight:700;color:'+(c1?'#34d399':'#f43f5e')+'">'+(c1?'✓ >'+mt+'%':'✗ <'+mt+'%')+'</div></div>'
-      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c2?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">VIX Level</div><div style="font-size:15px;font-weight:900;color:#e2e8f0;">'+(vix>0?vix.toFixed(1):'N/A')+'</div><div style="font-size:8px;font-weight:700;color:'+(c2?'#34d399':'#f43f5e')+'">'+(c2?'✓ >20':'✗ <20')+'</div></div>'
-      +'<div style="background:#0f172a;border-radius:7px;padding:7px 5px;text-align:center;border:1px solid '+(c3===true?'#10b981':'#334155')+'"><div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">P/C Ratio</div><div style="font-size:15px;font-weight:900;color:#e2e8f0;">'+(pcR!==null?pcR.toFixed(2):'—')+'</div><div style="font-size:8px;font-weight:700;color:'+(c3===true?'#34d399':c3===false?'#f43f5e':'#64748b')+'">'+(c3===true?'✓ >1.2':c3===false?'✗ <1.2':'No data')+'</div></div>'
-      +'</div><div style="margin-top:7px;text-align:right;"><span style="font-size:8px;color:#475569;font-weight:600;">'+sym+' $'+pr.toFixed(2)+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span></div>';
-  }catch(e){body.innerHTML='<span style="color:#f43f5e;">Error: '+e.message+'</span>';}
-}
-
 // ndSwitchTab still needs to be global — called from dynamically rendered innerHTML
 window.ndSwitchTab = ndSwitchTab;
 
@@ -1283,8 +1461,6 @@ function ndInit(){
 
   wrap.addEventListener('click', function(e){
     // Vol signal buttons
-    if(e.target.id==='nd-vs-spy'||e.target.closest('#nd-vs-spy')) { ndRunVolSignal('SPY'); return; }
-    if(e.target.id==='nd-vs-qqq'||e.target.closest('#nd-vs-qqq')) { ndRunVolSignal('QQQ'); return; }
     // Analyze button
     if(e.target.id==='nd-analyze-btn'||e.target.closest('#nd-analyze-btn')) { ndRunAnalyze(); return; }
     // DTE buttons
@@ -1340,7 +1516,6 @@ function ndInit(){
   var mo = document.getElementById('nd-modal-overlay');
   if(mo) mo.addEventListener('click', function(e){ if(e.target === mo) ndToggleModal(false); });
 
-  setTimeout(function(){ if(localStorage.getItem('ge_fh_key')) ndRunVolSignal('SPY'); }, 1200);
 }
 // Run after full page load so showTab and all other scripts are ready
 window.addEventListener('load', function(){
@@ -7105,7 +7280,7 @@ function startStripe(){
 })();
 
 
-// Vol signal handled by pane0 ndRunVolSignal
+// Vol signal handled by vsRun() in pane0
 
 
 /* ══════════════════════════════════════════════════════
