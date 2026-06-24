@@ -698,7 +698,7 @@ function callClaude(key, prompt){
       },
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
-        max_tokens:3000,
+        max_tokens:5000,
         system:'You are a JSON formatter. Output only raw JSON. No prose. No markdown. No explanations. Start with { end with }.',
         messages:[{role:'user',content:formatPrompt}]
       })
