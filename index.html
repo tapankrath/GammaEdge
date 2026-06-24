@@ -987,18 +987,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     if(!vsCurrentSignal)return;
     var btn=document.getElementById('vs-ai-btn');
     var result=document.getElementById('vs-ai-result');
-    var ak=(localStorage.getItem('ge_key')||'').trim();
     // Clear any previous message first
     result.style.display='none';
     result.textContent='';
-    if(!ak){
-      result.textContent='⚠️ Add Anthropic key via ⚙️ Keys to use AI analysis.';
-      result.style.display='block';
-      return;
-    }
+    var ak=(localStorage.getItem('ge_key')||'').trim();
+    if(!ak){result.textContent='⚠️ Add Anthropic key via ⚙️ Keys.';result.style.display='block';return;}
     btn.textContent='Analyzing…';btn.disabled=true;
     try{
-      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01'},body:JSON.stringify({
+      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:1000,
         messages:[{role:'user',content:'You are a professional options trader and volatility analyst.\n\n'+vsCurrentTicker+' vol setup:\n- IV proxy ('+vsIVSource+'): '+vsCurrentIV.toFixed(1)+'%\n- 30-day Realized Vol: '+vsCurrentRV.toFixed(1)+'%\n- Vol Premium: '+(vsCurrentSignal.spread>0?'+':'')+vsCurrentSignal.spread+'% ('+(vsCurrentSignal.spread>0?'above':'below')+' RV)\n- Signal: '+vsCurrentSignal.signal+'\n\nGive a concise, practical 3–4 sentence trading analysis. Cover: what this IV/RV spread means right now, specific option strategies that make sense (name them), key risk to watch. Be direct. Talk like a vol desk trader. No disclaimers.'}]
       })});
