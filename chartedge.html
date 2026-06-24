@@ -295,7 +295,7 @@ function updateApiStatus(){var d=gid('gearDot');if(!d)return;var h=getApiKey().l
 
 // IMAGE
 function onDrag(e,over){e.preventDefault();gid('dropZone').classList.toggle('drag',over);}
-function onDrop(e){e.preventDefault();gid('dropZone').classList.remove('drag');var f=e.dataTransfer.files[0];if(f)loadFile(f);}
+function onDrop(e){e.preventDefault();gid('dropZone').classList.remove('drag');var files=Array.from(e.dataTransfer.files||[]);if(files.length)loadFiles(files);}
 function onFile(e){var files=Array.from(e.target.files||[]);if(files.length)loadFiles(files);}
 function loadFiles(files){
   files=files.slice(0,3);
