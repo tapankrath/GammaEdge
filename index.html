@@ -1018,6 +1018,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     btn.disabled=false;
   }
 
+  // Expose to global scope for onclick handlers
+  window.vsRunAI = vsRunAI;
+  window.vsRun = vsRun;
+  window.vsRunSearch = vsRunSearch;
+
   // Auto-run SPY on load if keys are present
   window.addEventListener('load',function(){
     setTimeout(function(){
