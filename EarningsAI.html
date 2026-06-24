@@ -693,11 +693,9 @@ function buildPrompt(){
 
   return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+'). Target week ends '+targetFri+'.\n\n'
 
-    +'STEP 1 — SEARCH NOW. Run a web search for: "earnings calendar week of '+targetFri+' 2026"\n'
-    +'Use results from stockanalysis.com, earningswhispers.com, or nasdaq.com.\n'
-    +'Extract every company confirmed to report during the week ending '+targetFri+'.\n'
-    +'Only include companies whose report date is AFTER '+todayISO+' and within that week.\n'
-    +'REJECT any company that already reported this quarter (search results mentioning "beat estimates", "EPS of $X", or "reported Q" mean it already happened).\n\n'
+    +'STEP 1 — SEARCH NOW for: "earnings calendar week of '+targetFri+' 2026"\n'
+    +'Find companies reporting earnings this week. Include companies reporting TODAY AMC — still tradeable.\n'
+    +'MU (Micron) reports June 24 AMC — include it. Look for others reporting Wed/Thu/Fri this week too.\n\n'
 
     +'STEP 2 — Pick Top 5 from verified results for Section 1:\n'
     +'Best = large-cap, high options volume, clear analyst consensus, macro-aligned.\n'
@@ -734,7 +732,8 @@ function buildPrompt(){
     +'    ]\n'
     +'  }\n'
     +'}\n\n'
-    +'Replace the example above with REAL data from your web search. Fill every field. dte must be a number not a string.';
+    +'Replace the example above with REAL data from your web search. Fill every field. dte must be a number not a string.\n\n'
+    +'IMPORTANT: Your ENTIRE response must be only the JSON object above. Start your response with { and end with }. Do not write any other text before or after the JSON. No explanations. No "I searched". No markdown. Just the raw JSON.';
 }
 
 
