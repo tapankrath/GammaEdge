@@ -417,13 +417,8 @@ html,body{scroll-padding-top:190px;}
           <button class="sh-eye" id="eyeBtn" onclick="toggleEye()">👁</button>
         </div>
         <div class="sh-note">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
-        <div style="margin-top:13px;">
-          <div class="sh-lbl">Tavily Search Key <span style="font-weight:500;text-transform:none;letter-spacing:0;color:#16a34a">— free tier</span></div>
-          <input class="sh-inp" id="modalTavily" type="password" placeholder="tvly-…" autocomplete="off" style="width:100%"/>
-          <div class="sh-note">1,000 free searches/month. <a href="https://app.tavily.com" target="_blank">Get free key →</a></div>
-        </div>
         <div class="sh-status" id="shStatus"></div>
-        <button class="btn-save" onclick="saveKey()">Save Keys</button>
+        <button class="btn-save" onclick="saveKey()">Save Key</button>
         <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
       </div>
     </div>
@@ -542,8 +537,6 @@ document.addEventListener('DOMContentLoaded',function(){
 function openSettings(){
   var inp=document.getElementById('modalKey');
   inp.value=localStorage.getItem('ge_key')||'';
-  var tinp=document.getElementById('modalTavily');
-  tinp.value=localStorage.getItem('ge_tvly_key')||'';
   updShStatus(inp.value);
   document.getElementById('settingsModal').classList.add('open');
   setTimeout(function(){inp.focus();},280);
@@ -563,12 +556,9 @@ function updShStatus(k){
 }
 function saveKey(){
   var k=document.getElementById('modalKey').value.trim();
-  var tk=document.getElementById('modalTavily').value.trim();
   try{localStorage.setItem('ge_key',k);}catch(e){}
-  try{if(tk)localStorage.setItem('ge_tvly_key',tk);}catch(e){}
-  TVLY_KEY=tk||TVLY_KEY;
   updateGear();updShStatus(k);checkKey();
-  toast('✓ Keys saved');
+  toast('✓ Key saved');
   setTimeout(closeSettings,600);
 }
 function updateGear(){
@@ -604,34 +594,6 @@ function toggleRow(el){
   if(!wasOpen) el.classList.add('open');
 }
 
-// ── TAVILY FREE KEY (loaded from localStorage) ──
-var TVLY_KEY=localStorage.getItem('ge_tvly_key')||'';
-
-// ── TAVILY SEARCH ──
-function tavilySearch(query,maxResults){
-  maxResults=maxResults||5;
-  return fetch('https://api.tavily.com/search',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      api_key:TVLY_KEY,
-      query:query,
-      max_results:maxResults,
-      search_depth:'basic',
-      include_answer:true
-    })
-  }).then(function(r){return r.json();})
-  .then(function(d){
-    // Return a compact text block for Claude to read
-    var out='SEARCH: '+query+'\n';
-    if(d.answer)out+='SUMMARY: '+d.answer+'\n';
-    (d.results||[]).forEach(function(r,i){
-      out+='['+(i+1)+'] '+r.title+' ('+r.url+')\n'+r.content.slice(0,300)+'\n';
-    });
-    return out;
-  }).catch(function(){return 'SEARCH: '+query+'\n[Search unavailable — use training knowledge as fallback]\n';});
-}
-
 // ── MAIN ──
 function runAnalysis(){
   var apiKey=localStorage.getItem('ge_key')||'';
@@ -645,39 +607,26 @@ function runAnalysis(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var today=new Date();
-  var todayISO=today.toISOString().slice(0,10);
-  var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
+  var steps=['Searching live earnings calendar…','Filtering upcoming reports…','Building options plays…','Adding sympathy movers…'];
+  var si=0; st.textContent=steps[0];
+  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},4000);
 
-  st.textContent='Fetching live earnings calendar…';
-
-  // Step 1: Run 3 Tavily searches in parallel — fast, free
-  var searches=TVLY_KEY
-    ? Promise.all([
-        tavilySearch('earnings calendar week of '+targetFri+' site:earningswhispers.com OR site:stockanalysis.com OR site:nasdaq.com',8),
-        tavilySearch('top earnings reports week of '+targetFri+' options implied volatility',5),
-        tavilySearch('stock market macro outlook fed rates VIX sector rotation '+todayISO,3)
-      ])
-    : Promise.resolve(['No live search available. Use your training knowledge to identify real earnings reporters for the week of '+targetFri+'. Flag all dates with verifySource:"training-knowledge".']);
-
-  searches.then(function(searchResults){
-    st.textContent='AI building plays…';
-    var context=searchResults.join('\n---\n');
-    return callClaude(apiKey,buildPrompt(context));
-  })
-  .then(function(raw){
-    sb.classList.remove('on');
-    renderResults(parseResp(raw));
-  })
-  .catch(function(err){
-    sb.classList.remove('on');
-    showErr(err.message||'Failed — check API key in ⚙️');
-    document.getElementById('emptyState').style.display='';
-  })
-  .finally(function(){
-    btn.disabled=false;btn.classList.remove('loading');
-    lbl.textContent='⚡ Get Top 5 + 5 Plays';
-  });
+  callClaude(apiKey, buildPrompt())
+    .then(function(raw){
+      clearInterval(stimer);
+      sb.classList.remove('on');
+      renderResults(parseResp(raw));
+    })
+    .catch(function(err){
+      clearInterval(stimer);
+      sb.classList.remove('on');
+      showErr(err.message||'Failed — check API key in ⚙️');
+      document.getElementById('emptyState').style.display='';
+    })
+    .finally(function(){
+      btn.disabled=false;btn.classList.remove('loading');
+      lbl.textContent='⚡ Get Top 5 + 5 Plays';
+    });
 }
 
 // ── CLAUDE (Tavily context + web_search safety net) ──
@@ -733,98 +682,59 @@ function callClaude(key,prompt){
 }
 
 // ── PROMPT ──
-function buildPrompt(searchContext){
+function buildPrompt(){
   var today=new Date();
   var todayFull=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   var todayISO=today.toISOString().slice(0,10);
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
   var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
-  var targetMon=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2); // same week
 
-  return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+'). The target earnings week ends '+targetFri+'.\n\n'
+  return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+'). Target week ends '+targetFri+'.\n\n'
 
-    +'STEP 1 — YOU MUST WEB SEARCH FIRST. Before doing anything else, search:\n'
-    +'  "earnings calendar '+targetFri+' 2026"\n'
-    +'  Use stockanalysis.com, earningswhispers.com, or nasdaq.com results.\n'
-    +'  Extract every company confirmed to report during the week of '+targetFri+'.\n'
-    +'  A company is ONLY eligible if its report date is AFTER '+todayISO+' and within that week.\n'
-    +'  REJECT any company that already reported — if results mention "beat estimates", "EPS of $X", or "reported Q", it already happened.\n\n'
+    +'STEP 1 — SEARCH NOW. Run a web search for: "earnings calendar week of '+targetFri+' 2026"\n'
+    +'Use results from stockanalysis.com, earningswhispers.com, or nasdaq.com.\n'
+    +'Extract every company confirmed to report during the week ending '+targetFri+'.\n'
+    +'Only include companies whose report date is AFTER '+todayISO+' and within that week.\n'
+    +'REJECT any company that already reported this quarter (search results mentioning "beat estimates", "EPS of $X", or "reported Q" mean it already happened).\n\n'
 
-    +'SUPPLEMENTAL DATA from pre-fetch (may be incomplete — your web search above takes priority):\n'
-    +'══\n'+searchContext+'\n══\n\n'
+    +'STEP 2 — Pick Top 5 from verified results for Section 1:\n'
+    +'Best = large-cap, high options volume, clear analyst consensus, macro-aligned.\n'
+    +'Assign signal: CALL / PUT / STRADDLE based on setup.\n\n'
 
-    +'STEP 2 — Pick Top 5 from your verified search results:\n'
-    +'  Best candidates: large-cap, high options volume, clear analyst consensus, macro-aligned.\n'
-    +'  Signal: CALL / PUT / STRADDLE based on setup.\n\n'
-
-    +'STEP 3 — Pick Top 5 Sympathy Movers:\n'
-    +'  For the top 3 Section 1 picks, find 1-2 same-sector peers NOT reporting that week.\n\n'
+    +'STEP 3 — Pick Top 5 Sympathy Movers for Section 2:\n'
+    +'For the top 3 Section 1 picks, find 1-2 same-sector peers NOT reporting that week.\n\n'
 
     +'RULES:\n'
-    +'• DTE: integer days from '+todayISO+' to the nearest options expiry Friday\n'
-    +'• Strategy: ATM/OTM only — no specific dollar strikes\n'
-    +'• Delta per scenario (e.g. Δ0.50)\n'
+    +'• dte must be an integer (number of days from '+todayISO+' to nearest expiry Friday)\n'
+    +'• Strategy: ATM/OTM descriptions only — no specific dollar strikes\n'
     +'• Exit targets must account for IV crush post-earnings\n\n'
 
-    +'OUTPUT: Single raw JSON object only. No markdown, no explanation. Start with { end with }.\n'
-    +'Use "week" value: "'+wl+'"\n\n'
-    +'Required structure:\n'
+    +'OUTPUT: Single raw JSON object only. No markdown, no explanation. Start with { end with }.\n\n'
     +'{\n'
     +'  "week": "'+wl+'",\n'
-    +'  "macroSnapshot": "18-word current market regime summary",\n'
+    +'  "macroSnapshot": "current market regime in 18 words",\n'
     +'  "section1": {\n'
     +'    "label": "Top 5 Earnings Plays — HIGH Quality",\n'
     +'    "plays": [\n'
-    +'      {\n'
-    +'        "rank": 1,\n'
-    +'        "ticker": "REAL_TICKER",\n'
-    +'        "company": "Full Company Name",\n'
-    +'        "reportDate": "'+todayISO.slice(0,7)+'-DD",\n'
-    +'        "reportTime": "AMC or BMO",\n'
-    +'        "verifySource": "domain.com",\n'
-    +'        "verifyQuote": "short paraphrase from source",\n'
-    +'        "quality": "High",\n'
-    +'        "signal": "CALL or PUT or STRADDLE",\n'
-    +'        "confidence": "HIGH or MED",\n'
-    +'        "why": "reason in 12 words",\n'
-    +'        "earningsNote": "EPS context in 10 words",\n'
-    +'        "iv": "45%",\n'
-    +'        "ivRank": "IV Rank 72",\n'
-    +'        "execPriority": 1,\n'
-    +'        "straddleNote": "note in 12 words",\n'
-    +'        "scenarios": [\n'
-    +'          {"name":"Bull","move":"+8%","strategy":"ATM Call","delta":"Δ0.50","dte":4,"exitAt":"+90%","maxLoss":"-100%","prob":"55%"},\n'
-    +'          {"name":"Base","move":"+4%","strategy":"ATM Bull Call Spread","delta":"Δ0.45","dte":4,"exitAt":"+50%","maxLoss":"-100%","prob":"60%"},\n'
-    +'          {"name":"Bear","move":"-6%","strategy":"ATM Put","delta":"Δ-0.50","dte":4,"exitAt":"+80%","maxLoss":"-100%","prob":"35%"}\n'
-    +'        ]\n'
-    +'      }\n'
+    +'      {"rank":1,"ticker":"NVDA","company":"NVIDIA Corp","reportDate":"2026-06-25","reportTime":"AMC","verifySource":"stockanalysis.com","verifyQuote":"NVDA reports Q1 2026 after market close June 25","quality":"High","signal":"CALL","confidence":"HIGH","why":"AI demand surge beats estimates two quarters running","earningsNote":"EPS est $0.89 vs $0.61 prior year","iv":"68%","ivRank":"IV Rank 82","execPriority":1,"straddleNote":"High IV makes straddle expensive, directional call preferred","scenarios":[\n'
+    +'        {"name":"Bull","move":"+10%","strategy":"ATM Call","delta":"Δ0.50","dte":2,"exitAt":"+90%","maxLoss":"-100%","prob":"58%"},\n'
+    +'        {"name":"Base","move":"+5%","strategy":"ATM Bull Call Spread","delta":"Δ0.45","dte":2,"exitAt":"+50%","maxLoss":"-100%","prob":"65%"},\n'
+    +'        {"name":"Bear","move":"-8%","strategy":"ATM Put","delta":"Δ-0.50","dte":2,"exitAt":"+80%","maxLoss":"-100%","prob":"30%"}\n'
+    +'      ]}\n'
     +'    ]\n'
     +'  },\n'
     +'  "section2": {\n'
     +'    "label": "Top 5 Related Stocks — Sympathy Movers",\n'
     +'    "plays": [\n'
-    +'      {\n'
-    +'        "rank": 1,\n'
-    +'        "ticker": "REAL_TICKER",\n'
-    +'        "company": "Full Company Name",\n'
-    +'        "relatedTo": "SECTION1_TICKER",\n'
-    +'        "relationship": "12-word explanation of sector link",\n'
-    +'        "signal": "CALL or PUT or STRADDLE",\n'
-    +'        "confidence": "HIGH or MED",\n'
-    +'        "why": "12-word catalyst",\n'
-    +'        "catalystTiming": "e.g. post-earnings read-across within 24h",\n'
-    +'        "iv": "38%",\n'
-    +'        "ivRank": "IV Rank 55",\n'
-    +'        "execPriority": 1,\n'
-    +'        "scenarios": [\n'
-    +'          {"name":"Base","move":"+5%","strategy":"ATM Call","delta":"Δ0.50","dte":4,"exitAt":"+60%","maxLoss":"-100%","prob":"58%"}\n'
-    +'        ]\n'
-    +'      }\n'
+    +'      {"rank":1,"ticker":"AMD","company":"Advanced Micro Devices","relatedTo":"NVDA","relationship":"Direct GPU competitor moves on NVDA earnings read-across","signal":"CALL","confidence":"HIGH","why":"AI chip sentiment lifts AMD on NVDA beat","catalystTiming":"post-earnings read-across within 24h","iv":"55%","ivRank":"IV Rank 70","execPriority":1,"scenarios":[\n'
+    +'        {"name":"Base","move":"+6%","strategy":"ATM Call","delta":"Δ0.50","dte":2,"exitAt":"+60%","maxLoss":"-100%","prob":"60%"}\n'
+    +'      ]}\n'
     +'    ]\n'
     +'  }\n'
     +'}\n\n'
-    +'Fill in ALL fields with real data from your web search. dte must be a number. Never use placeholder text.';}
+    +'Replace the example above with REAL data from your web search. Fill every field. dte must be a number not a string.';
+}
 
 
 function wkEnd(n){
