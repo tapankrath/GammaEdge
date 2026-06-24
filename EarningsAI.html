@@ -418,8 +418,13 @@ html,body{scroll-padding-top:190px;}
           <button class="sh-eye" id="eyeBtn" onclick="toggleEye()">👁</button>
         </div>
         <div class="sh-note">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+        <div style="margin-top:13px;">
+          <div class="sh-lbl">Tavily Search Key <span style="font-weight:500;text-transform:none;letter-spacing:0;color:#16a34a">— free tier</span></div>
+          <input class="sh-inp" id="modalTavily" type="password" placeholder="tvly-…" autocomplete="off" style="width:100%"/>
+          <div class="sh-note">1,000 free searches/month. <a href="https://app.tavily.com" target="_blank">Get free key →</a></div>
+        </div>
         <div class="sh-status" id="shStatus"></div>
-        <button class="btn-save" onclick="saveKey()">Save Key</button>
+        <button class="btn-save" onclick="saveKey()">Save Keys</button>
         <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
       </div>
     </div>
@@ -536,6 +541,8 @@ document.addEventListener('DOMContentLoaded',function(){
 function openSettings(){
   var inp=document.getElementById('modalKey');
   inp.value=localStorage.getItem('ge_key')||'';
+  var tinp=document.getElementById('modalTavily');
+  tinp.value=localStorage.getItem('ge_tvly_key')||'';
   updShStatus(inp.value);
   document.getElementById('settingsModal').classList.add('open');
   setTimeout(function(){inp.focus();},280);
@@ -555,9 +562,12 @@ function updShStatus(k){
 }
 function saveKey(){
   var k=document.getElementById('modalKey').value.trim();
+  var tk=document.getElementById('modalTavily').value.trim();
   try{localStorage.setItem('ge_key',k);}catch(e){}
+  try{if(tk)localStorage.setItem('ge_tvly_key',tk);}catch(e){}
+  TVLY_KEY=tk||TVLY_KEY;
   updateGear();updShStatus(k);checkKey();
-  toast('✓ Key saved');
+  toast('✓ Keys saved');
   setTimeout(closeSettings,600);
 }
 function updateGear(){
@@ -593,6 +603,34 @@ function toggleRow(el){
   if(!wasOpen) el.classList.add('open');
 }
 
+// ── TAVILY FREE KEY (loaded from localStorage) ──
+var TVLY_KEY=localStorage.getItem('ge_tvly_key')||'';
+
+// ── TAVILY SEARCH ──
+function tavilySearch(query,maxResults){
+  maxResults=maxResults||5;
+  return fetch('https://api.tavily.com/search',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      api_key:TVLY_KEY,
+      query:query,
+      max_results:maxResults,
+      search_depth:'basic',
+      include_answer:true
+    })
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    // Return a compact text block for Claude to read
+    var out='SEARCH: '+query+'\n';
+    if(d.answer)out+='SUMMARY: '+d.answer+'\n';
+    (d.results||[]).forEach(function(r,i){
+      out+='['+(i+1)+'] '+r.title+' ('+r.url+')\n'+r.content.slice(0,300)+'\n';
+    });
+    return out;
+  }).catch(function(){return 'SEARCH: '+query+'\n[search unavailable]\n';});
+}
+
 // ── MAIN ──
 function runAnalysis(){
   var apiKey=localStorage.getItem('ge_key')||'';
@@ -606,292 +644,127 @@ function runAnalysis(){
   document.getElementById('emptyState').style.display='none';
   document.getElementById('results').classList.remove('on');
 
-  var steps=['Searching live earnings calendar…','Verifying each stock individually…','Cross-checking report dates vs today…','Filtering out already-reported…','Building plays + sympathy movers…'];
-  var si=0;st.textContent=steps[0];
-  var stimer=setInterval(function(){if(si<steps.length-1)st.textContent=steps[++si];},1900);
+  var today=new Date();
+  var todayISO=today.toISOString().slice(0,10);
+  var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
 
-  callClaude(apiKey,buildPrompt())
-    .then(function(raw){
-      var parsed=parseResp(raw);
-      clearInterval(stimer);
-      st.textContent='Verifying report dates…';
-      return verifyPlays(apiKey,parsed);
-    })
-    .then(function(verified){
-      // Background refill: if verification dropped picks, silently fetch replacements once
-      var plays=(verified.section1&&verified.section1.plays)?verified.section1.plays:(verified.plays||[]);
-      var removed=verified._removedTickers||[];
-      if(plays.length>=5||removed.length===0) return verified;
+  st.textContent='Fetching live earnings calendar…';
 
-      st.textContent='Scanning for additional plays…';
-      var exclude=removed.concat(plays.map(function(p){return p.ticker;}));
-      return callClaude(apiKey,buildPrompt(exclude))
-        .then(function(raw2){
-          var p2=parseResp(raw2);
-          return verifyPlays(apiKey,p2);
-        })
-        .then(function(v2){
-          var fresh=(v2.section1&&v2.section1.plays)?v2.section1.plays:(v2.plays||[]);
-          var have={};plays.forEach(function(p){have[(p.ticker||'').toUpperCase()]=1;});
-          for(var i=0;i<fresh.length&&plays.length<5;i++){
-            var t=(fresh[i].ticker||'').toUpperCase();
-            if(t&&!have[t]&&removed.indexOf(fresh[i].ticker)===-1){plays.push(fresh[i]);have[t]=1;}
-          }
-          if(verified.section1)verified.section1.plays=plays;else verified.plays=plays;
-          verified._verifyNotes=(verified._verifyNotes||[]).concat(v2._verifyNotes||[]);
-          return verified;
-        })
-        .catch(function(){return verified;}); // refill failed — show what passed
-    })
-    .then(function(finalData){
-      sb.classList.remove('on');
-      if(finalData._verifyNotes&&finalData._verifyNotes.length)console.log('EarningsAI verification:',finalData._verifyNotes);
-      renderResults(finalData);
-    })
-    .catch(function(err){
-      clearInterval(stimer);sb.classList.remove('on');
-      showErr(err.message||'Failed — check API key in ⚙️');
-      document.getElementById('emptyState').style.display='';
-    })
-    .finally(function(){
-      btn.disabled=false;btn.classList.remove('loading');
-      lbl.textContent='⚡ Get Top 5 + 5 Plays';
-    });
+  // Step 1: Run 3 Tavily searches in parallel — fast, free
+  var searches=TVLY_KEY
+    ? Promise.all([
+        tavilySearch('earnings calendar week of '+targetFri+' site:earningswhispers.com OR site:stockanalysis.com OR site:nasdaq.com',8),
+        tavilySearch('top earnings reports week of '+targetFri+' options implied volatility',5),
+        tavilySearch('stock market macro outlook fed rates VIX sector rotation '+todayISO,3)
+      ])
+  searches.then(function(searchResults){
+    st.textContent='AI building plays…';
+    var context=searchResults.join('\n---\n');
+    return callClaude(apiKey,buildPrompt(context));
+  })
+  .then(function(raw){
+    sb.classList.remove('on');
+    renderResults(parseResp(raw));
+  })
+  .catch(function(err){
+    sb.classList.remove('on');
+    showErr(err.message||'Failed — check API key in ⚙️');
+    document.getElementById('emptyState').style.display='';
+  })
+  .finally(function(){
+    btn.disabled=false;btn.classList.remove('loading');
+    lbl.textContent='⚡ Get Top 5 + 5 Plays';
+  });
 }
 
-function callClaude(key,prompt,model,maxTokens){
-  // web_search is a SERVER tool: the API runs the searches itself within a turn.
-  // We only need to handle stop_reason 'pause_turn' (long research turn paused) by
-  // sending the assistant content back unchanged and letting it continue.
-  // NEVER inject synthetic tool_results — lying that a search ran forces the
-  // model to answer from stale training data (this caused wrong earnings dates).
-  var messages=[{role:'user',content:prompt}];
-  var MAX_TURNS=8;
-
-  function doTurn(turnsLeft){
-    if(turnsLeft<=0) return Promise.reject(new Error('Research ran too long — try again'));
-    return fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:model||'claude-sonnet-4-6',
-        max_tokens:maxTokens||4500,
-        tools:[{type:'web_search_20250305',name:'web_search',max_uses:14}],
-        messages:messages
-      })
-    }).then(function(res){
-      return res.json().then(function(data){
-        if(!res.ok){
-          var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
-          if(res.status===401)m='Invalid API key — tap ⚙️ to update';
-          if(res.status===429)m='Rate limit — wait and retry';
-          if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
-          throw new Error(m);
-        }
-        var blocks=data.content||[];
-
-        // Turn paused mid-research: append assistant content as-is and continue
-        if(data.stop_reason==='pause_turn'){
-          messages.push({role:'assistant',content:blocks});
-          return doTurn(turnsLeft-1);
-        }
-
-        if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
-
-        // Final turn: collect all text blocks
-        var text='';
-        for(var i=0;i<blocks.length;i++){
-          if(blocks[i].type==='text') text+=blocks[i].text;
-        }
-        if(text) return text;
-        throw new Error('Empty response — try again');
-      });
-    }).catch(function(e){
-      if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
-      throw e;
-    });
-  }
-
-  return doTurn(MAX_TURNS);
-}
-
-// ── SECOND-PASS DATE VERIFICATION (silent) ──
-// Independent Haiku call that re-checks each Section 1 pick. Drops anything
-// already reported, corrects dates, keeps same-day AMC names (most tradeable),
-// and records removals so the caller can backfill. Notes go to console only.
-function verifyPlays(apiKey,parsed){
-  var plays=(parsed.section1&&parsed.section1.plays)?parsed.section1.plays:(parsed.plays||[]);
-  parsed._removedTickers=parsed._removedTickers||[];
-  parsed._verifyNotes=parsed._verifyNotes||[];
-  if(!plays.length) return Promise.resolve(parsed);
-
-  var todayISO=new Date().toISOString().slice(0,10);
-  // Current time in US Eastern — needed to judge same-day AMC reports
-  var nowET=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
-  var etHour=nowET.getHours()+nowET.getMinutes()/60;
-  var list=plays.map(function(p){return p.ticker+' (claimed: '+(p.reportDate||'?')+' '+(p.reportTime||'')+')';}).join(', ');
-
-  var vPrompt='Today is EXACTLY '+todayISO+'. You are a fact-checker. For EACH ticker below, run a web search ("[TICKER] earnings date" and if unclear "[TICKER] earnings report results") and determine its true earnings status.\n\n'
-    +'Tickers: '+list+'\n\n'
-    +'Rules:\n'
-    +'• If the company is scheduled to report TODAY ('+todayISO+') AFTER market close and results are NOT out yet → status TODAY_AMC.\n'
-    +'• If the company ALREADY RELEASED results this quarter (press release with numbers, "beat/missed estimates" coverage) → status REPORTED, date = the actual report date.\n'
-    +'• If a future report date is confirmed by the company IR page, a press release, or dated news → status UPCOMING, date = that date.\n'
-    +'• Estimated dates on calendar aggregators are NOT confirmation. Companies almost never report on Fridays — re-check any Friday date.\n'
-    +'• If you cannot confirm either way → status UNKNOWN.\n\n'
-    +'Return ONLY a raw JSON array, no markdown:\n'
-    +'[{"ticker":"","status":"TODAY_AMC|UPCOMING|REPORTED|UNKNOWN","date":"YYYY-MM-DD","note":"<8 words max>"}]';
-
-  return callClaude(apiKey,vPrompt,'claude-haiku-4-5-20251001',1200)
-    .then(function(raw){
-      var clean=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-      var s=clean.indexOf('['),e=clean.lastIndexOf(']');
-      if(s===-1||e===-1) throw new Error('no array');
-      var checks=JSON.parse(clean.slice(s,e+1));
-      var byTicker={};
-      checks.forEach(function(c){if(c&&c.ticker)byTicker[c.ticker.toUpperCase()]=c;});
-
-      var kept=[];
-      plays.forEach(function(p){
-        var c=byTicker[(p.ticker||'').toUpperCase()];
-        if(!c){p._verified=false;kept.push(p);return;}
-
-        if(c.status==='TODAY_AMC'){
-          if(etHour<16){
-            // Reports after today's close and it's before 4pm ET — still tradeable
-            p.reportDate=todayISO;
-            p.reportTime='AMC';
-            p._verified=true;
-            p._todayAMC=true;
-            kept.push(p);
-          }else{
-            // After the close — results are out or seconds away, no entry left
-            parsed._removedTickers.push(p.ticker);
-            parsed._verifyNotes.push('Dropped '+p.ticker+' — reported after today\'s close.');
-          }
-          return;
-        }
-
-        if(c.status==='REPORTED'){
-          parsed._removedTickers.push(p.ticker);
-          parsed._verifyNotes.push('Dropped '+p.ticker+' — already reported'+(c.date?' '+c.date:'')+'.');
-          return;
-        }
-
-        if(c.status==='UPCOMING'){
-          if(c.date&&p.reportDate&&c.date!==p.reportDate){
-            parsed._verifyNotes.push('Corrected '+p.ticker+': '+p.reportDate+' → '+c.date+'.');
-            p.reportDate=c.date;
-          }
-          if(p.reportDate&&p.reportDate<todayISO){
-            parsed._removedTickers.push(p.ticker);
-            parsed._verifyNotes.push('Dropped '+p.ticker+' — past date '+p.reportDate+'.');
-            return;
-          }
-          p._verified=true;
-        }else{
-          p._verified=false;
-          parsed._verifyNotes.push(p.ticker+': unconfirmed.');
-        }
-        kept.push(p);
-      });
-
-      if(parsed.section1) parsed.section1.plays=kept; else parsed.plays=kept;
-      parsed._verifyRan=true;
-      return parsed;
+// ── CLAUDE (analysis only — no web_search tool needed) ──
+function callClaude(key,prompt){
+  return fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:6000,
+      messages:[{role:'user',content:prompt}]
     })
-    .catch(function(){
-      parsed._verifyNotes.push('Verification pass failed — dates not independently confirmed.');
-      parsed._verifyRan=false;
-      return parsed;
+  }).then(function(res){
+    return res.json().then(function(data){
+      if(!res.ok){
+        var m=(data.error&&data.error.message)?data.error.message:'HTTP '+res.status;
+        if(res.status===401)m='Invalid API key — tap ⚙️ to update';
+        if(res.status===429)m='Rate limit — wait a moment and retry';
+        if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
+        throw new Error(m);
+      }
+      if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
+      var text='';
+      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      if(text) return text;
+      throw new Error('Empty response — try again');
     });
+  }).catch(function(e){
+    if(e.message&&e.message.indexOf('Failed to fetch')>-1)throw new Error('Network error — check connection');
+    throw e;
+  });
 }
 
-// ── PROMPT ──
-function buildPrompt(excludeTickers){
+// ── PROMPT (data pre-fetched by Tavily, Claude does pure analysis) ──
+function buildPrompt(searchContext){
   var today=new Date();
   var todayFull=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   var todayISO=today.toISOString().slice(0,10);
   var wl=selWeek==='this'?'this current week ending '+wkEnd(0)
     :selWeek==='next'?'next week ending '+wkEnd(1):'the week ending '+wkEnd(2);
   var targetFri=wkEnd(selWeek==='this'?0:selWeek==='next'?1:2);
-  var exclusion=(excludeTickers&&excludeTickers.length)
-    ? 'HARD EXCLUSION: Do NOT include any of these tickers under any circumstances (already reported or already covered): '+excludeTickers.join(', ')+'.\n\n'
-    : '';
 
   return 'You are EarningsAI. Today is EXACTLY: '+todayFull+' ('+todayISO+').\n\n'
-    +exclusion
+    +'══ LIVE SEARCH DATA (fetched seconds ago) ══\n'
+    +searchContext+'\n'
+    +'══ END SEARCH DATA ══\n\n'
 
-    +'STEP 1 — SEARCH THE LIVE EARNINGS CALENDAR:\n'
-    +'Search: "earnings calendar week of '+targetFri+'" using earningswhispers.com, nasdaq.com, benzinga.com, or stockanalysis.com.\n'
-    +'Extract every company with a confirmed report date during the week ending '+targetFri+'.\n'
-    +'DO NOT use training data for any earnings date — live search only.\n\n'
+    +'Using ONLY the search data above (do not use training-data earnings dates), build the following:\n\n'
 
-    +'STEP 2 — VERIFY EACH CANDIDATE INDIVIDUALLY (mandatory — no exceptions):\n'
-    +'For EVERY stock on your candidate list, do a second targeted search: "[TICKER] earnings date 2026" or "[TICKER] next earnings report".\n'
-    +'Confirm the exact upcoming report date from search results.\n'
-    +'SOURCE QUALITY: an "estimated" or "expected" date on a calendar aggregator does NOT count as confirmation — aggregators keep stale estimated dates even after a company has reported. Confirmation requires a company press release, the company IR page, or a dated news article explicitly announcing the report date.\n'
-    +'FRIDAY RED FLAG: companies almost never report earnings on a Friday (especially AMC). If a source shows a Friday date, treat it as probably wrong and re-verify against the company IR page before using it.\n'
-    +'DISCARD a stock immediately if any of these are true:\n'
-    +'  • Its report date is on or before '+todayISO+'\n'
-    +'  • Search results mention it already reported this quarter (phrases like "reported earnings", "beat estimates", "EPS of $X", dated before today)\n'
-    +'  • Its report date falls outside the target week\n'
-    +'  • Fiscal year mismatch: companies with non-calendar fiscal years (e.g. fiscal Q ends Jan/Apr/Jul/Oct) may label a report "Q1" but have already released it — always check the actual calendar date, not the quarter label\n'
-    +'Only stocks with a CONFIRMED FUTURE date strictly after '+todayISO+' in the target week may proceed.\n\n'
+    +'SECTION 1 — Top 5 HIGH-Quality Earnings Plays for the week ending '+targetFri+':\n'
+    +'• Pick stocks whose report date falls STRICTLY after '+todayISO+' within the target week.\n'
+    +'• Discard any stock whose search data says it already reported this quarter.\n'
+    +'• Quality = strong analyst consensus, high options OI, clear directional catalyst, macro aligned.\n'
+    +'• Signal: CALL / PUT / STRADDLE only.\n\n'
 
-    +'STEP 3 — SECTION 1: Top 5 HIGH-Quality Earnings Plays:\n'
-    +'From your verified list only, pick the 5 best with a clear options setup (CALL / PUT / STRADDLE).\n'
-    +'Quality = High: strong analyst consensus, high options OI, clear directional catalyst, macro aligned.\n'
-    +'If fewer than 5 stocks pass verification, return only those that do — do not pad with unverified names.\n\n'
-
-    +'STEP 4 — SECTION 2: Top 5 Sympathy Movers:\n'
-    +'For the top 3 Section 1 plays, find 1-2 same-sector/supply-chain peers NOT reporting that week.\n'
-    +'Pick the 5 most compelling total. These move on read-across, not their own earnings.\n\n'
+    +'SECTION 2 — Top 5 Sympathy Movers:\n'
+    +'• For the top 3 Section 1 picks, find 1-2 same-sector peers NOT reporting that week.\n'
+    +'• These move on read-across from their peer\'s report.\n\n'
 
     +'RULES:\n'
-    +'• Signals: CALL / PUT / STRADDLE only — never AVOID\n'
-    +'• DTE: exact integer days from '+todayISO+' to expiry Friday (e.g. 7, 14, 21) — no month names\n'
-    +'• Strategy: no dollar strikes — ATM/OTM descriptions only (e.g. "ATM Call", "1-strike OTM Put")\n'
-    +'• Delta: include per scenario (e.g. Δ0.50, Δ-0.40)\n'
-    +'• Exit: realistic take-profit trigger accounting for IV crush and theta\n\n'
+    +'• DTE: exact integer days from '+todayISO+' to nearest expiry Friday\n'
+    +'• Strategy: ATM/OTM descriptions only — no dollar strikes\n'
+    +'• Delta per scenario (e.g. Δ0.50)\n'
+    +'• Realistic exit targets accounting for IV crush\n\n'
 
-    +'CRITICAL OUTPUT: ONLY a raw JSON object — no markdown, no preamble, no explanation. Start with { and end with }.\n'
+    +'CRITICAL: Output ONLY a raw JSON object — no markdown, no preamble. Start with { end with }.\n'
     +'{"week":"'+wl+'",'
-    +'"macroSnapshot":"<18 words: current regime>",'
-    +'"section1":{'
-    +'"label":"Top 5 Earnings Plays — HIGH Quality",'
-    +'"plays":['
+    +'"macroSnapshot":"<18 words current regime from search data>",'
+    +'"section1":{"label":"Top 5 Earnings Plays — HIGH Quality","plays":['
     +'{"rank":1,"ticker":"","company":"","reportDate":"YYYY-MM-DD","reportTime":"AMC|BMO",'
-    +'"verifySource":"<domain of the source that CONFIRMED the date, e.g. investors.broadcom.com or reuters.com>",'
-    +'"verifyQuote":"<short paraphrase of what that source said about the date, max 15 words>",'
-    +'"quality":"High",'
-    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
-    +'"why":"<12w>","earningsNote":"<10w EPS context>",'
-    +'"iv":"","ivRank":"","execPriority":1,'
+    +'"verifySource":"<source domain from search data>","verifyQuote":"<max 12w from search>",'
+    +'"quality":"High","signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
+    +'"why":"<12w>","earningsNote":"<10w EPS context>","iv":"","ivRank":"","execPriority":1,'
     +'"scenarios":['
-    +'{"name":"Bull","move":"","strategy":"<e.g. ATM Call>","delta":"<e.g. Δ0.50>","dte":"<integer>","exitAt":"<e.g. +100%>","maxLoss":"-100%","prob":""},'
-    +'{"name":"Base","move":"","strategy":"<e.g. ATM Bull Call Spread>","delta":"<e.g. Δ0.45/Δ0.30>","dte":"<integer>","exitAt":"<e.g. +60% at open>","maxLoss":"-100%","prob":""},'
-    +'{"name":"Bear","move":"","strategy":"<e.g. ATM Put>","delta":"<e.g. Δ-0.50>","dte":"<integer>","exitAt":"<e.g. +80% post-earnings>","maxLoss":"-100%","prob":""}'
-    +'],"straddleNote":"<12w>"}'
-    +']},'
-    +'"section2":{'
-    +'"label":"Top 5 Related Stocks — Sympathy Movers",'
-    +'"plays":['
-    +'{"rank":1,"ticker":"","company":"","relatedTo":"<ticker>","relationship":"<12w why it moves>",'
-    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED",'
-    +'"why":"<12w catalyst>","catalystTiming":"<e.g. post-earnings read-across>",'
+    +'{"name":"Bull","move":"","strategy":"ATM Call","delta":"Δ0.50","dte":"<int>","exitAt":"+100%","maxLoss":"-100%","prob":""},'
+    +'{"name":"Base","move":"","strategy":"ATM Bull Call Spread","delta":"Δ0.45/Δ0.30","dte":"<int>","exitAt":"+60% at open","maxLoss":"-100%","prob":""},'
+    +'{"name":"Bear","move":"","strategy":"ATM Put","delta":"Δ-0.50","dte":"<int>","exitAt":"+80%","maxLoss":"-100%","prob":""}'
+    +'],"straddleNote":"<12w>"}]},'
+    +'"section2":{"label":"Top 5 Related Stocks — Sympathy Movers","plays":['
+    +'{"rank":1,"ticker":"","company":"","relatedTo":"<ticker>","relationship":"<12w>",'
+    +'"signal":"CALL|PUT|STRADDLE","confidence":"HIGH|MED","why":"<12w>","catalystTiming":"<e.g. post-earnings read-across>",'
     +'"iv":"","ivRank":"","execPriority":1,'
-    +'"scenarios":['
-    +'{"name":"Base","move":"","strategy":"<e.g. ATM Call>","delta":"<e.g. Δ0.50>","dte":"<integer>","exitAt":"<e.g. +60%>","maxLoss":"-100%","prob":""}'
-    +']}'
-    +']}'
-    +'} '
-    +'Every Section 1 play must have individually passed Step 2 verification, with verifySource and verifyQuote filled from a real search result. If you cannot cite a confirming source for a stock, it is DISQUALIFIED — never output a guessed or estimated date.';}
+    +'"scenarios":[{"name":"Base","move":"","strategy":"ATM Call","delta":"Δ0.50","dte":"<int>","exitAt":"+60%","maxLoss":"-100%","prob":""}]}'
+    +']}}';}
+
 function wkEnd(n){
   var d=new Date(),day=d.getDay();
   var toFri=(5-day+7)%7||(day===5?7:0);
