@@ -658,6 +658,8 @@ function runAnalysis(){
         tavilySearch('top earnings reports week of '+targetFri+' options implied volatility',5),
         tavilySearch('stock market macro outlook fed rates VIX sector rotation '+todayISO,3)
       ])
+    : Promise.resolve(['[No Tavily key — use best available knowledge for earnings dates. Be explicit that dates are estimates.]']);
+
   searches.then(function(searchResults){
     st.textContent='AI building plays…';
     var context=searchResults.join('\n---\n');
