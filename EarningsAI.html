@@ -697,7 +697,7 @@ function callClaude(key,prompt){
       },
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
-        max_tokens:3000,
+        max_tokens:4000,
         tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
         messages:messages
       })
@@ -710,8 +710,9 @@ function callClaude(key,prompt){
           if(res.status===529)m='Anthropic overloaded — retry in a few seconds';
           throw new Error(m);
         }
-        if(data.stop_reason==='max_tokens') throw new Error('Response cut off — try again');
+        if(data.stop_reason==='max_tokens'){console.error('max_tokens hit');throw new Error('Response cut off — try again');}
         var blocks=data.content||[];
+        console.log('stop_reason:',data.stop_reason,'blocks:',blocks.length);
         // If still searching, append assistant turn and continue
         if(data.stop_reason==='tool_use'||data.stop_reason==='pause_turn'){
           messages.push({role:'assistant',content:blocks});
@@ -835,6 +836,7 @@ function wkEnd(n){
 
 // ── PARSE ──
 function parseResp(raw){
+  console.log('RAW RESPONSE:', raw.slice(0,500));
   // Strip markdown fences
   var clean=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
 
@@ -849,14 +851,19 @@ function parseResp(raw){
       if(depth===0&&start>-1){end=i;break;}
     }
   }
-  if(start===-1||end===-1) throw new Error('No JSON found in response — try again');
+  if(start===-1||end===-1){
+    console.error('No JSON in response. Full text:', raw.slice(0,1000));
+    throw new Error('No JSON found in response — try again');
+  }
   var jsonStr=clean.slice(start,end+1);
 
   var parsed;
   try{ parsed=JSON.parse(jsonStr); }
-  catch(e){ throw new Error('JSON parse failed: '+e.message.slice(0,60)); }
+  catch(e){
+    console.error('JSON parse error:', e.message, 'JSON was:', jsonStr.slice(0,300));
+    throw new Error('JSON parse failed: '+e.message.slice(0,60));
+  }
 
-  // Support both old format (plays) and new format (section1/section2)
   if(!parsed.section1&&!parsed.plays) throw new Error('No plays returned — try again');
   return parsed;
 }
