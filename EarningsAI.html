@@ -404,9 +404,8 @@ html,body{scroll-padding-top:190px;}
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- SETTINGS MODAL -->
+  <!-- SETTINGS MODAL — outside all containers so fixed positioning is never clipped -->
   <div class="modal-overlay" id="settingsModal" onclick="modalBg(event)">
     <div class="modal-sheet">
       <div class="sh-handle"></div>
@@ -429,6 +428,8 @@ html,body{scroll-padding-top:190px;}
       </div>
     </div>
   </div>
+
+<div class="app">
 
 <!-- ══ STICKY TOP ══ -->
 <div class="sticky-top">
