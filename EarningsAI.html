@@ -647,6 +647,7 @@ function callClaude(key,prompt){
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:4000,
+        system:'You are a JSON API. You must ALWAYS respond with a single raw JSON object only. Never write prose, explanations, or reasoning. Never say "I will search" or "I found". Just output the JSON object starting with { and ending with }. If you need to search, do it silently then output only the JSON.',
         tools:[{type:'web_search_20250305',name:'web_search',max_uses:4}],
         messages:messages
       })
