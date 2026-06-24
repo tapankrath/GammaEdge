@@ -843,6 +843,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     chartEl.style.display='none';
     aiWrap.style.display='none';
     aiResult.style.display='none';
+    aiResult.textContent='';
 
     // Highlight active preset
     ['nd-vs-spy','nd-vs-qqq'].forEach(function(id){
@@ -986,10 +987,16 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     if(!vsCurrentSignal)return;
     var btn=document.getElementById('vs-ai-btn');
     var result=document.getElementById('vs-ai-result');
-    var ak=(localStorage.getItem('ge_key')||localStorage.getItem('ge_anthropic_key')||localStorage.getItem('ge_claude_key')||'').trim();
-    if(!ak){result.textContent='⚠️ Add Anthropic key via ⚙️ Keys to use AI analysis.';result.style.display='block';return;}
-    btn.textContent='Analyzing…';btn.disabled=true;
+    var ak=(localStorage.getItem('ge_key')||'').trim();
+    // Clear any previous message first
     result.style.display='none';
+    result.textContent='';
+    if(!ak){
+      result.textContent='⚠️ Add Anthropic key via ⚙️ Keys to use AI analysis.';
+      result.style.display='block';
+      return;
+    }
+    btn.textContent='Analyzing…';btn.disabled=true;
     try{
       var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01'},body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:1000,
