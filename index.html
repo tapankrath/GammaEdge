@@ -843,7 +843,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     chartEl.style.display='none';
     aiWrap.style.display='none';
     aiResult.style.display='none';
-    aiResult.textContent='';
+    aiResult.innerHTML='';
 
     // Highlight active preset
     ['nd-vs-spy','nd-vs-qqq'].forEach(function(id){
@@ -861,14 +861,22 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
     try{
       // Fetch quote + VIX proxy for IV
+      // Fetch quote + VIX/VXN proxy for IV
       var[qR,vR]=await Promise.all([
         fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
         fetch('https://finnhub.io/api/v1/quote?symbol='+(sym==='QQQ'?'VXN':'VIX')+'&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
       ]);
 
-      // Finnhub sometimes returns VIX as ^VIX — try fallback if c is 0
-      if((!vR||!vR.c)&&sym!=='QQQ'){
-        try{ vR=await fetch('https://finnhub.io/api/v1/quote?symbol=^VIX&token='+fk).then(function(r){return r.json();}); }catch(ex){}
+      // Finnhub sometimes needs ^ prefix — try fallback if c is 0 or missing
+      if(!vR||!vR.c){
+        var fbSym=sym==='QQQ'?'^VXN':'^VIX';
+        try{ vR=await fetch('https://finnhub.io/api/v1/quote?symbol='+fbSym+'&token='+fk).then(function(r){return r.json();}); }catch(ex){}
+      }
+      // Last resort: use a reasonable IV estimate from the stock's own daily move annualized
+      if(!vR||!vR.c){
+        var dp2=qR.dp||0;
+        vR={c:Math.max(12,Math.abs(dp2)*Math.sqrt(252)*0.6)};
+        vsIVSource=sym==='QQQ'?'VXN est':'VIX est';
       }
 
       var iv=vR&&vR.c?vR.c:0;
@@ -937,8 +945,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         vsDrawChart(iv, vsCurrentRV, rvPrices, color);
       }
 
-      // Show AI button
+      // Show AI button — check key status
+      var hasKey=(localStorage.getItem('ge_key')||'').trim().length>0;
       document.getElementById('vs-ai-btn').textContent='✦ AI Vol Analysis — '+sym;
+      document.getElementById('vs-ai-btn').style.opacity=hasKey?'1':'0.5';
+      aiResult.innerHTML=hasKey?'':'<span style="color:#f59e0b;font-size:10px;">⚠️ Add Anthropic key via ⚙️ Keys to enable AI analysis.</span>';
+      aiResult.style.display=hasKey?'none':'block';
       aiWrap.style.display='block';
 
     }catch(err){
