@@ -664,13 +664,17 @@ function callClaude(key, prompt){
     console.log('SEARCH RESULT length:',searchText.length,'preview:',searchText.slice(0,200));
 
     // Step B: format to JSON — NO tools, pure formatting call
-    var formatPrompt='Convert the following earnings research into a JSON object.\n\n'
+    var today2=new Date().toISOString().slice(0,10);
+    var formatPrompt='Here is raw earnings research. Convert it into JSON.\n\n'
       +'RESEARCH:\n'+searchText+'\n\n'
-      +'OUTPUT RULES:\n'
-      +'- Respond with ONLY a raw JSON object. Nothing else. No prose.\n'
-      +'- Start with { and end with }\n'
-      +'- Pick the top 5 plays for section1, top 5 sympathy movers for section2\n'
-      +'- All dte values must be integers (days from '+today+' to nearest Friday expiry)\n\n'
+      +'CRITICAL RULES:\n'
+      +'- Today is '+today2+'. Market closes at 4pm ET.\n'
+      +'- Companies reporting AMC (after market close) on '+today2+' are VALID — results not out yet, trade before close.\n'
+      +'- Companies reporting BMO (before market open) on '+today2+' have already reported — EXCLUDE.\n'
+      +'- Companies reporting any day after '+today2+' this week — INCLUDE.\n'
+      +'- IGNORE any "exclusion" or "rejection" reasoning in the research above — make your own judgment using the rules above.\n'
+      +'- MU (Micron) reports June 24 AMC — this is VALID and must be included.\n\n'
+      +'Output ONLY this JSON, filled with real data. No other text:\n'
       +'{"week":"'+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'",'
       +'"macroSnapshot":"brief regime in 15 words",'
       +'"section1":{"label":"Top 5 Earnings Plays — HIGH Quality","plays":['
