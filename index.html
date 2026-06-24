@@ -860,27 +860,46 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     body.innerHTML='<span style="color:#64748b;">⏳ Fetching IV & RV for '+sym+'…</span>';
 
     try{
-      // Fetch quote + VIX proxy for IV
-      // Fetch quote + VIX/VXN proxy for IV
+      // Fetch quote + VIX/VXN proxy for IV + options chain for real IV
       var[qR,vR]=await Promise.all([
         fetch('https://finnhub.io/api/v1/quote?symbol='+sym+'&token='+fk).then(function(r){return r.json();}),
         fetch('https://finnhub.io/api/v1/quote?symbol='+(sym==='QQQ'?'VXN':'VIX')+'&token='+fk).then(function(r){return r.json();}).catch(function(){return null;})
       ]);
 
-      // Finnhub sometimes needs ^ prefix — try fallback if c is 0 or missing
+      // Try ^VIX / ^VXN fallback
       if(!vR||!vR.c){
         var fbSym=sym==='QQQ'?'^VXN':'^VIX';
         try{ vR=await fetch('https://finnhub.io/api/v1/quote?symbol='+fbSym+'&token='+fk).then(function(r){return r.json();}); }catch(ex){}
       }
-      // Last resort: use a reasonable IV estimate from the stock's own daily move annualized
-      if(!vR||!vR.c){
-        var dp2=qR.dp||0;
-        vR={c:Math.max(12,Math.abs(dp2)*Math.sqrt(252)*0.6)};
-        vsIVSource=sym==='QQQ'?'VXN est':'VIX est';
-      }
 
-      var iv=vR&&vR.c?vR.c:0;
-      vsIVSource=sym==='QQQ'?'VXN':'VIX';
+      // Try fetching ATM IV from options chain as better source
+      var optionIV=0;
+      try{
+        var oR=await fetch('https://finnhub.io/api/v1/stock/option-chain?symbol='+sym+'&token='+fk).then(function(r){return r.json();});
+        if(oR&&oR.data&&oR.data.length){
+          var spot=qR.c||0;
+          var allIVs=[];
+          oR.data.slice(0,3).forEach(function(exp){
+            ((exp.options||{}).CALL||[]).forEach(function(o){
+              if(o.impliedVolatility>0&&Math.abs(o.strike-spot)<spot*0.05) allIVs.push(o.impliedVolatility*100);
+            });
+          });
+          if(allIVs.length) optionIV=allIVs.reduce(function(a,b){return a+b;})/allIVs.length;
+        }
+      }catch(ex){}
+
+      var iv, ivSrc;
+      if(optionIV>1){
+        iv=+optionIV.toFixed(1); ivSrc='Options IV';
+      } else if(vR&&vR.c>0){
+        iv=+vR.c.toFixed(1); ivSrc=sym==='QQQ'?'VXN':'VIX';
+      } else {
+        // Last resort: estimate from recent daily moves
+        var dp2=Math.abs(qR.dp||0);
+        iv=+(Math.max(10, dp2*Math.sqrt(252)*0.6)).toFixed(1);
+        ivSrc=sym==='QQQ'?'VXN est':'VIX est';
+      }
+      vsIVSource=ivSrc;
       vsCurrentIV=iv;
 
       // Fetch 30-day historical closes for RV calculation
@@ -995,31 +1014,45 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     ctx.fillStyle='#38bdf8';ctx.fillText('RV '+rv.toFixed(1)+'%',4,H*0.55-3);
   }
 
-  async function vsRunAI(){
+  function vsRunAI(){
     if(!vsCurrentSignal)return;
     var btn=document.getElementById('vs-ai-btn');
     var result=document.getElementById('vs-ai-result');
-    // Clear any previous message first
     result.style.display='none';
-    result.textContent='';
+    result.innerHTML='';
     var ak=(localStorage.getItem('ge_key')||'').trim();
-    if(!ak){result.textContent='⚠️ Add Anthropic key via ⚙️ Keys.';result.style.display='block';return;}
+    if(!ak){result.innerHTML='<span style="color:#f59e0b;">⚠️ Add Anthropic key via ⚙️ Keys.</span>';result.style.display='block';return;}
     btn.textContent='Analyzing…';btn.disabled=true;
-    try{
-      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({
-        model:'claude-sonnet-4-6',max_tokens:1000,
-        messages:[{role:'user',content:'You are a professional options trader and volatility analyst.\n\n'+vsCurrentTicker+' vol setup:\n- IV proxy ('+vsIVSource+'): '+vsCurrentIV.toFixed(1)+'%\n- 30-day Realized Vol: '+vsCurrentRV.toFixed(1)+'%\n- Vol Premium: '+(vsCurrentSignal.spread>0?'+':'')+vsCurrentSignal.spread+'% ('+(vsCurrentSignal.spread>0?'above':'below')+' RV)\n- Signal: '+vsCurrentSignal.signal+'\n\nGive a concise, practical 3–4 sentence trading analysis. Cover: what this IV/RV spread means right now, specific option strategies that make sense (name them), key risk to watch. Be direct. Talk like a vol desk trader. No disclaimers.'}]
-      })});
-      var data=await res.json();
-      result.innerHTML=(data.content?.map(function(b){return b.text||'';}).join('')||'No response.').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    var prompt='You are a professional options trader and volatility analyst.\n\n'
+      +vsCurrentTicker+' vol setup:\n'
+      +'- IV ('+vsIVSource+'): '+vsCurrentIV.toFixed(1)+'%\n'
+      +'- 30-day Realized Vol: '+vsCurrentRV.toFixed(1)+'%\n'
+      +'- Vol Premium: '+(vsCurrentSignal.spread>0?'+':'')+vsCurrentSignal.spread+'% ('+(vsCurrentSignal.spread>0?'above':'below')+' RV)\n'
+      +'- Signal: '+vsCurrentSignal.signal+'\n\n'
+      +'Give a concise, practical 3-4 sentence trading analysis. Cover: what this IV/RV spread means, specific option strategies (name them), key risk. Be direct. Talk like a vol desk trader. No disclaimers.';
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error)throw new Error(data.error.message);
+      var text='';
+      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      result.innerHTML=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
       result.style.display='block';
-    }catch(e){result.textContent='Error: '+e.message;result.style.display='block';}
-    btn.textContent='✦ AI Vol Analysis — '+vsCurrentTicker;
-    btn.disabled=false;
+      btn.textContent='❖ AI Vol Analysis — '+vsCurrentTicker;
+      btn.disabled=false;
+    })
+    .catch(function(e){
+      result.textContent='Error: '+e.message;
+      result.style.display='block';
+      btn.textContent='❖ AI Vol Analysis — '+vsCurrentTicker;
+      btn.disabled=false;
+    });
   }
-
-  // Expose to global scope for onclick handlers
-  window.vsRunAI = vsRunAI;
+    window.vsRunAI = vsRunAI;
   window.vsRun = vsRun;
   window.vsRunSearch = vsRunSearch;
 
