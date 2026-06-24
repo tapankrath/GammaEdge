@@ -634,10 +634,11 @@ function callClaude(key, prompt){
   var today=new Date().toISOString().slice(0,10);
 
   // Step A: search with web_search tool, free-form response ok
-  var searchPrompt='Search for the earnings calendar for the week ending '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'. '
-    +'List every company reporting earnings that week with their exact date (YYYY-MM-DD) and time (AMC or BMO). '
-    +'Today is '+today+'. Include companies reporting today AMC if not yet reported. '
-    +'For the top picks also note: options IV level, bullish or bearish analyst sentiment, and why it moves.';
+  var searchPrompt='Today is '+today+' (end of day). Search for earnings reports this week ending '+wkEnd(selWeek==='this'?0:selWeek==='next'?1:2)+'.\n'
+    +'List every company reporting earnings June 24-27 2026 with exact date and AMC/BMO timing.\n'
+    +'Companies reporting June 24 AMC are NOT yet reported — they report TONIGHT after close.\n'
+    +'For each company note: options IV level, analyst sentiment (bullish/bearish), expected EPS.\n'
+    +'Focus on large-cap names with high options volume like MU, FDX, PAYX, NKE, etc.';
 
   return fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -660,6 +661,7 @@ function callClaude(key, prompt){
     // collect all text from search response
     var searchText='';
     (data.content||[]).forEach(function(b){if(b.type==='text')searchText+=b.text;});
+    console.log('SEARCH RESULT length:',searchText.length,'preview:',searchText.slice(0,200));
 
     // Step B: format to JSON — NO tools, pure formatting call
     var formatPrompt='Convert the following earnings research into a JSON object.\n\n'
@@ -698,11 +700,22 @@ function callClaude(key, prompt){
       })
     });
   })
-  .then(function(r){return r.json();})
+  .then(function(r){
+    return r.json().then(function(data){
+      console.log('FORMAT response status ok, stop_reason:',data.stop_reason);
+      if(!r.ok){
+        var m=(data.error&&data.error.message)||'HTTP '+r.status;
+        if(r.status===401)m='Invalid API key — tap ⚙️ to update';
+        throw new Error(m);
+      }
+      return data;
+    });
+  })
   .then(function(data){
-    if(!data.content) throw new Error('Format failed');
+    if(!data.content) throw new Error('Format failed — no content');
     var text='';
     (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+    console.log('FORMAT text preview:',text.slice(0,300));
     if(!text) throw new Error('Empty response — try again');
     return text;
   })
