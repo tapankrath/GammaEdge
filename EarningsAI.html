@@ -888,7 +888,7 @@ function renderPlayRow(p, i, showQuality){
   var dispRank=p._displayRank||p.rank||i+1;
   var rtCls=(p.reportTime||'').toUpperCase()==='BMO'?'bmo':'amc';
   var rtTxt=(p.reportTime||'').toUpperCase()==='BMO'?'BMO':'AMC';
-  var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
+  var ivNum=parseInt(String(p.ivRank||'50').replace(/[^0-9]/g,''))||50;
   var scens=Array.isArray(p.scenarios)?p.scenarios:[];
   var plRows='';
   for(var j=0;j<scens.length;j++){
@@ -896,7 +896,7 @@ function renderPlayRow(p, i, showQuality){
     var md=(sc.move||'').charAt(0)==='-'?'dn':(sc.move||'').charAt(0)==='+'?'up':'fl';
     var bestRow=(sig==='call'&&j===0)||(sig==='put'&&j===2)||(sigCls==='straddle'&&j===0);
     var bearBest=sig==='put'&&j===2;
-    var dteRaw=sc.dte||sc.expiry||'';
+    var dteRaw=String(sc.dte||sc.expiry||'');
     var dteNum=parseInt(dteRaw.replace(/[^0-9]/g,''))||'?';
     var dteDisplay=dteNum==='?'?dteRaw:(dteNum+'d');
     var exitAt=sc.exitAt||sc.maxGain||'';
@@ -968,10 +968,10 @@ function renderSymRow(p, i){
   var sigCls=sig==='call'?'call':sig==='put'?'put':sig==='straddle'?'straddle':'avoid';
   var sigTxt=sig==='call'?'▲ CALL':sig==='put'?'▼ PUT':sig==='straddle'?'◆ STRADDLE':'— AVOID';
   var dispRank=p._displayRank||p.rank||i+1;
-  var ivNum=parseInt((p.ivRank||'50').replace(/[^0-9]/g,''))||50;
+  var ivNum=parseInt(String(p.ivRank||'50').replace(/[^0-9]/g,''))||50;
   var scens=Array.isArray(p.scenarios)?p.scenarios:[];
   var sc=scens[0]||{};
-  var dteRaw=sc.dte||'';
+  var dteRaw=String(sc.dte||'');
   var dteNum=parseInt(dteRaw.replace(/[^0-9]/g,''))||'?';
   var dteDisplay=dteNum==='?'?dteRaw:(dteNum+'d');
   var exitAt=sc.exitAt||'';
