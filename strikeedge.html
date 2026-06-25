@@ -733,16 +733,16 @@ function loadSignal(sym){
       + 'Est IV: '+(iv?iv.toFixed(1)+'%':'N/A')+'\n'
       + 'VIX: '+(vix||'N/A')+'\n\n'
       + 'Return ONLY this JSON (no markdown, no explanation):\n'
-      + '{"signal":"BULLISH"|"BEARISH"|"NEUTRAL","confidence":"High"|"Medium"|"Low",'
-      + '"action":"BUY CALL"|"BUY PUT"|"SELL VOL"|"BUY VOL"|"WAIT",'
+      + '{"signal":"BULLISH or BEARISH or NEUTRAL","confidence":"High or Medium or Low",'
+      + '"action":"BUY CALL or BUY PUT or SELL VOL or BUY VOL or WAIT",'
       + '"reason":"2-3 sentences: what technicals say, what vol says, what to do",'
-      + '"iv_regime":"Rich"|"Fair"|"Cheap",'
+      + '"iv_regime":"Rich or Fair or Cheap",'
       + '"key_level":number,'
       + '"stop":number}';
 
     aiCall(prompt, 600, function(text){
       try{
-        var d = JSON.parse(text.replace(/```json|```/g,'').trim());
+        var d = JSON.parse(text.split('```').join('').split('```json').join('').trim());
         renderSignalAI(sym, price, chg, rsi14, ma20, rv30, iv, vix, d);
       }catch(e){
         renderSignalRules(sym, price, chg, rsi14, ma20, rv30, iv, vix);
@@ -848,9 +848,9 @@ function runStrategy(){
       + '- Preferred DTE: '+dte+' days\n'
       + '- VIX: '+vix+'\n\n'
       + 'Return JSON:\n'
-      + '{"regime":"high_vol"|"low_vol"|"trending_up"|"trending_down"|"choppy",'
+      + '{"regime":"high_vol or low_vol or trending_up or trending_down or choppy",'
       + '"strategies":[{'
-      + '"name":"strategy name","type":"call"|"put"|"spread"|"straddle"|"strangle"|"condor",'
+      + '"name":"strategy name","type":"call or put or spread or straddle or strangle or condor",'
       + '"legs":"describe the exact legs (e.g. Buy 1 SPY 550C 14DTE)",'
       + '"est_cost":number,"max_profit":number,"max_loss":number,'
       + '"breakeven":number,"win_rate_pct":number,'
@@ -862,7 +862,7 @@ function runStrategy(){
 
     aiCall(prompt, 1200, function(text){
       try{
-        var d = JSON.parse(text.replace(/```json|```/g,'').trim());
+        var d = JSON.parse(text.split('```').join('').split('```json').join('').trim());
         renderStrategy(d, sym, price, riskAmt);
       }catch(e){ out.innerHTML='<div class="err-box">AI parse error. Try again.</div>'; }
       btn.disabled=false; btn.textContent='⚡ Build Strategy';
@@ -882,7 +882,7 @@ function renderStrategy(d, sym, price, riskAmt){
   (d.strategies||[]).forEach(function(s, i){
     var best = i === (d.top_pick||0);
     var pnlColor = s.max_profit>0?'var(--green)':'var(--dim)';
-    html += '<div class="strat-card'+(best?' best':'').'">'
+    html += '<div class="strat-card'+(best?' best':'')+'">'
       + '<div class="strat-name">'+s.name+'</div>'
       + '<div class="strat-risk" style="color:var(--accent)">$'+s.est_cost+' risk · '+s.win_rate_pct+'% win rate</div>'
       + '<div class="strat-detail">'+s.legs+'<br><br>'
