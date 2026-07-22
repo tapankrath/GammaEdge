@@ -9,6 +9,7 @@
 <meta name="application-name" content="GammaEdge"/>
 <meta name="theme-color" content="#0a0f1e"/>
 <meta name="description" content="Options trade planner for SPY &amp; QQQ — signal, size, plan, backtest."/>
+<script src="shared/ge-signal-core.js"></script>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -926,13 +927,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         vsCurrentRV=+(Math.abs(qR.dp)*Math.sqrt(252)).toFixed(1);
       }
 
-      // Compute signal
-      var spread=+(iv-vsCurrentRV).toFixed(1);
-      var spreadPct=vsCurrentRV>0?+(spread/vsCurrentRV*100).toFixed(0):0;
-      var signal,confidence,color,bg,action;
-      if(spread>=5){signal='SELL VOL';confidence=Math.min(95,60+spreadPct);color='#f43f5e';bg='rgba(244,63,94,.08)';action='IV is <strong>rich vs RV</strong> — premium selling favored. Consider Iron Condor or short Strangle.';}
-      else if(spread<=-3){signal='BUY VOL';confidence=Math.min(95,60+Math.abs(spreadPct));color='#34d399';bg='rgba(52,211,153,.08)';action='IV is <strong>cheap vs RV</strong> — long vol favored. Consider Straddle or Strangle.';}
-      else{signal='NEUTRAL';confidence=30;color='#64748b';bg='rgba(100,116,139,.08)';action='IV and RV <strong>near parity</strong> — no strong vol edge.';}
+      // Compute signal — via shared engine (shared/ge-signal-core.js) so
+      // this matches any other surface (e.g. BigChances) reading vol data.
+      var vs=geVolSignal(iv,vsCurrentRV);
+      var signal=vs.signal,confidence=vs.confidence,color=vs.color,bg=vs.bg,action=vs.action;
+      var spread=vs.spread,spreadPct=vs.spreadPct;
 
       vsCurrentSignal={signal:signal,confidence:+confidence.toFixed(0),spread:spread,spreadPct:spreadPct,color:color,bg:bg,action:action};
 
@@ -2594,6 +2593,12 @@ function alToggle(id) {
     <div style="padding:14px 16px">
     <!-- Dual signal cards - auto computed for both tickers -->
     <div id="pm-dual-signals" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+
+    <!-- Quick Bucket Split — reads the SAME percentages as the Alloc tab
+         (al-pct-mega/hivol/etf/spec/lotto), applied to Planner's own capital
+         field, so the two tabs never disagree about the split and capital
+         only has to be typed once. Adjust the % in Alloc; this updates too. -->
+    <div id="pm-bucket-split" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px"></div>
 
     <!-- Collapsible custom trade form -->
     <button onclick="pmToggleForm()" id="pm-form-toggle" style="width:100%;background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:11px;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:0">
@@ -4765,41 +4770,20 @@ function quickSignal(sym){
       conf:'—',sub:'─ Awaiting live feed',detail:'No signal without real market data',
       bull:0,bear:0,noData:true};
   }
-  // Gap injection — same logic as processSignal so dual cards stay consistent
-  if(!(spot>0))spot=closes[n-1]; // quote not in yet — use last real close
-  var lastQClose=closes[n-1];
-  var qGapPct=lastQClose>0?(spot-lastQClose)/lastQClose*100:0;
-  if(Math.abs(qGapPct)>=0.75){
-    closes=closes.concat([spot]);n=closes.length;
+  // Core RSI/MA/momentum scoring (incl. gap injection for a live price that's
+  // moved since the last close) lives in shared/ge-signal-core.js
+  // (geMomentumSignal) — this used to be a third copy of the same math,
+  // separate from processSignal's version, kept in sync only by convention.
+  var ms=geMomentumSignal(closes,spot);
+  if(ms.noData){
+    return{action:'NO DATA',color:'#475569',bgColor:'#f8fafc',borderColor:'#e2e8f0',
+      conf:'—',sub:'─ Awaiting live feed',detail:'No signal without real market data',
+      bull:0,bear:0,noData:true};
   }
-  var ma20=closes.slice(-20).reduce(function(a,b){return a+b;})/20;
-  var aboveMA=spot>ma20;
-  var gains=0,losses=0;
-  for(var j=n-14;j<n;j++){var diff=closes[j]-closes[j-1];if(diff>0)gains+=diff;else losses+=Math.abs(diff);}
-  var rs=(gains/14)/((losses/14)||0.001),rsi=100-100/(1+rs);
-  var mom3=(closes[n-1]-closes[n-4])/closes[n-4]*100;
-  var bull=0,bear=0;
-  if(aboveMA)bull+=2;else bear+=2;
-  if(rsi>65)bear+=2;else if(rsi>55)bull+=1;else if(rsi<35)bull+=2;else if(rsi<45)bear+=1;
-  if(mom3>1.5)bull+=2;else if(mom3>0.5)bull+=1;else if(mom3<-1.5)bear+=2;else if(mom3<-.5)bear+=1;
-  var action,color,bgColor,borderColor;bgColor='#ffffff';borderColor='#e2e8f0';
-  // MUST mirror processSignal's decision branches exactly (with target=0 ⇒
-  // lowRiskTrade=true, aggressiveTrade=false) or chips flip on click:
-  if(bull>=5&&bull>bear*1.5){action='BUY CALL';color='#14532d';}
-  else if(bear>=5&&bear>bull*1.5){action='BUY PUT';color='#7f1d1d';}
-  else if(bull>bear){action='LEAN CALL';color='#166534';}
-  else if(bear>bull){
-    // processSignal's mean-reversion branch: overbought above MA = BUY PUT
-    if(rsi>=65&&aboveMA){action='BUY PUT';color='#7f1d1d';}
-    else{action='LEAN PUT';color='#991b1b';}
-  }
-  else{
-    // processSignal's tie branches (lowRiskTrade is always true with target=0)
-    if(rsi>65){action='LEAN PUT (small)';color='#991b1b';}
-    else if(rsi<35){action='LEAN CALL (small)';color='#166534';}
-    else{action='NO TRADE';color='#1e293b';}
-  }
-  var conf=bull>=7||bear>=7?'High':bull>=5||bear>=5?'Medium':'Low';
+  var rsi=ms.rsi,aboveMA=ms.aboveMA,mom3=ms.mom3,bull=ms.bull,bear=ms.bear,action=ms.action,conf=ms.conf;
+  var COLOR_MAP={strongBull:'#14532d',strongBear:'#7f1d1d',leanBull:'#166534',leanBear:'#991b1b',neutral:'#1e293b'};
+  var color=COLOR_MAP[ms.colorKey]||'#1e293b';
+  var bgColor='#ffffff',borderColor='#e2e8f0';
   // Same regime filter as processSignal — dual cards must agree with main signal
   var regT=geTrend(closes,spot);
   var regF=geRegimeFilter(action,bull,bear,regT.trend,rsi);
@@ -6956,6 +6940,64 @@ function pmRenderSignalCards(){
   el.innerHTML=cards;
 }
 
+/* ── Quick Bucket Split — Planner ↔ Alloc consolidation ──────────────────
+ * Previously Planner and Alloc were two disconnected "capital → plan"
+ * builders: type your capital into Planner, then type it again into Alloc
+ * to see the risk-bucket split. This reads Alloc's live bucket percentages
+ * (alPct(), same function Alloc itself uses) applied to Planner's own
+ * capital field, so there's one number to type and one set of percentages
+ * to tune — Alloc remains the place to drill into any one bucket. */
+function pmRenderBucketSplit(){
+  var el=$('pm-bucket-split');
+  if(!el)return;
+  var cap=parseFloat($('pm-capital')?$('pm-capital').value:0)||0;
+  if(!cap){el.innerHTML='';return;}
+  var groups=[
+    {key:'mega',label:'Mega-Cap Wheel',icon:'🏛️',color:'#2563eb'},
+    {key:'hivol',label:'High-Vol',icon:'⚡',color:'#f59e0b'},
+    {key:'etf',label:'ETF Core',icon:'📊',color:'#10b981'},
+    {key:'spec',label:'Speculative',icon:'🚀',color:'#f43f5e'},
+    {key:'lotto',label:'Lottery',icon:'🎯',color:'#a855f7'}
+  ];
+  var rows=groups.map(function(g){
+    var pct=(typeof alPct==='function')?alPct(g.key):0;
+    var amt=cap*pct;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--sub)">'+g.icon+' '+g.label+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div style="font-size:10px;font-weight:700;color:'+g.color+'">'+(pct*100).toFixed(0)+'%</div>'
+      +'<div style="font-size:12px;font-weight:900;color:var(--text)">$'+fmt(Math.round(amt))+'</div>'
+      +'</div></div>';
+  }).join('');
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    +'<div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em">Quick Bucket Split · $'+fmt(cap)+'</div>'
+    +'<button onclick="pmOpenInAlloc()" style="background:transparent;color:var(--blue);border:1px solid var(--bbd);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;cursor:pointer">Open in Alloc →</button>'
+    +'</div>'
+    +rows
+    +'<div style="margin-top:8px;text-align:center">'
+    +'<a href="#" onclick="pmOpenWeeklyAI();return false" style="font-size:10px;font-weight:800;color:var(--blue);text-decoration:none">🤖 Full AI Weekly Plan (same capital &amp; target) →</a>'
+    +'</div>';
+}
+/* Send Planner's capital into Alloc (so it doesn't have to be re-typed)
+   and switch tabs. */
+function pmOpenInAlloc(){
+  var cap=parseFloat($('pm-capital')?$('pm-capital').value:0)||0;
+  if(cap&&$('al-cap'))$('al-cap').value=cap;
+  showTab(2);
+}
+/* Hand off to weekly-alpha.html with the same capital/target — see its
+   own init() for the ?cap=&tgt= handoff this is paired with. */
+function pmOpenWeeklyAI(){
+  var cap=parseFloat($('pm-capital')?$('pm-capital').value:0)||0;
+  var tgt=parseFloat($('pm-target')?$('pm-target').value:0)||0;
+  var url='weekly-alpha.html';
+  var params=[];
+  if(cap>0)params.push('cap='+encodeURIComponent(cap));
+  if(tgt>0)params.push('tgt='+encodeURIComponent(tgt));
+  if(params.length)url+='?'+params.join('&');
+  window.open(url,'_blank','noopener');
+}
+
 function pmPrefill(tk,action){
   $('pm-ticker').value=tk.toUpperCase();
   var isCall=action.indexOf('CALL')>-1;
@@ -7030,6 +7072,7 @@ function renderPortfolio(){
   $('pm-risk-guide').style.display='block';
   pmSliderChange();
   pmRenderSignalCards();
+  pmRenderBucketSplit();
   if(s.positions.length>0){
     $('pm-open-wrap').style.display='block';
     $('pm-open-list').innerHTML=s.positions.map(function(p){
@@ -8246,7 +8289,20 @@ function setTSt(t){
 
 
 function processSignalForPlan(tk,spot,chg,iv3){
-  // Same scoring logic as processSignal
+  // Was previously its own crude scorer (1-day % change + IV threshold only —
+  // no RSI, no MA), which could silently disagree with the RSI/MA-based
+  // signal shown everywhere else (StratEdge scanner, main signal card).
+  // Now: defer to quickSignal() — the same RSI-14 + 20d MA + momentum engine
+  // used across the app — whenever real price history is cached for this
+  // ticker, so Planner's cards always match. Only fall back to the coarse
+  // change/IV heuristic when there isn't enough history yet to run RSI/MA on.
+  var sym=tk.toUpperCase();
+  var cache=(typeof G4_CACHE!=='undefined')?G4_CACHE[sym]:null;
+  if(cache&&cache.length>=20&&typeof quickSignal==='function'){
+    var qs=quickSignal(sym);
+    if(qs&&!qs.noData) return {action:qs.action, conf:qs.conf};
+  }
+  // Fallback: no cached history yet for this ticker (e.g. first load).
   var bull=0,bear=0;
   if(chg>1.0)bull+=2; else if(chg>0.3)bull+=1;
   else if(chg<-1.0)bear+=2; else if(chg<-0.3)bear+=1;

@@ -329,12 +329,32 @@ window.addEventListener('load',function(){
   var fk=localStorage.getItem('ge_fh_key');
   if(fk){document.getElementById('fhKeyInput').value=fk;updateFhStatus();}
   renderSaved();
-  var cap=parseFloat(document.getElementById('cap').value)||100000;
-  var dol=Math.round(cap*0.05);
-  document.getElementById('tpct').value=5;
-  document.getElementById('tdol').value=dol;
-  document.getElementById('tpct-disp').textContent='5%';
-  document.getElementById('tdol-disp').textContent='$'+dol.toLocaleString();
+
+  // Handoff from Planner (index.html "Full AI Weekly Plan →" button):
+  // ?cap=<capital>&tgt=<profit target $> prefills these fields instead of
+  // requiring the same numbers to be typed in twice across two apps.
+  var qp=new URLSearchParams(window.location.search);
+  var qCap=parseFloat(qp.get('cap'));
+  var qTgt=parseFloat(qp.get('tgt'));
+  var cap=(qCap>0)?qCap:(parseFloat(document.getElementById('cap').value)||100000);
+  document.getElementById('cap').value=cap;
+  if(qCap>0){
+    document.querySelectorAll('.pre').forEach(function(b){b.classList.remove('on');});
+  }
+
+  if(qTgt>0&&cap>0){
+    var pct=+(qTgt/cap*100).toFixed(1);
+    document.getElementById('tpct').value=pct;
+    document.getElementById('tdol').value=Math.round(qTgt);
+    document.getElementById('tpct-disp').textContent=pct+'%';
+    document.getElementById('tdol-disp').textContent='$'+Math.round(qTgt).toLocaleString();
+  } else {
+    var dol=Math.round(cap*0.05);
+    document.getElementById('tpct').value=5;
+    document.getElementById('tdol').value=dol;
+    document.getElementById('tpct-disp').textContent='5%';
+    document.getElementById('tdol-disp').textContent='$'+dol.toLocaleString();
+  }
   document.getElementById('tpct-disp').className='tpill-val set';
   document.getElementById('tdol-disp').className='tpill-val set';
   document.getElementById('tpill-pct').classList.add('set');

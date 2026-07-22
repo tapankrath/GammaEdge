@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Symmetric Macro Volatility Matrix</title>
+    <script src="shared/ge-signal-core.js"></script>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -289,14 +290,12 @@
                 const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`);
                 const data = await res.json();
                 if (data && data.dp !== undefined) {
-                    let scenario = 'NORMAL';
-                    const dev = data.dp;
-                    const lim = targets[symbol].threshold;
-                    if (dev <= -lim * 1.3) scenario = 'FLASH_CRASH';
-                    else if (dev <= -lim) scenario = 'STANDARD_DOWN';
-                    else if (dev >= lim * 1.3) scenario = 'FLASH_SPIKE';
-                    else if (dev >= lim) scenario = 'STANDARD_UP';
-                    marketState[symbol] = { price: data.c, change: data.dp, scenario: scenario };
+                    // Breach classification now comes from shared/ge-signal-core.js
+                    // (geBreachSignal) — same threshold logic StratEdge/Planner
+                    // would use if they ever surface a breach read too, instead
+                    // of a scenario classifier that only ever lived here.
+                    const breach = geBreachSignal(data.dp, targets[symbol].threshold);
+                    marketState[symbol] = { price: data.c, change: data.dp, scenario: breach.scenario };
                 }
             } catch (e) { console.error(e); }
         }
