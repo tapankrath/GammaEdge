@@ -2630,7 +2630,7 @@ function alToggle(id) {
     <button onclick="pmResetPeriod(false)" style="flex:1;background:var(--abg);color:var(--amber);border:2px solid var(--abd);border-radius:10px;padding:12px;font-size:13px;font-weight:800">Reset (keep capital)</button>
     <button onclick="pmResetPeriod(true)" style="flex:1;background:var(--gbg);color:var(--green);border:2px solid var(--gbd);border-radius:10px;padding:12px;font-size:13px;font-weight:800">Compound + Reset</button>
   </div>
-  <div class="note" style="margin-top:8px">Kelly sizing · saved locally · signals from Signal tab</div>
+  <div class="note" style="margin-top:8px">Kelly sizing · saved locally · auto-computed signals</div>
 </div>
 
 <!-- TAB 5: PORTFOLIO GREEKS DASHBOARD -->
@@ -6533,7 +6533,7 @@ function renderBtSummary(){
       +'style="width:100%;background:'+btnBg+';color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">'
       +'<span style="font-size:15px">\u2192</span> '+(isViable?'Send to Planner':'Send to Planner (size small)')+'</button>';
   } else {
-    // Pull the directional signal for this ticker from the signal tab
+    // Pull the directional signal for this ticker (same engine that feeds Planner)
     var sigRec=G4_LAST_SIGNAL[T5]||quickSignal(btTicker);
     var sigAction=sigRec?sigRec.action:'';
     var hasDirectional=sigAction&&sigAction!=='NO TRADE'&&sigAction.indexOf('STRADDLE')===-1;
@@ -6554,7 +6554,7 @@ function renderBtSummary(){
       var dIcon=isCallSig?'\u2191':'\u2193';
       var dType=isCallSig?'call':'put';
       html+='<div style="background:'+dBg+';border:2px solid '+dBorder+';border-radius:10px;padding:12px 14px">';
-      html+='<div style="font-size:9px;font-weight:900;color:'+dColor+';text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">\u26a1 Signal tab says: try directional instead</div>';
+      html+='<div style="font-size:9px;font-weight:900;color:'+dColor+';text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">\u26a1 Signal says: try directional instead</div>';
       // Signal summary
       html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">';
       html+='<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px">';
@@ -6572,10 +6572,10 @@ function renderBtSummary(){
       html+='A directional <b style="color:'+dColor+'">'+(dType.toUpperCase())+'</b> only needs the move in one direction — you\'re not paying for both sides. ';
       html+='With straddles losing money, the market is overpricing vol. A single-leg '+dType+' is cheaper and aligned with your signal.';
       html+='</div>';
-      // CTA button → Signal tab
+      // CTA button → Planner (dual signal cards)
       html+='<button onclick="btGoToSignal(\''+T5+'\')" '
         +'style="width:100%;background:'+dBorder+';color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        +'<span style="font-size:15px">'+dIcon+'</span> Go to Signal tab — '+btTicker+' '+sigAction+'</button>';
+        +'<span style="font-size:15px">'+dIcon+'</span> View signal in Planner — '+btTicker+' '+sigAction+'</button>';
       html+='</div>';
     } else {
       html+='<div style="background:rgba(30,41,59,.6);border:1px solid #334155;border-radius:8px;padding:10px;text-align:center;font-size:11px;font-weight:700;color:#64748b">';
@@ -6588,27 +6588,22 @@ function renderBtSummary(){
   body.innerHTML=html;
 }
 
-/* ── BACKTEST → SIGNAL TAB BRIDGE ── */
+/* ── BACKTEST → PLANNER SIGNAL BRIDGE ── */
 function btGoToSignal(tk){
-  showTab(1);
+  // Signal tab was removed — directional signals now live as dual signal
+  // cards on the Planner tab (tab3 → pane6, #pm-dual-signals).
+  showTab(3);
   setTimeout(function(){
-    if(tk==='spy'||tk==='qqq'){
-      if(GE_OPEN_PICK!=='IDX'+tk.toUpperCase())geIndexPick(tk); // open (not toggle-close)
-    }else if(tk){
-      if(GE_OPEN_PICK!==String(tk).toUpperCase())geOpenSignalPanel(tk,String(tk).toUpperCase());
-    }else if(!GE_OPEN_PICK){
-      geIndexPick(GE_LAST_IDX); // nothing open — show the last index so the flash lands
-    }
-    // Scroll to top of signal pane
-    var pane=$('pane4');
-    if(pane)pane.scrollIntoView({behavior:'smooth',block:'start'});
-    // Flash the main signal card so user knows what to look at
-    var card=$('g-main-card');
-    if(card){
-      var orig=card.style.outline||'';
-      card.style.outline='3px solid #3b82f6';
-      card.style.transition='outline .3s';
-      setTimeout(function(){card.style.outline=orig;},1800);
+    if(typeof pmRenderSignalCards==='function')pmRenderSignalCards();
+    // Scroll to the signal cards
+    var el=$('pm-dual-signals');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+    // Flash the card so user knows what to look at
+    if(el){
+      var orig=el.style.outline||'';
+      el.style.outline='3px solid #3b82f6';
+      el.style.transition='outline .3s';
+      setTimeout(function(){el.style.outline=orig;},1800);
     }
   },150);
 }
@@ -7280,7 +7275,7 @@ function showPricing(){
     +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Free</div>'
     +'<div style="font-size:26px;font-weight:900;color:#0a0f1e;margin-bottom:10px">$0</div>'
     +'<div style="font-size:11px;font-weight:600;color:#374151;line-height:1.8">'
-    +'✓ Signal tab<br>✓ Size calculator<br>✓ Basic P&L calc<br>✗ Plan &amp; Journal<br>✗ Backtest<br>✗ Lottery'
+    +'✓ StratEdge tab<br>✓ Size calculator<br>✓ Basic P&L calc<br>✗ Plan &amp; Journal<br>✗ Backtest<br>✗ Lottery'
     +'</div>'
     +'</div>'
     // Pro
@@ -7999,7 +7994,7 @@ function alGoA(){
       'Cost: $'+alFmt(totalCostD)+'. Stock must move '+(isCall?'above':'below')+' $'+(isCall?spot+cp/100:spot-cp/100).toFixed(2)+' by expiry to profit.<br>'+
       '<b>📤 EXIT (profit):</b> Sell when position is +50–100%. Lock in gains — don\'t get greedy near expiry.<br>'+
       '<b>📤 EXIT (stop):</b> Cut loss at 50% premium loss. Exit if thesis is wrong — time decay accelerates near expiry.<br>'+
-      '<b>⏰ TIMING:</b> Use with Signal tab confirmation. '+(isCall?'BUY CALL signal + bullish momentum.':'BUY PUT signal + bearish momentum.')+' 5–14 DTE for best leverage/theta balance.<br>'+
+      '<b>⏰ TIMING:</b> Use with Planner signal confirmation. '+(isCall?'BUY CALL signal + bullish momentum.':'BUY PUT signal + bearish momentum.')+' 5–14 DTE for best leverage/theta balance.<br>'+
       '<b>⚠️ RISK:</b> 100% loss possible if stock doesn\'t move past break-even. Never risk more than 20% of aggressive bucket on a single trade.';
 
     var movesD=isCall?[1,2,3,5,8,12]:[-1,-2,-3,-5,-8,-12];
