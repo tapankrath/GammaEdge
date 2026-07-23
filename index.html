@@ -3242,7 +3242,12 @@ function tryClaudePrice(sym){
         body:JSON.stringify({
           model:'claude-haiku-4-5-20251001',max_tokens:400,
           tools:[{type:'web_search_20250305',name:'web_search'}],
-          messages:[{role:'user',content:'Current price and previous close of '+sym+' stock right now? Reply ONLY JSON: {\"c\":123.45,\"pc\":122.10}'}]
+          // Was letting the model skip the tool entirely and answer from
+          // training memory — for a stock price that's not a fallback,
+          // that's a way to silently return a stale/wrong number and have
+          // it get treated as "live." Force it to actually search.
+          tool_choice:{type:'tool',name:'web_search'},
+          messages:[{role:'user',content:'Search the web for the CURRENT real-time price and previous close of '+sym+' stock right now. Do not answer from memory. After searching, reply with ONLY this JSON on its own line: {\"c\":123.45,\"pc\":122.10}'}]
         })
       })
       .then(function(r){return r.json();})
@@ -3254,6 +3259,17 @@ function tryClaudePrice(sym){
         var full=text.slice(text.indexOf(m[0]));
         var end=full.indexOf('}')+1;
         var d=JSON.parse(full.slice(0,end));
+        // Sanity check: an AI-sourced price is the least trustworthy source
+        // in the fallback chain. If it's wildly off from the last real price
+        // we ever fetched (>15%), don't silently label it "live" — treat it
+        // as suspect and fall back to the last known-good stale price
+        // instead of overwriting good data with a bad guess.
+        var lastGood=null;
+        try{lastGood=JSON.parse(localStorage.getItem('ge_px_'+sym.toLowerCase())||'null');}catch(e){}
+        if(lastGood&&lastGood.p>0&&d.c>0){
+          var driftPct=Math.abs(d.c-lastGood.p)/lastGood.p*100;
+          if(driftPct>15){loadStalePrice(sym);return;}
+        }
         applyPrice(sym,d.c,d.pc);
       })
       .catch(function(){loadStalePrice(sym);});
