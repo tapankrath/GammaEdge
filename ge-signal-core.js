@@ -14,7 +14,9 @@
  *
  * Pure functions, no DOM/fetch — each file keeps its own UI/rendering and
  * its own data fetching, but the math itself now lives in exactly one place.
- * Include via: <script src="shared/ge-signal-core.js"></script>
+ * Canonical source of truth — copy this file's contents in place of
+ * a <script> tag rather than referencing it by src, so files that use it
+ * stay single, self-contained HTML files (matches how this project ships).
  * ──────────────────────────────────────────────────────────────────────── */
 (function(root){
 
@@ -128,6 +130,6 @@
     geBreachSignal:geBreachSignal, geUnifiedRead:geUnifiedRead };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else for (var k in api) root[k] = api;
+  else for (var k in api) root[k] = api[k];
 
 })(typeof window !== 'undefined' ? window : globalThis);
