@@ -2900,7 +2900,7 @@ function alToggle(id) {
 var FK=(localStorage.getItem('ge_fh_key')||'d81r01pr01qrojfcs5cgd81r01pr01qrojfcs5d0').trim(); // Finnhub key — set in Settings
 var PM_KEY='gammaedge_portfolio';
 var PM_HIST_KEY='gammaedge_history';
-var LIVE={spy:0,qqq:0},LIVE_CHG={};
+var LIVE={spy:0,qqq:0},LIVE_CHG={},LIVE_TS={};
 var T1='qqq',T2='qqq',T3='qqq',T4='qqq',SDIR='up',OTM=2,SEL=0;
 var DEFS={spy:{spot:737,cost:8,iv:17},qqq:{spot:530,cost:12,iv:20}};
 var DTES=[2,5,8,10,14,21,30];
@@ -3268,7 +3268,10 @@ function applyPrice(sym,p,pc,staleTs){
     ch=0;pct=0;
   }
   LIVE[k]=p;LIVE_CHG[k]=pct;
-  if(!staleTs){try{localStorage.setItem('ge_px_'+k,JSON.stringify({p:p,pc:pc,ts:Date.now()}));}catch(e){}}
+  if(!staleTs){
+    LIVE_TS[k]=Date.now();
+    try{localStorage.setItem('ge_px_'+k,JSON.stringify({p:p,pc:pc,ts:Date.now()}));}catch(e){}
+  }
   var pxEl=$('px-'+k);if(pxEl)pxEl.textContent='$'+p.toFixed(2);
   var el=$('pc-'+k);
   if(el){
@@ -3287,6 +3290,15 @@ function applyPrice(sym,p,pc,staleTs){
   if(T2===k)$('r1')&&($('r1').value=p.toFixed(2));
   if(T3===k)$('s1')&&($('s1').value=p.toFixed(2));
   go1();go2();go3();
+  // If the Planner tab is on screen right now, refresh its live cards
+  // immediately — previously these only updated on tab switch or a manual
+  // Refresh tap, so a price that arrived after the tab had already
+  // rendered (a common race on first load) would sit stale until the user
+  // left and came back.
+  if((k==='spy'||k==='qqq')&&$('pane6')&&$('pane6').style.display==='block'){
+    if(typeof pmRenderSignalCards==='function')pmRenderSignalCards();
+    if(typeof pmRenderBucketSplit==='function')pmRenderBucketSplit();
+  }
 }
 function fmtTs(){var n=new Date(),d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],h=n.getHours(),mi=n.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return d[n.getDay()]+' '+m[n.getMonth()]+' '+n.getDate()+' '+h+':'+(mi<10?'0':'')+mi+' '+ap;}
 function updateMktNow(bull,bear){
@@ -3370,7 +3382,19 @@ function rfSpin(id,ms){var b=$('rfr-'+id);if(!b)return;b.classList.add('spinning
 function refreshSignal(){rfSpin('signal',4000);G4_CACHE={};LIVE_CHG={};fetchAll();go4();if(typeof geWarmIdxHist==='function')geWarmIdxHist();if(typeof geVerifyPicks==='function')geVerifyPicks(true);}
 function refreshLottery(){rfSpin('lottery',4000);var t=T3||'qqq';if(t.toLowerCase()==='spy')setT3('spy');else if(t.toLowerCase()==='qqq')setT3('qqq');else{$('s-custom-tk')&&($('s-custom-tk').value=t.toUpperCase());lotteryFetchCustom();}}
 function refreshBacktest(){rfSpin('backtest',5000);fetchOHLC(T5);}
-function refreshPlanner(){rfSpin('planner',4000);G4_CACHE={};fetchAll();setTimeout(function(){if(typeof pmUpdateDualSignals==='function')pmUpdateDualSignals();},2500);}
+function refreshPlanner(){
+  rfSpin('planner',4000);
+  G4_CACHE={};
+  fetchAll();
+  // Was calling pmUpdateDualSignals() — a function that doesn't exist
+  // anywhere in this file. The typeof guard made that fail silently, so
+  // Refresh fetched new prices but never actually re-rendered the SPY/QQQ
+  // signal cards with them; they only updated on next tab switch.
+  setTimeout(function(){
+    pmRenderSignalCards();
+    pmRenderBucketSplit();
+  },2500);
+}
 
 /* ── TAB 1 ── */
 function setT1(t){
@@ -7054,6 +7078,29 @@ function pmRenderSignalCards(){
     if(isCall){color='#166534';bg='#f0fdf4';border='#86efac';}
     else if(isPut){color='#9b1c1c';bg='#fef2f2';border='#fca5a5';}
 
+    // Freshness — how old is the price this card is actually using?
+    // Previously this had no on-card indicator at all, so a card could be
+    // silently running on a hardcoded placeholder (DEFS) with zero visual
+    // difference from a real live quote. Now every card always shows one:
+    //   green  = live quote fetched this session (age shown)
+    //   amber  = a cached price from localStorage (from an earlier visit)
+    //   red    = no real price at all yet — this IS the DEFS placeholder
+    var freshLbl,freshColor;
+    if(LIVE[tk]>0&&LIVE_TS[tk]){
+      var ageSec=Math.round((Date.now()-LIVE_TS[tk])/1000);
+      var ageTxt=ageSec<5?'just now':ageSec<60?ageSec+'s ago':Math.round(ageSec/60)+'m ago';
+      freshLbl='● live · '+ageTxt; freshColor='#16a34a';
+    } else {
+      var cached=null;
+      try{cached=JSON.parse(localStorage.getItem('ge_px_'+tk)||'null');}catch(e){}
+      if(cached&&cached.p){
+        var t=new Date(cached.ts||0).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        freshLbl='● cached · as of '+t; freshColor='#d97706';
+      } else {
+        freshLbl='⚠ no live price — placeholder default'; freshColor='#dc2626';
+      }
+    }
+
     // Sizing: use risk slider % of available
     var riskAmt=available*pct/100;
     var dte=8;
@@ -7067,7 +7114,8 @@ function pmRenderSignalCards(){
     cards+='<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:10px;padding:10px">';
     cards+='<div style="font-size:10px;font-weight:800;color:'+color+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">'+sym+(chg!==null?' '+(chg>=0?'+':'')+chg.toFixed(2)+'%':'')+'</div>';
     cards+='<div style="font-size:16px;font-weight:900;color:'+color+';margin-bottom:2px">'+action+'</div>';
-    cards+='<div style="font-size:10px;color:'+color+';font-weight:700;margin-bottom:8px;opacity:.8">'+conf+(conf&&conf!=='—'?' Confidence':'')+'</div>';
+    cards+='<div style="font-size:10px;color:'+color+';font-weight:700;margin-bottom:4px;opacity:.8">'+conf+(conf&&conf!=='—'?' Confidence':'')+'</div>';
+    cards+='<div style="font-size:9px;font-weight:800;color:'+freshColor+';margin-bottom:8px">$'+spot.toFixed(2)+' · '+freshLbl+'</div>';
     if(!noTrade&&qty>0){
       cards+='<div style="font-size:10px;color:#374151;font-weight:700;line-height:1.6">'+dte+' DTE · $'+K+' strike<br>'+qty+'c · $'+fmt(totalCost)+' risk</div>';
       cards+='<div onclick="pmPrefill(\''+tk+'\',\''+action+'\')" style="margin-top:8px;background:'+color+';color:#fff;border-radius:7px;padding:7px;font-size:11px;font-weight:800;text-align:center;cursor:pointer">→ Add to Plan</div>';
