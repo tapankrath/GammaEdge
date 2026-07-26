@@ -725,34 +725,6 @@ let PICKS=[
    delta:0.15,dte:540,exitStop:80,exitTarget:1500,exitTime:18},
 ];
 
-const KNOWN={
-  NVDA:{name:'NVIDIA Corp',beta:2.0,iv:52,mom:90,opts:96,verdict:'caution',
-    thesis:'Priced for perfection at this valuation — deep OTM calls rarely pay. Spreads or diagonals are the only sensible structure. Best-in-class options chain.',
-    strat:'Bull Call Spread',
-    strat2:'Buy 0.50Δ call · sell 0.25Δ call same expiry · 60–90 DTE · defined risk, defined reward',
-    delta:0.50,dte:75,exitStop:50,exitTarget:200,exitTime:6},
-  TSLA:{name:'Tesla Inc',beta:2.4,iv:72,mom:74,opts:88,verdict:'caution',
-    thesis:'High beta, liquid chain, but narrative crowded from both sides. Earnings and product events are the only clean catalysts. Calendars around known events.',
-    strat:'Calendar Spread',
-    strat2:'Sell 30-DTE call at ~0.35Δ · buy 60-DTE same strike · enter 2 weeks before catalyst',
-    delta:0.35,dte:60,exitStop:60,exitTarget:300,exitTime:4},
-  COIN:{name:'Coinbase Global',beta:3.5,iv:78,mom:80,opts:84,verdict:'go',
-    thesis:'Best crypto cycle proxy with a deeply liquid options chain. BTC ETF flows create a sustained bid. Sell monthly OTM calls against LEAPS to recover cost basis.',
-    strat:'Diagonal Spread',
-    strat2:'Buy 12-mo call at ~0.55Δ · sell 30-DTE call at ~0.25Δ monthly · target 8–12% cost recovery/cycle',
-    delta:0.55,dte:365,exitStop:65,exitTarget:600,exitTime:12},
-  AMD:{name:'Advanced Micro Devices',beta:1.9,iv:54,mom:68,opts:86,verdict:'caution',
-    thesis:'Solid AI semis story but lower beta than ideal for 10× plays. Diagonals with AI cycle conviction work; deep OTM rarely pays at this size.',
-    strat:'Diagonal Spread',
-    strat2:'Buy 12-mo call at ~0.55Δ · sell monthly call at ~0.25Δ · roll on IV spikes',
-    delta:0.55,dte:365,exitStop:55,exitTarget:300,exitTime:10},
-  RXRX:{name:'Recursion Pharma',beta:3.0,iv:80,mom:70,opts:74,verdict:'go',
-    thesis:'AI drug discovery bridging two hot themes — NVIDIA direct investment validates the thesis. Binary trial readouts are IV explosions waiting to happen.',
-    strat:'Long Straddle',
-    strat2:'Buy ATM call + ATM put at ~0.50Δ each · enter 2 weeks before trial readout · sell into IV spike',
-    delta:0.50,dte:45,exitStop:55,exitTarget:500,exitTime:6},
-};
-
 // ── P&L SVG chart
 function makePnlChart(pick, per, overrideTarget){
   const tgt = overrideTarget || pick.exitTarget;
@@ -985,27 +957,23 @@ async function analyzeCustom(){
     res.innerHTML=`<div style="background:var(--bullbg);border-left:3px solid var(--bull);border-radius:0 8px 8px 0;padding:8px 12px;font-size:12px;font-weight:600;color:var(--bull)">✓ ${raw} is in the recommended picks — scroll up to find it.</div>`;
     return;
   }
-  const known=KNOWN[raw];
-  if(known){
-    res.innerHTML='<div class="loading"><span class="spinner"></span>Scoring '+raw+'…</div>';
-    setTimeout(()=>{
-      const p={...known,t:raw,s:'Custom',sc:'s-cus',stars:known.verdict==='go'?4:3,color:known.verdict==='go'?'bull':'mixed'};
-      res.innerHTML=makePickHTML(p,'c0',false);
-    },400);
-    return;
-  }
   res.innerHTML='<div class="loading"><span class="spinner"></span>Analyzing '+raw+' with AI…</div>';
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',credentials:'omit',mode:'cors',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:700,
-        messages:[{role:'user',content:`Analyze "${raw}" for a 10x speculative options strategy. Use delta and DTE only — no specific strike prices or calendar year labels. Return ONLY valid JSON, no markdown:
-{"name":"company name","beta":number,"iv":0_to_100,"mom":0_to_100,"opts":0_to_100,"delta":0.10_to_0.65,"dte":30_to_720,"verdict":"go"|"caution"|"pass","thesis":"2 sentence options thesis with catalyst","strat":"strategy name","strat2":"entry using Δ and DTE only, e.g. Buy 12-mo calls at ~0.25Δ","exitStop":40_to_85,"exitTarget":200_to_2000,"exitTime":3_to_18}`}]
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1500,
+        messages:[{role:'user',content:`Use web search to check current price action, recent news, and options activity for "${raw}" before answering. Analyze it for a 10x speculative options strategy. Use delta and DTE only — no specific strike prices or calendar year labels. After researching, respond with ONLY valid JSON, no markdown, no other text:
+{"name":"company name","beta":number,"iv":0_to_100,"mom":0_to_100,"opts":0_to_100,"delta":0.10_to_0.65,"dte":30_to_720,"verdict":"go"|"caution"|"pass","thesis":"2 sentence options thesis with catalyst","strat":"strategy name","strat2":"entry using Δ and DTE only, e.g. Buy 12-mo calls at ~0.25Δ","exitStop":40_to_85,"exitTarget":200_to_2000,"exitTime":3_to_18}`}],
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:5}]
       })
     });
     const d=await r.json();
-    const txt=d.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(txt);
+    const textBlocks=d.content.filter(c=>c.type==='text');
+    if(!textBlocks.length) throw new Error('No text in response');
+    const txt=textBlocks.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const objMatch=txt.match(/\{[\s\S]*\}/);
+    if(!objMatch) throw new Error('No JSON object found — got: '+txt.slice(0,120));
+    const parsed=JSON.parse(objMatch[0]);
     const p={...parsed,t:raw,s:'Custom',sc:'s-cus',
       delta:parsed.delta||0.25, dte:parsed.dte||365,
       stars:parsed.verdict==='go'?4:3,
@@ -1218,7 +1186,7 @@ async function refreshPicks(){
   setRefreshState(true);
   showToast('Fetching AI picks…');
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const prompt=`Today is ${today}. You are a speculative options strategist. Identify the top 8 momentum stocks right now suitable for high-risk options plays targeting 8-10x returns (deep OTM LEAPS, diagonals, ratio backspreads, calendars). Focus on high beta, strong recent momentum, clear near-term catalysts. Sectors: AI, defense, space, biotech, crypto proxies, emerging tech.
+  const prompt=`Today is ${today}. You are a speculative options strategist. Use web search to check current market activity, recent news, and momentum before answering — do not rely on memory alone. Identify the top 8 momentum stocks right now suitable for high-risk options plays targeting 8-10x returns (deep OTM LEAPS, diagonals, ratio backspreads, calendars). Focus on high beta, strong recent momentum, clear near-term catalysts confirmed by your searches. Sectors: AI, defense, space, biotech, crypto proxies, emerging tech.
 
 CRITICAL: All strategy entries must use delta and DTE (days-to-expiration) — NEVER mention specific strike prices or calendar year expirations (e.g. no "$25C", no "Jan'27"). Instead write entries like "Buy 12-mo call at ~0.25Δ" or "Sell 30-DTE call at ~0.35Δ". This keeps the advice timeless regardless of current stock price.
 
@@ -1234,8 +1202,9 @@ strat2 must describe entry using Δ (delta) and DTE only — no dollar strikes, 
       method:'POST',credentials:'omit',mode:'cors',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        model:'claude-sonnet-4-5',max_tokens:3000,
-        messages:[{role:'user',content:prompt}]
+        model:'claude-sonnet-4-5',max_tokens:4000,
+        messages:[{role:'user',content:prompt}],
+        tools:[{type:'web_search_20250305',name:'web_search',max_uses:8}]
       })
     });
     if(!r.ok){
@@ -1268,15 +1237,24 @@ strat2 must describe entry using Δ (delta) and DTE only — no dollar strikes, 
   setRefreshState(false);
 }
 
-// ── Init: load cached picks if available
+// ── Init: load cached picks if available, else auto-refresh live if we have a key
+const PICKS_MAX_AGE_MS = 24*60*60*1000; // 1 day
 (function initPicks(){
   const cached=loadPicksCache();
+  const isFresh = cached && cached.picks && cached.picks.length>=4 && (Date.now()-cached.ts)<PICKS_MAX_AGE_MS;
+  if(isFresh){
+    applyPicksData(cached.picks,cached.ts);
+    return;
+  }
   if(cached&&cached.picks&&cached.picks.length>=4){
+    // show stale cache immediately while we try to refresh underneath it
     applyPicksData(cached.picks,cached.ts);
   } else {
-    // Built-in list — show "built-in" timestamp
     document.getElementById('refreshDate').textContent='built-in · tap Refresh for live data';
     document.getElementById('refreshTs').classList.add('stale');
+  }
+  if(getApiKey()){
+    refreshPicks();
   }
 })();
 
