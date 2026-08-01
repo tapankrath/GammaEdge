@@ -47,12 +47,12 @@
     if (spread >= 5) {
       signal = 'SELL VOL';
       confidence = Math.min(95, 60 + spreadPct);
-      color = '#f43f5e'; bg = 'rgba(244,63,94,.08)';
+      color = '#dc2626'; bg = 'rgba(220,38,38,.08)';
       action = 'IV is <strong>rich vs RV</strong> — premium selling favored. Consider Iron Condor or short Strangle.';
     } else if (spread <= -3) {
       signal = 'BUY VOL';
       confidence = Math.min(95, 60 + Math.abs(spreadPct));
-      color = '#34d399'; bg = 'rgba(52,211,153,.08)';
+      color = '#16a34a'; bg = 'rgba(22,163,74,.08)';
       action = 'IV is <strong>cheap vs RV</strong> — long vol favored. Consider Straddle or Strangle.';
     } else {
       signal = 'NEUTRAL';
@@ -468,7 +468,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 /* ── STRATEGY LENS INLINE ── */
 #sl-wrap{--sl:1}
 #sl-wrap *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-#sl-wrap{background:#090d16;color:#f8fafc;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;width:100%;overflow:visible;}
+#sl-wrap{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;width:100%;overflow:visible;}
 
 /* TOPBAR */
 #sl-wrap .topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;gap:8px}
@@ -694,12 +694,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 12px 8px;">
     <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
     <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
-    <a href="options-desk.html"  target="_blank" rel="noopener" class="ge-tool-link">Options</a>
+    <a href="options-desk.html"  target="_blank" rel="noopener" class="ge-tool-link">OptionsAI</a>
     <a href="strategy-builder.html" target="_blank" rel="noopener" class="ge-tool-link">Strategy</a>
-    <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">Portfolio</a>
-    <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">Moonshot</a>
-    <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">Weekly</a>
-    <a href="BigChances.html"    target="_blank" rel="noopener" class="ge-tool-link">BigChances</a>
+    <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">PortfolioAI</a>
+    <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">MoonshotAI</a>
+    <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">WeeklyAI</a>
   </div>
 
   <!-- Tab bar — all 5 visible, equal width -->
@@ -722,124 +721,124 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 <div id="sl-wrap">
 
 <style>
-/* ── OVERRIDE: dark engine inside pane0 ── */
-#sl-wrap { background:#090d16; color:#f8fafc; }
+/* ── OVERRIDE: light theme inside pane0 (StratEdge) — matches Backtest/Alloc/Planner ── */
+#sl-wrap { background:#e8eef6; color:#09101f; }
 #sl-wrap .nd-container { max-width:100%; padding:12px; }
-#sl-wrap .nd-top-bar { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:10px; margin-bottom:14px; }
-#sl-wrap .nd-title { font-size:16px; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:.03em; }
+#sl-wrap .nd-top-bar { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #c8d5e8; padding-bottom:10px; margin-bottom:14px; }
+#sl-wrap .nd-title { font-size:16px; font-weight:800; color:#16a34a; text-transform:uppercase; letter-spacing:.03em; }
 #sl-wrap .nd-actions { display:flex; align-items:center; gap:8px; }
-#sl-wrap .nd-icon-btn { background:none; border:none; color:#cbd5e1; cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; transition:color .2s; }
-#sl-wrap .nd-icon-btn:hover, #sl-wrap .nd-icon-btn:active { color:#34d399; }
-#sl-wrap .nd-ctrl { background:#1e293b; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid rgba(255,255,255,.02); }
-#sl-wrap .nd-lbl { font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; margin-bottom:6px; display:block; }
+#sl-wrap .nd-icon-btn { background:none; border:none; color:#64748b; cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; transition:color .2s; }
+#sl-wrap .nd-icon-btn:hover, #sl-wrap .nd-icon-btn:active { color:#16a34a; }
+#sl-wrap .nd-ctrl { background:#ffffff; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid #c8d5e8; }
+#sl-wrap .nd-lbl { font-size:10px; font-weight:700; color:#1e293b; text-transform:uppercase; margin-bottom:6px; display:block; }
 #sl-wrap .nd-ticker-grid { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
-#sl-wrap .nd-tick-btn { display:inline-flex; align-items:center; padding:4px 8px; background:#0f172a; border:1px solid #475569; color:#cbd5e1; border-radius:12px; font-weight:800; font-size:10px; cursor:pointer; white-space:nowrap; gap:5px; transition:all .15s; }
-#sl-wrap .nd-tick-btn.active { background:#10b981; color:#0f172a; border-color:#10b981; box-shadow:0 0 10px rgba(16,185,129,.2); }
-#sl-wrap .nd-tick-btn .nd-rmx { font-size:12px; font-weight:900; color:#cbd5e1; padding:0 2px; border-radius:50%; }
-#sl-wrap .nd-tick-btn.active .nd-rmx { color:#065f46; }
-#sl-wrap .nd-sticky { position:sticky; top:0; z-index:49; background:#090d16; padding-bottom:8px; padding-top:4px; }
-#sl-wrap .nd-mini-bar { display:none; align-items:center; justify-content:space-between; background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:7px 10px; margin-bottom:0; }
+#sl-wrap .nd-tick-btn { display:inline-flex; align-items:center; padding:4px 8px; background:#f4f7fb; border:1px solid #c8d5e8; color:#334155; border-radius:12px; font-weight:800; font-size:10px; cursor:pointer; white-space:nowrap; gap:5px; transition:all .15s; }
+#sl-wrap .nd-tick-btn.active { background:#16a34a; color:#fff; border-color:#16a34a; box-shadow:0 0 10px rgba(22,163,74,.2); }
+#sl-wrap .nd-tick-btn .nd-rmx { font-size:12px; font-weight:900; color:#fff; padding:0 2px; border-radius:50%; }
+#sl-wrap .nd-tick-btn.active .nd-rmx { color:#fff; }
+#sl-wrap .nd-sticky { position:sticky; top:0; z-index:49; background:#e8eef6; padding-bottom:8px; padding-top:4px; }
+#sl-wrap .nd-mini-bar { display:none; align-items:center; justify-content:space-between; background:#fff; border:1px solid #c8d5e8; border-radius:8px; padding:7px 10px; margin-bottom:0; box-shadow:0 1px 3px rgba(0,0,0,.05); }
 #sl-wrap .nd-mini-bar.visible { display:flex; }
-#sl-wrap .nd-mini-sym { font-size:14px; font-weight:900; color:#fff; }
-#sl-wrap .nd-mini-price { font-size:13px; font-weight:800; color:#34d399; }
-#sl-wrap .nd-mini-dte { font-size:10px; font-weight:800; color:#3b82f6; background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); border-radius:5px; padding:2px 7px; }
-#sl-wrap .nd-mini-expand { font-size:10px; font-weight:800; color:#64748b; background:#1e293b; border:1px solid #334155; border-radius:5px; padding:3px 8px; cursor:pointer; white-space:nowrap; }
+#sl-wrap .nd-mini-sym { font-size:14px; font-weight:900; color:#09101f; }
+#sl-wrap .nd-mini-price { font-size:13px; font-weight:800; color:#16a34a; }
+#sl-wrap .nd-mini-dte { font-size:10px; font-weight:800; color:#2563eb; background:#dbeafe; border:1px solid #60a5fa; border-radius:5px; padding:2px 7px; }
+#sl-wrap .nd-mini-expand { font-size:10px; font-weight:800; color:#64748b; background:#f4f7fb; border:1px solid #c8d5e8; border-radius:5px; padding:3px 8px; cursor:pointer; white-space:nowrap; }
 #sl-wrap .nd-custom-row { display:flex; gap:5px; margin-bottom:8px; }
-#sl-wrap .nd-tick-inp { flex:1; min-width:0; background:#0f172a; border:1px solid #475569; color:#fff; padding:4px 8px; border-radius:6px; font-weight:700; font-size:10px; text-transform:uppercase; text-align:center; outline:none; height:28px; }
-#sl-wrap .nd-tick-inp:focus { border-color:#10b981; }
-#sl-wrap .nd-add-btn { background:#10b981; color:#0f172a; font-weight:900; font-size:14px; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-#sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#0f172a; border:1px solid #475569; border-radius:6px; padding:2px 8px; }
-#sl-wrap .nd-cap-sym { color:#cbd5e1; font-weight:800; font-size:13px; margin-right:4px; }
-#sl-wrap .nd-cap-inp { width:100%; background:none; border:none; color:#fff; font-size:13px; font-weight:700; outline:none; padding:6px 0; }
+#sl-wrap .nd-tick-inp { flex:1; min-width:0; background:#f4f7fb; border:1px solid #c8d5e8; color:#09101f; padding:4px 8px; border-radius:6px; font-weight:700; font-size:10px; text-transform:uppercase; text-align:center; outline:none; height:28px; }
+#sl-wrap .nd-tick-inp:focus { border-color:#16a34a; }
+#sl-wrap .nd-add-btn { background:#16a34a; color:#fff; font-weight:900; font-size:14px; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#sl-wrap .nd-cap-wrap { display:flex; align-items:center; background:#f4f7fb; border:1px solid #c8d5e8; border-radius:6px; padding:2px 8px; }
+#sl-wrap .nd-cap-sym { color:#334155; font-weight:800; font-size:13px; margin-right:4px; }
+#sl-wrap .nd-cap-inp { width:100%; background:none; border:none; color:#09101f; font-size:13px; font-weight:700; outline:none; padding:6px 0; }
 #sl-wrap .nd-dte-grid { display:flex; gap:6px; }
-#sl-wrap .nd-dte-btn { flex:1; padding:7px 0; background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
-#sl-wrap .nd-dte-btn.active { background:#3b82f6; color:#fff; border-color:#3b82f6; font-weight:800; }
-#sl-wrap .nd-banner { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#0f172a,#1e293b); padding:7px 12px; border-radius:8px; margin-bottom:8px; border-left:4px solid #10b981; }
+#sl-wrap .nd-dte-btn { flex:1; padding:7px 0; background:#f4f7fb; border:1px solid #c8d5e8; color:#334155; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
+#sl-wrap .nd-dte-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; font-weight:800; }
+#sl-wrap .nd-banner { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#0f172a,#1e293b); padding:7px 12px; border-radius:8px; margin-bottom:8px; border-left:4px solid #16a34a; }
 #sl-wrap .nd-sym { font-size:15px; font-weight:900; color:#fff; }
-#sl-wrap .nd-price { font-size:14px; font-weight:800; color:#34d399; }
-#sl-wrap .nd-analyze-btn { width:100%; background:#10b981; color:#0f172a; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:900; cursor:pointer; margin-bottom:10px; letter-spacing:.02em; transition:background .15s; font-family:inherit; }
-#sl-wrap .nd-analyze-btn:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
-#sl-wrap .nd-analyze-btn:not(:disabled):active { background:#059669; }
+#sl-wrap .nd-price { font-size:14px; font-weight:800; color:#4ade80; }
+#sl-wrap .nd-analyze-btn { width:100%; background:#16a34a; color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:900; cursor:pointer; margin-bottom:10px; letter-spacing:.02em; transition:background .15s; font-family:inherit; }
+#sl-wrap .nd-analyze-btn:disabled { background:#94a3b8; color:#f1f5f9; cursor:not-allowed; }
+#sl-wrap .nd-analyze-btn:not(:disabled):active { background:#15803d; }
 #sl-wrap .nd-loading { display:none; text-align:center; padding:30px 20px; }
-#sl-wrap .nd-spinner { width:28px; height:28px; border:3px solid #334155; border-top-color:#10b981; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 8px; }
+#sl-wrap .nd-spinner { width:28px; height:28px; border:3px solid #c8d5e8; border-top-color:#16a34a; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 8px; }
 #sl-wrap .nd-loading-msg { color:#64748b; font-size:12px; font-weight:600; }
-#sl-wrap .nd-err { background:rgba(244,63,94,.1); border:1px solid #f43f5e; border-radius:8px; padding:10px 12px; color:#f43f5e; font-size:12px; font-weight:600; margin-bottom:12px; display:none; line-height:1.6; }
-#sl-wrap .nd-alert { background:rgba(234,179,8,.15); border:1px solid rgba(234,179,8,.3); color:#f59e0b; padding:10px; border-radius:6px; font-size:11px; font-weight:600; text-align:center; margin-bottom:12px; cursor:pointer; }
-#sl-wrap .nd-landing { text-align:center; padding:30px 20px; color:#475569; }
+#sl-wrap .nd-err { background:#fee2e2; border:1px solid #f87171; border-radius:8px; padding:10px 12px; color:#dc2626; font-size:12px; font-weight:600; margin-bottom:12px; display:none; line-height:1.6; }
+#sl-wrap .nd-alert { background:#fef3c7; border:1px solid #fbbf24; color:#b45309; padding:10px; border-radius:6px; font-size:11px; font-weight:600; text-align:center; margin-bottom:12px; cursor:pointer; }
+#sl-wrap .nd-landing { text-align:center; padding:30px 20px; color:#64748b; }
 /* Ticker header in results */
 #sl-wrap .nd-tick-hdr { background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:12px; padding:13px; margin-bottom:12px; border:1px solid #334155; }
 /* Strategy tabs */
-#sl-wrap .nd-tabs-wrap { background:#1e293b; border-radius:10px; overflow:hidden; margin-bottom:12px; border:1px solid #334155; }
-#sl-wrap .nd-tab-bar { display:flex; background:#0f172a; border-bottom:1px solid #334155; overflow-x:auto; justify-content:center; }
+#sl-wrap .nd-tabs-wrap { background:#ffffff; border-radius:10px; overflow:hidden; margin-bottom:12px; border:1px solid #c8d5e8; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+#sl-wrap .nd-tab-bar { display:flex; background:#f4f7fb; border-bottom:1px solid #e2e8f0; overflow-x:auto; justify-content:center; }
 #sl-wrap .nd-tab { flex:0 0 auto; min-width:68px; padding:9px 5px; text-align:center; cursor:pointer; font-family:inherit; border:none; background:transparent; transition:all .18s; border-bottom:2.5px solid transparent; margin-bottom:-1px; }
-#sl-wrap .nd-tab.active { border-bottom-color:#10b981; }
+#sl-wrap .nd-tab.active { background:#fff; border-bottom-color:#16a34a; }
 #sl-wrap .nd-tab-icon { font-size:14px; line-height:1; margin-bottom:2px; }
 #sl-wrap .nd-tab-name { font-size:8px; font-weight:900; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
-#sl-wrap .nd-tab.active .nd-tab-name { color:#34d399; }
+#sl-wrap .nd-tab.active .nd-tab-name { color:#16a34a; }
 #sl-wrap .nd-tab-pl { font-size:9.5px; font-weight:900; margin-top:1px; }
 #sl-wrap .nd-panel { display:none; }
 #sl-wrap .nd-panel.active { display:block; }
 /* P&L grid */
-#sl-wrap .nd-pl-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:#334155; }
-#sl-wrap .nd-pl-cell { background:#1e293b; padding:10px 8px; text-align:center; }
+#sl-wrap .nd-pl-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:#e2e8f0; }
+#sl-wrap .nd-pl-cell { background:#ffffff; padding:10px 8px; text-align:center; }
 #sl-wrap .nd-pl-l { font-size:8px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
 #sl-wrap .nd-pl-v { font-size:14px; font-weight:900; }
-#sl-wrap .nd-pl-v.pos { color:#34d399; } #sl-wrap .nd-pl-v.neg { color:#f43f5e; }
-#sl-wrap .nd-pl-sub { font-size:9px; color:#475569; font-weight:600; margin-top:1px; }
+#sl-wrap .nd-pl-v.pos { color:#16a34a; } #sl-wrap .nd-pl-v.neg { color:#dc2626; }
+#sl-wrap .nd-pl-sub { font-size:9px; color:#64748b; font-weight:600; margin-top:1px; }
 /* Sizing row */
-#sl-wrap .nd-sizing { display:flex; align-items:center; justify-content:space-between; padding:9px 13px; border-top:1px solid #334155; background:rgba(16,185,129,.06); }
+#sl-wrap .nd-sizing { display:flex; align-items:center; justify-content:space-between; padding:9px 13px; border-top:1px solid #e2e8f0; background:#f0fdf4; }
 #sl-wrap .nd-sizing-lbl { font-size:9px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
-#sl-wrap .nd-sizing-val { font-size:14px; font-weight:900; color:#34d399; }
-#sl-wrap .nd-sizing-sub { font-size:9px; color:#475569; font-weight:600; margin-top:1px; text-align:right; }
+#sl-wrap .nd-sizing-val { font-size:14px; font-weight:900; color:#16a34a; }
+#sl-wrap .nd-sizing-sub { font-size:9px; color:#64748b; font-weight:600; margin-top:1px; text-align:right; }
 /* Breakevens */
-#sl-wrap .nd-be { padding:11px 13px; border-top:1px solid #334155; background:#0f172a; }
-#sl-wrap .nd-be-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+#sl-wrap .nd-be { padding:11px 13px; border-top:1px solid #e2e8f0; background:#fafbfc; }
+#sl-wrap .nd-be-lbl { font-size:9px; font-weight:900; color:#1e293b; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
 #sl-wrap .nd-be-row { display:flex; gap:7px; }
-#sl-wrap .nd-be-item { flex:1; text-align:center; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:8px 5px; }
+#sl-wrap .nd-be-item { flex:1; text-align:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 5px; }
 #sl-wrap .nd-be-l { font-size:8px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
-#sl-wrap .nd-be-v { font-size:12px; font-weight:900; color:#f8fafc; }
+#sl-wrap .nd-be-v { font-size:12px; font-weight:900; color:#09101f; }
 #sl-wrap .nd-be-d { font-size:10px; font-weight:700; margin-top:2px; }
 /* Legs */
-#sl-wrap .nd-legs { padding:11px 13px; border-top:1px solid #334155; }
-#sl-wrap .nd-legs-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
-#sl-wrap .nd-leg { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; padding:8px 10px; border-radius:8px; border:1px solid #334155; }
+#sl-wrap .nd-legs { padding:11px 13px; border-top:1px solid #e2e8f0; }
+#sl-wrap .nd-legs-lbl { font-size:9px; font-weight:900; color:#1e293b; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+#sl-wrap .nd-leg { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; }
 #sl-wrap .nd-leg:last-child { margin-bottom:0; }
 #sl-wrap .nd-leg-l { display:flex; align-items:center; gap:8px; }
 #sl-wrap .nd-leg-action { font-size:9px; font-weight:900; border-radius:5px; padding:2px 6px; text-transform:uppercase; letter-spacing:.06em; flex-shrink:0; }
-#sl-wrap .nd-leg-action.buy { background:rgba(16,185,129,.15); color:#34d399; }
-#sl-wrap .nd-leg-action.sell { background:rgba(244,63,94,.15); color:#f43f5e; }
-#sl-wrap .nd-leg-desc { font-size:12px; font-weight:700; color:#e2e8f0; }
+#sl-wrap .nd-leg-action.buy { background:#dcfce7; color:#16a34a; }
+#sl-wrap .nd-leg-action.sell { background:#fee2e2; color:#dc2626; }
+#sl-wrap .nd-leg-desc { font-size:12px; font-weight:700; color:#1e293b; }
 #sl-wrap .nd-leg-sub { font-size:10px; color:#64748b; font-weight:500; margin-top:1px; }
-#sl-wrap .nd-leg-price { font-size:12px; font-weight:900; color:#f8fafc; flex-shrink:0; }
+#sl-wrap .nd-leg-price { font-size:12px; font-weight:900; color:#09101f; flex-shrink:0; }
 /* Scores */
-#sl-wrap .nd-scores { padding:11px 13px; border-top:1px solid #334155; }
-#sl-wrap .nd-score-bar { height:4px; background:#334155; border-radius:2px; overflow:hidden; margin-top:3px; }
+#sl-wrap .nd-scores { padding:11px 13px; border-top:1px solid #e2e8f0; }
+#sl-wrap .nd-score-bar { height:4px; background:#e2e8f0; border-radius:2px; overflow:hidden; margin-top:3px; }
 #sl-wrap .nd-score-fill { height:100%; border-radius:2px; }
 /* Thesis */
-#sl-wrap .nd-thesis { padding:11px 13px; border-top:1px solid #334155; }
-#sl-wrap .nd-thesis-lbl { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
-#sl-wrap .nd-thesis-txt { font-size:11.5px; color:#94a3b8; line-height:1.7; font-weight:500; }
+#sl-wrap .nd-thesis { padding:11px 13px; border-top:1px solid #e2e8f0; }
+#sl-wrap .nd-thesis-lbl { font-size:9px; font-weight:900; color:#1e293b; text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
+#sl-wrap .nd-thesis-txt { font-size:11.5px; color:#475569; line-height:1.7; font-weight:500; }
 /* Exit */
-#sl-wrap .nd-exit { padding:11px 13px; border-top:2px solid #334155; background:#0f172a; }
+#sl-wrap .nd-exit { padding:11px 13px; border-top:2px solid #e2e8f0; background:#fafbfc; }
 #sl-wrap .nd-exit-hdr { display:flex; align-items:center; gap:7px; margin-bottom:10px; }
-#sl-wrap .nd-exit-title { font-size:9px; font-weight:900; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; }
+#sl-wrap .nd-exit-title { font-size:9px; font-weight:900; color:#1e293b; text-transform:uppercase; letter-spacing:.1em; }
 #sl-wrap .nd-exit-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:8px; }
-#sl-wrap .nd-exit-card { background:#1e293b; border-radius:9px; padding:9px 10px; border:1px solid #334155; }
+#sl-wrap .nd-exit-card { background:#ffffff; border-radius:9px; padding:9px 10px; border:1.5px solid #e2e8f0; }
 #sl-wrap .nd-exit-card-lbl { font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; }
-#sl-wrap .nd-exit-card-val { font-size:11px; font-weight:800; color:#e2e8f0; margin-bottom:3px; }
+#sl-wrap .nd-exit-card-val { font-size:11px; font-weight:800; color:#1e293b; margin-bottom:3px; }
 #sl-wrap .nd-exit-card-sub { font-size:9.5px; color:#64748b; font-weight:500; line-height:1.4; }
-#sl-wrap .nd-exit-card.profit .nd-exit-card-lbl { color:#34d399; }
-#sl-wrap .nd-exit-card.loss .nd-exit-card-lbl { color:#f43f5e; }
-#sl-wrap .nd-exit-card.time .nd-exit-card-lbl { color:#38bdf8; }
-#sl-wrap .nd-exit-card.roll .nd-exit-card-lbl { color:#fbbf24; }
-#sl-wrap .nd-exit-rules { background:#1e293b; border-radius:9px; border:1px solid #334155; overflow:hidden; }
-#sl-wrap .nd-exit-rule { display:flex; align-items:flex-start; gap:9px; padding:8px 10px; border-bottom:1px solid #334155; }
+#sl-wrap .nd-exit-card.profit .nd-exit-card-lbl { color:#16a34a; }
+#sl-wrap .nd-exit-card.loss .nd-exit-card-lbl { color:#dc2626; }
+#sl-wrap .nd-exit-card.time .nd-exit-card-lbl { color:#2563eb; }
+#sl-wrap .nd-exit-card.roll .nd-exit-card-lbl { color:#d97706; }
+#sl-wrap .nd-exit-rules { background:#ffffff; border-radius:9px; border:1.5px solid #e2e8f0; overflow:hidden; }
+#sl-wrap .nd-exit-rule { display:flex; align-items:flex-start; gap:9px; padding:8px 10px; border-bottom:1px solid #f1f5f9; }
 #sl-wrap .nd-exit-rule:last-child { border-bottom:none; }
 #sl-wrap .nd-exit-rule-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-#sl-wrap .nd-exit-rule-txt { font-size:11px; color:#94a3b8; font-weight:500; line-height:1.5; }
-#sl-wrap .nd-exit-rule-txt strong { color:#e2e8f0; font-weight:800; }
+#sl-wrap .nd-exit-rule-txt { font-size:11px; color:#475569; font-weight:500; line-height:1.5; }
+#sl-wrap .nd-exit-rule-txt strong { color:#1e293b; font-weight:800; }
 /* Vol signal */
-#sl-wrap .nd-vol-card { background:#1e293b; border-radius:10px; padding:12px; margin-bottom:14px; border:1px solid #334155; }
+#sl-wrap .nd-vol-card { background:#ffffff; border-radius:10px; padding:12px; margin-bottom:14px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,.05); }
 /* modal handled outside sl-wrap */
 </style>
 
@@ -925,22 +924,22 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   <div class="nd-vol-card" id="vs-card">
     <!-- Header row -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:11px;font-weight:900;color:#34d399;letter-spacing:.06em;text-transform:uppercase;">⚡ VolSignal · IV vs RV</div>
+      <div style="font-size:11px;font-weight:900;color:#16a34a;letter-spacing:.06em;text-transform:uppercase;">⚡ VolSignal · IV vs RV</div>
       <div style="display:flex;gap:5px;align-items:center;">
         <!-- Quick preset pills -->
-        <button id="nd-vs-spy" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
-        <button id="nd-vs-qqq" style="background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
+        <button id="nd-vs-spy" style="background:#f4f7fb;border:1px solid #c8d5e8;color:#334155;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">SPY</button>
+        <button id="nd-vs-qqq" style="background:#f4f7fb;border:1px solid #c8d5e8;color:#334155;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">QQQ</button>
         <!-- Custom ticker search -->
         <form id="vs-search-form" onsubmit="vsRunSearch(event)" style="display:flex;">
           <input id="vs-search-inp" placeholder="TICKER" maxlength="6" autocomplete="off"
-            style="width:68px;background:#0f172a;border:1px solid #475569;border-right:none;border-radius:6px 0 0 6px;padding:5px 8px;color:#f8fafc;font-size:11px;font-weight:800;font-family:inherit;outline:none;text-transform:uppercase;">
-          <button type="submit" style="background:#34d399;border:none;border-radius:0 6px 6px 0;padding:5px 8px;font-size:11px;font-weight:900;color:#0f172a;cursor:pointer;">Go</button>
+            style="width:68px;background:#f4f7fb;border:1px solid #c8d5e8;border-right:none;border-radius:6px 0 0 6px;padding:5px 8px;color:#09101f;font-size:11px;font-weight:800;font-family:inherit;outline:none;text-transform:uppercase;">
+          <button type="submit" style="background:#16a34a;border:none;border-radius:0 6px 6px 0;padding:5px 8px;font-size:11px;font-weight:900;color:#fff;cursor:pointer;">Go</button>
         </form>
       </div>
     </div>
     <!-- Body: signal output -->
     <div id="nd-vol-body" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;padding:8px 0;">
-      Tap <strong style="color:#e2e8f0;">SPY</strong> or <strong style="color:#e2e8f0;">QQQ</strong> or search any ticker
+      Tap <strong style="color:#1e293b;">SPY</strong> or <strong style="color:#1e293b;">QQQ</strong> or search any ticker
     </div>
     <!-- IV/RV stats row (hidden until loaded) -->
     <div id="vs-stats-row" style="display:none;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;"></div>
@@ -949,10 +948,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <!-- AI analysis (hidden until run) -->
     <div id="vs-ai-wrap" style="display:none;margin-top:10px;">
       <button id="vs-ai-btn" onclick="vsRunAI()"
-        style="width:100%;background:#1e3a5f;border:1px solid #38bdf8;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#38bdf8;cursor:pointer;letter-spacing:.04em;">
+        style="width:100%;background:#eff6ff;border:1px solid #93c5fd;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#2563eb;cursor:pointer;letter-spacing:.04em;">
         ✦ AI Vol Analysis
       </button>
-      <div id="vs-ai-result" style="display:none;margin-top:8px;background:#0f172a;border-radius:7px;padding:9px 11px;font-size:11px;color:#cbd5e1;line-height:1.65;font-weight:500;"></div>
+      <div id="vs-ai-result" style="display:none;margin-top:8px;background:#f4f7fb;border:1px solid #e2e8f0;border-radius:7px;padding:9px 11px;font-size:11px;color:#334155;line-height:1.65;font-weight:500;"></div>
     </div>
   </div>
 
@@ -992,11 +991,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     // Highlight active preset
     ['nd-vs-spy','nd-vs-qqq'].forEach(function(id){
       var b=document.getElementById(id);
-      b.style.background='#0f172a';b.style.color='#94a3b8';b.style.borderColor='#334155';
+      b.style.background='#f4f7fb';b.style.color='#334155';b.style.borderColor='#c8d5e8';
     });
     if(sym==='SPY'||sym==='QQQ'){
       var ab=document.getElementById(sym==='SPY'?'nd-vs-spy':'nd-vs-qqq');
-      ab.style.background='#10b981';ab.style.color='#0f172a';ab.style.borderColor='#10b981';
+      ab.style.background='#16a34a';ab.style.color='#fff';ab.style.borderColor='#16a34a';
     }
 
     if(!fk){body.innerHTML='<span style="color:#f59e0b;">⚠️ Add Finnhub key via ⚙️ Keys</span>';return;}
@@ -1081,21 +1080,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       // Render signal banner
       body.innerHTML='<div style="background:'+bg+';border-radius:8px;padding:9px 11px;text-align:center;">'
         +'<div style="font-size:14px;font-weight:900;color:'+color+';margin-bottom:3px;">'+signal+' <span style="font-size:11px;color:#64748b;font-weight:700;">('+confidence+'% conf)</span></div>'
-        +'<div style="font-size:11px;color:#cbd5e1;line-height:1.5;">'+action+'</div>'
-        +'<div style="font-size:9px;color:#475569;margin-top:5px;">IV ('+vsIVSource+'): <strong style="color:#f8fafc;">'+iv.toFixed(1)+'%</strong> · 30d RV: <strong style="color:#f8fafc;">'+vsCurrentRV.toFixed(1)+'%</strong> · Spread: <strong style="color:'+color+';">'+(spread>0?'+':'')+spread+'%</strong></div>'
+        +'<div style="font-size:11px;color:#334155;line-height:1.5;">'+action+'</div>'
+        +'<div style="font-size:9px;color:#475569;margin-top:5px;">IV ('+vsIVSource+'): <strong style="color:#09101f;">'+iv.toFixed(1)+'%</strong> · 30d RV: <strong style="color:#09101f;">'+vsCurrentRV.toFixed(1)+'%</strong> · Spread: <strong style="color:'+color+';">'+(spread>0?'+':'')+spread+'%</strong></div>'
         +'</div>';
 
       // Stats row
       statsRow.innerHTML=''
-        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #334155;">'
+        +'<div style="background:#f4f7fb;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #e2e8f0;">'
           +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">IV ('+vsIVSource+')</div>'
-          +'<div style="font-size:18px;font-weight:900;color:#f8fafc;">'+iv.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
+          +'<div style="font-size:18px;font-weight:900;color:#09101f;">'+iv.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
         +'</div>'
-        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #334155;">'
+        +'<div style="background:#f4f7fb;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid #e2e8f0;">'
           +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">30d RV</div>'
-          +'<div style="font-size:18px;font-weight:900;color:#f8fafc;">'+vsCurrentRV.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
+          +'<div style="font-size:18px;font-weight:900;color:#09101f;">'+vsCurrentRV.toFixed(1)+'<span style="font-size:10px;color:#64748b;">%</span></div>'
         +'</div>'
-        +'<div style="background:#0f172a;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid '+(Math.abs(spread)>3?color:'#334155')+';">'
+        +'<div style="background:#f4f7fb;border-radius:7px;padding:8px 6px;text-align:center;border:1px solid '+(Math.abs(spread)>3?color:'#e2e8f0')+';">'
           +'<div style="font-size:8px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Spread</div>'
           +'<div style="font-size:18px;font-weight:900;color:'+color+';">'+(spread>0?'+':'')+spread+'<span style="font-size:10px;">%</span></div>'
         +'</div>';
@@ -1115,7 +1114,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       aiWrap.style.display='block';
 
     }catch(err){
-      body.innerHTML='<span style="color:#f43f5e;">Error: '+err.message+'</span>';
+      body.innerHTML='<span style="color:#dc2626;">Error: '+err.message+'</span>';
     }
   }
 
@@ -1147,13 +1146,13 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     ctx.moveTo(0,H*0.25);ctx.lineTo(W,H*0.25);ctx.stroke();
 
     // RV line
-    ctx.beginPath();ctx.strokeStyle='#38bdf8';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
     ctx.moveTo(0,H*0.55);ctx.lineTo(W,H*0.55);ctx.stroke();
     ctx.setLineDash([]);
 
     // Labels
     ctx.font='8px Inter,sans-serif';ctx.fillStyle=signalColor;ctx.fillText('IV '+iv.toFixed(1)+'%',4,H*0.25-3);
-    ctx.fillStyle='#38bdf8';ctx.fillText('RV '+rv.toFixed(1)+'%',4,H*0.55-3);
+    ctx.fillStyle='#2563eb';ctx.fillText('RV '+rv.toFixed(1)+'%',4,H*0.55-3);
   }
 
   function vsRunAI(){
@@ -1397,10 +1396,10 @@ function ndCompute(d,cap){
            sl:'50% of debit paid',sd:'If the straddle loses half its value, the "big move" thesis is wrong — exit and redeploy.',
            tt:Math.round(ndDte*.5)+' DTE (half-life)',td:'Close or roll at half-life if still at a loss. Theta accelerates rapidly near expiry.',
            rt:'Spot moves >'+ndPct(stdM/S*80)+' in one direction',rd:'Close the winning leg and roll the losing leg closer to spot.',
-           rules:[{c:'#34d399',t:'<strong>Target 50% gain</strong> — lock in when the move materializes; don\'t wait for a perfect exit.'},
-                  {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — if the straddle loses half before expiry, the thesis has failed.'},
-                  {c:'#38bdf8',t:'<strong>Never hold to expiry</strong> — gamma risk explodes in the final 2 DTE near $'+K+'.'},
-                  {c:'#fbbf24',t:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close even without a price move.'}]}},
+           rules:[{c:'#16a34a',t:'<strong>Target 50% gain</strong> — lock in when the move materializes; don\'t wait for a perfect exit.'},
+                  {c:'#dc2626',t:'<strong>Stop at 50% loss</strong> — if the straddle loses half before expiry, the thesis has failed.'},
+                  {c:'#2563eb',t:'<strong>Never hold to expiry</strong> — gamma risk explodes in the final 2 DTE near $'+K+'.'},
+                  {c:'#d97706',t:'<strong>IV crush alert</strong> — if IV drops >20% post-event, close even without a price move.'}]}},
     {name:'Strangle',icon:'📐',cost:sgC,maxGain:null,maxLoss:-sgC,netCredit:false,contracts:sgN,totalRisk:sgN*sgC,BEup:Kc+oC+oP,BEdn:Kp-oC-oP,
      legs:[{a:'BUY',cls:'buy',desc:'OTM Call',sub:'$'+Kc+' · '+exp,p:oC},{a:'BUY',cls:'buy',desc:'OTM Put',sub:'$'+Kp+' · '+exp,p:oP}],
      sV:75,sR:50,sP:28,
@@ -1409,10 +1408,10 @@ function ndCompute(d,cap){
            sl:'50% of debit paid',sd:'Exit if position loses half its value. OTM theta decay accelerates fast — don\'t let it go to zero.',
            tt:Math.round(ndDte*.4)+' DTE (60% through)',td:'Both legs will be near-worthless if spot hasn\'t moved. Exit to salvage remaining value.',
            rt:'Spot clears $'+Kc+' or breaks $'+Kp,rd:'Sell the in-the-money leg into strength and let the other run.',
-           rules:[{c:'#34d399',t:'<strong>Target 100% return</strong> — wider breakevens mean bigger % gains needed.'},
-                  {c:'#f43f5e',t:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; half-loss stop preserves capital.'},
-                  {c:'#38bdf8',t:'<strong>Exit before '+Math.round(ndDte*.4)+' DTE</strong> — time is your enemy once the move fails.'},
-                  {c:'#fbbf24',t:'<strong>Leg out on big moves</strong> — sell the profitable leg first and hold the other if momentum continues.'}]}},
+           rules:[{c:'#16a34a',t:'<strong>Target 100% return</strong> — wider breakevens mean bigger % gains needed.'},
+                  {c:'#dc2626',t:'<strong>Stop at 50% loss</strong> — OTM options lose value quickly; half-loss stop preserves capital.'},
+                  {c:'#2563eb',t:'<strong>Exit before '+Math.round(ndDte*.4)+' DTE</strong> — time is your enemy once the move fails.'},
+                  {c:'#d97706',t:'<strong>Leg out on big moves</strong> — sell the profitable leg first and hold the other if momentum continues.'}]}},
     {name:'Iron Condor',icon:'🦅',cost:-icCr,maxGain:icCr,maxLoss:icML,netCredit:true,creditReceived:icCr,contracts:icN,totalRisk:icN*Math.abs(icML),BEup:Kc+(oC-fC+oP-fP),BEdn:Kp-(oC-fC+oP-fP),
      legs:[{a:'SELL',cls:'sell',desc:'OTM Call (short)',sub:'$'+Kc+' · '+exp,p:oC},{a:'BUY',cls:'buy',desc:'Far OTM Call (wing)',sub:'$'+Kcc+' · '+exp,p:fC},
            {a:'SELL',cls:'sell',desc:'OTM Put (short)',sub:'$'+Kp+' · '+exp,p:oP},{a:'BUY',cls:'buy',desc:'Far OTM Put (wing)',sub:'$'+Kpp+' · '+exp,p:fP}],
@@ -1422,10 +1421,10 @@ function ndCompute(d,cap){
            sl:'2× credit ($'+(icCr*2).toFixed(2)+')',sd:'If spread widens to 2× your credit, close before max loss.',
            tt:'7 DTE (expiry week)',td:'Close all legs in expiry week to avoid pin risk and gamma spikes.',
            rt:'Spot within '+sp+' pts of $'+Kc+' or $'+Kp,rd:'Roll the threatened short strike further OTM or close that wing.',
-           rules:[{c:'#34d399',t:'<strong>Take profit at 50% credit</strong> — the remaining 50% isn\'t worth the gamma risk.'},
-                  {c:'#f43f5e',t:'<strong>Stop at 2× credit</strong> — cut at $'+(icCr*2).toFixed(2)+' debit well before max loss.'},
-                  {c:'#38bdf8',t:'<strong>Close before expiry week</strong> — short gamma in final days can move violently.'},
-                  {c:'#fbbf24',t:'<strong>Roll the untested side</strong> — tighten the safe short to collect more credit.'}]}},
+           rules:[{c:'#16a34a',t:'<strong>Take profit at 50% credit</strong> — the remaining 50% isn\'t worth the gamma risk.'},
+                  {c:'#dc2626',t:'<strong>Stop at 2× credit</strong> — cut at $'+(icCr*2).toFixed(2)+' debit well before max loss.'},
+                  {c:'#2563eb',t:'<strong>Close before expiry week</strong> — short gamma in final days can move violently.'},
+                  {c:'#d97706',t:'<strong>Roll the untested side</strong> — tighten the safe short to collect more credit.'}]}},
     {name:'Bull Call',icon:'🟢',cost:bcC,maxGain:bcG,maxLoss:-bcC,netCredit:false,contracts:bcN,totalRisk:bcN*bcC,BEup:K+bcD,BEdn:null,
      legs:[{a:'BUY',cls:'buy',desc:'ATM Call (long)',sub:'$'+K+' · '+exp,p:aC},{a:'SELL',cls:'sell',desc:'OTM Call (short)',sub:'$'+Kc+' · '+exp,p:oC}],
      sV:40,sR:70,sP:45,
@@ -1434,10 +1433,10 @@ function ndCompute(d,cap){
            sl:'50% of debit ($'+(bcC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bullish thesis likely wrong.',
            tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the move hasn\'t materialized by 40% DTE remaining.',
            rt:d.sym+' stalls below $'+K,rd:'Roll the long call closer to spot if the stock consolidates near entry.',
-           rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' above $'+(K+bcD).toFixed(2)+'</strong> — confirm bullish momentum first.'},
-                  {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bcC.toFixed(0)+')</strong> — full loss if stock stays flat or drops.'},
-                  {c:'#38bdf8',t:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires exact pin at $'+Kc+'.'},
-                  {c:'#fbbf24',t:'<strong>Best before a catalyst</strong> — entering pre-event gives extra vega support.'}]}},
+           rules:[{c:'#16a34a',t:'<strong>Need '+d.sym+' above $'+(K+bcD).toFixed(2)+'</strong> — confirm bullish momentum first.'},
+                  {c:'#dc2626',t:'<strong>Max loss is the debit ($'+bcC.toFixed(0)+')</strong> — full loss if stock stays flat or drops.'},
+                  {c:'#2563eb',t:'<strong>Close at 75%+ of max gain</strong> — the last 25% requires exact pin at $'+Kc+'.'},
+                  {c:'#d97706',t:'<strong>Best before a catalyst</strong> — entering pre-event gives extra vega support.'}]}},
     {name:'Bear Put',icon:'🔴',cost:bpC,maxGain:bpG,maxLoss:-bpC,netCredit:false,contracts:bpN,totalRisk:bpN*bpC,BEup:null,BEdn:K-bpD,
      legs:[{a:'BUY',cls:'buy',desc:'ATM Put (long)',sub:'$'+K+' · '+exp,p:aP},{a:'SELL',cls:'sell',desc:'OTM Put (short)',sub:'$'+Kp+' · '+exp,p:oP}],
      sV:40,sR:70,sP:42,
@@ -1446,10 +1445,10 @@ function ndCompute(d,cap){
            sl:'50% of debit ($'+(bpC*.5).toFixed(0)+')',sd:'Exit if the spread loses half its cost. Bearish thesis likely wrong.',
            tt:Math.round(ndDte*.4)+' DTE remaining',td:'Exit if the stock hasn\'t moved down by 40% DTE remaining.',
            rt:d.sym+' rebounds above $'+K,rd:'Close immediately if stock reclaims the long put strike.',
-           rules:[{c:'#34d399',t:'<strong>Need '+d.sym+' below $'+(K-bpD).toFixed(2)+'</strong> — confirm bearish catalyst first.'},
-                  {c:'#f43f5e',t:'<strong>Max loss is the debit ($'+bpC.toFixed(0)+')</strong> — full loss if stock stays flat or rises.'},
-                  {c:'#38bdf8',t:'<strong>Close at 75%+ of max gain</strong> — last 25% requires pin at or below $'+Kp+'.'},
-                  {c:'#fbbf24',t:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers debit cost.'}]}}
+           rules:[{c:'#16a34a',t:'<strong>Need '+d.sym+' below $'+(K-bpD).toFixed(2)+'</strong> — confirm bearish catalyst first.'},
+                  {c:'#dc2626',t:'<strong>Max loss is the debit ($'+bpC.toFixed(0)+')</strong> — full loss if stock stays flat or rises.'},
+                  {c:'#2563eb',t:'<strong>Close at 75%+ of max gain</strong> — last 25% requires pin at or below $'+Kp+'.'},
+                  {c:'#d97706',t:'<strong>Best in falling IV or post-spike</strong> — high IV at entry lowers debit cost.'}]}}
   ];
 }
 
@@ -1534,10 +1533,10 @@ function ndRender(d,strats){
   h+='<div class="nd-tabs-wrap"><div class="nd-tab-bar">';
   strats.forEach(function(st,i){
     var tv=st.netCredit?'+$'+st.maxGain.toFixed(0):'-$'+Math.abs(st.maxLoss).toFixed(0);
-    var tc=st.netCredit?'#34d399':'#f43f5e';
+    var tc=st.netCredit?'#16a34a':'#dc2626';
     var isRec = st.recommended;
     h+='<button class="nd-tab'+(i===recIdx?' active':'')+'" onclick="ndSwitchTab('+i+',this)">'
-      +(isRec?'<div style="font-size:7px;font-weight:900;color:#fbbf24;letter-spacing:.04em;margin-bottom:1px;">⭐ BEST FIT</div>':'')
+      +(isRec?'<div style="font-size:7px;font-weight:900;color:#b45309;letter-spacing:.04em;margin-bottom:1px;">⭐ BEST FIT</div>':'')
       +'<div class="nd-tab-icon">'+st.icon+'</div>'
       +'<div class="nd-tab-name">'+st.name+'</div>'
       +'<div class="nd-tab-pl" style="color:'+tc+'">'+tv+'</div></button>';
@@ -1548,10 +1547,10 @@ function ndRender(d,strats){
     h+='<div class="nd-panel'+(i===recIdx?' active':'')+'" id="nd-p-'+i+'">';
     // Recommended banner
     if(st.recommended){
-      h+='<div style="background:linear-gradient(90deg,rgba(251,191,36,.15),rgba(251,191,36,.05));border-bottom:1px solid rgba(251,191,36,.3);padding:8px 13px;display:flex;align-items:center;gap:7px;">'
+      h+='<div style="background:linear-gradient(90deg,rgba(217,119,6,.12),rgba(217,119,6,.04));border-bottom:1px solid rgba(217,119,6,.25);padding:8px 13px;display:flex;align-items:center;gap:7px;">'
         +'<span style="font-size:13px;">⭐</span>'
-        +'<div><div style="font-size:9px;font-weight:900;color:#fbbf24;text-transform:uppercase;letter-spacing:.07em;">Best Fit for Current Conditions</div>'
-        +'<div style="font-size:10px;color:#94a3b8;font-weight:600;margin-top:1px;">'+st.recReason+'</div></div>'
+        +'<div><div style="font-size:9px;font-weight:900;color:#b45309;text-transform:uppercase;letter-spacing:.07em;">Best Fit for Current Conditions</div>'
+        +'<div style="font-size:10px;color:#64748b;font-weight:600;margin-top:1px;">'+st.recReason+'</div></div>'
         +'</div>';
     }
     // P&L grid
@@ -1567,9 +1566,9 @@ function ndRender(d,strats){
       +'<div class="nd-sizing-sub">At risk: $'+st.totalRisk.toFixed(0)+'</div></div></div>';
     // BEs
     h+='<div class="nd-be"><div class="nd-be-lbl">Breakeven Prices</div><div class="nd-be-row">'
-      +(st.BEdn!=null?'<div class="nd-be-item"><div class="nd-be-l">Lower BE</div><div class="nd-be-v">$'+st.BEdn.toFixed(2)+'</div><div class="nd-be-d" style="color:#f43f5e;">'+ndPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
-      +'<div class="nd-be-item" style="border-color:#475569;"><div class="nd-be-l">Current</div><div class="nd-be-v">$'+d.c.toFixed(2)+'</div><div class="nd-be-d" style="color:#64748b;">spot</div></div>'
-      +(st.BEup!=null?'<div class="nd-be-item"><div class="nd-be-l">Upper BE</div><div class="nd-be-v">$'+st.BEup.toFixed(2)+'</div><div class="nd-be-d" style="color:#34d399;">'+ndPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
+      +(st.BEdn!=null?'<div class="nd-be-item"><div class="nd-be-l">Lower BE</div><div class="nd-be-v">$'+st.BEdn.toFixed(2)+'</div><div class="nd-be-d" style="color:#dc2626;">'+ndPct((st.BEdn-d.c)/d.c*100)+'</div></div>':'')
+      +'<div class="nd-be-item" style="border-color:#c8d5e8;"><div class="nd-be-l">Current</div><div class="nd-be-v">$'+d.c.toFixed(2)+'</div><div class="nd-be-d" style="color:#64748b;">spot</div></div>'
+      +(st.BEup!=null?'<div class="nd-be-item"><div class="nd-be-l">Upper BE</div><div class="nd-be-v">$'+st.BEup.toFixed(2)+'</div><div class="nd-be-d" style="color:#16a34a;">'+ndPct((st.BEup-d.c)/d.c*100)+'</div></div>':'')
       +'</div></div>';
     // Legs
     h+='<div class="nd-legs"><div class="nd-legs-lbl">Position Legs</div>'
@@ -1580,7 +1579,7 @@ function ndRender(d,strats){
       }).join('')+'</div>';
     // Scores
     h+='<div class="nd-scores"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
-      +ndSB('Vol Needed',st.sV,'#38bdf8')+ndSB('Risk Defined',st.sR,'#34d399')+ndSB('Win Prob',st.sP,'#a78bfa')
+      +ndSB('Vol Needed',st.sV,'#2563eb')+ndSB('Risk Defined',st.sR,'#16a34a')+ndSB('Win Prob',st.sP,'#0284c7')
       +'</div></div>';
     // Thesis
     h+='<div class="nd-thesis"><div class="nd-thesis-lbl">Strategy Notes</div><div class="nd-thesis-txt">'+st.thesis+'</div></div>';
