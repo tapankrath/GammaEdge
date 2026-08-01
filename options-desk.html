@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>OPTIONS DESK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --panel:#11151c;
+    --panel-raised:#151b23;
+    --line:#232b35;
+    --text:#e7edf3;
+    --muted:#7c8794;
+    --dim:#4a5563;
+    --green:#33d68a;
+    --red:#ff6b5e;
+    --amber:#ffb454;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--mono);}
+  body{
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 24px 24px;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px;}
+
+  /* header */
+  header{padding:28px 16px 20px;max-width:640px;margin:0 auto;border-bottom:1px solid var(--line);}
+  .clock{font-size:11px;color:var(--dim);letter-spacing:0.08em;display:flex;justify-content:space-between;margin-bottom:14px;}
+  .clock .live{color:var(--green);}
+  .clock .live::before{content:"●";margin-right:5px;font-size:9px;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-0.02em;margin:0 0 6px;}
+  h1 span{color:var(--green);}
+  header p{color:var(--muted);font-size:13px;margin:0;line-height:1.5;}
+
+  /* tool cards */
+  .tools{padding-top:18px;}
+  .tool{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-bottom:12px;
+    overflow:hidden;
+    transition:border-color .2s ease;
+  }
+  .tool.open{border-color:#2c3745;}
+  .tool-head{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:16px; cursor:pointer; user-select:none;
+  }
+  .badge{
+    font-family:var(--mono); font-weight:700; font-size:12px;
+    color:var(--bg); background:var(--green);
+    width:26px; height:26px; min-width:26px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:3px; margin-top:2px;
+  }
+  .tool-head .meta{flex:1;}
+  .tool-title{font-family:var(--display); font-weight:700; font-size:15.5px; letter-spacing:-0.01em; margin-bottom:3px;}
+  .tool-sub{color:var(--muted); font-size:12px; line-height:1.4;}
+  .chev{color:var(--dim); font-size:13px; margin-top:4px; transition:transform .2s ease;}
+  .tool.open .chev{transform:rotate(180deg); color:var(--green);}
+
+  .tool-body{
+    max-height:0; overflow:hidden; transition:max-height .25s ease;
+    border-top:1px solid transparent;
+  }
+  .tool.open .tool-body{border-top:1px solid var(--line);}
+  .tool-body-inner{padding:16px;}
+
+  label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin:12px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], select, textarea{
+    width:100%; background:var(--panel-raised); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:14px; padding:10px 12px; border-radius:3px;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--green);}
+  textarea{resize:vertical; min-height:90px; line-height:1.5;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .hint{font-size:11px; color:var(--dim); margin-top:5px; line-height:1.4;}
+
+  .run-btn{
+    width:100%; margin-top:16px; padding:12px; border:none; border-radius:3px;
+    background:var(--green); color:#06120c; font-family:var(--mono); font-weight:700;
+    font-size:13px; letter-spacing:0.03em; cursor:pointer; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .run-btn:active{transform:translateY(1px);}
+  .run-btn:disabled{background:var(--dim); color:#1a1f26; cursor:default;}
+  .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,0.25);border-top-color:#06120c;border-radius:50%;animation:spin .7s linear infinite; display:none;}
+  .run-btn.loading .spinner{display:inline-block;}
+  .run-btn.loading .btn-label::after{content:" — pulling live data...";}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .output{margin-top:14px; display:none;}
+  .output.show{display:block;}
+  .output-head{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:10.5px; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em;
+    margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed var(--line);
+  }
+  .output-head .tag{color:var(--green);}
+  .output-body{
+    background:var(--panel-raised); border:1px solid var(--line); border-radius:3px;
+    padding:14px; font-size:13.5px; line-height:1.65; color:#dbe3ea;
+  }
+  .output-body h1,.output-body h2,.output-body h3{
+    font-family:var(--display); color:var(--text); font-size:14.5px; margin:16px 0 8px;
+    border-left:2px solid var(--green); padding-left:8px;
+  }
+  .output-body h1:first-child,.output-body h2:first-child,.output-body h3:first-child{margin-top:0;}
+  .output-body p{margin:8px 0;}
+  .output-body ul,.output-body ol{margin:8px 0; padding-left:20px;}
+  .output-body li{margin:4px 0;}
+  .output-body strong{color:var(--amber); font-weight:600;}
+  .output-body code{background:#0c1015; padding:1px 5px; border-radius:2px; font-size:12.5px; color:var(--green);}
+  .output-body table{width:100%; border-collapse:collapse; font-size:12.5px; margin:10px 0;}
+  .output-body th,.output-body td{border:1px solid var(--line); padding:6px 8px; text-align:left;}
+  .output-body th{color:var(--dim); font-weight:600; text-transform:uppercase; font-size:10.5px;}
+  .output-body hr{border:none; border-top:1px dashed var(--line); margin:14px 0;}
+
+  .error{color:var(--red); font-size:12.5px; margin-top:10px; padding:10px; background:rgba(255,107,94,0.08); border:1px solid rgba(255,107,94,0.25); border-radius:3px;}
+
+  footer{max-width:640px; margin:24px auto 0; padding:16px; color:var(--dim); font-size:11px; line-height:1.6; border-top:1px solid var(--line);}
+  footer b{color:var(--muted);}
+
+  /* header gear + key status */
+  .header-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .gear-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--muted);
+    width:34px; height:34px; border-radius:4px; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .gear-btn:active{transform:translateY(1px);}
+  .key-status{font-size:10.5px; letter-spacing:0.06em; margin-top:4px; text-align:right;}
+  .key-status.set{color:var(--green);}
+  .key-status.unset{color:var(--red);}
+
+  /* modal */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(4,6,9,0.75);
+    z-index:50; align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    width:100%; max-width:640px; background:var(--panel);
+    border:1px solid var(--line); border-bottom:none;
+    border-radius:10px 10px 0 0; padding:20px 16px 24px;
+  }
+  .modal-title{font-family:var(--display); font-weight:700; font-size:16px; margin-bottom:6px;}
+  .modal-sub{color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:16px;}
+  .modal .save-btn{
+    width:100%; margin-top:14px; padding:12px; border:none; border-radius:3px;
+    background:var(--green); color:#06120c; font-family:var(--mono); font-weight:700;
+    font-size:13px; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;
+  }
+  .modal .clear-btn{
+    width:100%; margin-top:8px; padding:10px; border:1px solid var(--line); border-radius:3px;
+    background:transparent; color:var(--dim); font-family:var(--mono); font-size:12px; cursor:pointer;
+  }
+  .modal .close-x{position:absolute; top:16px; right:16px; color:var(--dim); background:none; border:none; font-size:18px; cursor:pointer;}
+  .modal-body{position:relative;}
+  .modal a{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap" style="padding:0;">
+    <div class="header-top">
+      <div class="clock" style="flex-direction:column; gap:2px;">
+        <span id="clockTime">--:--:--</span>
+        <span class="live">LIVE DATA VIA CLAUDE + WEB SEARCH</span>
+      </div>
+      <div style="text-align:right;">
+        <button class="gear-btn" onclick="openSettings()" aria-label="API key settings">⚙</button>
+        <div class="key-status unset" id="keyStatus">no key set</div>
+      </div>
+    </div>
+    <h1>OPTIONS <span>DESK</span></h1>
+  </div>
+</header>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-body">
+      <button class="close-x" onclick="closeSettings()">✕</button>
+      <div class="modal-title">Anthropic API Key</div>
+      <div class="modal-sub">
+        Stored only in memory for this browser tab — cleared when you close or refresh the page. Never saved to disk.
+        Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>.
+      </div>
+      <label>API key</label>
+      <input type="text" id="apiKeyInput" placeholder="sk-ant-api03-...">
+      <button class="save-btn" onclick="saveKey()">Save key</button>
+      <button class="clear-btn" onclick="clearKey()">Clear saved key</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap tools" id="tools"></div>
+
+<footer>
+  <b>How this works:</b> each tool sends your inputs inside the same prompt template shown in your reference cards, with web search enabled so Claude can look up current price, IV, and news before answering. Model: claude-sonnet-4-6.<br><br>
+  <b>Disclaimer:</b> outputs are AI-generated research scaffolding, not investment advice. Options involve substantial risk. Verify every number (price, Greeks, IV) against your broker before trading.
+</footer>
+
+<script>
+const TOOLS = [
+  {
+    id:"setup",
+    badge:"1",
+    title:"Trade Setup Analyzer",
+    sub:"Full breakdown of a single trade idea: strategy, P/L, breakevens, probability, and a lower-risk alternative.",
+    fields:[
+      {key:"ticker", label:"Stock ticker", type:"text", placeholder:"e.g. NVDA", required:true},
+      {key:"price", label:"Current price (optional — Claude will look it up live if blank)", type:"text", placeholder:"e.g. 128.50"},
+      {key:"view", label:"Market view", type:"select", options:["Bullish","Bearish","Neutral"]},
+      {key:"dte", label:"Days to expiry", type:"number", placeholder:"e.g. 21"},
+      {key:"risk", label:"Risk budget", type:"text", placeholder:"e.g. $500"},
+    ],
+    build(v){
+      return `Act as a professional options trader.
+
+Analyze this trade setup:
+
+Stock: ${v.ticker}
+Current Price: ${v.price ? v.price : "look up the current live price"}
+My Market View: ${v.view}
+Days to Expiry: ${v.dte || "not specified — recommend a suitable expiry"}
+Risk Budget: ${v.risk || "not specified"}
+
+Use web search to confirm the current stock price, recent price action, and any upcoming catalysts before answering.
+
+Provide:
+1. Best options strategy for this view
+2. Maximum profit and loss
+3. Breakeven points
+4. Probability of profit
+5. What could make this trade fail
+6. Position sizing recommendation
+7. Alternative lower-risk strategy`;
+    }
+  },
+  {
+    id:"scanner",
+    badge:"2",
+    title:"High Probability Options Scanner",
+    sub:"Scans for the highest-probability trades over the next 30 days, prioritizing capital preservation.",
+    fields:[
+      {key:"focus", label:"Sector / watchlist focus (optional)", type:"text", placeholder:"e.g. mega-cap tech, or leave blank for broad market"},
+      {key:"risk", label:"Max risk per trade (optional)", type:"text", placeholder:"e.g. $1,000"},
+    ],
+    build(v){
+      return `Act as an institutional options trader.
+
+Find the highest probability options trades for the next 30 days${v.focus ? ` focused on: ${v.focus}` : ""}.
+${v.risk ? `Constrain each trade to a max risk of ${v.risk}.` : ""}
+
+Use web search to pull current market conditions, notable options flow, IV levels, and near-term catalysts before selecting trades.
+
+For each trade provide:
+- Ticker
+- Strategy
+- Reason for setup
+- Expected move
+- Risk-reward ratio
+- Probability of success
+- Key support and resistance levels
+- Exit plan
+
+Prioritize capital preservation over maximum returns.`;
+    }
+  },
+  {
+    id:"earnings",
+    badge:"3",
+    title:"Earnings Options Strategy",
+    sub:"Pre- and post-earnings strategy for a ticker, based on the options-implied expected move.",
+    fields:[
+      {key:"ticker", label:"Ticker", type:"text", placeholder:"e.g. AAPL", required:true},
+    ],
+    build(v){
+      return `Act as an earnings volatility specialist.
+
+Analyze upcoming earnings for ${v.ticker}.
+
+Use web search to find the actual next earnings date, current implied volatility / options pricing, and the last 4 quarters of earnings-day reactions.
+
+Provide:
+1. Expected move based on options pricing
+2. Whether implied volatility is expensive or cheap
+3. Best strategy before earnings
+4. Best strategy after earnings
+5. Risk analysis
+6. Historical earnings reactions
+7. Trade plan for small accounts`;
+    }
+  },
+  {
+    id:"audit",
+    badge:"4",
+    title:"Options Portfolio Risk Audit",
+    sub:"Paste your open positions for a full risk, Greeks, and concentration review.",
+    fields:[
+      {key:"positions", label:"Positions (paste ticker, strategy, strikes, expiry, size, cost basis)", type:"textarea", placeholder:"e.g.\nAAPL 10/17 $220C x5, cost $3.20\nTSLA 240/230 put credit spread x10, expiry 9/19\n...", required:true},
+    ],
+    build(v){
+      return `Act as a risk manager for a hedge fund.
+
+Review my portfolio:
+
+${v.positions}
+
+Use web search to confirm current prices for each underlying and any relevant news before assessing risk.
+
+Identify:
+- Total portfolio risk
+- Sector concentration
+- Greeks exposure (Delta, Gamma, Theta, Vega)
+- Worst-case scenario
+- Recommended hedges
+- Positions to reduce or close
+- Opportunities to improve risk-adjusted returns`;
+    }
+  },
+  {
+    id:"income",
+    badge:"5",
+    title:"Weekly Income Strategy Generator",
+    sub:"Builds a weekly income plan from cash-secured puts, covered calls, and credit spreads.",
+    fields:[
+      {key:"capital", label:"Capital", type:"text", placeholder:"e.g. $25,000", required:true},
+    ],
+    build(v){
+      return `Act as a professional options income trader.
+
+My Capital: ${v.capital}
+
+Use web search to check current market volatility (VIX) and identify liquid, currently attractive underlyings for income strategies.
+
+Create a weekly income strategy using:
+- Cash-secured puts
+- Covered calls
+- Credit spreads
+
+Provide:
+1. Trade candidates
+2. Strike selection
+3. Probability of profit
+4. Expected weekly income
+5. Maximum drawdown risk
+6. Exit rules
+7. Market conditions where this strategy should not be used.`;
+    }
+  },
+];
+
+function fieldHTML(toolId, f){
+  const req = f.required ? 'data-required="1"' : "";
+  if(f.type === "select"){
+    return `<label>${f.label}</label>
+    <select id="${toolId}_${f.key}">${f.options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select>`;
+  }
+  if(f.type === "textarea"){
+    return `<label>${f.label}</label>
+    <textarea id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}></textarea>`;
+  }
+  return `<label>${f.label}</label>
+  <input type="${f.type}" id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}>`;
+}
+
+function renderTools(){
+  const container = document.getElementById("tools");
+  container.innerHTML = TOOLS.map(t => `
+    <div class="tool" id="card_${t.id}">
+      <div class="tool-head" onclick="toggleTool('${t.id}')">
+        <div class="badge">${t.badge}</div>
+        <div class="meta">
+          <div class="tool-title">${t.title}</div>
+          <div class="tool-sub">${t.sub}</div>
+        </div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="tool-body" id="body_${t.id}">
+        <div class="tool-body-inner">
+          ${t.fields.map(f=>fieldHTML(t.id,f)).join("")}
+          <button class="run-btn" id="btn_${t.id}" onclick="runTool('${t.id}')">
+            <span class="spinner"></span><span class="btn-label">Run analysis</span>
+          </button>
+          <div class="error" id="err_${t.id}" style="display:none;"></div>
+          <div class="output" id="out_${t.id}">
+            <div class="output-head"><span class="tag">// output</span><span id="ts_${t.id}"></span></div>
+            <div class="output-body" id="outbody_${t.id}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+let API_KEY = "";
+
+function openSettings(){
+  document.getElementById("apiKeyInput").value = API_KEY;
+  document.getElementById("settingsModal").classList.add("show");
+}
+function closeSettings(){
+  document.getElementById("settingsModal").classList.remove("show");
+}
+function saveKey(){
+  const val = document.getElementById("apiKeyInput").value.trim();
+  API_KEY = val;
+  updateKeyStatus();
+  closeSettings();
+}
+function clearKey(){
+  API_KEY = "";
+  document.getElementById("apiKeyInput").value = "";
+  updateKeyStatus();
+}
+function updateKeyStatus(){
+  const el = document.getElementById("keyStatus");
+  if(API_KEY){
+    el.textContent = "key set ✓";
+    el.className = "key-status set";
+  }else{
+    el.textContent = "no key set";
+    el.className = "key-status unset";
+  }
+}
+
+let openTool = null;
+function toggleTool(id){
+  const body = document.getElementById("body_"+id);
+  const card = document.getElementById("card_"+id);
+  const isOpen = card.classList.contains("open");
+  // close all
+  document.querySelectorAll(".tool").forEach(el=>{
+    el.classList.remove("open");
+    el.querySelector(".tool-body").style.maxHeight = null;
+  });
+  if(!isOpen){
+    card.classList.add("open");
+    body.style.maxHeight = body.scrollHeight + 400 + "px";
+  }
+}
+
+function collectValues(tool){
+  const v = {};
+  for(const f of tool.fields){
+    const el = document.getElementById(tool.id+"_"+f.key);
+    v[f.key] = el.value.trim();
+  }
+  return v;
+}
+
+function validate(tool, v){
+  for(const f of tool.fields){
+    if(f.required && !v[f.key]){
+      return `"${f.label}" is required.`;
+    }
+  }
+  return null;
+}
+
+async function runTool(id){
+  const tool = TOOLS.find(t=>t.id===id);
+  const v = collectValues(tool);
+  const errEl = document.getElementById("err_"+id);
+  const btn = document.getElementById("btn_"+id);
+  const outEl = document.getElementById("out_"+id);
+  const outBody = document.getElementById("outbody_"+id);
+  const ts = document.getElementById("ts_"+id);
+
+  errEl.style.display = "none";
+  const problem = validate(tool, v);
+  if(problem){
+    errEl.textContent = problem;
+    errEl.style.display = "block";
+    return;
+  }
+
+  if(!API_KEY){
+    errEl.textContent = "Add your Anthropic API key first — tap the ⚙ gear icon at the top.";
+    errEl.style.display = "block";
+    openSettings();
+    return;
+  }
+
+  const prompt = tool.build(v);
+  btn.classList.add("loading");
+  btn.disabled = true;
+  outEl.classList.remove("show");
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 3000,
+        messages: [{ role: "user", content: prompt }],
+        tools: [{ type: "web_search_20250305", name: "web_search" }]
+      })
+    });
+
+    if(!response.ok){
+      throw new Error("API returned status " + response.status);
+    }
+
+    const data = await response.json();
+    const text = (data.content || [])
+      .map(block => block.type === "text" ? block.text : "")
+      .filter(Boolean)
+      .join("\n\n");
+
+    if(!text){
+      throw new Error("No text content returned.");
+    }
+
+    outBody.innerHTML = marked.parse(text);
+    ts.textContent = new Date().toLocaleTimeString();
+    outEl.classList.add("show");
+  }catch(e){
+    errEl.textContent = "Error: " + e.message + " — please try again.";
+    errEl.style.display = "block";
+  }finally{
+    btn.classList.remove("loading");
+    btn.disabled = false;
+    // re-measure expanded height so new output isn't clipped
+    const body = document.getElementById("body_"+id);
+    body.style.maxHeight = body.scrollHeight + 400 + "px";
+  }
+}
+
+function tickClock(){
+  const el = document.getElementById("clockTime");
+  const now = new Date();
+  el.textContent = now.toLocaleTimeString([], {hour12:false});
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+renderTools();
+</script>
+
+</body>
+</html>
