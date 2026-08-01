@@ -297,7 +297,7 @@ For each strategy, size the position using the capital given:
 - Defined-risk strategies (Broken Wing Butterfly, spreads): contracts = floor(capital / max loss per contract)
 - Undefined-risk short strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard): contracts = floor(capital / (short put strike × 100)) as a cash-secured basis
 
-Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Keep each "rationale" to 1-2 short sentences so the response stays compact. Use exactly this schema:
+Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Be concise: keep "rationale" to one short sentence per strategy, and keep "ivContext" to one sentence. This keeps the whole response compact enough to finish in one pass. Use exactly this schema:
 {
   "ticker": "AMD",
   "price": 475.00,
@@ -446,7 +446,7 @@ async function runStrategyBuilder(){
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 4000,
+          max_tokens: 8000,
           messages: messages,
           tools: [{ type: "web_search_20250305", name: "web_search" }]
         })
@@ -463,11 +463,27 @@ async function runStrategyBuilder(){
         turnsLeft--;
         continue;
       }
+
+      // If the model ran out of tokens mid-JSON, ask it to continue the
+      // exact same object rather than starting over.
+      if(data.stop_reason === 'max_tokens' && turnsLeft > 1){
+        var partialText = (data.content || []).map(b => b.type === "text" ? b.text : "").filter(Boolean).join("\n");
+        messages.push({ role: "assistant", content: partialText });
+        messages.push({ role: "user", content: "Continue the JSON object exactly where it was cut off. Output only the remaining raw JSON text needed to complete it validly — no repetition of earlier content, no commentary, no code fences." });
+        turnsLeft--;
+        continue;
+      }
       break;
     }
 
     var text = (data.content || []).map(b => b.type === "text" ? b.text : "").filter(Boolean).join("\n");
-    var parsed = parseStrategyJSON(text);
+    var parsed;
+    try{
+      parsed = parseStrategyJSON(text);
+    }catch(parseErr){
+      var reason = data && data.stop_reason ? ' (stop_reason: ' + data.stop_reason + ')' : '';
+      throw new Error(parseErr.message + reason);
+    }
     renderResults(parsed);
   }catch(e){
     errEl.textContent = "Error: " + e.message + " — please try again.";
@@ -482,20 +498,52 @@ function parseStrategyJSON(text){
   if(!text || !text.trim()) throw new Error("Empty response — the request may have run out of room. Try again.");
   // Strip ```json ... ``` fences if the model wrapped the object anyway.
   var cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-  var match = cleaned.match(/\{[\s\S]*\}/);
-  if(!match) throw new Error("Could not find a JSON object in the response.");
-  var candidate = match[0];
-  try{
-    return JSON.parse(candidate);
-  }catch(e1){
-    // Common cleanup: trailing commas before a closing bracket/brace.
-    var repaired = candidate.replace(/,(\s*[\]}])/g, '$1');
-    try{
-      return JSON.parse(repaired);
-    }catch(e2){
-      throw new Error("Received a malformed response (couldn't parse JSON). Try again.");
+  var startIdx = cleaned.indexOf('{');
+  if(startIdx === -1) throw new Error("Could not find a JSON object in the response.");
+  var fromStart = cleaned.slice(startIdx);
+
+  // 1) Straightforward attempt: greedy match to the last closing brace.
+  var match = fromStart.match(/\{[\s\S]*\}/);
+  if(match){
+    try{ return JSON.parse(match[0]); }catch(e1){
+      var repaired = match[0].replace(/,(\s*[\]}])/g, '$1');
+      try{ return JSON.parse(repaired); }catch(e2){ /* fall through to salvage */ }
     }
   }
+
+  // 2) Salvage attempt: response was truncated mid-object. Walk backward to
+  // the last point where brackets balance (or can be safely closed), which
+  // effectively drops only the last, incomplete strategy entry.
+  var salvaged = salvageTruncatedJSON(fromStart);
+  if(salvaged) return salvaged;
+
+  throw new Error("Received a malformed response (couldn't parse JSON).");
+}
+
+function salvageTruncatedJSON(str){
+  var stack = [];
+  var inStr = false, esc = false;
+  var checkpoints = []; // {pos, stackCopy}
+  for(var i = 0; i < str.length; i++){
+    var ch = str[i];
+    if(esc){ esc = false; continue; }
+    if(ch === '\\'){ if(inStr) esc = true; continue; }
+    if(ch === '"'){ inStr = !inStr; continue; }
+    if(inStr) continue;
+    if(ch === '{' || ch === '['){ stack.push(ch); }
+    else if(ch === '}'){
+      if(stack[stack.length-1] === '{'){ stack.pop(); checkpoints.push({ pos: i+1, stack: stack.slice() }); }
+    } else if(ch === ']'){
+      if(stack[stack.length-1] === '['){ stack.pop(); checkpoints.push({ pos: i+1, stack: stack.slice() }); }
+    }
+  }
+  for(var j = checkpoints.length - 1; j >= 0; j--){
+    var cp = checkpoints[j];
+    var candidate = str.slice(0, cp.pos);
+    var suffix = cp.stack.slice().reverse().map(function(c){ return c === '{' ? '}' : ']'; }).join('');
+    try{ return JSON.parse(candidate + suffix); }catch(e){ /* try earlier checkpoint */ }
+  }
+  return null;
 }
 
 checkKeyOnLoad();
