@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="StrategyBuilder"/>
+<meta name="application-name" content="StrategyBuilder"/>
+<meta name="theme-color" content="#f1f5f9"/>
+<meta name="description" content="Compare high-IV options strategies — earnings or non-earnings — with strikes, DTE, and position sizing."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>StrategyBuilder</title>
+<style>
+:root{
+  --bg:     #f1f5f9;
+  --p1:     #ffffff;
+  --p2:     #f8fafc;
+  --border: #e2e8f0;
+  --borderB:#cbd5e1;
+  --text:   #0a0f1e;
+  --dim:    #374151;
+  --sub:    #4b5563;
+  --muted:  #94a3b8;
+  --green:  #15803d;  --gbg:#f0fdf4;  --gbd:#86efac;
+  --red:    #b91c1c;  --rbg:#fef2f2;  --rbd:#fca5a5;
+  --amber:  #b45309;  --abg:#fffbeb;  --abd:#fcd34d;
+  --blue:   #1d4ed8;  --bbg:#eff6ff;  --bbd:#93c5fd;
+  --teal:   #0e7490;  --tbg:#ecfeff;  --tbd:#67e8f9;
+  --purple: #7e22ce;  --pbg:#faf5ff;  --pbd:#d8b4fe;
+  --F: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--F);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:40px;}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;border:none;outline:none;}
+input,textarea,select{outline:none;font-family:inherit;}
+.app{max-width:480px;margin:0 auto;padding:0 12px;}
+
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 8px;}
+.navbar a{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.navbar-tag{display:flex;align-items:center;gap:5px;}
+.navbar-tag span:first-child{font-size:8px;font-weight:800;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;}
+.navbar-dot{width:4px;height:4px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;display:inline-block;}
+.navbar-live{font-size:8px;font-weight:800;color:#22c55e;letter-spacing:.06em;text-transform:uppercase;}
+
+.hdr-card{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-size:19px;font-weight:900;color:#fff;letter-spacing:-.02em;}
+.hdr-title em{color:#5eead4;font-style:normal;}
+.hdr-sub{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+.btn-gear{position:relative;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gear-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #0f172a;}
+.gear-dot.ok{background:#4ade80;}
+.no-key-warn{background:var(--abg);border:1.5px solid var(--abd);color:var(--amber);font-size:11.5px;font-weight:700;padding:9px 12px;border-radius:9px;margin-bottom:12px;cursor:pointer;text-align:center;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,6,9,.55);z-index:50;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;padding:10px 18px 26px;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:3px;margin:6px auto 14px;}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:12px;}
+.modal-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.modal-key-row{display:flex;gap:6px;}
+.modal-key-inp{flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;font-weight:600;color:var(--text);}
+.modal-eye{width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;font-size:15px;flex-shrink:0;}
+.modal-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.modal-note a{color:var(--blue);}
+.modal-status{font-size:11.5px;font-weight:700;margin-top:6px;min-height:16px;}
+.btn-save-key{width:100%;margin-top:14px;padding:12px;border-radius:9px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:800;}
+.btn-cancel-modal{width:100%;margin-top:8px;padding:10px;border-radius:9px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;}
+
+/* INPUT CARD */
+.input-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;padding:15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+label{display:block;font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin:11px 0 5px;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=number]{width:100%;background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:15px;font-weight:700;padding:10px 11px;border-radius:8px;}
+input:focus{border-color:var(--blue);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hint{font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:500;}
+
+.ctx-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.ctx-btn{padding:12px 6px;border-radius:9px;border:2px solid var(--border);background:var(--p2);text-align:center;cursor:pointer;}
+.ctx-btn .ci{font-size:18px;margin-bottom:2px;}
+.ctx-btn .cn{font-size:11.5px;font-weight:800;color:var(--sub);}
+.ctx-btn .cs{font-size:9px;color:var(--muted);font-weight:600;margin-top:1px;}
+.ctx-btn.on{background:var(--bbg);border-color:var(--blue);}
+.ctx-btn.on .cn{color:var(--blue);}
+
+.run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
+.run-btn:disabled{background:var(--muted);}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.run-btn.loading .spinner{display:inline-block;}
+.run-btn.loading .btn-label::after{content:" — analyzing…";}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.error{color:var(--red);font-size:12px;margin-top:9px;padding:9px 11px;background:var(--rbg);border:1px solid var(--rbd);border-radius:8px;font-weight:600;}
+
+/* RESULTS */
+.results{display:none;}
+.results.show{display:block;}
+.res-ctx{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+.res-ctx-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.res-ctx-sym{font-size:18px;font-weight:900;}
+.res-ctx-px{font-size:16px;font-weight:800;color:var(--blue);}
+.res-ctx-meta{font-size:11px;color:var(--sub);font-weight:600;line-height:1.5;}
+
+.strat-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.strat-hd{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.strat-name{font-size:14.5px;font-weight:800;}
+.strat-bias{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;margin-top:3px;}
+.strat-bias.neutral{background:var(--bbg);color:var(--blue);}
+.strat-bias.bullish{background:var(--gbg);color:var(--green);}
+.strat-bias.bearish{background:var(--rbg);color:var(--red);}
+.strat-dte{font-size:10.5px;color:var(--muted);font-weight:700;text-align:right;white-space:nowrap;}
+
+.strat-legs{padding:0 15px 12px;}
+.leg-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--p2);border-radius:7px;margin-bottom:5px;}
+.leg-row:last-child{margin-bottom:0;}
+.leg-action{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:5px;padding:2px 7px;flex-shrink:0;}
+.leg-action.sell{background:var(--gbg);color:var(--green);}
+.leg-action.buy{background:var(--rbg);color:var(--red);}
+.leg-desc{font-size:12px;font-weight:700;margin-left:8px;flex:1;}
+.leg-prem{font-size:12px;font-weight:800;color:var(--text);}
+
+.strat-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:0 15px 12px;border-radius:9px;overflow:hidden;border:1px solid var(--border);}
+.stat-cell{background:var(--p1);padding:9px 6px;text-align:center;}
+.stat-l{font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.stat-v{font-size:13px;font-weight:800;}
+.stat-v.g{color:var(--green);}
+.stat-v.r{color:var(--red);}
+
+.strat-size{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:var(--tbg);border-top:1px solid var(--tbd);}
+.size-lbl{font-size:9.5px;color:var(--teal);font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
+.size-val{font-size:14px;font-weight:900;color:var(--teal);}
+
+.strat-rationale{padding:11px 15px;font-size:12px;color:var(--sub);line-height:1.6;font-weight:500;border-top:1px solid var(--border);}
+.strat-rationale b{color:var(--text);}
+
+.disclaimer{font-size:10.5px;color:var(--muted);line-height:1.6;padding:12px 4px 4px;}
+
+footer{margin-top:20px;padding:14px 4px;color:var(--muted);font-size:10.5px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
+footer b{color:var(--sub);}
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="settingsModal" onclick="modalBgClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ API Settings</div>
+    <div class="modal-label">Anthropic API Key</div>
+    <div class="modal-key-row">
+      <input class="modal-key-inp" id="modalKeyInp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+      <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
+    </div>
+    <div class="modal-note">Shared across the whole GammaEdge suite — stored in your browser only. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+    <div class="modal-status" id="modalStatus"></div>
+    <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+    <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="navbar">
+    <a href="index.html">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    </a>
+    <div class="navbar-tag">
+      <span>Strategy Builder</span>
+      <span class="navbar-dot"></span>
+      <span class="navbar-live">Suite</span>
+    </div>
+  </div>
+
+  <div class="hdr-card">
+    <div class="hdr-row">
+      <div>
+        <div class="hdr-title">Strategy<em>Builder</em></div>
+        <div class="hdr-sub">Jade Lizard · BWB · Big Lizard · Ratio · CSP</div>
+      </div>
+      <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
+    </div>
+  </div>
+
+  <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()" style="display:none;">
+    ⚠️ No API key set — tap to add your Anthropic key
+  </div>
+
+  <div class="input-card">
+    <label>Ticker</label>
+    <input type="text" id="sb-ticker" placeholder="e.g. AMD" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+
+    <div class="row2">
+      <div>
+        <label>Current Price (optional)</label>
+        <input type="number" id="sb-price" placeholder="fetch live" step="0.01">
+      </div>
+      <div>
+        <label>Capital to Invest</label>
+        <input type="number" id="sb-capital" placeholder="e.g. 5000" step="100">
+      </div>
+    </div>
+    <div class="hint">Leave price blank to have Claude look it up live.</div>
+
+    <label>Context</label>
+    <div class="ctx-toggle">
+      <div class="ctx-btn on" id="ctx-earnings" onclick="setCtx('earnings')">
+        <div class="ci">📅</div>
+        <div class="cn">Earnings</div>
+        <div class="cs">enter post-crush, short DTE</div>
+      </div>
+      <div class="ctx-btn" id="ctx-nonearnings" onclick="setCtx('nonearnings')">
+        <div class="ci">📈</div>
+        <div class="cn">Non-Earnings</div>
+        <div class="cs">sustained high IV, longer DTE</div>
+      </div>
+    </div>
+
+    <button class="run-btn" id="sb-run-btn" onclick="runStrategyBuilder()">
+      <span class="spinner"></span><span class="btn-label">Get Strategy Options</span>
+    </button>
+    <div class="error" id="sb-err" style="display:none;"></div>
+  </div>
+
+  <div class="results" id="sb-results"></div>
+
+  <footer>
+    <b>How this works:</b> Claude looks up the live price, next earnings date, and current IV before proposing strikes — so results reflect real market conditions, not placeholder numbers. Uses the same key as StockAI and OptionsDesk.<br><br>
+    <b>Disclaimer:</b> outputs are AI-generated research scaffolding, not investment advice. Verify every strike, premium, and expiry against your broker before trading.
+  </footer>
+
+</div>
+
+<script>
+// ── SETTINGS (shared ge_key) ──
+function openSettings(){
+  document.getElementById('modalKeyInp').value = localStorage.getItem('ge_key') || '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
+function modalBgClick(e){ if(e.target === document.getElementById('settingsModal')) closeSettings(); }
+function toggleModalKey(){
+  var inp = document.getElementById('modalKeyInp');
+  var btn = document.getElementById('modalEyeBtn');
+  if(inp.type === 'password'){ inp.type='text'; btn.textContent='🙈'; } else { inp.type='password'; btn.textContent='👁'; }
+}
+function saveKey(){
+  var v = document.getElementById('modalKeyInp').value.trim();
+  if(v) localStorage.setItem('ge_key', v); else localStorage.removeItem('ge_key');
+  checkKeyOnLoad();
+  closeSettings();
+}
+function checkKeyOnLoad(){
+  var has = !!(localStorage.getItem('ge_key')||'').trim();
+  document.getElementById('gearDot').className = 'gear-dot' + (has ? ' ok' : '');
+  document.getElementById('noKeyWarn').style.display = has ? 'none' : 'block';
+}
+
+// ── CONTEXT TOGGLE ──
+var SB_CTX = 'earnings';
+function setCtx(c){
+  SB_CTX = c;
+  document.getElementById('ctx-earnings').className = 'ctx-btn' + (c==='earnings' ? ' on' : '');
+  document.getElementById('ctx-nonearnings').className = 'ctx-btn' + (c==='nonearnings' ? ' on' : '');
+}
+
+// ── PROMPT BUILDER ──
+function buildPrompt(ticker, price, capital){
+  var ctxBlock = SB_CTX === 'earnings'
+    ? `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). Confirm the actual next earnings date via web search — if it's more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`
+    : `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work. Confirm via web search whether IV Rank/Percentile is genuinely elevated relative to this ticker's own history (not just high in absolute terms) — mention this in ivContext.`;
+
+  return `Act as an institutional options strategist.
+
+Ticker: ${ticker}
+Current price: ${price ? '$' + price : 'look up the current live price via web search'}
+Capital available to invest: $${capital}
+
+${ctxBlock}
+
+Use web search to confirm: current price, next earnings date, and current IV / IV Rank if available.
+
+Propose 3 to 5 strategies suited to this context, chosen from: Jade Lizard, Reverse Jade Lizard, Broken Wing Butterfly, Big Lizard, Ratio Put Spread, Cash-Secured Put. Pick whichever subset best fits the ticker's current setup (skew bullish/bearish/neutral as the data suggests — don't force all of them in if they don't fit).
+
+For each strategy, size the position using the capital given:
+- Defined-risk strategies (Broken Wing Butterfly, spreads): contracts = floor(capital / max loss per contract)
+- Undefined-risk short strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard): contracts = floor(capital / (short put strike × 100)) as a cash-secured basis
+
+Respond with ONLY valid JSON, no markdown formatting, no commentary before or after, in exactly this schema:
+{
+  "ticker": "AMD",
+  "price": 475.00,
+  "earningsDate": "Aug 4, 2026" ,
+  "ivContext": "one sentence on current IV/IV Rank and what it implies",
+  "strategies": [
+    {
+      "name": "Jade Lizard",
+      "bias": "neutral",
+      "dte": 16,
+      "expiry": "Aug 21, 2026",
+      "legs": [
+        {"action":"SELL","type":"PUT","strike":430,"premium":8.50},
+        {"action":"SELL","type":"CALL","strike":505,"premium":8.00},
+        {"action":"BUY","type":"CALL","strike":515,"premium":4.50}
+      ],
+      "netCredit": 1200,
+      "contracts": 4,
+      "capitalUsed": 4800,
+      "maxLoss": "open below breakeven, like a naked put",
+      "maxGain": 4800,
+      "breakevenDown": 418,
+      "breakevenUp": null,
+      "rationale": "2-3 sentences on why this fits, what bucket it's weakest in, and what to watch"
+    }
+  ]
+}
+
+bias must be one of: "neutral","bullish","bearish". If a value is not applicable (e.g. no upside breakeven because credit covers full width), use null. maxLoss and maxGain should be dollar amounts (numbers) when defined, or a short string when undefined/open-ended.`;
+}
+
+// ── RENDER ──
+function biasLabel(b){
+  if(b==='bullish')return 'Bullish';
+  if(b==='bearish')return 'Bearish';
+  return 'Neutral';
+}
+function fmtMoney(n){
+  if(n===null || n===undefined) return '—';
+  if(typeof n === 'string') return n;
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtStrike(n){
+  if(n===null || n===undefined) return '—';
+  return '$' + Number(n).toLocaleString();
+}
+
+function renderResults(data){
+  var box = document.getElementById('sb-results');
+  var html = '';
+
+  html += `<div class="res-ctx">
+    <div class="res-ctx-row">
+      <span class="res-ctx-sym">${data.ticker||''}</span>
+      <span class="res-ctx-px">${data.price ? '$'+Number(data.price).toFixed(2) : '—'}</span>
+    </div>
+    <div class="res-ctx-meta">${data.earningsDate ? 'Next earnings: ' + data.earningsDate + ' · ' : ''}${data.ivContext || ''}</div>
+  </div>`;
+
+  (data.strategies||[]).forEach(function(s){
+    var bias = (s.bias||'neutral').toLowerCase();
+    html += `<div class="strat-card">
+      <div class="strat-hd">
+        <div>
+          <div class="strat-name">${s.name||''}</div>
+          <div class="strat-bias ${bias}">${biasLabel(bias)}</div>
+        </div>
+        <div class="strat-dte">${s.dte ? s.dte + ' DTE' : ''}${s.expiry ? '<br>'+s.expiry : ''}</div>
+      </div>
+      <div class="strat-legs">`;
+    (s.legs||[]).forEach(function(leg){
+      var actionCls = (leg.action||'').toUpperCase()==='SELL' ? 'sell' : 'buy';
+      html += `<div class="leg-row">
+        <div style="display:flex;align-items:center;">
+          <span class="leg-action ${actionCls}">${leg.action||''}</span>
+          <span class="leg-desc">${leg.type||''} ${fmtStrike(leg.strike)}</span>
+        </div>
+        <span class="leg-prem">$${leg.premium!=null?Number(leg.premium).toFixed(2):'—'}</span>
+      </div>`;
+    });
+    html += `</div>
+      <div class="strat-stats">
+        <div class="stat-cell"><div class="stat-l">Net Credit</div><div class="stat-v g">${fmtMoney(s.netCredit)}</div></div>
+        <div class="stat-cell"><div class="stat-l">Max Gain</div><div class="stat-v g">${fmtMoney(s.maxGain)}</div></div>
+        <div class="stat-cell"><div class="stat-l">Max Loss</div><div class="stat-v r">${fmtMoney(s.maxLoss)}</div></div>
+      </div>
+      <div class="strat-stats" style="margin-top:-11px;">
+        <div class="stat-cell"><div class="stat-l">BE Down</div><div class="stat-v">${fmtStrike(s.breakevenDown)}</div></div>
+        <div class="stat-cell"><div class="stat-l">BE Up</div><div class="stat-v">${s.breakevenUp!=null?fmtStrike(s.breakevenUp):'uncapped'}</div></div>
+        <div class="stat-cell"><div class="stat-l">Contracts</div><div class="stat-v">${s.contracts!=null?s.contracts:'—'}</div></div>
+      </div>
+      <div class="strat-size">
+        <span class="size-lbl">Capital Used</span>
+        <span class="size-val">${fmtMoney(s.capitalUsed)}</span>
+      </div>
+      <div class="strat-rationale">${s.rationale||''}</div>
+    </div>`;
+  });
+
+  html += `<div class="disclaimer">Strikes and premiums are AI-estimated from current market data at the time of the request — always verify the live chain with your broker before entering. Position sizing above is illustrative, not a recommendation.</div>`;
+
+  box.innerHTML = html;
+  box.classList.add('show');
+}
+
+// ── RUN ──
+async function runStrategyBuilder(){
+  var ticker = document.getElementById('sb-ticker').value.trim().toUpperCase();
+  var price = document.getElementById('sb-price').value.trim();
+  var capital = document.getElementById('sb-capital').value.trim();
+  var errEl = document.getElementById('sb-err');
+  var btn = document.getElementById('sb-run-btn');
+  var resultsBox = document.getElementById('sb-results');
+
+  errEl.style.display = 'none';
+  if(!ticker){ errEl.textContent = 'Enter a ticker first.'; errEl.style.display = 'block'; return; }
+  if(!capital || Number(capital) <= 0){ errEl.textContent = 'Enter capital to invest.'; errEl.style.display = 'block'; return; }
+
+  var apiKey = (localStorage.getItem('ge_key')||'').trim();
+  if(!apiKey){
+    errEl.textContent = 'Add your Anthropic API key first — tap the ⚙️ gear icon at the top.';
+    errEl.style.display = 'block';
+    openSettings();
+    return;
+  }
+
+  var prompt = buildPrompt(ticker, price, capital);
+  btn.classList.add('loading');
+  btn.disabled = true;
+  resultsBox.classList.remove('show');
+  resultsBox.innerHTML = '';
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 3000,
+        messages: [{ role: "user", content: prompt }],
+        tools: [{ type: "web_search_20250305", name: "web_search" }]
+      })
+    });
+
+    if(!response.ok) throw new Error("API returned status " + response.status);
+    const data = await response.json();
+    if(data.error) throw new Error(data.error.message);
+
+    var text = (data.content || []).map(b => b.type === "text" ? b.text : "").filter(Boolean).join("\n");
+    var match = text.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error("Could not parse strategy data from response.");
+    var parsed = JSON.parse(match[0]);
+
+    renderResults(parsed);
+  }catch(e){
+    errEl.textContent = "Error: " + e.message + " — please try again.";
+    errEl.style.display = 'block';
+  }finally{
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+checkKeyOnLoad();
+</script>
+
+</body>
+</html>
