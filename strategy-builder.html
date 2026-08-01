@@ -271,9 +271,15 @@ function setCtx(c){
 
 // ── PROMPT BUILDER ──
 function buildPrompt(ticker, price, capital){
-  var ctxBlock = SB_CTX === 'earnings'
-    ? `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). Confirm the actual next earnings date via web search — if it's more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`
-    : `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work. Confirm via web search whether IV Rank/Percentile is genuinely elevated relative to this ticker's own history (not just high in absolute terms) — mention this in ivContext.`;
+  var ctxBlock, strategyInstruction;
+
+  if(SB_CTX === 'earnings'){
+    ctxBlock = `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). Confirm the actual next earnings date via web search — if it's more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`;
+    strategyInstruction = `Build exactly 2 strategies, in this order: a Jade Lizard (or Reverse Jade Lizard if the setup is clearly bearish) and a Broken Wing Butterfly on the same side. These are the two standard post-earnings-crush structures — do not substitute other strategy types here, and do not add a third. Size both to the same directional bias implied by the ticker's setup.`;
+  } else {
+    ctxBlock = `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work. Confirm via web search whether IV Rank/Percentile is genuinely elevated relative to this ticker's own history (not just high in absolute terms) — mention this in ivContext.`;
+    strategyInstruction = `Propose 3 to 5 strategies suited to this context, chosen from: Jade Lizard, Reverse Jade Lizard, Broken Wing Butterfly, Big Lizard, Ratio Put Spread, Cash-Secured Put. Pick whichever subset best fits the ticker's current setup (skew bullish/bearish/neutral as the data suggests — don't force all of them in if they don't fit).`;
+  }
 
   return `Act as an institutional options strategist.
 
@@ -285,13 +291,13 @@ ${ctxBlock}
 
 Use web search to confirm: current price, next earnings date, and current IV / IV Rank if available.
 
-Propose 3 to 5 strategies suited to this context, chosen from: Jade Lizard, Reverse Jade Lizard, Broken Wing Butterfly, Big Lizard, Ratio Put Spread, Cash-Secured Put. Pick whichever subset best fits the ticker's current setup (skew bullish/bearish/neutral as the data suggests — don't force all of them in if they don't fit).
+${strategyInstruction}
 
 For each strategy, size the position using the capital given:
 - Defined-risk strategies (Broken Wing Butterfly, spreads): contracts = floor(capital / max loss per contract)
 - Undefined-risk short strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard): contracts = floor(capital / (short put strike × 100)) as a cash-secured basis
 
-Respond with ONLY valid JSON, no markdown formatting, no commentary before or after, in exactly this schema:
+Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Keep each "rationale" to 1-2 short sentences so the response stays compact. Use exactly this schema:
 {
   "ticker": "AMD",
   "price": 475.00,
@@ -315,7 +321,7 @@ Respond with ONLY valid JSON, no markdown formatting, no commentary before or af
       "maxGain": 4800,
       "breakevenDown": 418,
       "breakevenUp": null,
-      "rationale": "2-3 sentences on why this fits, what bucket it's weakest in, and what to watch"
+      "rationale": "1-2 sentences on why this fits and what bucket it's weakest in"
     }
   ]
 }
@@ -425,31 +431,43 @@ async function runStrategyBuilder(){
   resultsBox.innerHTML = '';
 
   try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 3000,
-        messages: [{ role: "user", content: prompt }],
-        tools: [{ type: "web_search_20250305", name: "web_search" }]
-      })
-    });
+    var messages = [{ role: "user", content: prompt }];
+    var data = null;
+    var turnsLeft = 4;
 
-    if(!response.ok) throw new Error("API returned status " + response.status);
-    const data = await response.json();
-    if(data.error) throw new Error(data.error.message);
+    while(turnsLeft > 0){
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 4000,
+          messages: messages,
+          tools: [{ type: "web_search_20250305", name: "web_search" }]
+        })
+      });
+
+      if(!response.ok) throw new Error("API returned status " + response.status);
+      data = await response.json();
+      if(data.error) throw new Error(data.error.message);
+
+      // A long web-search turn can pause before finishing — continue the
+      // same conversation rather than treating it as a final (empty) answer.
+      if(data.stop_reason === 'pause_turn'){
+        messages.push({ role: "assistant", content: data.content || [] });
+        turnsLeft--;
+        continue;
+      }
+      break;
+    }
 
     var text = (data.content || []).map(b => b.type === "text" ? b.text : "").filter(Boolean).join("\n");
-    var match = text.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error("Could not parse strategy data from response.");
-    var parsed = JSON.parse(match[0]);
-
+    var parsed = parseStrategyJSON(text);
     renderResults(parsed);
   }catch(e){
     errEl.textContent = "Error: " + e.message + " — please try again.";
@@ -457,6 +475,26 @@ async function runStrategyBuilder(){
   }finally{
     btn.classList.remove('loading');
     btn.disabled = false;
+  }
+}
+
+function parseStrategyJSON(text){
+  if(!text || !text.trim()) throw new Error("Empty response — the request may have run out of room. Try again.");
+  // Strip ```json ... ``` fences if the model wrapped the object anyway.
+  var cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+  var match = cleaned.match(/\{[\s\S]*\}/);
+  if(!match) throw new Error("Could not find a JSON object in the response.");
+  var candidate = match[0];
+  try{
+    return JSON.parse(candidate);
+  }catch(e1){
+    // Common cleanup: trailing commas before a closing bracket/brace.
+    var repaired = candidate.replace(/,(\s*[\]}])/g, '$1');
+    try{
+      return JSON.parse(repaired);
+    }catch(e2){
+      throw new Error("Received a malformed response (couldn't parse JSON). Try again.");
+    }
   }
 }
 
