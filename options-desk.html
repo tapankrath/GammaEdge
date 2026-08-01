@@ -1,261 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>OPTIONS DESK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OptionsDesk"/>
+<meta name="application-name" content="OptionsDesk"/>
+<meta name="theme-color" content="#f1f5f9"/>
+<meta name="description" content="Portfolio-level options research: scanner, earnings strategy, risk audit, weekly income."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<title>OptionsDesk</title>
 <style>
-  :root{
-    --bg:#0a0d12;
-    --panel:#11151c;
-    --panel-raised:#151b23;
-    --line:#232b35;
-    --text:#e7edf3;
-    --muted:#7c8794;
-    --dim:#4a5563;
-    --green:#33d68a;
-    --red:#ff6b5e;
-    --amber:#ffb454;
-    --mono: 'JetBrains Mono', monospace;
-    --display: 'Space Grotesk', sans-serif;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--mono);}
-  body{
-    background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size: 24px 24px;
-    padding-bottom:60px;
-  }
-  .wrap{max-width:640px;margin:0 auto;padding:0 16px;}
+:root{
+  --bg:     #f1f5f9;
+  --p1:     #ffffff;
+  --p2:     #f8fafc;
+  --border: #e2e8f0;
+  --borderB:#cbd5e1;
+  --text:   #0a0f1e;
+  --dim:    #374151;
+  --sub:    #4b5563;
+  --muted:  #94a3b8;
+  --green:  #15803d;  --gbg:#f0fdf4;  --gbd:#86efac;
+  --red:    #b91c1c;  --rbg:#fef2f2;  --rbd:#fca5a5;
+  --amber:  #b45309;  --abg:#fffbeb;  --abd:#fcd34d;
+  --blue:   #1d4ed8;  --bbg:#eff6ff;  --bbd:#93c5fd;
+  --teal:   #0e7490;  --tbg:#ecfeff;  --tbd:#67e8f9;
+  --F: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --FM: 'Inter', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--F);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:40px;}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;border:none;outline:none;}
+input,textarea,select{outline:none;font-family:inherit;}
+.app{max-width:480px;margin:0 auto;padding:0 12px;}
 
-  /* header */
-  header{padding:28px 16px 20px;max-width:640px;margin:0 auto;border-bottom:1px solid var(--line);}
-  .clock{font-size:11px;color:var(--dim);letter-spacing:0.08em;display:flex;justify-content:space-between;margin-bottom:14px;}
-  .clock .live{color:var(--green);}
-  .clock .live::before{content:"●";margin-right:5px;font-size:9px;animation:pulse 1.6s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
-  h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-0.02em;margin:0 0 6px;}
-  h1 span{color:var(--green);}
-  header p{color:var(--muted);font-size:13px;margin:0;line-height:1.5;}
+/* NAV BAR — matches suite */
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 8px;}
+.navbar a{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.navbar-tag{display:flex;align-items:center;gap:5px;}
+.navbar-tag span:first-child{font-size:8px;font-weight:800;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;}
+.navbar-dot{width:4px;height:4px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;display:inline-block;}
+.navbar-live{font-size:8px;font-weight:800;color:#22c55e;letter-spacing:.06em;text-transform:uppercase;}
 
-  /* tool cards */
-  .tools{padding-top:18px;}
-  .tool{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:4px;
-    margin-bottom:12px;
-    overflow:hidden;
-    transition:border-color .2s ease;
-  }
-  .tool.open{border-color:#2c3745;}
-  .tool-head{
-    display:flex; align-items:flex-start; gap:12px;
-    padding:16px; cursor:pointer; user-select:none;
-  }
-  .badge{
-    font-family:var(--mono); font-weight:700; font-size:12px;
-    color:var(--bg); background:var(--green);
-    width:26px; height:26px; min-width:26px;
-    display:flex; align-items:center; justify-content:center;
-    border-radius:3px; margin-top:2px;
-  }
-  .tool-head .meta{flex:1;}
-  .tool-title{font-family:var(--display); font-weight:700; font-size:15.5px; letter-spacing:-0.01em; margin-bottom:3px;}
-  .tool-sub{color:var(--muted); font-size:12px; line-height:1.4;}
-  .chev{color:var(--dim); font-size:13px; margin-top:4px; transition:transform .2s ease;}
-  .tool.open .chev{transform:rotate(180deg); color:var(--green);}
+/* HEADER CARD */
+.hdr-card{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-size:19px;font-weight:900;color:#fff;letter-spacing:-.02em;}
+.hdr-title em{color:#5eead4;font-style:normal;}
+.hdr-sub{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+.btn-gear{position:relative;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gear-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #0f172a;}
+.gear-dot.ok{background:#4ade80;}
+.no-key-warn{background:var(--abg);border:1.5px solid var(--abd);color:var(--amber);font-size:11.5px;font-weight:700;padding:9px 12px;border-radius:9px;margin-bottom:12px;cursor:pointer;text-align:center;}
 
-  .tool-body{
-    max-height:0; overflow:hidden; transition:max-height .25s ease;
-    border-top:1px solid transparent;
-  }
-  .tool.open .tool-body{border-top:1px solid var(--line);}
-  .tool-body-inner{padding:16px;}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,6,9,.55);z-index:50;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;padding:10px 18px 26px;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:3px;margin:6px auto 14px;}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:12px;}
+.modal-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.modal-key-row{display:flex;gap:6px;}
+.modal-key-inp{flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;font-weight:600;color:var(--text);}
+.modal-eye{width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;font-size:15px;flex-shrink:0;}
+.modal-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.modal-note a{color:var(--blue);}
+.modal-status{font-size:11.5px;font-weight:700;margin-top:6px;min-height:16px;}
+.modal-status.ok{color:var(--green);}
+.btn-save-key{width:100%;margin-top:14px;padding:12px;border-radius:9px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:800;}
+.btn-cancel-modal{width:100%;margin-top:8px;padding:10px;border-radius:9px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;}
 
-  label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin:12px 0 6px;}
-  label:first-child{margin-top:0;}
-  input[type=text], input[type=number], select, textarea{
-    width:100%; background:var(--panel-raised); border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:14px; padding:10px 12px; border-radius:3px;
-    outline:none;
-  }
-  input:focus, select:focus, textarea:focus{border-color:var(--green);}
-  textarea{resize:vertical; min-height:90px; line-height:1.5;}
-  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .hint{font-size:11px; color:var(--dim); margin-top:5px; line-height:1.4;}
+/* TOOL CARDS */
+.tool{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.tool.open{border-color:var(--borderB);}
+.tool-head{display:flex;align-items:flex-start;gap:11px;padding:14px 15px;cursor:pointer;}
+.badge{font-weight:900;font-size:13px;color:#fff;background:#0f172a;width:26px;height:26px;min-width:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;margin-top:1px;}
+.tool-head .meta{flex:1;}
+.tool-title{font-weight:800;font-size:14.5px;letter-spacing:-.01em;margin-bottom:2px;color:var(--text);}
+.tool-sub{color:var(--sub);font-size:11.5px;line-height:1.45;font-weight:500;}
+.chev{color:var(--muted);font-size:12px;margin-top:5px;transition:transform .2s ease;}
+.tool.open .chev{transform:rotate(180deg);color:var(--text);}
+.tool-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.tool.open .tool-body{border-top:1px solid var(--border);}
+.tool-body-inner{padding:14px 15px 16px;}
 
-  .run-btn{
-    width:100%; margin-top:16px; padding:12px; border:none; border-radius:3px;
-    background:var(--green); color:#06120c; font-family:var(--mono); font-weight:700;
-    font-size:13px; letter-spacing:0.03em; cursor:pointer; text-transform:uppercase;
-    display:flex; align-items:center; justify-content:center; gap:8px;
-  }
-  .run-btn:active{transform:translateY(1px);}
-  .run-btn:disabled{background:var(--dim); color:#1a1f26; cursor:default;}
-  .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,0.25);border-top-color:#06120c;border-radius:50%;animation:spin .7s linear infinite; display:none;}
-  .run-btn.loading .spinner{display:inline-block;}
-  .run-btn.loading .btn-label::after{content:" — pulling live data...";}
-  @keyframes spin{to{transform:rotate(360deg);}}
+label{display:block;font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin:11px 0 5px;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:var(--p2);border:1.5px solid var(--border);color:var(--text);
+  font-size:14px;font-weight:600;padding:10px 11px;border-radius:8px;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+textarea{resize:vertical;min-height:88px;line-height:1.5;font-weight:500;}
 
-  .output{margin-top:14px; display:none;}
-  .output.show{display:block;}
-  .output-head{
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:10.5px; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em;
-    margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed var(--line);
-  }
-  .output-head .tag{color:var(--green);}
-  .output-body{
-    background:var(--panel-raised); border:1px solid var(--line); border-radius:3px;
-    padding:14px; font-size:13.5px; line-height:1.65; color:#dbe3ea;
-  }
-  .output-body h1,.output-body h2,.output-body h3{
-    font-family:var(--display); color:var(--text); font-size:14.5px; margin:16px 0 8px;
-    border-left:2px solid var(--green); padding-left:8px;
-  }
-  .output-body h1:first-child,.output-body h2:first-child,.output-body h3:first-child{margin-top:0;}
-  .output-body p{margin:8px 0;}
-  .output-body ul,.output-body ol{margin:8px 0; padding-left:20px;}
-  .output-body li{margin:4px 0;}
-  .output-body strong{color:var(--amber); font-weight:600;}
-  .output-body code{background:#0c1015; padding:1px 5px; border-radius:2px; font-size:12.5px; color:var(--green);}
-  .output-body table{width:100%; border-collapse:collapse; font-size:12.5px; margin:10px 0;}
-  .output-body th,.output-body td{border:1px solid var(--line); padding:6px 8px; text-align:left;}
-  .output-body th{color:var(--dim); font-weight:600; text-transform:uppercase; font-size:10.5px;}
-  .output-body hr{border:none; border-top:1px dashed var(--line); margin:14px 0;}
+.run-btn{width:100%;margin-top:15px;padding:12px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
+.run-btn:disabled{background:var(--muted);}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.run-btn.loading .spinner{display:inline-block;}
+.run-btn.loading .btn-label::after{content:" — pulling live data…";}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  .error{color:var(--red); font-size:12.5px; margin-top:10px; padding:10px; background:rgba(255,107,94,0.08); border:1px solid rgba(255,107,94,0.25); border-radius:3px;}
+.output{margin-top:14px;display:none;}
+.output.show{display:block;}
+.output-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--border);font-weight:800;}
+.output-head .tag{color:var(--green);}
+.output-body{background:var(--p2);border:1px solid var(--border);border-radius:9px;padding:13px 14px;font-size:13.5px;line-height:1.65;color:var(--dim);}
+.output-body h1,.output-body h2,.output-body h3{font-size:14px;font-weight:800;color:var(--text);margin:14px 0 7px;border-left:3px solid var(--blue);padding-left:8px;}
+.output-body h1:first-child,.output-body h2:first-child,.output-body h3:first-child{margin-top:0;}
+.output-body p{margin:7px 0;}
+.output-body ul,.output-body ol{margin:7px 0;padding-left:20px;}
+.output-body li{margin:4px 0;}
+.output-body strong{color:var(--amber);font-weight:700;}
+.output-body code{background:#0f172a;color:#5eead4;padding:1px 5px;border-radius:3px;font-size:12.5px;}
+.output-body table{width:100%;border-collapse:collapse;font-size:12.5px;margin:9px 0;}
+.output-body th,.output-body td{border:1px solid var(--border);padding:6px 8px;text-align:left;}
+.output-body th{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:10px;}
+.output-body hr{border:none;border-top:1px dashed var(--border);margin:12px 0;}
 
-  footer{max-width:640px; margin:24px auto 0; padding:16px; color:var(--dim); font-size:11px; line-height:1.6; border-top:1px solid var(--line);}
-  footer b{color:var(--muted);}
+.error{color:var(--red);font-size:12px;margin-top:9px;padding:9px 11px;background:var(--rbg);border:1px solid var(--rbd);border-radius:8px;font-weight:600;}
 
-  /* header gear + key status */
-  .header-top{display:flex; justify-content:space-between; align-items:flex-start;}
-  .gear-btn{
-    background:var(--panel); border:1px solid var(--line); color:var(--muted);
-    width:34px; height:34px; border-radius:4px; cursor:pointer; font-size:16px;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .gear-btn:active{transform:translateY(1px);}
-  .key-status{font-size:10.5px; letter-spacing:0.06em; margin-top:4px; text-align:right;}
-  .key-status.set{color:var(--green);}
-  .key-status.unset{color:var(--red);}
-
-  /* modal */
-  .modal-overlay{
-    display:none; position:fixed; inset:0; background:rgba(4,6,9,0.75);
-    z-index:50; align-items:flex-end; justify-content:center;
-  }
-  .modal-overlay.show{display:flex;}
-  .modal{
-    width:100%; max-width:640px; background:var(--panel);
-    border:1px solid var(--line); border-bottom:none;
-    border-radius:10px 10px 0 0; padding:20px 16px 24px;
-  }
-  .modal-title{font-family:var(--display); font-weight:700; font-size:16px; margin-bottom:6px;}
-  .modal-sub{color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:16px;}
-  .modal .save-btn{
-    width:100%; margin-top:14px; padding:12px; border:none; border-radius:3px;
-    background:var(--green); color:#06120c; font-family:var(--mono); font-weight:700;
-    font-size:13px; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;
-  }
-  .modal .clear-btn{
-    width:100%; margin-top:8px; padding:10px; border:1px solid var(--line); border-radius:3px;
-    background:transparent; color:var(--dim); font-family:var(--mono); font-size:12px; cursor:pointer;
-  }
-  .modal .close-x{position:absolute; top:16px; right:16px; color:var(--dim); background:none; border:none; font-size:18px; cursor:pointer;}
-  .modal-body{position:relative;}
-  .modal a{color:var(--amber);}
+footer{margin-top:20px;padding:14px 4px;color:var(--muted);font-size:10.5px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
+footer b{color:var(--sub);}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap" style="padding:0;">
-    <div class="header-top">
-      <div class="clock" style="flex-direction:column; gap:2px;">
-        <span id="clockTime">--:--:--</span>
-        <span class="live">LIVE DATA VIA CLAUDE + WEB SEARCH</span>
-      </div>
-      <div style="text-align:right;">
-        <button class="gear-btn" onclick="openSettings()" aria-label="API key settings">⚙</button>
-        <div class="key-status unset" id="keyStatus">no key set</div>
-      </div>
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal" onclick="modalBgClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ API Settings</div>
+    <div class="modal-label">Anthropic API Key</div>
+    <div class="modal-key-row">
+      <input class="modal-key-inp" id="modalKeyInp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+      <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
     </div>
-    <h1>OPTIONS <span>DESK</span></h1>
-  </div>
-</header>
-
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal">
-    <div class="modal-body">
-      <button class="close-x" onclick="closeSettings()">✕</button>
-      <div class="modal-title">Anthropic API Key</div>
-      <div class="modal-sub">
-        Stored only in memory for this browser tab — cleared when you close or refresh the page. Never saved to disk.
-        Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>.
-      </div>
-      <label>API key</label>
-      <input type="text" id="apiKeyInput" placeholder="sk-ant-api03-...">
-      <button class="save-btn" onclick="saveKey()">Save key</button>
-      <button class="clear-btn" onclick="clearKey()">Clear saved key</button>
-    </div>
+    <div class="modal-note">Shared across the whole GammaEdge suite — stored in your browser only. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+    <div class="modal-status" id="modalStatus"></div>
+    <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+    <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
   </div>
 </div>
 
-<div class="wrap tools" id="tools"></div>
+<div class="app">
 
-<footer>
-  <b>How this works:</b> each tool sends your inputs inside the same prompt template shown in your reference cards, with web search enabled so Claude can look up current price, IV, and news before answering. Model: claude-sonnet-4-6.<br><br>
-  <b>Disclaimer:</b> outputs are AI-generated research scaffolding, not investment advice. Options involve substantial risk. Verify every number (price, Greeks, IV) against your broker before trading.
-</footer>
+  <div class="navbar">
+    <a href="index.html">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    </a>
+    <div class="navbar-tag">
+      <span>Options Desk</span>
+      <span class="navbar-dot"></span>
+      <span class="navbar-live">Suite</span>
+    </div>
+  </div>
+
+  <div class="hdr-card">
+    <div class="hdr-row">
+      <div>
+        <div class="hdr-title">Options<em>Desk</em></div>
+        <div class="hdr-sub">Scanner · Earnings · Risk Audit · Income</div>
+      </div>
+      <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
+    </div>
+  </div>
+
+  <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()" style="display:none;">
+    ⚠️ No API key set — tap to add your Anthropic key
+  </div>
+
+  <div id="tools"></div>
+
+  <footer>
+    <b>How this works:</b> each tool sends your inputs through the same prompt template, with web search enabled so Claude looks up current prices, IV, and news before answering. Uses the same key as StockAI and the rest of the suite.<br><br>
+    <b>For single-ticker trade setups</b> (one position, entry/exit, P&L by price and time), use <a href="stockai.html" style="color:var(--blue);font-weight:700;">StockAI</a> instead — it pulls live options chains and tracks paper trades.<br><br>
+    <b>Disclaimer:</b> outputs are AI-generated research scaffolding, not investment advice. Verify every number against your broker before trading.
+  </footer>
+
+</div>
 
 <script>
+// ── SETTINGS (shared ge_key with rest of suite) ──
+function openSettings(){
+  document.getElementById('modalKeyInp').value = localStorage.getItem('ge_key') || '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
+function modalBgClick(e){ if(e.target === document.getElementById('settingsModal')) closeSettings(); }
+function toggleModalKey(){
+  var inp = document.getElementById('modalKeyInp');
+  var btn = document.getElementById('modalEyeBtn');
+  if(inp.type === 'password'){ inp.type='text'; btn.textContent='🙈'; } else { inp.type='password'; btn.textContent='👁'; }
+}
+function saveKey(){
+  var v = document.getElementById('modalKeyInp').value.trim();
+  if(v) localStorage.setItem('ge_key', v); else localStorage.removeItem('ge_key');
+  checkKeyOnLoad();
+  closeSettings();
+}
+function checkKeyOnLoad(){
+  var has = !!(localStorage.getItem('ge_key')||'').trim();
+  document.getElementById('gearDot').className = 'gear-dot' + (has ? ' ok' : '');
+  document.getElementById('noKeyWarn').style.display = has ? 'none' : 'block';
+}
+
+// ── TOOLS ──
 const TOOLS = [
   {
-    id:"setup",
-    badge:"1",
-    title:"Trade Setup Analyzer",
-    sub:"Full breakdown of a single trade idea: strategy, P/L, breakevens, probability, and a lower-risk alternative.",
-    fields:[
-      {key:"ticker", label:"Stock ticker", type:"text", placeholder:"e.g. NVDA", required:true},
-      {key:"price", label:"Current price (optional — Claude will look it up live if blank)", type:"text", placeholder:"e.g. 128.50"},
-      {key:"view", label:"Market view", type:"select", options:["Bullish","Bearish","Neutral"]},
-      {key:"dte", label:"Days to expiry", type:"number", placeholder:"e.g. 21"},
-      {key:"risk", label:"Risk budget", type:"text", placeholder:"e.g. $500"},
-    ],
-    build(v){
-      return `Act as a professional options trader.
-
-Analyze this trade setup:
-
-Stock: ${v.ticker}
-Current Price: ${v.price ? v.price : "look up the current live price"}
-My Market View: ${v.view}
-Days to Expiry: ${v.dte || "not specified — recommend a suitable expiry"}
-Risk Budget: ${v.risk || "not specified"}
-
-Use web search to confirm the current stock price, recent price action, and any upcoming catalysts before answering.
-
-Provide:
-1. Best options strategy for this view
-2. Maximum profit and loss
-3. Breakeven points
-4. Probability of profit
-5. What could make this trade fail
-6. Position sizing recommendation
-7. Alternative lower-risk strategy`;
-    }
-  },
-  {
     id:"scanner",
-    badge:"2",
+    badge:"1",
     title:"High Probability Options Scanner",
     sub:"Scans for the highest-probability trades over the next 30 days, prioritizing capital preservation.",
     fields:[
@@ -285,7 +246,7 @@ Prioritize capital preservation over maximum returns.`;
   },
   {
     id:"earnings",
-    badge:"3",
+    badge:"2",
     title:"Earnings Options Strategy",
     sub:"Pre- and post-earnings strategy for a ticker, based on the options-implied expected move.",
     fields:[
@@ -310,11 +271,11 @@ Provide:
   },
   {
     id:"audit",
-    badge:"4",
+    badge:"3",
     title:"Options Portfolio Risk Audit",
     sub:"Paste your open positions for a full risk, Greeks, and concentration review.",
     fields:[
-      {key:"positions", label:"Positions (paste ticker, strategy, strikes, expiry, size, cost basis)", type:"textarea", placeholder:"e.g.\nAAPL 10/17 $220C x5, cost $3.20\nTSLA 240/230 put credit spread x10, expiry 9/19\n...", required:true},
+      {key:"positions", label:"Positions (ticker, strategy, strikes, expiry, size, cost basis)", type:"textarea", placeholder:"e.g.\nAAPL 10/17 $220C x5, cost $3.20\nTSLA 240/230 put credit spread x10, expiry 9/19\n...", required:true},
     ],
     build(v){
       return `Act as a risk manager for a hedge fund.
@@ -337,7 +298,7 @@ Identify:
   },
   {
     id:"income",
-    badge:"5",
+    badge:"4",
     title:"Weekly Income Strategy Generator",
     sub:"Builds a weekly income plan from cash-secured puts, covered calls, and credit spreads.",
     fields:[
@@ -369,16 +330,10 @@ Provide:
 
 function fieldHTML(toolId, f){
   const req = f.required ? 'data-required="1"' : "";
-  if(f.type === "select"){
-    return `<label>${f.label}</label>
-    <select id="${toolId}_${f.key}">${f.options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select>`;
-  }
   if(f.type === "textarea"){
-    return `<label>${f.label}</label>
-    <textarea id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}></textarea>`;
+    return `<label>${f.label}</label><textarea id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}></textarea>`;
   }
-  return `<label>${f.label}</label>
-  <input type="${f.type}" id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}>`;
+  return `<label>${f.label}</label><input type="${f.type}" id="${toolId}_${f.key}" placeholder="${f.placeholder||''}" ${req}>`;
 }
 
 function renderTools(){
@@ -410,43 +365,10 @@ function renderTools(){
   `).join("");
 }
 
-let API_KEY = "";
-
-function openSettings(){
-  document.getElementById("apiKeyInput").value = API_KEY;
-  document.getElementById("settingsModal").classList.add("show");
-}
-function closeSettings(){
-  document.getElementById("settingsModal").classList.remove("show");
-}
-function saveKey(){
-  const val = document.getElementById("apiKeyInput").value.trim();
-  API_KEY = val;
-  updateKeyStatus();
-  closeSettings();
-}
-function clearKey(){
-  API_KEY = "";
-  document.getElementById("apiKeyInput").value = "";
-  updateKeyStatus();
-}
-function updateKeyStatus(){
-  const el = document.getElementById("keyStatus");
-  if(API_KEY){
-    el.textContent = "key set ✓";
-    el.className = "key-status set";
-  }else{
-    el.textContent = "no key set";
-    el.className = "key-status unset";
-  }
-}
-
-let openTool = null;
 function toggleTool(id){
   const body = document.getElementById("body_"+id);
   const card = document.getElementById("card_"+id);
   const isOpen = card.classList.contains("open");
-  // close all
   document.querySelectorAll(".tool").forEach(el=>{
     el.classList.remove("open");
     el.querySelector(".tool-body").style.maxHeight = null;
@@ -459,19 +381,11 @@ function toggleTool(id){
 
 function collectValues(tool){
   const v = {};
-  for(const f of tool.fields){
-    const el = document.getElementById(tool.id+"_"+f.key);
-    v[f.key] = el.value.trim();
-  }
+  for(const f of tool.fields){ v[f.key] = document.getElementById(tool.id+"_"+f.key).value.trim(); }
   return v;
 }
-
 function validate(tool, v){
-  for(const f of tool.fields){
-    if(f.required && !v[f.key]){
-      return `"${f.label}" is required.`;
-    }
-  }
+  for(const f of tool.fields){ if(f.required && !v[f.key]) return `"${f.label}" is required.`; }
   return null;
 }
 
@@ -486,14 +400,11 @@ async function runTool(id){
 
   errEl.style.display = "none";
   const problem = validate(tool, v);
-  if(problem){
-    errEl.textContent = problem;
-    errEl.style.display = "block";
-    return;
-  }
+  if(problem){ errEl.textContent = problem; errEl.style.display = "block"; return; }
 
-  if(!API_KEY){
-    errEl.textContent = "Add your Anthropic API key first — tap the ⚙ gear icon at the top.";
+  const apiKey = (localStorage.getItem('ge_key')||'').trim();
+  if(!apiKey){
+    errEl.textContent = "Add your Anthropic API key first — tap the ⚙️ gear icon at the top.";
     errEl.style.display = "block";
     openSettings();
     return;
@@ -509,7 +420,7 @@ async function runTool(id){
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": API_KEY,
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true"
       },
@@ -521,19 +432,11 @@ async function runTool(id){
       })
     });
 
-    if(!response.ok){
-      throw new Error("API returned status " + response.status);
-    }
-
+    if(!response.ok) throw new Error("API returned status " + response.status);
     const data = await response.json();
-    const text = (data.content || [])
-      .map(block => block.type === "text" ? block.text : "")
-      .filter(Boolean)
-      .join("\n\n");
-
-    if(!text){
-      throw new Error("No text content returned.");
-    }
+    if(data.error) throw new Error(data.error.message);
+    const text = (data.content || []).map(block => block.type === "text" ? block.text : "").filter(Boolean).join("\n\n");
+    if(!text) throw new Error("No text content returned.");
 
     outBody.innerHTML = marked.parse(text);
     ts.textContent = new Date().toLocaleTimeString();
@@ -544,21 +447,13 @@ async function runTool(id){
   }finally{
     btn.classList.remove("loading");
     btn.disabled = false;
-    // re-measure expanded height so new output isn't clipped
     const body = document.getElementById("body_"+id);
     body.style.maxHeight = body.scrollHeight + 400 + "px";
   }
 }
 
-function tickClock(){
-  const el = document.getElementById("clockTime");
-  const now = new Date();
-  el.textContent = now.toLocaleTimeString([], {hour12:false});
-}
-setInterval(tickClock, 1000);
-tickClock();
-
 renderTools();
+checkKeyOnLoad();
 </script>
 
 </body>
