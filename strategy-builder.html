@@ -295,11 +295,11 @@ function buildPrompt(ticker, price, capital){
   if(SB_CTX === 'earnings'){
     ctxBlock = `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). If the earnings date is more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`;
     strategyInstruction = `Build exactly 2 strategies, in this order: a Jade Lizard (or Reverse Jade Lizard if the setup is clearly bearish) and a Broken Wing Butterfly on the same side. These are the two standard post-earnings-crush structures — do not substitute other strategy types here, and do not add a third. Size both to the same directional bias implied by the ticker's setup.`;
-    searchInstruction = `Use web search minimally — exactly ONE search: confirm the next earnings date. Do not run a second search for the ATM straddle price; instead, reason from the earnings date result and typical post-earnings IV crush behavior for this kind of ticker to make a reasonable straddle/EM estimate, and say clearly in ivContext that it's an estimate rather than a live quote.${price ? '' : ' If the same single search happens to surface a current price, use it — otherwise estimate.'}`;
+    searchInstruction = `Use web search minimally — exactly ONE search: confirm the next earnings date. Do not run a second search for the ATM straddle price. Instead, silently estimate a reasonable straddle/EM figure based on typical post-earnings IV crush behavior for this kind of ticker — do not write out your estimation process, just use the number and note in ivContext (one sentence) that it's an estimate rather than a live quote.${price ? '' : ' If the same single search happens to surface a current price, use it — otherwise estimate silently.'}`;
   } else {
     ctxBlock = `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work.`;
     strategyInstruction = `Include a Broken Wing Butterfly as one of the strategies — it is mandatory in every response, in the same direction as the ticker's setup. Alongside it, propose 1 to 4 more strategies chosen from: Jade Lizard, Reverse Jade Lizard, Big Lizard, Ratio Put Spread, Cash-Secured Put — whichever subset best fits (skew bullish/bearish/neutral as the data suggests).`;
-    searchInstruction = `Use web search minimally — exactly ONE search: check IV Rank/Percentile for this ticker relative to its own history (this is the whole premise of this mode, so it's the one search worth spending on). Do not run a second search for the ATM straddle price; reason from the IV Rank result to make a reasonable straddle/EM estimate instead, and say clearly in ivContext that it's an estimate.${price ? '' : ' If the same search surfaces a current price, use it — otherwise estimate.'}`;
+    searchInstruction = `Use web search minimally — exactly ONE search: check IV Rank/Percentile for this ticker relative to its own history (this is the whole premise of this mode, so it's the one search worth spending on). Do not run a second search for the ATM straddle price. Instead, silently estimate a reasonable straddle/EM figure from the IV Rank result — do not write out your estimation process, just use the number and note in ivContext (one sentence) that it's an estimate.${price ? '' : ' If the same search surfaces a current price, use it — otherwise estimate silently.'}`;
   }
 
   var priceLine = price
@@ -333,7 +333,7 @@ For each strategy, size the position using the capital given:
 - Defined-risk strategies (Broken Wing Butterfly, spreads): contracts = floor(capital / max loss per contract)
 - Undefined-risk short strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard): contracts = floor(capital / (short put strike × 100)) as a cash-secured basis
 
-Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Be concise: keep "rationale" to one short sentence per strategy, and keep "ivContext" to one sentence. This keeps the whole response compact enough to finish in one pass. Use exactly this schema:
+Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, restatement of the task, or explanation of your reasoning before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Be concise: keep "rationale" to one short sentence per strategy, and keep "ivContext" to one sentence. This keeps the whole response compact enough to finish in one pass. Use exactly this schema:
 {
   "ticker": "AMD",
   "price": 475.00,
@@ -533,7 +533,7 @@ async function runStrategyBuilder(){
   try{
     var messages = [{ role: "user", content: prompt }];
     var data = null;
-    var turnsLeft = 2; // hard cap: at most one continuation, ever — bounds total wait to ~2 round-trips max
+    var turnsLeft = 3; // hard cap: at most two continuations — bounds total wait, each request has its own 90s timeout
 
     while(turnsLeft > 0){
       var controller = new AbortController();
@@ -552,7 +552,7 @@ async function runStrategyBuilder(){
           signal: controller.signal,
           body: JSON.stringify({
             model: "claude-sonnet-4-6",
-            max_tokens: (SB_CTX === 'earnings' ? 3000 : 6000),
+            max_tokens: 6000,
             messages: messages,
             tools: [{ type: "web_search_20250305", name: "web_search" }]
           })
