@@ -313,7 +313,7 @@ STRIKE PLACEMENT RULE (mandatory, apply to every strategy):
 
 RISK FILTER (mandatory, applies only to defined-risk strategies — Broken Wing Butterfly and any vertical/spread legs):
 - creditToWidthRatio = net credit received ÷ (width of the risk-defining spread × 100)
-- This MUST be ≥ 0.40. If your first strike selection produces a ratio below 0.40, narrow the spread width (bring the long strike closer to the short strike) and re-price until it clears 0.40, even if that reduces max gain. This is a hard constraint, not a suggestion.
+- This should be ≥ 0.40. Choose your strike width with this in mind from the start (a strike closer to the short strike gives a higher ratio). Do ONE pass — do not iteratively re-price or second-guess the strikes after the fact. If the ratio you land on is still below 0.40, that's fine — report the true number and say so plainly in the rationale rather than forcing it.
 - Report creditToWidthRatio for every defined-risk strategy in the schema. For undefined-risk strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard), set creditToWidthRatio to null — the filter doesn't apply to them.
 
 ${strategyInstruction}
@@ -444,6 +444,31 @@ function renderResults(data){
 }
 
 // ── RUN ──
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// Retries on network-level failures (connection dropped mid-request — the
+// "Load failed" TypeError Safari throws on flaky cellular) but NOT on real
+// HTTP error responses (4xx/5xx), which retrying won't fix.
+async function fetchWithRetry(url, opts, maxRetries){
+  maxRetries = maxRetries || 2;
+  var lastErr;
+  var statusEl = document.getElementById('sb-loading-status');
+  for(var attempt = 0; attempt <= maxRetries; attempt++){
+    try{
+      return await fetch(url, opts);
+    }catch(err){
+      lastErr = err;
+      if(attempt < maxRetries){
+        if(statusEl) statusEl.textContent = 'Connection dropped — reconnecting (attempt ' + (attempt + 2) + ')…';
+        await sleep(800 * (attempt + 1));
+        continue;
+      }
+    }
+  }
+  var friendly = new Error('Connection dropped before a response came back (' + (lastErr && lastErr.message ? lastErr.message : 'network error') + '). This can happen on weak cellular signal during a long search — try again on stronger signal or Wi-Fi, and keep this tab in the foreground while it loads.');
+  throw friendly;
+}
+
 async function runStrategyBuilder(){
   var ticker = document.getElementById('sb-ticker').value.trim().toUpperCase();
   var price = document.getElementById('sb-price').value.trim();
@@ -474,43 +499,52 @@ async function runStrategyBuilder(){
   try{
     var messages = [{ role: "user", content: prompt }];
     var data = null;
-    var turnsLeft = 4;
+    var turnsLeft = 2; // hard cap: at most one continuation, ever — bounds total wait to ~2 round-trips max
 
     while(turnsLeft > 0){
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: (SB_CTX === 'earnings' ? 3000 : 6000),
-          messages: messages,
-          tools: [{ type: "web_search_20250305", name: "web_search" }]
-        })
-      });
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function(){ controller.abort(); }, 45000); // 45s hard client-side timeout per request
 
-      if(!response.ok) throw new Error("API returned status " + response.status);
-      data = await response.json();
-      if(data.error) throw new Error(data.error.message);
-
-      // A long web-search turn can pause before finishing — continue the
-      // same conversation rather than treating it as a final (empty) answer.
-      if(data.stop_reason === 'pause_turn'){
-        messages.push({ role: "assistant", content: data.content || [] });
-        turnsLeft--;
-        continue;
+      var response;
+      try{
+        response = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true"
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: (SB_CTX === 'earnings' ? 3000 : 6000),
+            messages: messages,
+            tools: [{ type: "web_search_20250305", name: "web_search" }]
+          })
+        }, 1); // only 1 retry per attempt, not 2 — keep total bounded
+      } finally {
+        clearTimeout(timeoutId);
       }
 
-      // If the model ran out of tokens mid-JSON, ask it to continue the
-      // exact same object rather than starting over.
-      if(data.stop_reason === 'max_tokens' && turnsLeft > 1){
-        var partialText = (data.content || []).map(b => b.type === "text" ? b.text : "").filter(Boolean).join("\n");
-        messages.push({ role: "assistant", content: partialText });
-        messages.push({ role: "user", content: "Continue the JSON object exactly where it was cut off. Output only the remaining raw JSON text needed to complete it validly — no repetition of earlier content, no commentary, no code fences." });
+      if(!response.ok){
+        var bodyText = '';
+        try{ bodyText = await response.text(); }catch(readErr){ /* ignore */ }
+        throw new Error("API returned status " + response.status + (bodyText ? (' — ' + bodyText.slice(0, 200)) : ''));
+      }
+      data = await response.json();
+      if(data.error) throw new Error('API error: ' + (data.error.type || '') + ' — ' + data.error.message);
+
+      // A long web-search turn can pause before finishing. Only continue
+      // ONCE (turnsLeft caps this) — if it's still not done after that,
+      // fall through and let the salvage parser recover whatever we have
+      // rather than opening a third network round-trip.
+      if((data.stop_reason === 'pause_turn' || data.stop_reason === 'max_tokens') && turnsLeft > 1){
+        var partial = (data.content || []);
+        messages.push({ role: "assistant", content: partial });
+        if(data.stop_reason === 'max_tokens'){
+          messages.push({ role: "user", content: "Continue the JSON object exactly where it was cut off. Output only the remaining raw JSON text needed to complete it validly — no repetition, no commentary, no code fences." });
+        }
         turnsLeft--;
         continue;
       }
@@ -527,7 +561,9 @@ async function runStrategyBuilder(){
     }
     renderResults(parsed);
   }catch(e){
-    errEl.textContent = "Error: " + e.message + " — please try again.";
+    var msg = e.name === 'AbortError' ? 'Request timed out after 45s.' : e.message;
+    var diag = e.name ? ' [' + e.name + ']' : '';
+    errEl.textContent = "Error: " + msg + diag + " — please try again.";
     errEl.style.display = 'block';
   }finally{
     btn.classList.remove('loading');
@@ -538,8 +574,8 @@ async function runStrategyBuilder(){
 
 var _loadingInterval = null;
 function startLoadingStatus(ctx){
-  var earningsMsgs = ["Checking earnings date…", "Estimating post-crush IV…", "Building Jade Lizard legs…", "Building Broken Wing Butterfly…", "Sizing positions…", "Almost done…"];
-  var nonEarningsMsgs = ["Checking IV Rank…", "Scanning current setup…", "Selecting best-fit strategies…", "Building strike legs…", "Sizing positions…", "Almost done…"];
+  var earningsMsgs = ["Checking earnings date…", "Estimating post-crush IV…", "Keep this tab open…", "Building Jade Lizard legs…", "Building Broken Wing Butterfly…", "Sizing positions…", "Almost done…"];
+  var nonEarningsMsgs = ["Checking IV Rank…", "Scanning current setup…", "Keep this tab open…", "Selecting best-fit strategies…", "Building strike legs…", "Sizing positions…", "Almost done…"];
   var msgs = ctx === 'earnings' ? earningsMsgs : nonEarningsMsgs;
   var el = document.getElementById('sb-loading-status');
   var i = 0;
