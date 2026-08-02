@@ -108,6 +108,8 @@ input:focus{border-color:var(--blue);}
 .res-ctx-sym{font-size:18px;font-weight:900;}
 .res-ctx-px{font-size:16px;font-weight:800;color:var(--blue);}
 .res-ctx-meta{font-size:11px;color:var(--sub);font-weight:600;line-height:1.5;}
+.res-ctx-em{font-size:11px;color:var(--sub);font-weight:500;line-height:1.5;margin-top:4px;padding-top:6px;border-top:1px dashed var(--border);}
+.res-ctx-em strong{color:var(--text);font-weight:700;}
 
 .strat-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .strat-hd{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
@@ -139,6 +141,10 @@ input:focus{border-color:var(--blue);}
 .size-val{font-size:14px;font-weight:900;color:var(--teal);}
 
 .strat-rationale{padding:11px 15px;font-size:12px;color:var(--sub);line-height:1.6;font-weight:500;border-top:1px solid var(--border);}
+.risk-filter{display:flex;align-items:flex-start;gap:8px;padding:9px 15px;font-size:11px;font-weight:600;line-height:1.5;border-top:1px solid var(--border);}
+.risk-filter.pass{background:var(--gbg);color:var(--green);}
+.risk-filter.fail{background:var(--rbg);color:var(--red);}
+.risk-filter .rf-icon{font-size:13px;flex-shrink:0;}
 .strat-rationale b{color:var(--text);}
 
 .disclaimer{font-size:10.5px;color:var(--muted);line-height:1.6;padding:12px 4px 4px;}
@@ -278,18 +284,18 @@ function buildPrompt(ticker, price, capital){
   if(SB_CTX === 'earnings'){
     ctxBlock = `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). If the earnings date is more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`;
     strategyInstruction = `Build exactly 2 strategies, in this order: a Jade Lizard (or Reverse Jade Lizard if the setup is clearly bearish) and a Broken Wing Butterfly on the same side. These are the two standard post-earnings-crush structures — do not substitute other strategy types here, and do not add a third. Size both to the same directional bias implied by the ticker's setup.`;
-    searchInstruction = `Use web search sparingly — at most 2 searches total: one to confirm the next earnings date${price ? '' : ', combined with current price if the same result gives it'}. Do not run a separate search for IV Rank here; a reasonable post-crush IV estimate based on the ticker's typical behavior is fine.`;
+    searchInstruction = `Use web search sparingly — at most 2 searches total: one to confirm the next earnings date, and one to find (or estimate from the options chain) the ATM straddle price at the expiry you're using, for the post-crush entry day${price ? '' : '. Combine with a current price lookup if the same result gives it'}.`;
   } else {
     ctxBlock = `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work.`;
-    strategyInstruction = `Propose 3 to 5 strategies suited to this context, chosen from: Jade Lizard, Reverse Jade Lizard, Broken Wing Butterfly, Big Lizard, Ratio Put Spread, Cash-Secured Put. Pick whichever subset best fits the ticker's current setup (skew bullish/bearish/neutral as the data suggests — don't force all of them in if they don't fit).`;
-    searchInstruction = `Use web search sparingly — at most 2 searches total: one to confirm IV Rank/Percentile is genuinely elevated relative to this ticker's own history${price ? '' : ' and current price if the same result gives it'}. Don't run additional confirmatory searches beyond that.`;
+    strategyInstruction = `Include a Broken Wing Butterfly as one of the strategies — it is mandatory in every response, in the same direction as the ticker's setup. Alongside it, propose 1 to 4 more strategies chosen from: Jade Lizard, Reverse Jade Lizard, Big Lizard, Ratio Put Spread, Cash-Secured Put — whichever subset best fits (skew bullish/bearish/neutral as the data suggests).`;
+    searchInstruction = `Use web search sparingly — at most 2 searches total: one to find (or estimate from the options chain) the ATM straddle price at the expiry you're using, and confirm IV Rank/Percentile is genuinely elevated relative to this ticker's own history if the same result gives it${price ? '' : '. Include a current price lookup if convenient'}.`;
   }
 
   var priceLine = price
     ? `Current price: $${price} — use this directly, do not search to re-confirm it.`
     : `Current price: not given — include one price lookup as part of your search budget above.`;
 
-  return `Act as an institutional options strategist.
+  return `Act as an institutional options strategist working from a specific, testable framework — not from general judgment.
 
 Ticker: ${ticker}
 ${priceLine}
@@ -298,6 +304,17 @@ Capital available to invest: $${capital}
 ${ctxBlock}
 
 ${searchInstruction}
+
+STRIKE PLACEMENT RULE (mandatory, apply to every strategy):
+1. Find the ATM straddle price for the expiry you're using (the combined premium of the at-the-money call + put at that expiry).
+2. Compute Expected Move: EM = straddle price × 0.85.
+3. Place the short put strike near (spot − EM) and the short call strike near (spot + EM). This is the boundary of the "flat" outcome bucket — round to the nearest liquid strike, but do not deviate from spot ± EM by more than ~10% of EM without explaining why in the rationale.
+4. Report the straddle price and EM you used at the top level of the response (see schema).
+
+RISK FILTER (mandatory, applies only to defined-risk strategies — Broken Wing Butterfly and any vertical/spread legs):
+- creditToWidthRatio = net credit received ÷ (width of the risk-defining spread × 100)
+- This MUST be ≥ 0.40. If your first strike selection produces a ratio below 0.40, narrow the spread width (bring the long strike closer to the short strike) and re-price until it clears 0.40, even if that reduces max gain. This is a hard constraint, not a suggestion.
+- Report creditToWidthRatio for every defined-risk strategy in the schema. For undefined-risk strategies (Jade Lizard, Ratio Put Spread, Cash-Secured Put, Big Lizard), set creditToWidthRatio to null — the filter doesn't apply to them.
 
 ${strategyInstruction}
 
@@ -309,7 +326,9 @@ Respond with ONLY valid JSON — your entire reply must be a single JSON object,
 {
   "ticker": "AMD",
   "price": 475.00,
-  "earningsDate": "Aug 4, 2026" ,
+  "earningsDate": "Aug 4, 2026",
+  "straddlePrice": 28.00,
+  "expectedMove": 23.80,
   "ivContext": "one sentence on current IV/IV Rank and what it implies",
   "strategies": [
     {
@@ -329,12 +348,13 @@ Respond with ONLY valid JSON — your entire reply must be a single JSON object,
       "maxGain": 4800,
       "breakevenDown": 418,
       "breakevenUp": null,
+      "creditToWidthRatio": null,
       "rationale": "1-2 sentences on why this fits and what bucket it's weakest in"
     }
   ]
 }
 
-bias must be one of: "neutral","bullish","bearish". If a value is not applicable (e.g. no upside breakeven because credit covers full width), use null. maxLoss and maxGain should be dollar amounts (numbers) when defined, or a short string when undefined/open-ended.`;
+bias must be one of: "neutral","bullish","bearish". If a value is not applicable (e.g. no upside breakeven because credit covers full width), use null. maxLoss and maxGain should be dollar amounts (numbers) when defined, or a short string when undefined/open-ended. creditToWidthRatio is a decimal (e.g. 0.45) for defined-risk strategies, null otherwise.`;
 }
 
 // ── RENDER ──
@@ -352,6 +372,16 @@ function fmtStrike(n){
   if(n===null || n===undefined) return '—';
   return '$' + Number(n).toLocaleString();
 }
+function riskFilterHTML(ratio){
+  var pct = (ratio * 100).toFixed(0);
+  var pass = ratio >= 0.40;
+  var cls = pass ? 'pass' : 'fail';
+  var icon = pass ? '✓' : '⚠';
+  var msg = pass
+    ? 'Credit is ' + pct + '% of spread width — clears the 40% floor (loss ≤ ~1.5× credit)'
+    : 'Credit is only ' + pct + '% of spread width — below the 40% floor, loss could exceed 1.5× credit';
+  return `<div class="risk-filter ${cls}"><span class="rf-icon">${icon}</span><span class="rf-txt">${msg}</span></div>`;
+}
 
 function renderResults(data){
   var box = document.getElementById('sb-results');
@@ -363,6 +393,7 @@ function renderResults(data){
       <span class="res-ctx-px">${data.price ? '$'+Number(data.price).toFixed(2) : '—'}</span>
     </div>
     <div class="res-ctx-meta">${data.earningsDate ? 'Next earnings: ' + data.earningsDate + ' · ' : ''}${data.ivContext || ''}</div>
+    ${data.straddlePrice!=null || data.expectedMove!=null ? `<div class="res-ctx-em">ATM straddle: <strong>$${data.straddlePrice!=null?Number(data.straddlePrice).toFixed(2):'—'}</strong> → Expected Move (×0.85): <strong>±$${data.expectedMove!=null?Number(data.expectedMove).toFixed(2):'—'}</strong> — short strikes anchored here</div>` : ''}
   </div>`;
 
   (data.strategies||[]).forEach(function(s){
@@ -401,6 +432,7 @@ function renderResults(data){
         <span class="size-lbl">Capital Used</span>
         <span class="size-val">${fmtMoney(s.capitalUsed)}</span>
       </div>
+      ${s.creditToWidthRatio!=null ? riskFilterHTML(s.creditToWidthRatio) : ''}
       <div class="strat-rationale">${s.rationale||''}</div>
     </div>`;
   });
