@@ -94,7 +94,8 @@ input:focus{border-color:var(--blue);}
 .run-btn:disabled{background:var(--muted);}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
 .run-btn.loading .spinner{display:inline-block;}
-.run-btn.loading .btn-label::after{content:" — analyzing…";}
+.run-btn.loading .btn-label::after{content:"…";}
+.loading-status{display:none;text-align:center;font-size:11px;color:var(--muted);font-weight:600;margin-top:8px;min-height:14px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 .error{color:var(--red);font-size:12px;margin-top:9px;padding:9px 11px;background:var(--rbg);border:1px solid var(--rbd);border-radius:8px;font-weight:600;}
@@ -224,6 +225,7 @@ footer b{color:var(--sub);}
     <button class="run-btn" id="sb-run-btn" onclick="runStrategyBuilder()">
       <span class="spinner"></span><span class="btn-label">Get Strategy Options</span>
     </button>
+    <div class="loading-status" id="sb-loading-status" style="display:none;"></div>
     <div class="error" id="sb-err" style="display:none;"></div>
   </div>
 
@@ -271,25 +273,31 @@ function setCtx(c){
 
 // ── PROMPT BUILDER ──
 function buildPrompt(ticker, price, capital){
-  var ctxBlock, strategyInstruction;
+  var ctxBlock, strategyInstruction, searchInstruction;
 
   if(SB_CTX === 'earnings'){
-    ctxBlock = `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). Confirm the actual next earnings date via web search — if it's more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`;
+    ctxBlock = `Context: EARNINGS PLAY. Assume this trade is entered the day AFTER the next earnings report, once IV has crushed. Use short-dated expiries (roughly 10–21 DTE from the post-earnings entry date). If the earnings date is more than a few days away, say so explicitly in ivContext and still build the trade assuming entry the day after that date.`;
     strategyInstruction = `Build exactly 2 strategies, in this order: a Jade Lizard (or Reverse Jade Lizard if the setup is clearly bearish) and a Broken Wing Butterfly on the same side. These are the two standard post-earnings-crush structures — do not substitute other strategy types here, and do not add a third. Size both to the same directional bias implied by the ticker's setup.`;
+    searchInstruction = `Use web search sparingly — at most 2 searches total: one to confirm the next earnings date${price ? '' : ', combined with current price if the same result gives it'}. Do not run a separate search for IV Rank here; a reasonable post-crush IV estimate based on the ticker's typical behavior is fine.`;
   } else {
-    ctxBlock = `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work. Confirm via web search whether IV Rank/Percentile is genuinely elevated relative to this ticker's own history (not just high in absolute terms) — mention this in ivContext.`;
+    ctxBlock = `Context: NON-EARNINGS, SUSTAINED HIGH IV. There is no scheduled catalyst. Use longer expiries (roughly 30–45 DTE) so theta has time to work.`;
     strategyInstruction = `Propose 3 to 5 strategies suited to this context, chosen from: Jade Lizard, Reverse Jade Lizard, Broken Wing Butterfly, Big Lizard, Ratio Put Spread, Cash-Secured Put. Pick whichever subset best fits the ticker's current setup (skew bullish/bearish/neutral as the data suggests — don't force all of them in if they don't fit).`;
+    searchInstruction = `Use web search sparingly — at most 2 searches total: one to confirm IV Rank/Percentile is genuinely elevated relative to this ticker's own history${price ? '' : ' and current price if the same result gives it'}. Don't run additional confirmatory searches beyond that.`;
   }
+
+  var priceLine = price
+    ? `Current price: $${price} — use this directly, do not search to re-confirm it.`
+    : `Current price: not given — include one price lookup as part of your search budget above.`;
 
   return `Act as an institutional options strategist.
 
 Ticker: ${ticker}
-Current price: ${price ? '$' + price : 'look up the current live price via web search'}
+${priceLine}
 Capital available to invest: $${capital}
 
 ${ctxBlock}
 
-Use web search to confirm: current price, next earnings date, and current IV / IV Rank if available.
+${searchInstruction}
 
 ${strategyInstruction}
 
@@ -429,6 +437,7 @@ async function runStrategyBuilder(){
   btn.disabled = true;
   resultsBox.classList.remove('show');
   resultsBox.innerHTML = '';
+  startLoadingStatus(SB_CTX);
 
   try{
     var messages = [{ role: "user", content: prompt }];
@@ -446,7 +455,7 @@ async function runStrategyBuilder(){
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 8000,
+          max_tokens: (SB_CTX === 'earnings' ? 3000 : 6000),
           messages: messages,
           tools: [{ type: "web_search_20250305", name: "web_search" }]
         })
@@ -491,7 +500,28 @@ async function runStrategyBuilder(){
   }finally{
     btn.classList.remove('loading');
     btn.disabled = false;
+    stopLoadingStatus();
   }
+}
+
+var _loadingInterval = null;
+function startLoadingStatus(ctx){
+  var earningsMsgs = ["Checking earnings date…", "Estimating post-crush IV…", "Building Jade Lizard legs…", "Building Broken Wing Butterfly…", "Sizing positions…", "Almost done…"];
+  var nonEarningsMsgs = ["Checking IV Rank…", "Scanning current setup…", "Selecting best-fit strategies…", "Building strike legs…", "Sizing positions…", "Almost done…"];
+  var msgs = ctx === 'earnings' ? earningsMsgs : nonEarningsMsgs;
+  var el = document.getElementById('sb-loading-status');
+  var i = 0;
+  el.textContent = msgs[0];
+  el.style.display = 'block';
+  _loadingInterval = setInterval(function(){
+    i = (i + 1) % msgs.length;
+    el.textContent = msgs[i];
+  }, 2200);
+}
+function stopLoadingStatus(){
+  if(_loadingInterval){ clearInterval(_loadingInterval); _loadingInterval = null; }
+  var el = document.getElementById('sb-loading-status');
+  el.style.display = 'none';
 }
 
 function parseStrategyJSON(text){
