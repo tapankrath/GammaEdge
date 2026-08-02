@@ -458,6 +458,10 @@ async function fetchWithRetry(url, opts, maxRetries){
       return await fetch(url, opts);
     }catch(err){
       lastErr = err;
+      // AbortError from our own client-side timeout is not a dropped
+      // connection — retrying with the same time budget won't help.
+      // Let it propagate as-is so the caller reports it as a timeout.
+      if(err.name === 'AbortError'){ throw err; }
       if(attempt < maxRetries){
         if(statusEl) statusEl.textContent = 'Connection dropped — reconnecting (attempt ' + (attempt + 2) + ')…';
         await sleep(800 * (attempt + 1));
@@ -465,7 +469,7 @@ async function fetchWithRetry(url, opts, maxRetries){
       }
     }
   }
-  var friendly = new Error('Connection dropped before a response came back (' + (lastErr && lastErr.message ? lastErr.message : 'network error') + '). This can happen on weak cellular signal during a long search — try again on stronger signal or Wi-Fi, and keep this tab in the foreground while it loads.');
+  var friendly = new Error('Connection dropped before a response came back (' + (lastErr && lastErr.message ? lastErr.message : 'network error') + '). Try again on a different network if this repeats.');
   throw friendly;
 }
 
@@ -503,7 +507,7 @@ async function runStrategyBuilder(){
 
     while(turnsLeft > 0){
       var controller = new AbortController();
-      var timeoutId = setTimeout(function(){ controller.abort(); }, 45000); // 45s hard client-side timeout per request
+      var timeoutId = setTimeout(function(){ controller.abort(); }, 90000); // 90s hard client-side timeout per request
 
       var response;
       try{
@@ -561,7 +565,7 @@ async function runStrategyBuilder(){
     }
     renderResults(parsed);
   }catch(e){
-    var msg = e.name === 'AbortError' ? 'Request timed out after 45s.' : e.message;
+    var msg = e.name === 'AbortError' ? 'Request took longer than 90 seconds and was stopped.' : e.message;
     var diag = e.name ? ' [' + e.name + ']' : '';
     errEl.textContent = "Error: " + msg + diag + " — please try again.";
     errEl.style.display = 'block';
@@ -574,7 +578,7 @@ async function runStrategyBuilder(){
 
 var _loadingInterval = null;
 function startLoadingStatus(ctx){
-  var earningsMsgs = ["Checking earnings date…", "Estimating post-crush IV…", "Keep this tab open…", "Building Jade Lizard legs…", "Building Broken Wing Butterfly…", "Sizing positions…", "Almost done…"];
+  var earningsMsgs = ["Checking earnings date…", "Estimating post-crush IV…", "This can take up to a minute…", "Building Jade Lizard legs…", "Building Broken Wing Butterfly…", "Sizing positions…", "Almost done…"];
   var nonEarningsMsgs = ["Checking IV Rank…", "Scanning current setup…", "Keep this tab open…", "Selecting best-fit strategies…", "Building strike legs…", "Sizing positions…", "Almost done…"];
   var msgs = ctx === 'earnings' ? earningsMsgs : nonEarningsMsgs;
   var el = document.getElementById('sb-loading-status');
