@@ -95,26 +95,44 @@
             color: #34d399;
         }
 
-        /* Mini Header Refresh Interactive Token Elements */
-        .subtitle-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-        .refresh-trigger-btn {
+        /* Ticker row: select + refresh button, with live status line below */
+        .ticker-row { display: flex; align-items: stretch; gap: 6px; }
+        .ticker-row .select-input { flex: 1; min-width: 0; }
+        .ticker-refresh-btn {
             background-color: #1e293b;
             border: 1px solid #475569;
             color: #34d399;
-            font-size: 8.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 1.5px 5px;
-            border-radius: 4px;
+            font-size: 14px;
+            width: 34px;
+            flex-shrink: 0;
+            border-radius: 6px;
             cursor: pointer;
-            letter-spacing: 0.02em;
-            transition: all 0.1s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease-in-out;
         }
-        .refresh-trigger-btn:active {
-            transform: scale(0.93);
+        .ticker-refresh-btn:active {
+            transform: scale(0.92);
             background-color: #334155;
             border-color: #10b981;
         }
+        .ticker-refresh-btn.loading .refresh-icon {
+            display: inline-block;
+            animation: spin-refresh 0.7s linear infinite;
+        }
+        @keyframes spin-refresh { to { transform: rotate(360deg); } }
+        .ticker-live-status {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            margin-top: 4px;
+            letter-spacing: 0.02em;
+            min-height: 12px;
+        }
+        .ticker-live-status.live { color: #34d399; }
+        .ticker-live-status.stale { color: #fbbf24; }
+        .ticker-live-status.error { color: #f43f5e; }
 
         /* Navigation Tab Buttons Layout */
         .tab-navigation {
@@ -308,10 +326,7 @@
                     <div class="logo-mark">Α</div>
                     <div>
                         <h1 class="title">Alpha Yield</h1>
-                        <div class="subtitle-row">
-                            <p class="subtitle">Volatility & Premium Allocation Engine</p>
-                            <button onclick="triggerManualDataFetch()" class="refresh-trigger-btn">🔄 Refresh</button>
-                        </div>
+                        <p class="subtitle">Volatility & Premium Allocation Engine</p>
                     </div>
                 </div>
                 <div>
@@ -342,11 +357,17 @@
                     </div>
                     <div>
                         <label class="input-label" for="tickerInput">Target Asset</label>
-                        <select id="tickerInput" onchange="handleTickerChange()" class="select-input">
-                            <option value="SPY" selected>SPY</option>
-                            <option value="QQQ">QQQ</option>
-                            <option value="CUSTOM">Custom...</option>
-                        </select>
+                        <div class="ticker-row">
+                            <select id="tickerInput" onchange="handleTickerChange()" class="select-input">
+                                <option value="SPY" selected>SPY</option>
+                                <option value="QQQ">QQQ</option>
+                                <option value="CUSTOM">Custom...</option>
+                            </select>
+                            <button id="tickerRefreshBtn" onclick="triggerManualDataFetch()" class="ticker-refresh-btn" title="Refresh price">
+                                <span class="refresh-icon">🔄</span>
+                            </button>
+                        </div>
+                        <div id="tickerLiveStatus" class="ticker-live-status">—</div>
                     </div>
                     <div id="customTickerWrapper" style="display: none;">
                         <label class="input-label" for="customTicker">Symbol</label>
@@ -487,33 +508,54 @@
         async function fetchMarketPrices() {
             var token = localStorage.getItem('ge_fh_key');
             var target = getSelectedTicker();
+            var btn = document.getElementById('tickerRefreshBtn');
+            var statusEl = document.getElementById('tickerLiveStatus');
+
+            if (btn) btn.classList.add('loading');
 
             if (!token) {
                 activeSymbol = target;
-                activePrice = priceCache[target] || 150.00;
+                activePrice = priceCache[target] || spotFallback(target);
                 if (currentActiveTab === 'planner') calculateStrategy();
                 else if (currentActiveTab === 'scanner') runMarketScanner();
+                if (statusEl) {
+                    statusEl.textContent = 'No live key — using $' + activePrice.toFixed(2) + ' (cached)';
+                    statusEl.className = 'ticker-live-status stale';
+                }
+                if (btn) btn.classList.remove('loading');
                 return;
             }
 
             try {
                 const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${target}&token=${token}`);
-                if (!res.ok) throw new Error(`HTTP Error Status ${res.status}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                
+
                 if (data && data.c !== 0) {
                     activeSymbol = target;
                     activePrice = data.c;
                     priceCache[target] = data.c;
+                } else {
+                    throw new Error('No quote returned for ' + target);
                 }
 
                 if (currentActiveTab === 'planner') calculateStrategy();
                 else if (currentActiveTab === 'scanner') runMarketScanner();
-                
-                var liveTimeStr = "Live: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                if(document.getElementById('scanTimestamp')) document.getElementById('scanTimestamp').innerText = liveTimeStr;
+
+                var liveTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                if (statusEl) {
+                    statusEl.textContent = 'Live $' + activePrice.toFixed(2) + ' · ' + liveTimeStr;
+                    statusEl.className = 'ticker-live-status live';
+                }
+                if(document.getElementById('scanTimestamp')) document.getElementById('scanTimestamp').innerText = "Live: " + liveTimeStr;
             } catch (err) {
                 console.error("Pricing backend exception:", err);
+                if (statusEl) {
+                    statusEl.textContent = 'Fetch failed — using $' + activePrice.toFixed(2) + ' (cached)';
+                    statusEl.className = 'ticker-live-status error';
+                }
+            } finally {
+                if (btn) btn.classList.remove('loading');
             }
         }
 
