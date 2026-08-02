@@ -83,6 +83,17 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
 .risk.a{border-color:#d97706;background:#fef3c7}.risk.a .rl{color:#d97706}
 .risk.u{border-color:#dc2626;background:#fee2e2}.risk.u .rl{color:#dc2626}
 
+/* MACRO EVENT TOGGLE */
+.macro-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f4f7fb;border:1.5px solid #c8d5e8;border-radius:10px;padding:11px 12px;margin-bottom:14px;cursor:pointer;transition:border-color .15s,background .15s}
+.macro-row.on{background:#fef3c7;border-color:#fbbf24}
+.macro-text{flex:1}
+.macro-label{font-size:12px;font-weight:800;color:#1e293b}
+.macro-sub{font-size:10.5px;color:#64748b;font-weight:500;line-height:1.4;margin-top:2px}
+.macro-switch{width:40px;height:23px;background:#c8d5e8;border-radius:20px;flex-shrink:0;position:relative;transition:background .15s}
+.macro-switch.on{background:#d97706}
+.macro-knob{width:17px;height:17px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.macro-switch.on .macro-knob{left:20px}
+
 /* GEN BUTTON */
 .gen{width:100%;background:#09101f;color:#fff;border:none;border-radius:10px;padding:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.02em}
 .gen:disabled{background:#94a3b8;cursor:not-allowed}
@@ -256,6 +267,14 @@ html,body{background:#e8eef6;color:#09101f;font-family:'Inter',-apple-system,san
       <button class="risk" id="risk-m" onclick="setR('m')"><div class="ri">🛡️</div><div class="rl">Moderate</div></button>
       <button class="risk a" id="risk-a" onclick="setR('a')"><div class="ri">🔥</div><div class="rl">Aggressive</div></button>
       <button class="risk" id="risk-u" onclick="setR('u')"><div class="ri">☢️</div><div class="rl">Ultra</div></button>
+    </div>
+
+    <div class="macro-row" id="macroRow" onclick="toggleMacro()">
+      <div class="macro-text">
+        <div class="macro-label">⚡ High-Impact Macro Event Imminent?</div>
+        <div class="macro-sub">Fed decision, CPI, jobs report, or major earnings this week — shortens DTE and widens strikes defensively.</div>
+      </div>
+      <div class="macro-switch" id="macroSwitch"><div class="macro-knob"></div></div>
     </div>
 
     <button class="gen" id="genBtn" onclick="go()">⚡ Generate Weekly Plan</button>
@@ -471,6 +490,13 @@ function setR(r){
   document.getElementById('risk-'+r).className='risk '+r;
 }
 
+var macroActive=false;
+function toggleMacro(){
+  macroActive=!macroActive;
+  document.getElementById('macroRow').classList.toggle('on',macroActive);
+  document.getElementById('macroSwitch').classList.toggle('on',macroActive);
+}
+
 // ── TARGET MODAL ──
 function openModal(mode){
   _tmode=mode;
@@ -673,6 +699,7 @@ async function go(){
     return marketData
       +'Today is '+todayStr+'. Generate a weekly trading plan for the week of '+todayStr+'.\n'
       +'Capital: $'+cap+'. Risk profile: '+rnames[selR]+'.\n'
+      +(macroActive?'⚡ HIGH-IMPACT MACRO EVENT IMMINENT (Fed decision, CPI, jobs report, or major earnings this week). Shift to a defensive posture: use shorter-dated expiries within this window, widen strikes further from spot than you normally would to absorb a larger-than-usual move, size positions smaller, and favor defined-risk structures over undefined-risk ones. Call this out explicitly in weeklyThesis and riskWarning.\n':'')
       +(tpct>0?'Profit target: '+tpct+'% ($'+Math.round(tdol)+').\n':'Target 5-7% weekly return.\n')
       +'CRITICAL STRIKE RULE: Every option strike MUST be derived from the live prices above. '
       +'If NVDA=$212, use strikes like $210/$220/$225 — never $140/$145/$155. '
