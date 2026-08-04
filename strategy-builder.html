@@ -88,6 +88,16 @@ input:focus{border-color:var(--blue);}
 .ctx-btn .cn{font-size:11.5px;font-weight:800;color:var(--sub);}
 .ctx-btn .cs{font-size:9px;color:var(--muted);font-weight:600;margin-top:1px;}
 .ctx-btn.on{background:var(--bbg);border-color:var(--blue);}
+
+.gex-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;margin-top:12px;cursor:pointer;transition:border-color .15s,background .15s;}
+.gex-row.on{background:var(--tbg);border-color:var(--tbd);}
+.gex-text{flex:1;}
+.gex-label{font-size:12px;font-weight:800;color:var(--dim);}
+.gex-sub{font-size:10.5px;color:var(--muted);font-weight:500;line-height:1.4;margin-top:2px;}
+.gex-switch{width:40px;height:23px;background:var(--border);border-radius:20px;flex-shrink:0;position:relative;transition:background .15s;}
+.gex-switch.on{background:var(--teal);}
+.gex-knob{width:17px;height:17px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.gex-switch.on .gex-knob{left:20px;}
 .ctx-btn.on .cn{color:var(--blue);}
 
 .run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -110,6 +120,9 @@ input:focus{border-color:var(--blue);}
 .res-ctx-meta{font-size:11px;color:var(--sub);font-weight:600;line-height:1.5;}
 .res-ctx-em{font-size:11px;color:var(--sub);font-weight:500;line-height:1.5;margin-top:4px;padding-top:6px;border-top:1px dashed var(--border);}
 .res-ctx-em strong{color:var(--text);font-weight:700;}
+.res-ctx-gex.positive strong{color:var(--green);}
+.res-ctx-gex.negative strong{color:var(--amber);}
+.res-ctx-gex.unclear strong{color:var(--muted);}
 
 .strat-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .strat-hd{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
@@ -236,6 +249,14 @@ footer b{color:var(--sub);}
       </div>
     </div>
 
+    <div class="gex-row" id="gexRow" onclick="toggleGex()">
+      <div class="gex-text">
+        <div class="gex-label">🧲 Include GEX (Dealer Gamma) Read</div>
+        <div class="gex-sub">Adds one more search for dealer positioning — adjusts confidence in the strike placement based on whether gamma is pinning or amplifying moves. Slower, more thorough.</div>
+      </div>
+      <div class="gex-switch" id="gexSwitch"><div class="gex-knob"></div></div>
+    </div>
+
     <button class="run-btn" id="sb-run-btn" onclick="runStrategyBuilder()">
       <span class="spinner"></span><span class="btn-label">Get Strategy Options</span>
     </button>
@@ -288,6 +309,14 @@ function setCtx(c){
   document.getElementById('ctx-nonearnings').className = 'ctx-btn' + (c==='nonearnings' ? ' on' : '');
 }
 
+// ── GEX TOGGLE ──
+var SB_GEX = false;
+function toggleGex(){
+  SB_GEX = !SB_GEX;
+  document.getElementById('gexRow').classList.toggle('on', SB_GEX);
+  document.getElementById('gexSwitch').classList.toggle('on', SB_GEX);
+}
+
 // ── PROMPT BUILDER ──
 function buildPrompt(ticker, price, capital){
   var ctxBlock, strategyInstruction, searchInstruction;
@@ -306,6 +335,10 @@ function buildPrompt(ticker, price, capital){
     ? `Current price: $${price} — use this directly, do not search to re-confirm it.`
     : `Current price: not given — include one price lookup as part of your search budget above.`;
 
+  var gexBlock = SB_GEX
+    ? `\nGEX / DEALER GAMMA READ (requested — spend one additional search on this): Search for the current dealer gamma exposure (GEX) or net gamma positioning for ${ticker} — e.g. "GEX", "gamma exposure", "dealer positioning". Determine whether the regime is roughly POSITIVE (dealers net long gamma — tends to suppress realized vol, price pins near large open-interest strikes, generally favorable for short-premium structures) or NEGATIVE (dealers net short gamma — tends to amplify realized vol beyond what the straddle implies, raises tail risk for short-premium structures). If you find a specific large open-interest "wall" strike, note it. Report this as "gexRegime" (one of: "positive","negative","unclear") and "gexContext" (one sentence) in the schema. If the regime is negative, widen your short-strike placement modestly beyond the raw EM (e.g. spot ± 1.1×EM instead of 1.0×EM) and say so in the rationale for at least one strategy. If you can't find usable GEX data, set gexRegime to "unclear" and say so — don't guess.`
+    : '';
+
   return `Act as an institutional options strategist working from a specific, testable framework — not from general judgment.
 
 Ticker: ${ticker}
@@ -315,7 +348,7 @@ Capital available to invest: $${capital}
 ${ctxBlock}
 
 ${searchInstruction}
-
+${gexBlock}
 STRIKE PLACEMENT RULE (mandatory, apply to every strategy):
 1. Estimate the ATM straddle price for the expiry you're using (the combined premium of the at-the-money call + put at that expiry). Use the IV Rank/earnings-date search result plus typical behavior for this kind of ticker to make a grounded estimate — do not run an additional search just for this.
 2. Compute Expected Move: EM = straddle price × 0.85.
@@ -340,7 +373,7 @@ Respond with ONLY valid JSON — your entire reply must be a single JSON object,
   "earningsDate": "Aug 4, 2026",
   "straddlePrice": 28.00,
   "expectedMove": 23.80,
-  "ivContext": "one sentence on current IV/IV Rank and what it implies",
+  "ivContext": "one sentence on current IV/IV Rank and what it implies",${SB_GEX ? `\n  "gexRegime": "positive",\n  "gexContext": "one sentence on dealer gamma positioning and what it implies",` : ''}
   "strategies": [
     {
       "name": "Jade Lizard",
@@ -405,6 +438,7 @@ function renderResults(data){
     </div>
     <div class="res-ctx-meta">${data.earningsDate ? 'Next earnings: ' + data.earningsDate + ' · ' : ''}${data.ivContext || ''}</div>
     ${data.straddlePrice!=null || data.expectedMove!=null ? `<div class="res-ctx-em">ATM straddle: <strong>$${data.straddlePrice!=null?Number(data.straddlePrice).toFixed(2):'—'}</strong> → Expected Move (×0.85): <strong>±$${data.expectedMove!=null?Number(data.expectedMove).toFixed(2):'—'}</strong> — short strikes anchored here</div>` : ''}
+    ${data.gexRegime ? `<div class="res-ctx-em res-ctx-gex ${data.gexRegime}">🧲 GEX: <strong>${data.gexRegime.charAt(0).toUpperCase()+data.gexRegime.slice(1)}</strong> — ${data.gexContext||''}</div>` : ''}
   </div>`;
 
   (data.strategies||[]).forEach(function(s){
