@@ -252,7 +252,7 @@ footer b{color:var(--sub);}
     <div class="gex-row" id="gexRow" onclick="toggleGex()">
       <div class="gex-text">
         <div class="gex-label">🧲 Include GEX (Dealer Gamma) Read</div>
-        <div class="gex-sub">Adds one more search for dealer positioning — adjusts confidence in the strike placement based on whether gamma is pinning or amplifying moves. Slower, more thorough.</div>
+        <div class="gex-sub">Adds one more search for dealer positioning — adjusts confidence in the strike placement based on whether gamma is pinning or amplifying moves. Works best for liquid names (SPY, QQQ, mega-caps) — smaller/less-followed tickers often have no public GEX data and will come back "unclear." Slower either way.</div>
       </div>
       <div class="gex-switch" id="gexSwitch"><div class="gex-knob"></div></div>
     </div>
@@ -336,7 +336,7 @@ function buildPrompt(ticker, price, capital){
     : `Current price: not given — include one price lookup as part of your search budget above.`;
 
   var gexBlock = SB_GEX
-    ? `\nGEX / DEALER GAMMA READ (requested — spend one additional search on this): Search for the current dealer gamma exposure (GEX) or net gamma positioning for ${ticker} — e.g. "GEX", "gamma exposure", "dealer positioning". Determine whether the regime is roughly POSITIVE (dealers net long gamma — tends to suppress realized vol, price pins near large open-interest strikes, generally favorable for short-premium structures) or NEGATIVE (dealers net short gamma — tends to amplify realized vol beyond what the straddle implies, raises tail risk for short-premium structures). If you find a specific large open-interest "wall" strike, note it. Report this as "gexRegime" (one of: "positive","negative","unclear") and "gexContext" (one sentence) in the schema. If the regime is negative, widen your short-strike placement modestly beyond the raw EM (e.g. spot ± 1.1×EM instead of 1.0×EM) and say so in the rationale for at least one strategy. If you can't find usable GEX data, set gexRegime to "unclear" and say so — don't guess.`
+    ? `\nGEX / DEALER GAMMA READ (requested — spend at most ONE additional search on this, no retries): Search once for the current dealer gamma exposure (GEX) or net gamma positioning for ${ticker}. GEX analytics are mostly published for liquid indices (SPY, QQQ) and heavily-followed mega-caps — for less-followed or smaller-cap tickers like this one might be, there is often NO public GEX data available at all, and that's a normal, expected outcome, not a failure to search harder for. If your one search doesn't turn up usable dealer-positioning data, immediately set gexRegime to "unclear", say so plainly in gexContext (e.g. "no public GEX data found for this ticker"), and move on to building the strategies — do not run a second or third search with different phrasings trying to find it. If the search does succeed: determine whether the regime is roughly POSITIVE (dealers net long gamma — tends to suppress realized vol, price pins near large open-interest strikes, generally favorable for short-premium structures) or NEGATIVE (dealers net short gamma — tends to amplify realized vol beyond what the straddle implies, raises tail risk for short-premium structures). If you find a specific large open-interest "wall" strike, note it. Report this as "gexRegime" (one of: "positive","negative","unclear") and "gexContext" (one sentence) in the schema. If the regime is negative, widen your short-strike placement modestly beyond the raw EM (e.g. spot ± 1.1×EM instead of 1.0×EM) and say so in the rationale for at least one strategy.`
     : '';
 
   return `Act as an institutional options strategist working from a specific, testable framework — not from general judgment.
@@ -571,7 +571,8 @@ async function runStrategyBuilder(){
 
     while(turnsLeft > 0){
       var controller = new AbortController();
-      var timeoutId = setTimeout(function(){ controller.abort(); }, 90000); // 90s hard client-side timeout per request
+      var timeoutMs = SB_GEX ? 120000 : 90000; // GEX adds a second search — give it more room
+      var timeoutId = setTimeout(function(){ controller.abort(); }, timeoutMs);
 
       var response;
       try{
@@ -629,7 +630,7 @@ async function runStrategyBuilder(){
     }
     renderResults(parsed);
   }catch(e){
-    var msg = e.name === 'AbortError' ? 'Request took longer than 90 seconds and was stopped.' : e.message;
+    var msg = e.name === 'AbortError' ? ('Request took longer than ' + (SB_GEX ? '120' : '90') + ' seconds and was stopped.') : e.message;
     var diag = e.name ? ' [' + e.name + ']' : '';
     errEl.textContent = "Error: " + msg + diag + " — please try again.";
     errEl.style.display = 'block';
