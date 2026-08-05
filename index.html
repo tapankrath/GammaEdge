@@ -974,6 +974,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   async function vsRun(sym){
     vsCurrentTicker=sym;
+    // Keep the main strategy analysis (Straddle/Strangle/Iron Condor/etc.)
+    // in sync with whatever ticker is being checked here — otherwise the
+    // two ticker fields drift apart and show mismatched symbols.
+    if(typeof ndSelectTicker === 'function' && typeof ndTicker !== 'undefined' && sym !== ndTicker){
+      ndSelectTicker(sym);
+    }
     var fk=(localStorage.getItem('ge_fh_key')||'').trim();
     var tk=(localStorage.getItem('ge_td_key')||localStorage.getItem('ge_twelvedata_key')||'').trim();
     var body=document.getElementById('nd-vol-body');
