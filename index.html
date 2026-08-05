@@ -1615,6 +1615,20 @@ function ndSwitchTab(idx,btn){
 
 // ── ANALYZE ──
 async function ndRunAnalyze(){
+  // If the user typed a new ticker but never tapped '+' or hit Enter,
+  // pick it up here instead of silently re-analyzing the old ticker.
+  var customInp = document.getElementById('nd-custom-inp');
+  if(customInp){
+    var pending = customInp.value.trim().toUpperCase();
+    if(pending && pending !== ndTicker){
+      customInp.value = '';
+      if(!ndWatchlist.includes(pending)){ ndWatchlist.push(pending); localStorage.setItem('ge_watchlist', JSON.stringify(ndWatchlist)); }
+      ndTicker = pending;
+      ndRenderGrid();
+      ndUpdateBanner();
+    }
+  }
+
   var fk=(localStorage.getItem('ge_fh_key')||'').trim();
   document.getElementById('nd-err').style.display='none';
   document.getElementById('nd-results').style.display='none';
