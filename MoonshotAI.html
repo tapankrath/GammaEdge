@@ -125,6 +125,26 @@ input:focus{border-color:var(--blue);}
 
 .disclaimer{font-size:10.5px;color:var(--muted);line-height:1.6;padding:12px 4px 4px;}
 
+/* MY LIST */
+.list-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.list-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:var(--p2);border-bottom:1px solid var(--border);}
+.list-title{font-size:13px;font-weight:800;color:var(--text);}
+.list-clear-btn{font-size:10.5px;font-weight:700;color:var(--muted);background:none;border:none;padding:4px 6px;cursor:pointer;}
+.list-clear-btn:active{color:var(--red);}
+.list-item{padding:11px 15px;border-bottom:1px solid var(--border);}
+.list-item:last-child{border-bottom:none;}
+.list-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.list-item-tick{font-size:14px;font-weight:800;}
+.list-item-name{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px;}
+.list-item-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.list-item-target{font-size:12.5px;font-weight:800;color:var(--green);white-space:nowrap;}
+.list-remove-btn{width:22px;height:22px;border-radius:50%;background:var(--p2);border:1px solid var(--border);color:var(--muted);font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.list-remove-btn:active{background:var(--rbg);color:var(--red);border-color:var(--rbd);}
+.list-item-thesis{font-size:11.5px;color:var(--dim);line-height:1.5;margin-top:6px;font-weight:500;}
+
+.add-list-btn{width:100%;margin-top:11px;padding:10px;border-radius:8px;background:var(--p2);border:1.5px solid var(--border);color:var(--dim);font-weight:800;font-size:12px;cursor:pointer;}
+.add-list-btn.saved{background:var(--gbg);border-color:var(--gbd);color:var(--green);cursor:default;}
+
 footer{margin-top:20px;padding:14px 4px;color:var(--muted);font-size:10.5px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
 footer b{color:var(--sub);}
 </style>
@@ -173,6 +193,8 @@ footer b{color:var(--sub);}
   <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()" style="display:none;">
     ⚠️ No API key set — tap to add your Anthropic key
   </div>
+
+  <div id="ms-list-section"></div>
 
   <div class="input-card">
     <label>Sector / Theme (optional)</label>
@@ -305,13 +327,90 @@ function riskBadgeHTML(tier){
   return `<span class="risk-badge ${t}">${label}</span>`;
 }
 
+// ── MY LIST (persistent saved picks) ──
+var PICK_STORE = {};
+var LIST_KEY = 'ge_moonshot_list';
+function loadList(){
+  try{ return JSON.parse(localStorage.getItem(LIST_KEY) || '[]'); }catch(e){ return []; }
+}
+function saveListData(list){ localStorage.setItem(LIST_KEY, JSON.stringify(list)); }
+function isInList(ticker){ return loadList().some(function(p){ return p.ticker === ticker; }); }
+
+function addToList(idPfx){
+  var p = PICK_STORE[idPfx];
+  if(!p) return;
+  var list = loadList();
+  if(list.some(function(x){ return x.ticker === p.ticker; })) return;
+  var entry = Object.assign({}, p, { dateAdded: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) });
+  list.unshift(entry);
+  saveListData(list);
+  renderList();
+  var btn = document.getElementById('addbtn_'+idPfx);
+  if(btn){ btn.textContent = '✓ Saved to List'; btn.classList.add('saved'); btn.disabled = true; }
+}
+
+function removeFromList(ticker){
+  saveListData(loadList().filter(function(p){ return p.ticker !== ticker; }));
+  renderList();
+  // If that ticker is currently shown in scan results, flip its button back
+  Object.keys(PICK_STORE).forEach(function(idPfx){
+    if(PICK_STORE[idPfx].ticker === ticker){
+      var btn = document.getElementById('addbtn_'+idPfx);
+      if(btn){ btn.textContent = '+ Add to List'; btn.classList.remove('saved'); btn.disabled = false; }
+    }
+  });
+}
+
+function clearList(){
+  if(!loadList().length) return;
+  if(!confirm('Remove all saved picks from your list?')) return;
+  saveListData([]);
+  renderList();
+  Object.keys(PICK_STORE).forEach(function(idPfx){
+    var btn = document.getElementById('addbtn_'+idPfx);
+    if(btn){ btn.textContent = '+ Add to List'; btn.classList.remove('saved'); btn.disabled = false; }
+  });
+}
+
+function renderList(){
+  var section = document.getElementById('ms-list-section');
+  var list = loadList();
+  if(!list.length){ section.innerHTML = ''; return; }
+
+  var html = `<div class="list-card">
+    <div class="list-hd">
+      <div class="list-title">📋 My List (${list.length})</div>
+      <button class="list-clear-btn" onclick="clearList()">Clear all</button>
+    </div>`;
+  list.forEach(function(p){
+    html += `<div class="list-item">
+      <div class="list-item-top">
+        <div>
+          <div class="list-item-tick">${p.ticker||''} ${riskBadgeHTML(p.riskTier)}</div>
+          <div class="list-item-name">${p.name||''}${p.dateAdded?' · added '+p.dateAdded:''}</div>
+        </div>
+        <div class="list-item-right">
+          <div class="list-item-target">${p.impliedTarget||'—'}</div>
+          <button class="list-remove-btn" onclick="removeFromList('${p.ticker}')" title="Remove">×</button>
+        </div>
+      </div>
+      <div class="list-item-thesis">${p.thesis||''}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  section.innerHTML = html;
+}
+
 function renderResults(data){
   var box = document.getElementById('ms-results');
   var html = '';
 
   html += `<div class="res-ctx">${data.searchContext || ''}</div>`;
 
-  (data.picks||[]).forEach(function(p){
+  (data.picks||[]).forEach(function(p, idx){
+    var idPfx = 'p'+idx;
+    PICK_STORE[idPfx] = p;
+    var saved = isInList(p.ticker);
     html += `<div class="pick-card">
       <div class="pick-hd">
         <div class="pick-rank">${p.rank!=null?p.rank:'—'}</div>
@@ -336,6 +435,7 @@ function renderResults(data){
         <div class="pick-txt">${p.catalyst||''}</div>
         <div class="pick-section-lbl">What Could Go Wrong</div>
         <div class="pick-txt">${p.whatCouldGoWrong||''}</div>
+        <button class="add-list-btn${saved?' saved':''}" id="addbtn_${idPfx}" onclick="addToList('${idPfx}')" ${saved?'disabled':''}>${saved?'✓ Saved to List':'+ Add to List'}</button>
       </div>
     </div>`;
   });
@@ -409,6 +509,7 @@ async function runMoonshotScan(){
 }
 
 checkKeyOnLoad();
+renderList();
 </script>
 
 </body>
