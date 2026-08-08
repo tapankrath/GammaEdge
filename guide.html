@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Guide"/>
+<meta name="application-name" content="Guide"/>
+<meta name="theme-color" content="#f1f5f9"/>
+<meta name="description" content="What each GammaEdge tool does, and which one to use when."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>GammaEdge Guide</title>
+<style>
+:root{
+  --bg:     #f1f5f9;
+  --p1:     #ffffff;
+  --p2:     #f8fafc;
+  --border: #e2e8f0;
+  --text:   #0a0f1e;
+  --dim:    #374151;
+  --sub:    #4b5563;
+  --muted:  #94a3b8;
+  --green:  #15803d;  --gbg:#f0fdf4;  --gbd:#86efac;
+  --red:    #b91c1c;  --rbg:#fef2f2;  --rbd:#fca5a5;
+  --amber:  #b45309;  --abg:#fffbeb;  --abd:#fcd34d;
+  --blue:   #1d4ed8;  --bbg:#eff6ff;  --bbd:#93c5fd;
+  --teal:   #0e7490;  --tbg:#ecfeff;  --tbd:#67e8f9;
+  --purple: #7e22ce;  --pbg:#faf5ff;  --pbd:#d8b4fe;
+  --F: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--F);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:40px;}
+a{color:var(--blue);}
+.app{max-width:480px;margin:0 auto;padding:0 12px;}
+
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 8px;}
+.navbar a.back{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;}
+
+.hdr-card{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:16px;margin-bottom:14px;}
+.hdr-title{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em;}
+.hdr-title em{color:#5eead4;font-style:normal;}
+.hdr-sub{font-size:11.5px;color:#94a3b8;font-weight:600;margin-top:4px;line-height:1.5;}
+
+.section-title{font-size:12px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin:22px 0 10px 2px;}
+.section-title:first-of-type{margin-top:0;}
+
+/* DECISION HELPER */
+.q-card{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.q-txt{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.q-ans{font-size:12.5px;color:var(--sub);line-height:1.5;}
+.q-ans b{color:var(--blue);font-weight:800;}
+
+/* TOOL CARDS */
+.tool-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.tool-hd{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;}
+.tool-name{font-size:14.5px;font-weight:800;color:var(--text);}
+.tool-tag{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;}
+.tool-tag.ai{background:var(--pbg);color:var(--purple);}
+.tool-tag.calc{background:var(--tbg);color:var(--teal);}
+.tool-oneliner{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:2px;}
+.tool-chev{font-size:11px;color:var(--muted);transition:transform .15s;flex-shrink:0;}
+.tool-card.open .tool-chev{transform:rotate(180deg);}
+.tool-body{display:none;padding:0 14px 13px;border-top:1px solid var(--border);}
+.tool-card.open .tool-body{display:block;padding-top:11px;}
+.tool-body-lbl{font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:9px 0 4px;}
+.tool-body-lbl:first-child{margin-top:0;}
+.tool-body-txt{font-size:12.5px;color:var(--dim);line-height:1.6;font-weight:500;}
+.tool-open-link{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:800;color:#fff;background:#0f172a;padding:7px 12px;border-radius:7px;text-decoration:none;}
+
+/* OVERLAP NOTES */
+.overlap-card{background:var(--abg);border:1.5px solid var(--abd);border-radius:11px;padding:11px 13px;margin-bottom:8px;}
+.overlap-title{font-size:12px;font-weight:800;color:#78350f;margin-bottom:4px;}
+.overlap-txt{font-size:12px;color:#78350f;line-height:1.55;font-weight:500;}
+
+.keys-note{background:var(--bbg);border:1.5px solid var(--bbd);border-radius:11px;padding:12px 14px;font-size:12px;color:#1e3a8a;line-height:1.6;font-weight:500;margin-bottom:8px;}
+.keys-note b{font-weight:800;}
+.keys-note code{background:rgba(29,78,216,.1);padding:1px 5px;border-radius:4px;font-size:11px;}
+
+.flag-note{font-size:10.5px;color:var(--muted);font-style:italic;margin-top:6px;}
+
+footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="navbar">
+    <a class="back" href="index.html">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    </a>
+  </div>
+
+  <div class="hdr-card">
+    <div class="hdr-title">GammaEdge <em>Guide</em></div>
+    <div class="hdr-sub">9 standalone tools + 5 tabs inside the main dashboard. What each one does, and which one to reach for.</div>
+  </div>
+
+  <div class="section-title">Quick Answers</div>
+
+  <div class="q-card">
+    <div class="q-txt">"I have one ticker, want a full options strategy — where do I start?"</div>
+    <div class="q-ans">Got a chart screenshot? → <b>ChartAI</b> (reads the pattern). Want AI-researched live picks? → <b>StockAI</b>. Want instant formula-based comparison of 5 strategies with no AI wait? → <b>StratEdge</b> tab. Earnings coming up or sustained high IV? → <b>Strategy</b> (StrategyBuilder).</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-txt">"I already have open positions — what do I do with them?"</div>
+    <div class="q-ans"><b>PortfolioAI</b> for a specific adjustment plan (roll/close/hedge) on positions you paste or photograph. <b>OptionsAI → Portfolio Risk Audit</b> for a whole-book health check (Greeks, concentration, worst-case).</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-txt">"I want steady weekly/monthly income, not a one-off trade."</div>
+    <div class="q-ans"><b>WeeklyAI</b> for a full AI-generated weekly plan with risk tiers. <b>Alloc</b> tab for CSP/covered-call yield comparisons. <b>OptionsAI → Weekly Income Generator</b> for a lighter-weight version of the same idea.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-txt">"I have a growth target and a deadline — what return do I actually need?"</div>
+    <div class="q-ans"><b>CompoundAI</b> — reverse-engineers the required per-period rate, tells you honestly if it's realistic, tracks your actual progress period by period.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-txt">"I want a lottery-ticket / huge-upside idea."</div>
+    <div class="q-ans"><b>MoonshotAI</b> for stock candidates with 10x+ equity potential. <b>Lottery</b> tab for a single OTM option's payoff table on a move you already have in mind.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-txt">"Is this specific strike actually priced right?"</div>
+    <div class="q-ans"><b>FairValue</b> — real Black-Scholes math (not AI-estimated), with live spot + IV lookup.</div>
+  </div>
+
+  <div class="section-title">Standalone Tools <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">(separate pages, linked from the grid)</span></div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">ChartAI <span class="tool-tag ai">AI + Vision</span></div><div class="tool-oneliner">Upload a chart screenshot, get 3 tiered strategies</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Drop in a chart screenshot (or several, for multi-timeframe). Claude reads the pattern visually and returns Conservative / Moderate / Aggressive strategies, each with DTE calibrated to your chart's timeframe (e.g. a daily chart gets 60/30/14 DTE; a 5-min chart gets 3/1/0 DTE), plus bear/base/bull P&L scenarios, probability of profit, and breakeven.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">You're looking at a chart and want a strategy shaped around what you're seeing — support/resistance, a pattern, momentum — rather than a raw ticker lookup.</div>
+      <a class="tool-open-link" href="chartedge.html">Open ChartAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">StockAI <span class="tool-tag ai">AI + Live Data</span></div><div class="tool-oneliner">Single-ticker AI forecast with live options chain</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Pick a ticker, pick a horizon (Next Day / Week / Month). Pulls live price, options chain, flow signals, and news, then generates a forecast with entry/strategy. Tracks your picks as paper trades and keeps a calibration history so you can see how the forecasts have actually performed.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">Deep dive on one specific ticker, with a track record you can look back on.</div>
+      <a class="tool-open-link" href="stockai.html">Open StockAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">OptionsAI <span class="tool-tag ai">AI + Web Search</span></div><div class="tool-oneliner">4 tools: scanner, earnings, risk audit, weekly income</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Four separate AI-driven tools in one page: <b>High Probability Scanner</b> (market-wide candidates for the next 30 days), <b>Earnings Options Strategy</b> (pre/post-earnings plan for one ticker), <b>Portfolio Risk Audit</b> (paste positions, get Greeks/concentration/worst-case), and <b>Weekly Income Strategy Generator</b> (CSP/covered call/credit spread ideas for one week).</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">A lighter-weight, prompt-driven version of several other tools' jobs, useful when you want a quick take rather than the deeper single-purpose version (StrategyBuilder, PortfolioAI, WeeklyAI).</div>
+      <a class="tool-open-link" href="options-desk.html">Open OptionsAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">FairValue <span class="tool-tag calc">Pure Math</span></div><div class="tool-oneliner">Real Black-Scholes pricing for any strike/DTE</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Enter ticker, strike, DTE, call/put. The actual price is computed with the exact Black-Scholes formula in your browser — verified against textbook reference values. AI is only used for the two real unknowns: live spot price and implied volatility. Shows fair value, all 4 Greeks, and an optional "market is pricing this rich/cheap" comparison if you paste your broker's mid price.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">Sanity-checking a specific strike before you trade it — including strikes that came out of any other tool in the suite.</div>
+      <a class="tool-open-link" href="fair-value.html">Open FairValue →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">Strategy <span class="tool-tag ai">AI + Web Search</span></div><div class="tool-oneliner">Jade Lizard / Broken Wing Butterfly, earnings-aware</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt"><b>Earnings mode</b>: exactly 2 strategies — Jade Lizard + Broken Wing Butterfly, sized for entry the day after the print. <b>Non-Earnings mode</b>: broader menu (BWB always included, plus whichever of Big Lizard / Ratio Spread / CSP fit). Strikes are anchored to the real expected move (ATM straddle × 0.85), and defined-risk legs are filtered so credit collected is always ≥40% of spread width. Optional GEX toggle adds a dealer-gamma read.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">The most rigorous, rule-based strategy construction in the suite — use this when you want the math shown, not just a suggestion.</div>
+      <a class="tool-open-link" href="strategy-builder.html">Open Strategy →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">PortfolioAI <span class="tool-tag ai">AI + Vision</span></div><div class="tool-oneliner">"What's your next move?" — adjustment plans, not new ideas</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Enter your current open positions manually, or upload a screenshot of your broker's positions screen (Claude's vision extracts them automatically). Pick an intent — roll, close, hedge, adjust — or let it auto-suggest one based on what it sees. Generates a specific adjustment plan for the positions you already hold.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">You're already in a trade and need to decide what to do next — not looking for a new idea.</div>
+      <a class="tool-open-link" href="portfolioedge.html">Open PortfolioAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">MoonshotAI <span class="tool-tag ai">AI + Web Search</span></div><div class="tool-oneliner">Stock candidates with credible 10x+ potential</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Set sector/theme, market-cap ceiling, and time horizon. Returns 5-7 real, currently-researched stock candidates with a specific catalyst thesis (not generic AI hype), risk tier, and what could go wrong. Save picks to a persistent watchlist that survives across visits.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">Equity-level speculative ideas, not a single option's payoff — see <b>Lottery</b> tab for that instead.</div>
+      <a class="tool-open-link" href="MoonshotAI.html">Open MoonshotAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">WeeklyAI <span class="tool-tag ai">AI + Live Data</span></div><div class="tool-oneliner">Full weekly income plan, risk-tiered, saveable</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Capital presets, %/$ target toggle, three risk tiers (Moderate / Aggressive / Ultra), and a "macro event imminent" toggle that shifts the AI toward shorter DTE and wider strikes. Generates a full weekly plan grounded in live price data, with saved-plan history, PDF export, and share.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">The most complete version of "give me this week's income trade" — more thorough than OptionsAI's Weekly Income tool.</div>
+      <a class="tool-open-link" href="weekly-alpha.html">Open WeeklyAI →</a>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">CompoundAI <span class="tool-tag calc">Math + AI</span></div><div class="tool-oneliner">Reverse-engineer the rate you need, track progress</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Enter capital, target gain %, timeline, and a compounding period (1/2/4 weeks). Instantly computes the exact per-period return you'd need — no AI involved in the math — plus an honest reality-check tier (Conservative → Unrealistic) and a "one flat period" stress test. Each period can be checked in with real results (green/yellow/red), which automatically recalculates the required rate for whatever's left. AI is only used for the optional "find strategies for this rate" step, with live price verification against Finnhub.</div>
+      <div class="tool-body-lbl">Best for</div>
+      <div class="tool-body-txt">Planning and tracking toward a specific dollar goal by a specific date — the only tool in the suite built around a target, not a single trade.</div>
+      <a class="tool-open-link" href="compound-ai.html">Open CompoundAI →</a>
+    </div>
+  </div>
+
+  <div class="section-title">Inside GammaEdge <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">(the 5 tabs on the main dashboard)</span></div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">StratEdge <span class="tool-tag calc">Instant, No AI</span></div><div class="tool-oneliner">Watchlist + instant P&L across 5 fixed strategies</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Pick a ticker from your watchlist, get instant computed P&L for Straddle, Strangle, Iron Condor, Bull Call, and Bear Put, with a "best fit" flagged automatically based on the actual dollar outcomes (not a lookup table). Includes VolSignal — a live IV-vs-RV read for any ticker with an AI commentary option.</div>
+      <div class="tool-body-lbl">vs StockAI</div>
+      <div class="tool-body-txt">StratEdge is instant and formula-based (no AI wait); StockAI is AI-researched with live options chain and paper-trade tracking. Use StratEdge for a fast look, StockAI for a deeper one.</div>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">Backtest <span class="tool-tag calc">Instant, No AI</span></div><div class="tool-oneliner">Historical performance, straddle or 45Δ/40Δ strangle</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Day-by-day and week-by-week historical backtest of buying an ATM straddle or a 45Δ/40Δ strangle (toggle between all three), sized by your capital. Capital basis is shown live at the top of results and is directly editable, not just buried in Settings.</div>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">Alloc <span class="tool-tag calc">Instant, No AI</span></div><div class="tool-oneliner">Yield comparison for CSPs, covered calls, etc.</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Compares income-generating allocation strategies with metrics scoped per strategy — capital required, yield/cycle, breakeven cushion, max loss/downside floor.</div>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">Planner <span class="tool-tag calc">Instant, No AI</span></div><div class="tool-oneliner">Weekly plan with position sizing + stop-loss</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Set capital, target, risk profile. "Position Size" slider controls how much capital goes into a trade; "Max Loss per Trade %" is a separate stop-loss trigger. The card now shows the compounded true dollar risk (position size % × stop-loss %) directly, since that combined number — not either slider alone — is what you're actually risking.</div>
+    </div>
+  </div>
+
+  <div class="tool-card" onclick="this.classList.toggle('open')">
+    <div class="tool-hd">
+      <div><div class="tool-name">Lottery <span class="tool-tag calc">Instant, No AI</span></div><div class="tool-oneliner">Single OTM option payoff table, Day 1 → Expiry</div></div>
+      <div class="tool-chev">▾</div>
+    </div>
+    <div class="tool-body">
+      <div class="tool-body-lbl">What it does</div>
+      <div class="tool-body-txt">Pick a ticker and a direction (Spike / Crash / Either), set OTM %, price, IV, DTE, capital. Returns a Black-Scholes payoff table across Day 1 / 2 / 3 / Expiry with a ~25% Day-1 IV crush baked in.</div>
+      <div class="tool-body-lbl">vs MoonshotAI</div>
+      <div class="tool-body-txt">Different job entirely — this prices a single option's payoff for a move you already have in mind; MoonshotAI finds the stock candidate in the first place.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Worth Knowing</div>
+
+  <div class="overlap-card">
+    <div class="overlap-title">⚠️ Several tools do similar-sounding things on purpose</div>
+    <div class="overlap-txt">StockAI/StratEdge (single ticker), PortfolioAI/OptionsAI's audit (existing positions), and WeeklyAI/Alloc/OptionsAI's income tool (weekly income) all overlap in topic but differ in depth and mechanism (AI vs instant formula, adjustment vs audit). Each entry above notes the distinction — when in doubt, the AI-tagged tool is deeper/slower, the "Instant, No AI" tag is faster/lighter.</div>
+  </div>
+
+  <div class="keys-note">
+    <b>Shared keys, one setup.</b> Every AI tool uses the same Anthropic key (<code>ge_key</code> in your browser's storage) — set it once in any tool's ⚙️ Settings and it works everywhere. Tools that pull live prices directly (StockAI, StrategyBuilder, FairValue, CompoundAI, WeeklyAI) also share a Finnhub key (<code>ge_fh_key</code>) for that — optional, but without it those tools fall back to AI web search for price, which can be slower and occasionally stale.
+  </div>
+
+  <div class="flag-note">This guide reflects what each tool's code actually does as of when it was written — if a tool changes, this page won't update itself.</div>
+
+  <footer>
+    Part of the GammaEdge suite. Not financial advice — every tool here is a research aid; verify strikes, premiums, and prices against your broker before trading.
+  </footer>
+
+</div>
+
+</body>
+</html>
