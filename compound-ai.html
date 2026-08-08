@@ -167,6 +167,10 @@ input:focus{border-color:var(--blue);}
 
 .pick-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .pick-hd{padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0f172a,#1e293b);}
+.price-check-row{padding:8px 15px;font-size:11px;font-weight:700;line-height:1.5;}
+.price-check-row.ok{background:var(--gbg);color:var(--green);}
+.price-check-row.stale{background:var(--rbg);color:var(--red);}
+.price-check-row.unknown{background:var(--p2);color:var(--muted);}
 .pick-tick{font-size:15px;font-weight:900;color:#fff;}
 .pick-strat{font-size:10.5px;color:#5eead4;font-weight:700;margin-top:1px;}
 .pick-return{text-align:right;}
@@ -198,7 +202,16 @@ footer b{color:var(--sub);}
       <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
     </div>
     <div class="modal-note">Shared across the whole GammaEdge suite — stored in your browser only. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
-    <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+      <div class="modal-label">Finnhub API Key (recommended — verifies live prices)</div>
+      <div class="modal-key-row">
+        <input class="modal-key-inp" id="modalFhKeyInp" type="password" placeholder="e.g. c1234567890abcdefg" autocomplete="off"/>
+      </div>
+      <div class="modal-note">Also shared with StockAI, StrategyBuilder, and FairValue. Without it, strategy picks can't be checked against a live quote and may reflect stale prices from web search. <a href="https://finnhub.io/register" target="_blank">Get a free key →</a></div>
+    </div>
+
+    <button class="btn-save-key" onclick="saveKey()">💾 Save Keys</button>
     <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
   </div>
 </div>
@@ -272,6 +285,7 @@ footer b{color:var(--sub);}
 // ── SETTINGS ──
 function openSettings(){
   document.getElementById('modalKeyInp').value = localStorage.getItem('ge_key') || '';
+  document.getElementById('modalFhKeyInp').value = localStorage.getItem('ge_fh_key') || '';
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
@@ -284,6 +298,8 @@ function toggleModalKey(){
 function saveKey(){
   var v = document.getElementById('modalKeyInp').value.trim();
   if(v) localStorage.setItem('ge_key', v); else localStorage.removeItem('ge_key');
+  var fh = document.getElementById('modalFhKeyInp').value.trim();
+  if(fh) localStorage.setItem('ge_fh_key', fh); else localStorage.removeItem('ge_fh_key');
   checkKeyOnLoad();
   closeSettings();
 }
@@ -629,7 +645,7 @@ Required return PER PERIOD to hit the goal: ${calc.perPeriodPct.toFixed(2)}%
 Annualized equivalent: ${calc.annualizedPct.toFixed(0)}%
 Reality tier: ${calc.tierLabel}
 
-${unrealistic ? `This reality tier is UNREALISTIC. Do not force a strategy suggestion that implies this rate is sustainably achievable — instead, say so plainly, explain briefly why no consistent repeatable options strategy delivers this annualized rate over many periods, and suggest what a more realistic target/timeline combination would look like (e.g. lower the target gain or extend the timeline). Still use web search once to ground your explanation in a real current example of a high-volatility ticker, but the tone should be an honest reality check, not a pitch.` : `Use web search (at most 2 searches) to find current tickers/setups suited to generating approximately this per-period return within a ~${dte}-day options cycle, at a risk level appropriate to the "${calc.tierLabel}" tier. Propose 2 to 4 specific strategies (real tickers, real current price context) — choose from cash-secured puts, covered calls, credit spreads, Jade Lizard, Broken Wing Butterfly, directional debit spreads, or naked options as fits the required aggressiveness. Be honest in each rationale about the actual probability of hitting the required return — don't oversell.`}
+${unrealistic ? `This reality tier is UNREALISTIC. Do not force a strategy suggestion that implies this rate is sustainably achievable — instead, say so plainly, explain briefly why no consistent repeatable options strategy delivers this annualized rate over many periods, and suggest what a more realistic target/timeline combination would look like (e.g. lower the target gain or extend the timeline). Still use web search once to ground your explanation in a real current example of a high-volatility ticker, but the tone should be an honest reality check, not a pitch.` : `Use web search (at most 2 searches) to find current tickers/setups suited to generating approximately this per-period return within a ~${dte}-day options cycle, at a risk level appropriate to the "${calc.tierLabel}" tier. When searching for price, prioritize a live quote source (e.g. a finance data page showing a current/real-time price) over a news article, which may be describing a price from months ago even if the article itself is recent. Propose 2 to 4 specific strategies (real tickers) — choose from cash-secured puts, covered calls, credit spreads, Jade Lizard, Broken Wing Butterfly, directional debit spreads, or naked options as fits the required aggressiveness. Be honest in each rationale about the actual probability of hitting the required return — don't oversell.`}
 
 Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Keep text fields concise. Use exactly this schema:
 {
@@ -638,6 +654,7 @@ Respond with ONLY valid JSON — your entire reply must be a single JSON object,
   "strategies": [
     {
       "ticker": "AMD",
+      "assumedPrice": 178.50,
       "strategyName": "Jade Lizard",
       "structure": "short $430 put, short $505 call, long $515 call — 16 DTE",
       "requiredMove": "1-2 sentences on what move/outcome hits the target return",
@@ -647,7 +664,7 @@ Respond with ONLY valid JSON — your entire reply must be a single JSON object,
     }
   ]
 }
-If unrealistic is true, "strategies" can be an empty array [].`;
+"assumedPrice" is the exact current stock price you used as the basis for this strategy's strikes — report it precisely as a number, not a range, so it can be checked against a live quote. If unrealistic is true, "strategies" can be an empty array [].`;
 }
 
 function renderStrategyResults(data, calc){
@@ -656,9 +673,15 @@ function renderStrategyResults(data, calc){
 
   html += `<div class="strat-ctx">${data.summary || ''}</div>`;
 
-  (data.strategies||[]).forEach(function(s){
+  var fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fhKey && (data.strategies||[]).length){
+    html += `<div class="hint" style="margin-bottom:10px;padding:9px 11px;background:var(--abg);border:1px solid var(--abd);border-radius:8px;color:#78350f;font-weight:600;">⚠️ No Finnhub key set — assumed prices below come only from AI web search, which can be stale by months. Add a Finnhub key in ⚙️ Settings to auto-verify against a live quote.</div>`;
+  }
+
+  (data.strategies||[]).forEach(function(s, idx){
     var diff = (s.projectedReturnPct||0) - calc.perPeriodPct;
     var meets = diff >= -0.5; // small tolerance
+    var priceId = 'price-check-'+idx;
     html += `<div class="pick-card">
       <div class="pick-hd">
         <div>
@@ -670,6 +693,7 @@ function renderStrategyResults(data, calc){
           <div class="pick-return-lbl">${meets?'meets target':'below target'}</div>
         </div>
       </div>
+      <div id="${priceId}"></div>
       <div class="pick-body">
         <div class="pick-section-lbl">Structure</div>
         <div class="pick-txt">${s.structure||''}</div>
@@ -693,6 +717,49 @@ function renderStrategyResults(data, calc){
 
   box.innerHTML = html;
   box.classList.add('show');
+
+  verifyPrices(data.strategies||[]);
+}
+
+async function verifyPrices(strategies){
+  var fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fhKey) return;
+
+  for(var idx=0; idx<strategies.length; idx++){
+    (function(s, i){
+      fetchLiveQuote(s.ticker).then(function(livePrice){
+        var mount = document.getElementById('price-check-'+i);
+        if(!mount) return;
+        if(livePrice == null){
+          mount.innerHTML = `<div class="price-check-row unknown">Couldn't verify — no live quote found for ${s.ticker}</div>`;
+          return;
+        }
+        if(s.assumedPrice == null){
+          mount.innerHTML = `<div class="price-check-row unknown">Live price: $${livePrice.toFixed(2)} (AI didn't report an assumed price to compare)</div>`;
+          return;
+        }
+        var diffPct = ((livePrice - s.assumedPrice) / s.assumedPrice) * 100;
+        var stale = Math.abs(diffPct) > 3; // >3% drift flagged as likely stale
+        if(stale){
+          mount.innerHTML = `<div class="price-check-row stale">⚠️ STALE PRICE: AI assumed $${s.assumedPrice.toFixed(2)}, live price is $${livePrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%). The strikes above were built around the old price — treat this structure as a starting idea, not exact strikes.</div>`;
+        } else {
+          mount.innerHTML = `<div class="price-check-row ok">✓ Verified: live price $${livePrice.toFixed(2)} is close to the assumed $${s.assumedPrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%)</div>`;
+        }
+      }).catch(function(){
+        var mount = document.getElementById('price-check-'+i);
+        if(mount) mount.innerHTML = '';
+      });
+    })(strategies[idx], idx);
+  }
+}
+
+function fetchLiveQuote(ticker){
+  var fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fhKey || !ticker) return Promise.resolve(null);
+  return fetch('https://finnhub.io/api/v1/quote?symbol='+encodeURIComponent(ticker)+'&token='+fhKey)
+    .then(function(res){ return res.ok ? res.json() : null; })
+    .then(function(data){ return (data && data.c) ? data.c : null; })
+    .catch(function(){ return null; });
 }
 
 async function runFindStrategies(){
