@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="CompoundAI"/>
+<meta name="application-name" content="CompoundAI"/>
+<meta name="theme-color" content="#f1f5f9"/>
+<meta name="description" content="Reverse-engineer the return rate needed to hit a compounding target, and find strategies sized to it."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>CompoundAI</title>
+<style>
+:root{
+  --bg:     #f1f5f9;
+  --p1:     #ffffff;
+  --p2:     #f8fafc;
+  --border: #e2e8f0;
+  --borderB:#cbd5e1;
+  --text:   #0a0f1e;
+  --dim:    #374151;
+  --sub:    #4b5563;
+  --muted:  #94a3b8;
+  --green:  #15803d;  --gbg:#f0fdf4;  --gbd:#86efac;
+  --red:    #b91c1c;  --rbg:#fef2f2;  --rbd:#fca5a5;
+  --amber:  #b45309;  --abg:#fffbeb;  --abd:#fcd34d;
+  --blue:   #1d4ed8;  --bbg:#eff6ff;  --bbd:#93c5fd;
+  --orange: #c2410c;  --obg:#fff7ed;  --obd:#fdba74;
+  --teal:   #0e7490;  --tbg:#ecfeff;  --tbd:#67e8f9;
+  --F: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--F);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:40px;}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;border:none;outline:none;}
+input,textarea,select{outline:none;font-family:inherit;}
+.app{max-width:480px;margin:0 auto;padding:0 12px;}
+
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 8px;}
+.navbar a{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border:1.5px solid #334155;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.03em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.navbar-tag{display:flex;align-items:center;gap:5px;}
+.navbar-tag span:first-child{font-size:8px;font-weight:800;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;}
+.navbar-dot{width:4px;height:4px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;display:inline-block;}
+.navbar-live{font-size:8px;font-weight:800;color:#22c55e;letter-spacing:.06em;text-transform:uppercase;}
+
+.hdr-card{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-size:19px;font-weight:900;color:#fff;letter-spacing:-.02em;}
+.hdr-title em{color:#5eead4;font-style:normal;}
+.btn-gear{position:relative;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gear-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #0f172a;}
+.gear-dot.ok{background:#4ade80;}
+.no-key-warn{background:var(--abg);border:1.5px solid var(--abd);color:var(--amber);font-size:11.5px;font-weight:700;padding:9px 12px;border-radius:9px;margin-bottom:12px;cursor:pointer;text-align:center;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,6,9,.55);z-index:50;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;padding:10px 18px 26px;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:3px;margin:6px auto 14px;}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:12px;}
+.modal-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.modal-key-row{display:flex;gap:6px;}
+.modal-key-inp{flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;font-weight:600;color:var(--text);}
+.modal-eye{width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;font-size:15px;flex-shrink:0;}
+.modal-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.modal-note a{color:var(--blue);}
+.btn-save-key{width:100%;margin-top:14px;padding:12px;border-radius:9px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:800;}
+.btn-cancel-modal{width:100%;margin-top:8px;padding:10px;border-radius:9px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;}
+
+.input-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;padding:15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+label{display:block;font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin:11px 0 5px;}
+label:first-child{margin-top:0;}
+input[type=number]{width:100%;background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:15px;font-weight:700;padding:10px 11px;border-radius:8px;}
+input:focus{border-color:var(--blue);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hint{font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:500;}
+
+.chip-row{display:flex;gap:6px;}
+.chip{flex:1;text-align:center;padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--p2);font-size:13px;font-weight:800;color:var(--sub);cursor:pointer;}
+.chip.on{background:#111827;border-color:#111827;color:#fff;}
+
+.run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
+.run-btn.secondary{background:var(--p1);border:1.5px solid var(--border);color:var(--dim);}
+.run-btn:disabled{background:var(--muted);}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.run-btn.loading .spinner{display:inline-block;}
+.run-btn.loading .btn-label::after{content:"…";}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-status{display:none;text-align:center;font-size:11px;color:var(--muted);font-weight:600;margin-top:8px;min-height:14px;}
+
+.error{color:var(--red);font-size:12px;margin-top:9px;padding:9px 11px;background:var(--rbg);border:1px solid var(--rbd);border-radius:8px;font-weight:600;}
+
+/* RESULTS */
+.results{display:none;}
+.results.show{display:block;}
+
+.rate-card{border-radius:14px;padding:18px 16px;margin-bottom:12px;text-align:center;}
+.rate-card.tier-conservative{background:linear-gradient(135deg,#15803d,#166534);}
+.rate-card.tier-moderate{background:linear-gradient(135deg,#1d4ed8,#1e3a8a);}
+.rate-card.tier-aggressive{background:linear-gradient(135deg,#b45309,#92400e);}
+.rate-card.tier-very-aggressive{background:linear-gradient(135deg,#c2410c,#9a3412);}
+.rate-card.tier-unrealistic{background:linear-gradient(135deg,#b91c1c,#7f1d1d);}
+.rate-lbl{font-size:10px;color:rgba(255,255,255,.75);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.rate-val{font-size:38px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1;}
+.rate-sub{font-size:12px;color:rgba(255,255,255,.85);font-weight:700;margin-top:8px;}
+.rate-tier-badge{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.15);color:#fff;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
+
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-cell{background:var(--p1);border:1.5px solid var(--border);border-radius:11px;padding:11px;text-align:center;}
+.stat-l{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.stat-v{font-size:16px;font-weight:900;color:var(--text);}
+
+.reality-note{border-radius:12px;padding:13px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.6;font-weight:500;}
+.reality-note.tier-conservative{background:var(--gbg);border:1.5px solid var(--gbd);color:#14532d;}
+.reality-note.tier-moderate{background:var(--bbg);border:1.5px solid var(--bbd);color:#1e3a8a;}
+.reality-note.tier-aggressive{background:var(--abg);border:1.5px solid var(--abd);color:#78350f;}
+.reality-note.tier-very-aggressive{background:var(--obg);border:1.5px solid var(--obd);color:#7c2d12;}
+.reality-note.tier-unrealistic{background:var(--rbg);border:1.5px solid var(--rbd);color:#7f1d1d;}
+.reality-note b{font-weight:800;}
+
+.stress-card{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:12px;}
+.stress-title{font-size:10px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.stress-txt{font-size:12.5px;color:var(--dim);line-height:1.6;font-weight:500;}
+.stress-txt b{color:var(--red);font-weight:800;}
+
+.proj-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.proj-hd{padding:11px 15px;background:var(--p2);border-bottom:1px solid var(--border);font-size:11px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;}
+.proj-row{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;border-bottom:1px solid var(--border);font-size:12.5px;}
+.proj-row:last-child{border-bottom:none;}
+.proj-row.final{background:var(--gbg);}
+.proj-period{font-weight:800;color:var(--sub);}
+.proj-amt{font-weight:800;color:var(--text);}
+.proj-arrow{color:var(--muted);margin:0 6px;}
+.proj-gain{font-size:10.5px;color:var(--green);font-weight:700;}
+
+/* STRATEGY RESULTS */
+.strat-results{display:none;}
+.strat-results.show{display:block;}
+.strat-ctx{background:var(--p1);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:11.5px;color:var(--sub);font-weight:600;line-height:1.6;}
+
+.pick-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.pick-hd{padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0f172a,#1e293b);}
+.pick-tick{font-size:15px;font-weight:900;color:#fff;}
+.pick-strat{font-size:10.5px;color:#5eead4;font-weight:700;margin-top:1px;}
+.pick-return{text-align:right;}
+.pick-return-val{font-size:14px;font-weight:900;color:#4ade80;}
+.pick-return-lbl{font-size:8.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;}
+.pick-body{padding:12px 15px;}
+.pick-section-lbl{font-size:9px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;margin-top:10px;}
+.pick-section-lbl:first-child{margin-top:0;}
+.pick-txt{font-size:12.5px;color:var(--dim);line-height:1.6;font-weight:500;}
+.pick-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.pstat-cell{background:var(--p2);border-radius:8px;padding:8px;text-align:center;}
+.pstat-l{font-size:8.5px;color:var(--muted);font-weight:800;text-transform:uppercase;}
+.pstat-v{font-size:12.5px;font-weight:800;color:var(--text);margin-top:2px;}
+
+.disclaimer{font-size:10.5px;color:var(--muted);line-height:1.6;padding:12px 4px 4px;}
+footer{margin-top:20px;padding:14px 4px;color:var(--muted);font-size:10.5px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
+footer b{color:var(--sub);}
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="settingsModal" onclick="modalBgClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ API Settings</div>
+    <div class="modal-label">Anthropic API Key</div>
+    <div class="modal-key-row">
+      <input class="modal-key-inp" id="modalKeyInp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+      <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
+    </div>
+    <div class="modal-note">Shared across the whole GammaEdge suite — stored in your browser only. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+    <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+    <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="navbar">
+    <a href="index.html">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>GammaEdge
+    </a>
+    <div class="navbar-tag">
+      <span>Compound Engine</span>
+      <span class="navbar-dot"></span>
+      <span class="navbar-live">Suite</span>
+    </div>
+  </div>
+
+  <div class="hdr-card">
+    <div class="hdr-row">
+      <div>
+        <div class="hdr-title">Compound<em>AI</em></div>
+      </div>
+      <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
+    </div>
+  </div>
+
+  <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()" style="display:none;">
+    ⚠️ No API key set — tap to add your Anthropic key
+  </div>
+
+  <div class="input-card">
+    <div class="row2">
+      <div>
+        <label>Starting Capital</label>
+        <input type="number" id="cp-capital" value="10000" step="500">
+      </div>
+      <div>
+        <label>Target Gain %</label>
+        <input type="number" id="cp-target" value="50" step="5">
+      </div>
+    </div>
+    <div class="hint">e.g. 50 = grow capital by 50% (100 = double it) by the end of the timeline.</div>
+
+    <label>Timeline (weeks)</label>
+    <input type="number" id="cp-timeline" value="12" step="1">
+
+    <label>Compounding Period</label>
+    <div class="chip-row" id="cp-period-chips">
+      <div class="chip" data-v="1" onclick="setPeriod(1)">1 Week</div>
+      <div class="chip on" data-v="2" onclick="setPeriod(2)">2 Weeks</div>
+      <div class="chip" data-v="4" onclick="setPeriod(4)">4 Weeks</div>
+    </div>
+    <div class="hint">How often you re-enter a new trade with your full (compounded) capital.</div>
+
+    <button class="run-btn" id="cp-calc-btn" onclick="runCalculate()">
+      <span class="btn-label">Calculate Required Rate</span>
+    </button>
+    <div class="error" id="cp-err" style="display:none;"></div>
+  </div>
+
+  <div class="results" id="cp-results"></div>
+
+  <footer>
+    <b>How this works:</b> the required-rate math is exact compounding arithmetic, computed instantly in your browser — no AI involved. The "Find Strategies" step then uses Claude with live web search to propose real structures sized to that rate. Uses the same key as the rest of the suite.<br><br>
+    <b>Disclaimer:</b> compounding at a fixed rate every single period is a planning idealization, not a guarantee — real trading has losing periods. Outputs are AI-generated research scaffolding, not investment advice.
+  </footer>
+
+</div>
+
+<script>
+// ── SETTINGS ──
+function openSettings(){
+  document.getElementById('modalKeyInp').value = localStorage.getItem('ge_key') || '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
+function modalBgClick(e){ if(e.target === document.getElementById('settingsModal')) closeSettings(); }
+function toggleModalKey(){
+  var inp = document.getElementById('modalKeyInp');
+  var btn = document.getElementById('modalEyeBtn');
+  if(inp.type === 'password'){ inp.type='text'; btn.textContent='🙈'; } else { inp.type='password'; btn.textContent='👁'; }
+}
+function saveKey(){
+  var v = document.getElementById('modalKeyInp').value.trim();
+  if(v) localStorage.setItem('ge_key', v); else localStorage.removeItem('ge_key');
+  checkKeyOnLoad();
+  closeSettings();
+}
+function checkKeyOnLoad(){
+  var has = !!(localStorage.getItem('ge_key')||'').trim();
+  document.getElementById('gearDot').className = 'gear-dot' + (has ? ' ok' : '');
+  document.getElementById('noKeyWarn').style.display = has ? 'none' : 'block';
+}
+
+// ── PERIOD TOGGLE ──
+var CP_PERIOD = 2;
+function setPeriod(p){
+  CP_PERIOD = p;
+  document.querySelectorAll('#cp-period-chips .chip').forEach(function(c){ c.classList.remove('on'); });
+  document.querySelector('#cp-period-chips .chip[data-v="'+p+'"]').classList.add('on');
+  // Re-run calc live if results are already showing, so toggling is instant A/B
+  if(document.getElementById('cp-results').classList.contains('show')) runCalculate();
+}
+
+// ══════════════════════════════════════
+// CORE MATH — pure, deterministic, instant
+// ══════════════════════════════════════
+function fmtMoney(n){ return '$' + Math.round(n).toLocaleString(); }
+function fmtPct(n, dp){ dp = dp==null?2:dp; return (n>=0?'+':'') + n.toFixed(dp) + '%'; }
+
+function computeCompounding(capital, targetPct, timelineWeeks, periodWeeks){
+  var n = Math.max(1, Math.round(timelineWeeks / periodWeeks));
+  var M = 1 + targetPct/100;                    // total multiple needed
+  var perPeriodRate = Math.pow(M, 1/n) - 1;      // exact rate needed per period
+  var perPeriodPct = perPeriodRate * 100;
+
+  var periodsPerYear = 52 / periodWeeks;
+  var annualizedMultiple = Math.pow(1+perPeriodRate, periodsPerYear);
+  var annualizedPct = (annualizedMultiple - 1) * 100;
+
+  // Reality tier based on ANNUALIZED rate — fair comparison across period lengths
+  var tier, tierLabel;
+  if(annualizedPct < 30){ tier='conservative'; tierLabel='Conservative'; }
+  else if(annualizedPct < 100){ tier='moderate'; tierLabel='Moderate'; }
+  else if(annualizedPct < 300){ tier='aggressive'; tierLabel='Aggressive'; }
+  else if(annualizedPct < 1000){ tier='very-aggressive'; tierLabel='Very Aggressive'; }
+  else { tier='unrealistic'; tierLabel='Unrealistic'; }
+
+  // Projection table
+  var rows = [];
+  var bal = capital;
+  for(var i=1; i<=n; i++){
+    var newBal = bal * (1+perPeriodRate);
+    rows.push({ period: i, start: bal, end: newBal, gain: newBal-bal });
+    bal = newBal;
+  }
+
+  // One-flat-period stress test: if period 1 returns 0%, what do periods 2..n need?
+  var stress = null;
+  if(n > 1){
+    var remainingMultipleNeeded = M; // period 1 contributes ×1 (flat)
+    var stressRate = Math.pow(remainingMultipleNeeded, 1/(n-1)) - 1;
+    stress = { rate: stressRate*100, periods: n-1 };
+  }
+
+  return {
+    n: n, actualWeeks: n*periodWeeks, requestedWeeks: timelineWeeks,
+    perPeriodPct: perPeriodPct, annualizedPct: annualizedPct,
+    tier: tier, tierLabel: tierLabel,
+    finalCapital: bal, totalGain: bal-capital,
+    rows: rows, stress: stress
+  };
+}
+
+function realityNoteText(tier){
+  switch(tier){
+    case 'conservative': return '<b>This is achievable through steady income strategies</b> — cash-secured puts, covered calls, credit spreads sold consistently in normal market conditions. Realistic to sustain over many periods without needing outsized directional bets.';
+    case 'moderate': return '<b>This requires real edge, but is achievable</b> with defined-risk directional spreads (Jade Lizard, Broken Wing Butterfly) in favorable IV environments. Expect some losing periods — this isn\'t a "every period wins" rate, it\'s an average you need to hit.';
+    case 'aggressive': return '<b>This is genuinely aggressive.</b> Hitting this consistently needs strong directional conviction and higher position sizing relative to capital. A string of losing periods here can meaningfully set back the plan — this is not a "set and forget" rate.';
+    case 'very-aggressive': return '<b>This is approaching lottery-ticket territory.</b> Sustaining this rate every period, repeatedly, is not something consistent strategy reliably delivers — it usually requires a small number of outsized wins carrying many losers, not a steady per-period return.';
+    case 'unrealistic': return '<b>Be honest with yourself about this one.</b> An annualized rate this high is not something any consistent, repeatable options strategy delivers over many periods — the math requires near-impossible win streaks. Consider a longer timeline or a smaller target gain instead of chasing this rate.';
+  }
+  return '';
+}
+
+function renderResults(calc, capital, targetPct){
+  var box = document.getElementById('cp-results');
+  var html = '';
+
+  html += `<div class="rate-card tier-${calc.tier}">
+    <div class="rate-lbl">Required Return Per Period</div>
+    <div class="rate-val">${fmtPct(calc.perPeriodPct)}</div>
+    <div class="rate-sub">every ${CP_PERIOD} week${CP_PERIOD>1?'s':''}, compounding, for ${calc.n} period${calc.n>1?'s':''}</div>
+    <div class="rate-tier-badge">${calc.tierLabel} · ${fmtPct(calc.annualizedPct,0)} annualized</div>
+  </div>`;
+
+  html += `<div class="stat-row">
+    <div class="stat-cell"><div class="stat-l">Final Capital</div><div class="stat-v">${fmtMoney(calc.finalCapital)}</div></div>
+    <div class="stat-cell"><div class="stat-l">Total Gain</div><div class="stat-v" style="color:var(--green)">${fmtMoney(calc.totalGain)}</div></div>
+  </div>`;
+
+  html += `<div class="reality-note tier-${calc.tier}">${realityNoteText(calc.tier)}</div>`;
+
+  if(calc.stress){
+    html += `<div class="stress-card">
+      <div class="stress-title">⚠️ One Flat Period Stress Test</div>
+      <div class="stress-txt">If period 1 comes in <b>flat (0%)</b> instead of the required rate, periods 2–${calc.n} would need to average <b>${fmtPct(calc.stress.rate)}</b> each to still hit your target — not ${fmtPct(calc.perPeriodPct)}. This is how fast compounding plans get fragile after just one miss.</div>
+    </div>`;
+  }
+
+  if(calc.actualWeeks !== calc.requestedWeeks){
+    html += `<div class="hint" style="margin-bottom:10px;">Note: ${calc.requestedWeeks} weeks doesn't divide evenly into ${CP_PERIOD}-week periods — using ${calc.n} periods (${calc.actualWeeks} weeks) as the closest fit.</div>`;
+  }
+
+  html += `<div class="proj-card">
+    <div class="proj-hd">Compounding Projection</div>`;
+  calc.rows.forEach(function(r, idx){
+    var isFinal = idx === calc.rows.length-1;
+    html += `<div class="proj-row${isFinal?' final':''}">
+      <div class="proj-period">Period ${r.period}</div>
+      <div><span class="proj-amt">${fmtMoney(r.start)}</span><span class="proj-arrow">→</span><span class="proj-amt">${fmtMoney(r.end)}</span></div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<button class="run-btn secondary" id="cp-strat-btn" onclick="runFindStrategies()">
+    <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for This Rate</span>
+  </button>
+  <div class="loading-status" id="cp-strat-loading" style="display:none;"></div>
+  <div class="error" id="cp-strat-err" style="display:none;"></div>
+  <div class="strat-results" id="cp-strat-results"></div>`;
+
+  box.innerHTML = html;
+  box.classList.add('show');
+
+  window._cpLastCalc = calc;
+  window._cpLastCapital = capital;
+}
+
+// ── RUN CALCULATE (instant, client-side) ──
+function runCalculate(){
+  var capital = parseFloat(document.getElementById('cp-capital').value);
+  var targetPct = parseFloat(document.getElementById('cp-target').value);
+  var timeline = parseFloat(document.getElementById('cp-timeline').value);
+  var errEl = document.getElementById('cp-err');
+  errEl.style.display = 'none';
+
+  if(!capital || capital <= 0){ errEl.textContent = 'Enter a starting capital.'; errEl.style.display='block'; return; }
+  if(!targetPct || targetPct <= 0){ errEl.textContent = 'Enter a target gain % greater than 0.'; errEl.style.display='block'; return; }
+  if(!timeline || timeline <= 0){ errEl.textContent = 'Enter a timeline in weeks.'; errEl.style.display='block'; return; }
+
+  var calc = computeCompounding(capital, targetPct, timeline, CP_PERIOD);
+  renderResults(calc, capital, targetPct);
+}
+
+// ══════════════════════════════════════
+// AI STRATEGY FINDER
+// ══════════════════════════════════════
+function buildStrategyPrompt(calc, capital){
+  var dte = CP_PERIOD * 7;
+  var unrealistic = calc.tier === 'unrealistic';
+
+  return `Act as an options strategist helping size trades to a specific compounding return target.
+
+Capital per cycle: $${Math.round(capital)}
+Compounding period: ${CP_PERIOD} week(s) — roughly ${dte} calendar days per options cycle (DTE)
+Required return PER PERIOD to hit the goal: ${calc.perPeriodPct.toFixed(2)}%
+Annualized equivalent: ${calc.annualizedPct.toFixed(0)}%
+Reality tier: ${calc.tierLabel}
+
+${unrealistic ? `This reality tier is UNREALISTIC. Do not force a strategy suggestion that implies this rate is sustainably achievable — instead, say so plainly, explain briefly why no consistent repeatable options strategy delivers this annualized rate over many periods, and suggest what a more realistic target/timeline combination would look like (e.g. lower the target gain or extend the timeline). Still use web search once to ground your explanation in a real current example of a high-volatility ticker, but the tone should be an honest reality check, not a pitch.` : `Use web search (at most 2 searches) to find current tickers/setups suited to generating approximately this per-period return within a ~${dte}-day options cycle, at a risk level appropriate to the "${calc.tierLabel}" tier. Propose 2 to 4 specific strategies (real tickers, real current price context) — choose from cash-secured puts, covered calls, credit spreads, Jade Lizard, Broken Wing Butterfly, directional debit spreads, or naked options as fits the required aggressiveness. Be honest in each rationale about the actual probability of hitting the required return — don't oversell.`}
+
+Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Keep text fields concise. Use exactly this schema:
+{
+  "unrealistic": ${unrealistic},
+  "summary": "2-3 sentences: honest overview of what it takes to hit this rate, or why it's not realistic",
+  "strategies": [
+    {
+      "ticker": "AMD",
+      "strategyName": "Jade Lizard",
+      "structure": "short $430 put, short $505 call, long $515 call — 16 DTE",
+      "requiredMove": "1-2 sentences on what move/outcome hits the target return",
+      "capitalAllocation": 5000,
+      "projectedReturnPct": 6.5,
+      "rationale": "1-2 sentences, honest about odds"
+    }
+  ]
+}
+If unrealistic is true, "strategies" can be an empty array [].`;
+}
+
+function renderStrategyResults(data, calc){
+  var box = document.getElementById('cp-strat-results');
+  var html = '';
+
+  html += `<div class="strat-ctx">${data.summary || ''}</div>`;
+
+  (data.strategies||[]).forEach(function(s){
+    var diff = (s.projectedReturnPct||0) - calc.perPeriodPct;
+    var meets = diff >= -0.5; // small tolerance
+    html += `<div class="pick-card">
+      <div class="pick-hd">
+        <div>
+          <div class="pick-tick">${s.ticker||''}</div>
+          <div class="pick-strat">${s.strategyName||''}</div>
+        </div>
+        <div class="pick-return">
+          <div class="pick-return-val">${s.projectedReturnPct!=null?fmtPct(s.projectedReturnPct):'—'}</div>
+          <div class="pick-return-lbl">${meets?'meets target':'below target'}</div>
+        </div>
+      </div>
+      <div class="pick-body">
+        <div class="pick-section-lbl">Structure</div>
+        <div class="pick-txt">${s.structure||''}</div>
+        <div class="pick-section-lbl">What Has To Happen</div>
+        <div class="pick-txt">${s.requiredMove||''}</div>
+        <div class="pick-section-lbl">Rationale</div>
+        <div class="pick-txt">${s.rationale||''}</div>
+        <div class="pick-stats">
+          <div class="pstat-cell"><div class="pstat-l">Capital</div><div class="pstat-v">$${Math.round(s.capitalAllocation||0).toLocaleString()}</div></div>
+          <div class="pstat-cell"><div class="pstat-l">Target Return</div><div class="pstat-v">${fmtPct(calc.perPeriodPct)}</div></div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  if(data.unrealistic){
+    html += `<div class="disclaimer">No strategies were forced here — at this required rate, the honest answer is that consistent options strategy doesn't reliably deliver it. See the summary above for what a more realistic plan looks like.</div>`;
+  } else {
+    html += `<div class="disclaimer">These are AI-researched ideas grounded in a live web search — not verified against a real options chain. Confirm strikes/premiums with your broker before sizing real capital. "Meets target" compares the projected return to what this specific period needs — it says nothing about probability of actually hitting it.</div>`;
+  }
+
+  box.innerHTML = html;
+  box.classList.add('show');
+}
+
+async function runFindStrategies(){
+  var calc = window._cpLastCalc;
+  var capital = window._cpLastCapital;
+  if(!calc) return;
+
+  var btn = document.getElementById('cp-strat-btn');
+  var errEl = document.getElementById('cp-strat-err');
+  var loadingEl = document.getElementById('cp-strat-loading');
+  var resultsBox = document.getElementById('cp-strat-results');
+
+  errEl.style.display = 'none';
+
+  var apiKey = (localStorage.getItem('ge_key')||'').trim();
+  if(!apiKey){
+    errEl.textContent = 'Add your Anthropic API key first — tap the ⚙️ gear icon at the top.';
+    errEl.style.display = 'block';
+    openSettings();
+    return;
+  }
+
+  var prompt = buildStrategyPrompt(calc, capital);
+  btn.classList.add('loading');
+  btn.disabled = true;
+  resultsBox.classList.remove('show');
+  resultsBox.innerHTML = '';
+  loadingEl.style.display = 'block';
+  loadingEl.textContent = 'Searching for strategies sized to this rate…';
+
+  try{
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function(){ controller.abort(); }, 90000);
+
+    var response;
+    try{
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 4000,
+          messages: [{ role: "user", content: prompt }],
+          tools: [{ type: "web_search_20250305", name: "web_search" }]
+        })
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if(!response.ok){
+      var bodyText='';
+      try{ bodyText = await response.text(); }catch(e){}
+      throw new Error("API returned status " + response.status + (bodyText?(' — '+bodyText.slice(0,200)):''));
+    }
+    var data = await response.json();
+    if(data.error) throw new Error(data.error.message);
+
+    var text = (data.content || []).map(function(b){ return b.type === "text" ? b.text : ""; }).filter(Boolean).join("\n");
+    var cleaned = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    var match = cleaned.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error("Could not find a JSON object in the response.");
+    var parsed = JSON.parse(match[0]);
+
+    renderStrategyResults(parsed, calc);
+  }catch(e){
+    var msg = e.name === 'AbortError' ? 'Request took longer than 90 seconds and was stopped.' : e.message;
+    errEl.textContent = "Error: " + msg + " — please try again.";
+    errEl.style.display = 'block';
+  }finally{
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    loadingEl.style.display = 'none';
+  }
+}
+
+checkKeyOnLoad();
+</script>
+
+</body>
+</html>
