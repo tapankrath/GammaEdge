@@ -129,13 +129,36 @@ input:focus{border-color:var(--blue);}
 
 .proj-card{background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .proj-hd{padding:11px 15px;background:var(--p2);border-bottom:1px solid var(--border);font-size:11px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;}
-.proj-row{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;border-bottom:1px solid var(--border);font-size:12.5px;}
+.proj-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 15px;border-bottom:1px solid var(--border);font-size:12.5px;}
 .proj-row:last-child{border-bottom:none;}
 .proj-row.final{background:var(--gbg);}
-.proj-period{font-weight:800;color:var(--sub);}
+.proj-row.status-green{background:var(--gbg);border-left:3px solid var(--green);}
+.proj-row.status-yellow{background:var(--abg);border-left:3px solid var(--abd);}
+.proj-row.status-red{background:var(--rbg);border-left:3px solid var(--red);}
+.proj-period{font-weight:800;color:var(--sub);display:flex;align-items:center;gap:5px;margin-bottom:2px;}
 .proj-amt{font-weight:800;color:var(--text);}
 .proj-arrow{color:var(--muted);margin:0 6px;}
 .proj-gain{font-size:10.5px;color:var(--green);font-weight:700;}
+.proj-planned-tag{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-left:6px;}
+.proj-status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;}
+.proj-status-dot.green{background:var(--green);}
+.proj-status-dot.yellow{background:#d97706;}
+.proj-status-dot.red{background:var(--red);}
+.proj-status-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.proj-status-lbl.green{color:var(--green);}
+.proj-status-lbl.yellow{color:#b45309;}
+.proj-status-lbl.red{color:var(--red);}
+.proj-checkin-btn{font-size:10.5px;font-weight:800;padding:6px 10px;border-radius:7px;background:var(--p2);border:1.5px solid var(--border);color:var(--dim);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.proj-checkin-btn.edit{background:var(--bbg);border-color:var(--bbd);color:var(--blue);}
+.checkin-form{display:none;align-items:center;gap:6px;padding:9px 15px 12px;border-bottom:1px solid var(--border);background:var(--p2);}
+.checkin-form input{flex:1;background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:8px 9px;font-size:12.5px;font-weight:700;}
+.checkin-form button{font-size:11px;font-weight:800;padding:8px 12px;border-radius:7px;background:#0f172a;color:#fff;cursor:pointer;flex-shrink:0;}
+.checkin-form button.clear{background:var(--rbg);color:var(--red);border:1px solid var(--rbd);}
+
+.adjust-banner{background:var(--abg);border:1.5px solid var(--abd);border-radius:12px;padding:13px 14px;margin-bottom:12px;}
+.adjust-title{font-size:12px;font-weight:900;color:#78350f;margin-bottom:5px;}
+.adjust-txt{font-size:12px;color:#78350f;line-height:1.55;font-weight:500;}
+.adjust-txt b{font-weight:800;}
 
 /* STRATEGY RESULTS */
 .strat-results{display:none;}
@@ -286,6 +309,14 @@ function setPeriod(p){
 function fmtMoney(n){ return '$' + Math.round(n).toLocaleString(); }
 function fmtPct(n, dp){ dp = dp==null?2:dp; return (n>=0?'+':'') + n.toFixed(dp) + '%'; }
 
+function tierFor(annualizedPct){
+  if(annualizedPct < 30) return { tier:'conservative', tierLabel:'Conservative' };
+  if(annualizedPct < 100) return { tier:'moderate', tierLabel:'Moderate' };
+  if(annualizedPct < 300) return { tier:'aggressive', tierLabel:'Aggressive' };
+  if(annualizedPct < 1000) return { tier:'very-aggressive', tierLabel:'Very Aggressive' };
+  return { tier:'unrealistic', tierLabel:'Unrealistic' };
+}
+
 function computeCompounding(capital, targetPct, timelineWeeks, periodWeeks){
   var n = Math.max(1, Math.round(timelineWeeks / periodWeeks));
   var M = 1 + targetPct/100;                    // total multiple needed
@@ -296,13 +327,7 @@ function computeCompounding(capital, targetPct, timelineWeeks, periodWeeks){
   var annualizedMultiple = Math.pow(1+perPeriodRate, periodsPerYear);
   var annualizedPct = (annualizedMultiple - 1) * 100;
 
-  // Reality tier based on ANNUALIZED rate — fair comparison across period lengths
-  var tier, tierLabel;
-  if(annualizedPct < 30){ tier='conservative'; tierLabel='Conservative'; }
-  else if(annualizedPct < 100){ tier='moderate'; tierLabel='Moderate'; }
-  else if(annualizedPct < 300){ tier='aggressive'; tierLabel='Aggressive'; }
-  else if(annualizedPct < 1000){ tier='very-aggressive'; tierLabel='Very Aggressive'; }
-  else { tier='unrealistic'; tierLabel='Unrealistic'; }
+  var tierInfo = tierFor(annualizedPct);
 
   // Projection table
   var rows = [];
@@ -324,8 +349,8 @@ function computeCompounding(capital, targetPct, timelineWeeks, periodWeeks){
   return {
     n: n, actualWeeks: n*periodWeeks, requestedWeeks: timelineWeeks,
     perPeriodPct: perPeriodPct, annualizedPct: annualizedPct,
-    tier: tier, tierLabel: tierLabel,
-    finalCapital: bal, totalGain: bal-capital,
+    tier: tierInfo.tier, tierLabel: tierInfo.tierLabel,
+    finalCapital: bal, totalGain: bal-capital, targetCapital: bal,
     rows: rows, stress: stress
   };
 }
@@ -339,6 +364,190 @@ function realityNoteText(tier){
     case 'unrealistic': return '<b>Be honest with yourself about this one.</b> An annualized rate this high is not something any consistent, repeatable options strategy delivers over many periods — the math requires near-impossible win streaks. Consider a longer timeline or a smaller target gain instead of chasing this rate.';
   }
   return '';
+}
+
+// ══════════════════════════════════════
+// PLAN TRACKER — checkpoints, status, cascading re-plan
+// ══════════════════════════════════════
+var PLAN_KEY = 'ge_compound_plan';
+
+function savePlan(){ localStorage.setItem(PLAN_KEY, JSON.stringify(window._cpPlan)); }
+function loadSavedPlan(){ try{ return JSON.parse(localStorage.getItem(PLAN_KEY)); }catch(e){ return null; } }
+
+function newPlan(calc, capital, targetPct){
+  window._cpPlan = {
+    capital: capital,
+    targetPct: targetPct,
+    periodWeeks: CP_PERIOD,
+    n: calc.n,
+    targetCapital: calc.targetCapital,
+    originalPerPeriodPct: calc.perPeriodPct,
+    checkins: {}
+  };
+  savePlan();
+}
+
+// Walk the plan period-by-period. Every checked-in period updates the running
+// capital; the required rate for all periods AFTER that point is recomputed
+// fresh from (target ÷ current capital) ÷ remaining periods — this is the
+// live version of the "one flat period" stress test, applied continuously.
+function computePlanPath(plan){
+  var rows = [];
+  var currentCapital = plan.capital;
+  var remainingPeriods = plan.n;
+  var currentRate = Math.pow(plan.targetCapital/currentCapital, 1/remainingPeriods) - 1;
+  var adjusted = false;
+
+  for(var i=1; i<=plan.n; i++){
+    var plannedStart = currentCapital;
+    var plannedEnd = plannedStart * (1+currentRate);
+    var checkin = plan.checkins[i];
+
+    rows.push({
+      period: i,
+      rateUsedPct: currentRate*100,
+      plannedStart: plannedStart,
+      plannedEnd: plannedEnd,
+      checkedIn: !!checkin,
+      actualEnd: checkin ? checkin.actualEnd : null,
+      status: checkin ? checkin.status : null
+    });
+
+    if(checkin){
+      if(Math.abs(checkin.actualEnd - plannedEnd) > 0.5) adjusted = true;
+      currentCapital = checkin.actualEnd;
+      remainingPeriods = plan.n - i;
+      if(remainingPeriods > 0){
+        currentRate = Math.pow(plan.targetCapital/currentCapital, 1/remainingPeriods) - 1;
+      }
+    } else {
+      // Not checked in yet — advance along the current plan so the NEXT
+      // row's planned start compounds forward correctly.
+      currentCapital = plannedEnd;
+    }
+  }
+
+  return { rows: rows, currentCapital: currentCapital, currentRatePct: currentRate*100,
+    remainingPeriods: Math.max(remainingPeriods,0), adjusted: adjusted };
+}
+
+function statusFor(plannedStart, plannedEnd, actualEnd){
+  if(actualEnd >= plannedEnd) return 'green';
+  if(actualEnd >= plannedStart) return 'yellow';
+  return 'red';
+}
+
+function toggleCheckinForm(periodNum){
+  var form = document.getElementById('checkin-form-'+periodNum);
+  if(!form) return;
+  var isOpen = form.style.display !== 'none';
+  document.querySelectorAll('.checkin-form').forEach(function(f){ f.style.display='none'; });
+  form.style.display = isOpen ? 'none' : 'flex';
+  if(!isOpen){
+    var inp = document.getElementById('checkin-inp-'+periodNum);
+    if(inp) inp.focus();
+  }
+}
+
+function saveCheckIn(periodNum){
+  var input = document.getElementById('checkin-inp-'+periodNum);
+  var val = parseFloat(input.value);
+  if(!val || val < 0) return;
+
+  var pathBefore = computePlanPath(window._cpPlan);
+  var row = pathBefore.rows[periodNum-1];
+  var status = statusFor(row.plannedStart, row.plannedEnd, val);
+
+  window._cpPlan.checkins[periodNum] = { actualEnd: val, status: status, checkedAt: new Date().toISOString() };
+  // Later checkins are now stale relative to this revised actual — clear them
+  Object.keys(window._cpPlan.checkins).forEach(function(k){
+    if(parseInt(k) > periodNum) delete window._cpPlan.checkins[k];
+  });
+  savePlan();
+  renderProjectionSection();
+}
+
+function editCheckIn(periodNum){
+  toggleCheckinForm(periodNum);
+}
+
+function clearCheckIn(periodNum){
+  delete window._cpPlan.checkins[periodNum];
+  Object.keys(window._cpPlan.checkins).forEach(function(k){
+    if(parseInt(k) > periodNum) delete window._cpPlan.checkins[k];
+  });
+  savePlan();
+  renderProjectionSection();
+}
+
+function resetPlanCheckins(){
+  if(Object.keys(window._cpPlan.checkins).length && !confirm('Clear all check-ins for this plan? The plan itself stays.')) return;
+  window._cpPlan.checkins = {};
+  savePlan();
+  renderProjectionSection();
+}
+
+function statusLabel(status){
+  return status==='green' ? 'On Track' : status==='yellow' ? 'Behind Pace' : 'Loss';
+}
+
+function renderProjectionSection(){
+  var mount = document.getElementById('cp-projection-mount');
+  if(!mount || !window._cpPlan) return;
+  var plan = window._cpPlan;
+  var path = computePlanPath(plan);
+
+  var html = '';
+
+  if(path.adjusted && path.remainingPeriods > 0){
+    html += `<div class="adjust-banner">
+      <div class="adjust-title">⚠️ Plan Adjusted From Check-Ins</div>
+      <div class="adjust-txt">The remaining <b>${path.remainingPeriods}</b> period${path.remainingPeriods>1?'s':''} now need${path.remainingPeriods>1?'':'s'} <b>${fmtPct(path.currentRatePct)}</b> each to still hit ${fmtMoney(plan.targetCapital)} — originally ${fmtPct(plan.originalPerPeriodPct)}.</div>
+      <button class="run-btn secondary" style="margin-top:10px" onclick="runFindStrategies()">
+        <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for Adjusted Rate</span>
+      </button>
+    </div>`;
+  } else if(path.remainingPeriods === 0){
+    var hitTarget = path.currentCapital >= plan.targetCapital;
+    html += `<div class="adjust-banner" style="background:${hitTarget?'var(--gbg)':'var(--rbg)'};border-color:${hitTarget?'var(--gbd)':'var(--rbd)'}">
+      <div class="adjust-title" style="color:${hitTarget?'#14532d':'#7f1d1d'}">${hitTarget?'🎉 Plan Complete — Target Hit':'Plan Complete — Target Missed'}</div>
+      <div class="adjust-txt" style="color:${hitTarget?'#14532d':'#7f1d1d'}">Final capital: <b>${fmtMoney(path.currentCapital)}</b> vs target ${fmtMoney(plan.targetCapital)}.</div>
+    </div>`;
+  }
+
+  html += `<div class="proj-card">
+    <div class="proj-hd" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Compounding Projection</span>
+      <button onclick="resetPlanCheckins()" style="font-size:9.5px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;text-transform:none;letter-spacing:0">Reset check-ins</button>
+    </div>`;
+
+  path.rows.forEach(function(r, idx){
+    var isFinal = idx === path.rows.length-1;
+    var startVal = r.checkedIn ? r.plannedStart : r.plannedStart;
+    var endVal = r.checkedIn ? r.actualEnd : r.plannedEnd;
+
+    html += `<div class="proj-row${isFinal?' final':''}${r.status?' status-'+r.status:''}" id="proj-row-${r.period}">
+      <div style="flex:1;min-width:0">
+        <div class="proj-period">Period ${r.period}${r.status?` <span class="proj-status-dot ${r.status}"></span> <span class="proj-status-lbl ${r.status}">${statusLabel(r.status)}</span>`:''}</div>
+        <div>
+          <span class="proj-amt">${fmtMoney(startVal)}</span><span class="proj-arrow">→</span><span class="proj-amt">${fmtMoney(endVal)}</span>
+          ${!r.checkedIn?'<span class="proj-planned-tag">planned</span>':''}
+        </div>
+      </div>
+      ${!r.checkedIn
+        ? `<button class="proj-checkin-btn" onclick="toggleCheckinForm(${r.period})">Check In</button>`
+        : `<button class="proj-checkin-btn edit" onclick="editCheckIn(${r.period})">Edit</button>`
+      }
+    </div>
+    <div class="checkin-form" id="checkin-form-${r.period}" style="display:none">
+      <input type="number" id="checkin-inp-${r.period}" placeholder="actual ending capital" value="${r.checkedIn?r.actualEnd:Math.round(r.plannedEnd)}">
+      <button onclick="saveCheckIn(${r.period})">Save</button>
+      ${r.checkedIn?`<button class="clear" onclick="clearCheckIn(${r.period})">Clear</button>`:''}
+    </div>`;
+  });
+
+  html += `</div>`;
+  mount.innerHTML = html;
 }
 
 function renderResults(calc, capital, targetPct){
@@ -370,16 +579,7 @@ function renderResults(calc, capital, targetPct){
     html += `<div class="hint" style="margin-bottom:10px;">Note: ${calc.requestedWeeks} weeks doesn't divide evenly into ${CP_PERIOD}-week periods — using ${calc.n} periods (${calc.actualWeeks} weeks) as the closest fit.</div>`;
   }
 
-  html += `<div class="proj-card">
-    <div class="proj-hd">Compounding Projection</div>`;
-  calc.rows.forEach(function(r, idx){
-    var isFinal = idx === calc.rows.length-1;
-    html += `<div class="proj-row${isFinal?' final':''}">
-      <div class="proj-period">Period ${r.period}</div>
-      <div><span class="proj-amt">${fmtMoney(r.start)}</span><span class="proj-arrow">→</span><span class="proj-amt">${fmtMoney(r.end)}</span></div>
-    </div>`;
-  });
-  html += `</div>`;
+  html += `<div id="cp-projection-mount"></div>`;
 
   html += `<button class="run-btn secondary" id="cp-strat-btn" onclick="runFindStrategies()">
     <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for This Rate</span>
@@ -393,6 +593,9 @@ function renderResults(calc, capital, targetPct){
 
   window._cpLastCalc = calc;
   window._cpLastCapital = capital;
+
+  newPlan(calc, capital, targetPct);
+  renderProjectionSection();
 }
 
 // ── RUN CALCULATE (instant, client-side) ──
@@ -497,6 +700,25 @@ async function runFindStrategies(){
   var capital = window._cpLastCapital;
   if(!calc) return;
 
+  // If the plan has been adjusted via check-ins, use the LIVE remaining-period
+  // rate and current capital instead of the original static calc.
+  if(window._cpPlan){
+    var path = computePlanPath(window._cpPlan);
+    if(path.remainingPeriods > 0 && (path.adjusted || Object.keys(window._cpPlan.checkins).length)){
+      var periodsPerYear = 52 / window._cpPlan.periodWeeks;
+      var annualizedPct = (Math.pow(1+path.currentRatePct/100, periodsPerYear) - 1) * 100;
+      var tierInfo = tierFor(annualizedPct);
+      calc = Object.assign({}, calc, {
+        perPeriodPct: path.currentRatePct,
+        annualizedPct: annualizedPct,
+        tier: tierInfo.tier,
+        tierLabel: tierInfo.tierLabel,
+        n: path.remainingPeriods
+      });
+      capital = path.currentCapital;
+    }
+  }
+
   var btn = document.getElementById('cp-strat-btn');
   var errEl = document.getElementById('cp-strat-err');
   var loadingEl = document.getElementById('cp-strat-loading');
@@ -572,7 +794,54 @@ async function runFindStrategies(){
   }
 }
 
+function restoreSavedPlan(){
+  var saved = loadSavedPlan();
+  if(!saved || !saved.capital || !saved.n) return;
+
+  document.getElementById('cp-capital').value = saved.capital;
+  document.getElementById('cp-target').value = saved.targetPct;
+  document.getElementById('cp-timeline').value = saved.n * saved.periodWeeks;
+  setPeriod(saved.periodWeeks);
+
+  var calc = computeCompounding(saved.capital, saved.targetPct, saved.n*saved.periodWeeks, saved.periodWeeks);
+  var box = document.getElementById('cp-results');
+  var html = '';
+  html += `<div class="rate-card tier-${calc.tier}">
+    <div class="rate-lbl">Required Return Per Period</div>
+    <div class="rate-val">${fmtPct(calc.perPeriodPct)}</div>
+    <div class="rate-sub">every ${CP_PERIOD} week${CP_PERIOD>1?'s':''}, compounding, for ${calc.n} period${calc.n>1?'s':''}</div>
+    <div class="rate-tier-badge">${calc.tierLabel} · ${fmtPct(calc.annualizedPct,0)} annualized</div>
+  </div>`;
+  html += `<div class="stat-row">
+    <div class="stat-cell"><div class="stat-l">Final Capital</div><div class="stat-v">${fmtMoney(calc.finalCapital)}</div></div>
+    <div class="stat-cell"><div class="stat-l">Total Gain</div><div class="stat-v" style="color:var(--green)">${fmtMoney(calc.totalGain)}</div></div>
+  </div>`;
+  html += `<div class="reality-note tier-${calc.tier}">${realityNoteText(calc.tier)}</div>`;
+  if(calc.stress){
+    html += `<div class="stress-card">
+      <div class="stress-title">⚠️ One Flat Period Stress Test</div>
+      <div class="stress-txt">If period 1 comes in <b>flat (0%)</b> instead of the required rate, periods 2–${calc.n} would need to average <b>${fmtPct(calc.stress.rate)}</b> each to still hit your target — not ${fmtPct(calc.perPeriodPct)}. This is how fast compounding plans get fragile after just one miss.</div>
+    </div>`;
+  }
+  html += `<div id="cp-projection-mount"></div>`;
+  html += `<button class="run-btn secondary" id="cp-strat-btn" onclick="runFindStrategies()">
+    <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for This Rate</span>
+  </button>
+  <div class="loading-status" id="cp-strat-loading" style="display:none;"></div>
+  <div class="error" id="cp-strat-err" style="display:none;"></div>
+  <div class="strat-results" id="cp-strat-results"></div>`;
+
+  box.innerHTML = html;
+  box.classList.add('show');
+
+  window._cpLastCalc = calc;
+  window._cpLastCapital = saved.capital;
+  window._cpPlan = saved;
+  renderProjectionSection();
+}
+
 checkKeyOnLoad();
+restoreSavedPlan();
 </script>
 
 </body>
