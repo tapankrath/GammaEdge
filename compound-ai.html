@@ -636,6 +636,7 @@ function runCalculate(){
 function buildStrategyPrompt(calc, capital){
   var dte = CP_PERIOD * 7;
   var unrealistic = calc.tier === 'unrealistic';
+  var tickerUniverse = "SPY, QQQ, IWM, DIA, AAPL, MSFT, NVDA, AMD, TSLA, META, GOOGL, AMZN, NFLX, AVGO, CRM, ORCL, ADBE, INTC, QCOM, MU, PLTR, COIN, SQ, PYPL, UBER, DIS, BA, XOM, CVX, JPM, BAC, GS, WMT, COST, HD, NKE, MCD, PEP, KO, PFE, JNJ, UNH, LLY, V, MA, T, VZ, F, GM, SOFI, ARM";
 
   return `Act as an options strategist helping size trades to a specific compounding return target.
 
@@ -645,7 +646,9 @@ Required return PER PERIOD to hit the goal: ${calc.perPeriodPct.toFixed(2)}%
 Annualized equivalent: ${calc.annualizedPct.toFixed(0)}%
 Reality tier: ${calc.tierLabel}
 
-${unrealistic ? `This reality tier is UNREALISTIC. Do not force a strategy suggestion that implies this rate is sustainably achievable — instead, say so plainly, explain briefly why no consistent repeatable options strategy delivers this annualized rate over many periods, and suggest what a more realistic target/timeline combination would look like (e.g. lower the target gain or extend the timeline). Still use web search once to ground your explanation in a real current example of a high-volatility ticker, but the tone should be an honest reality check, not a pitch.` : `Use web search (at most 2 searches) to find current tickers/setups suited to generating approximately this per-period return within a ~${dte}-day options cycle, at a risk level appropriate to the "${calc.tierLabel}" tier. When searching for price, prioritize a live quote source (e.g. a finance data page showing a current/real-time price) over a news article, which may be describing a price from months ago even if the article itself is recent. Propose 2 to 4 specific strategies (real tickers) — choose from cash-secured puts, covered calls, credit spreads, Jade Lizard, Broken Wing Butterfly, directional debit spreads, or naked options as fits the required aggressiveness. Be honest in each rationale about the actual probability of hitting the required return — don't oversell.`}
+TICKER UNIVERSE — choose ONLY from this list: ${tickerUniverse}. These are large, heavily-covered, liquid names where current price data is reliable. Do not propose any ticker outside this list, even if it seems like a better fit for the required return — a wrong ticker with an accurate price beats a "better" ticker with a stale one. Within this list, pick tickers whose typical volatility profile actually matches the required aggressiveness (e.g. SPY/QQQ/WMT/KO for conservative rates, NVDA/TSLA/COIN/PLTR for aggressive ones).
+
+${unrealistic ? `This reality tier is UNREALISTIC. Do not force a strategy suggestion that implies this rate is sustainably achievable — instead, say so plainly, explain briefly why no consistent repeatable options strategy delivers this annualized rate over many periods, and suggest what a more realistic target/timeline combination would look like (e.g. lower the target gain or extend the timeline). Still use web search once to ground your explanation in a real current example from the ticker universe above, but the tone should be an honest reality check, not a pitch.` : `Use web search (at most 2 searches) to find current setups from the ticker universe above suited to generating approximately this per-period return within a ~${dte}-day options cycle, at a risk level appropriate to the "${calc.tierLabel}" tier. When searching for price, prioritize a live quote source (e.g. a finance data page showing a current/real-time price) over a news article, which may be describing a price from months ago even if the article itself is recent. Propose 2 to 4 specific strategies — choose from cash-secured puts, covered calls, credit spreads, Jade Lizard, Broken Wing Butterfly, directional debit spreads, or naked options as fits the required aggressiveness. Be honest in each rationale about the actual probability of hitting the required return — don't oversell.`}
 
 Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. No markdown code fences, no commentary before or after, no trailing commas. Keep text fields concise. Use exactly this schema:
 {
@@ -735,15 +738,15 @@ async function verifyPrices(strategies){
           return;
         }
         if(s.assumedPrice == null){
-          mount.innerHTML = `<div class="price-check-row unknown">Live price: $${livePrice.toFixed(2)}</div>`;
+          mount.innerHTML = `<div class="price-check-row unknown">Live price: $${livePrice.toFixed(2)} (AI didn't report an assumed price to compare)</div>`;
           return;
         }
         var diffPct = ((livePrice - s.assumedPrice) / s.assumedPrice) * 100;
         var stale = Math.abs(diffPct) > 3; // >3% drift flagged as likely stale
         if(stale){
-          mount.innerHTML = `<div class="price-check-row stale">⚠️ STALE PRICE: Live price is $${livePrice.toFixed(2)}. The strikes above were built around an outdated price — treat this structure as a starting idea, not exact strikes.</div>`;
+          mount.innerHTML = `<div class="price-check-row stale">⚠️ STALE PRICE: AI assumed $${s.assumedPrice.toFixed(2)}, live price is $${livePrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%). The strikes above were built around the old price — treat this structure as a starting idea, not exact strikes.</div>`;
         } else {
-          mount.innerHTML = `<div class="price-check-row ok">✓ Verified: live price $${livePrice.toFixed(2)} is close to the price the strikes above were built around.</div>`;
+          mount.innerHTML = `<div class="price-check-row ok">✓ Verified: live price $${livePrice.toFixed(2)} is close to the assumed $${s.assumedPrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%)</div>`;
         }
       }).catch(function(){
         var mount = document.getElementById('price-check-'+i);
