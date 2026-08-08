@@ -735,15 +735,15 @@ async function verifyPrices(strategies){
           return;
         }
         if(s.assumedPrice == null){
-          mount.innerHTML = `<div class="price-check-row unknown">Live price: $${livePrice.toFixed(2)} (AI didn't report an assumed price to compare)</div>`;
+          mount.innerHTML = `<div class="price-check-row unknown">Live price: $${livePrice.toFixed(2)}</div>`;
           return;
         }
         var diffPct = ((livePrice - s.assumedPrice) / s.assumedPrice) * 100;
         var stale = Math.abs(diffPct) > 3; // >3% drift flagged as likely stale
         if(stale){
-          mount.innerHTML = `<div class="price-check-row stale">⚠️ STALE PRICE: AI assumed $${s.assumedPrice.toFixed(2)}, live price is $${livePrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%). The strikes above were built around the old price — treat this structure as a starting idea, not exact strikes.</div>`;
+          mount.innerHTML = `<div class="price-check-row stale">⚠️ STALE PRICE: Live price is $${livePrice.toFixed(2)}. The strikes above were built around an outdated price — treat this structure as a starting idea, not exact strikes.</div>`;
         } else {
-          mount.innerHTML = `<div class="price-check-row ok">✓ Verified: live price $${livePrice.toFixed(2)} is close to the assumed $${s.assumedPrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%)</div>`;
+          mount.innerHTML = `<div class="price-check-row ok">✓ Verified: live price $${livePrice.toFixed(2)} is close to the price the strikes above were built around.</div>`;
         }
       }).catch(function(){
         var mount = document.getElementById('price-check-'+i);
