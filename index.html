@@ -956,7 +956,18 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       </button>
       <div id="vs-ai-result" style="display:none;margin-top:8px;background:#f4f7fb;border:1px solid #e2e8f0;border-radius:7px;padding:9px 11px;font-size:11px;color:#334155;line-height:1.65;font-weight:500;"></div>
     </div>
+    <!-- Top 10 High-IV Scanner -->
+    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;">
+      <button id="vs-scan-btn" onclick="vsRunTop10Scan()"
+        style="width:100%;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#7e22ce;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span class="vs-scan-spinner" style="display:none;width:11px;height:11px;border:2px solid rgba(126,34,206,.25);border-top-color:#7e22ce;border-radius:50%;animation:vs-spin .7s linear infinite;"></span>
+        <span class="vs-scan-label">🔍 Top 10 High-IV Stocks (&gt;$10B)</span>
+      </button>
+      <div id="vs-scan-status" style="display:none;text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:6px;"></div>
+      <div id="vs-scan-results" style="display:none;margin-top:8px;"></div>
+    </div>
   </div>
+  <style>@keyframes vs-spin{to{transform:rotate(360deg);}}</style>
 
   <script>
   // ── VOLSIGNAL MERGED ──────────────────────────────────────────────────────
@@ -1202,9 +1213,112 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       btn.disabled=false;
     });
   }
-    window.vsRunAI = vsRunAI;
+  function vsRunTop10Scan(){
+    var btn=document.getElementById('vs-scan-btn');
+    var spinner=btn.querySelector('.vs-scan-spinner');
+    var label=btn.querySelector('.vs-scan-label');
+    var statusEl=document.getElementById('vs-scan-status');
+    var resultsEl=document.getElementById('vs-scan-results');
+
+    var ak=(localStorage.getItem('ge_key')||'').trim();
+    if(!ak){
+      resultsEl.innerHTML='<div style="color:#f59e0b;font-size:11px;font-weight:700;text-align:center;padding:8px;">⚠️ Add Anthropic key via ⚙️ Keys.</div>';
+      resultsEl.style.display='block';
+      return;
+    }
+
+    btn.disabled=true;
+    spinner.style.display='inline-block';
+    label.textContent='Scanning…';
+    resultsEl.style.display='none';
+    resultsEl.innerHTML='';
+    statusEl.style.display='block';
+    var statusMsgs=['Checking options volatility screeners…','Comparing IV to realized vol…','Filtering to market cap > $10B…','Ranking by spread…'];
+    var statusIdx=0;
+    statusEl.textContent=statusMsgs[0];
+    var statusTimer=setInterval(function(){
+      statusIdx=(statusIdx+1)%statusMsgs.length;
+      statusEl.textContent=statusMsgs[statusIdx];
+    },2000);
+
+    var prompt='Act as a volatility desk analyst.\n\n'
+      +'Find the current top 10 US-listed stocks with market cap greater than $10 billion that have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. the largest IV-RV spread, meaning options premium is most rich relative to how much the stock is actually moving.\n\n'
+      +'Use web search to check a live options/volatility screener (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site) rather than estimating from memory or old data. Use at most 3 searches.\n\n'
+      +'For each of the 10 stocks report: ticker, company name, approximate market cap, current IV %, 30-day realized vol %, the spread (IV minus RV), and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Sort by spread, highest first.\n\n'
+      +'Respond with ONLY valid JSON, no markdown, no commentary before or after, in exactly this schema:\n'
+      +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"note":"earnings in 5 days"}]}\n'
+      +'iv, rv, and spread are numbers (percentages), not strings.';
+
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:2500,
+        messages:[{role:'user',content:prompt}],
+        tools:[{type:'web_search_20250305',name:'web_search'}]
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error)throw new Error(data.error.message);
+      var text='';
+      (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
+      var cleaned=text.replace(/```json/gi,'').replace(/```/g,'').trim();
+      var match=cleaned.match(/\{[\s\S]*\}/);
+      if(!match)throw new Error('Could not parse scan results.');
+      var parsed=JSON.parse(match[0]);
+      renderTop10Scan(parsed);
+    })
+    .catch(function(e){
+      resultsEl.innerHTML='<div style="color:#dc2626;font-size:11px;font-weight:700;padding:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;">Error: '+e.message+' — please try again.</div>';
+      resultsEl.style.display='block';
+    })
+    .finally(function(){
+      clearInterval(statusTimer);
+      statusEl.style.display='none';
+      btn.disabled=false;
+      spinner.style.display='none';
+      label.textContent='🔍 Top 10 High-IV Stocks (>$10B)';
+    });
+  }
+
+  function renderTop10Scan(data){
+    var resultsEl=document.getElementById('vs-scan-results');
+    var html='<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-bottom:6px;padding:0 2px;">'+(data.asOf||'')+'</div>';
+    (data.stocks||[]).forEach(function(s,i){
+      var spread=s.spread!=null?s.spread:((s.iv||0)-(s.rv||0));
+      html+='<div onclick="vsScanTickerTap(\''+(s.ticker||'').replace(/'/g,"")+'\')" '
+        +'style="display:flex;align-items:center;gap:8px;padding:7px 8px;background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;cursor:pointer;">'
+        +'<div style="font-size:10px;font-weight:900;color:#a855f7;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:12px;font-weight:800;color:#1e293b;">'+(s.ticker||'')+' <span style="font-weight:600;color:#64748b;font-size:10px;">'+(s.name||'')+'</span></div>'
+          +(s.note?'<div style="font-size:9.5px;color:#94a3b8;font-weight:500;margin-top:1px;">'+s.note+'</div>':'')
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0;">'
+          +'<div style="font-size:12px;font-weight:900;color:#7e22ce;">+'+spread.toFixed(1)+'%</div>'
+          +'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;">IV '+(s.iv!=null?s.iv.toFixed(0):'—')+' · RV '+(s.rv!=null?s.rv.toFixed(0):'—')+'</div>'
+        +'</div>'
+      +'</div>';
+    });
+    html+='<div style="font-size:9.5px;color:#94a3b8;font-weight:500;text-align:center;margin-top:4px;padding:0 4px;">Tap a ticker to load it above · AI-researched, verify against your broker before trading</div>';
+    resultsEl.innerHTML=html;
+    resultsEl.style.display='block';
+  }
+
+  function vsScanTickerTap(ticker){
+    if(!ticker)return;
+    document.getElementById('vs-search-inp').value=ticker;
+    vsRun(ticker);
+    document.getElementById('vs-card').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  window.vsRunAI = vsRunAI;
   window.vsRun = vsRun;
   window.vsRunSearch = vsRunSearch;
+  window.vsRunTop10Scan = vsRunTop10Scan;
+  window.vsScanTickerTap = vsScanTickerTap;
+
 
   // Auto-run SPY on load if keys are present
   window.addEventListener('load',function(){
