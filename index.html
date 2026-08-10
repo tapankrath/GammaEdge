@@ -1244,10 +1244,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     var prompt='Act as a volatility desk analyst.\n\n'
       +'Find the current top 10 US-listed stocks with market cap greater than $10 billion that have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. the largest IV-RV spread, meaning options premium is most rich relative to how much the stock is actually moving.\n\n'
       +'Use web search to check a live options/volatility screener (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site) rather than estimating from memory or old data. Use at most 3 searches, and do not narrate your search process in the response — search silently, then go straight to the answer.\n\n'
-      +'For each of the 10 stocks report: ticker, company name, approximate market cap, current IV %, 30-day realized vol %, the spread (IV minus RV), and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Sort by spread, highest first. Keep the note field to under 8 words.\n\n'
+      +'For each of the 10 stocks report: ticker, company name, approximate market cap, and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Keep the note field to under 8 words.\n\n'
+      +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead. Do not fabricate precise iv/rv/spread numbers you did not actually find — leave those fields null rather than guessing. Sort the list by whichever volatility metric you used, highest first.\n\n'
       +'Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, or explanation before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Use exactly this schema:\n'
-      +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"note":"earnings in 5 days"}]}\n'
-      +'iv, rv, and spread are numbers (percentages), not strings.';
+      +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"ivRank":null,"note":"earnings in 5 days"}]}\n'
+      +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess.';
 
     var vsScanController=new AbortController();
     var vsScanTimeoutId=setTimeout(function(){vsScanController.abort();},90000);
@@ -1332,23 +1333,52 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     var resultsEl=document.getElementById('vs-scan-results');
     var html='<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-bottom:6px;padding:0 2px;">'+(data.asOf||'')+'</div>';
     (data.stocks||[]).forEach(function(s,i){
-      var spread=s.spread!=null?s.spread:((s.iv||0)-(s.rv||0));
-      html+='<div onclick="vsScanTickerTap(\''+(s.ticker||'').replace(/'/g,"")+'\')" '
-        +'style="display:flex;align-items:center;gap:8px;padding:7px 8px;background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;cursor:pointer;">'
-        +'<div style="font-size:10px;font-weight:900;color:#a855f7;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
-        +'<div style="flex:1;min-width:0;">'
-          +'<div style="font-size:12px;font-weight:800;color:#1e293b;">'+(s.ticker||'')+' <span style="font-weight:600;color:#64748b;font-size:10px;">'+(s.name||'')+'</span></div>'
-          +(s.note?'<div style="font-size:9.5px;color:#94a3b8;font-weight:500;margin-top:1px;">'+s.note+'</div>':'')
+      var hasSpread=s.spread!=null;
+      var hasIvRank=s.ivRank!=null;
+      var badgeVal,badgeSub;
+      if(hasSpread){
+        badgeVal='+'+Number(s.spread).toFixed(1)+'%';
+        badgeSub='IV '+(s.iv!=null?Number(s.iv).toFixed(0):'—')+' · RV '+(s.rv!=null?Number(s.rv).toFixed(0):'—');
+      } else if(hasIvRank){
+        badgeVal=Number(s.ivRank).toFixed(0);
+        badgeSub='IV RANK';
+      } else {
+        badgeVal='—';
+        badgeSub='no data';
+      }
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;">'
+        +'<div onclick="vsScanTickerTap(\''+(s.ticker||'').replace(/'/g,"")+'\')" style="flex:1;min-width:0;cursor:pointer;display:flex;align-items:center;gap:8px;">'
+          +'<div style="font-size:10px;font-weight:900;color:#a855f7;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
+          +'<div style="flex:1;min-width:0;">'
+            +'<div style="font-size:12px;font-weight:800;color:#1e293b;">'+(s.ticker||'')+' <span style="font-weight:600;color:#64748b;font-size:10px;">'+(s.name||'')+'</span></div>'
+            +(s.note?'<div style="font-size:9.5px;color:#94a3b8;font-weight:500;margin-top:1px;">'+s.note+'</div>':'')
+          +'</div>'
+          +'<div style="text-align:right;flex-shrink:0;">'
+            +'<div style="font-size:12px;font-weight:900;color:#7e22ce;">'+badgeVal+'</div>'
+            +'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;">'+badgeSub+'</div>'
+          +'</div>'
         +'</div>'
-        +'<div style="text-align:right;flex-shrink:0;">'
-          +'<div style="font-size:12px;font-weight:900;color:#7e22ce;">+'+spread.toFixed(1)+'%</div>'
-          +'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;">IV '+(s.iv!=null?s.iv.toFixed(0):'—')+' · RV '+(s.rv!=null?s.rv.toFixed(0):'—')+'</div>'
-        +'</div>'
+        +'<button onclick="vsScanGetStrategy(\''+(s.ticker||'').replace(/'/g,"")+'\')" style="flex-shrink:0;font-size:9.5px;font-weight:800;color:#fff;background:#7e22ce;border:none;border-radius:6px;padding:6px 8px;cursor:pointer;white-space:nowrap;">🎯 Strategy</button>'
       +'</div>';
     });
-    html+='<div style="font-size:9.5px;color:#94a3b8;font-weight:500;text-align:center;margin-top:4px;padding:0 4px;">Tap a ticker to load it above · AI-researched, verify against your broker before trading</div>';
+    html+='<div style="font-size:9.5px;color:#94a3b8;font-weight:500;text-align:center;margin-top:4px;padding:0 4px;">Tap a ticker to load it above · tap 🎯 Strategy for a computed 5-strategy breakdown · AI-researched, verify against your broker before trading</div>';
     resultsEl.innerHTML=html;
     resultsEl.style.display='block';
+  }
+
+  // "Action plan" — runs the SAME real, computed 5-strategy comparison
+  // (Straddle/Strangle/Iron Condor/Bull Call/Bear Put) already used for any
+  // manually-selected ticker, rather than asking the AI to guess again.
+  // High-IV names are exactly where Iron Condor/Strangle tend to win.
+  function vsScanGetStrategy(ticker){
+    if(!ticker)return;
+    showTab(0);
+    setTimeout(function(){
+      if(typeof ndSelectTicker==='function')ndSelectTicker(ticker);
+      setTimeout(function(){
+        if(typeof ndRunAnalyze==='function')ndRunAnalyze();
+      },150);
+    },150);
   }
 
   function vsScanTickerTap(ticker){
@@ -1363,6 +1393,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   window.vsRunSearch = vsRunSearch;
   window.vsRunTop10Scan = vsRunTop10Scan;
   window.vsScanTickerTap = vsScanTickerTap;
+  window.vsScanGetStrategy = vsScanGetStrategy;
 
 
   // Auto-run SPY on load if keys are present
