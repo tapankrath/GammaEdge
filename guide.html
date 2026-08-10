@@ -113,7 +113,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
 
   <div class="q-card">
     <div class="q-txt">"I want steady weekly/monthly income, not a one-off trade."</div>
-    <div class="q-ans"><b>WeeklyAI</b> for a full AI-generated weekly plan with risk tiers. <b>Alloc</b> tab for CSP/covered-call yield comparisons. <b>OptionsAI → Weekly Income Generator</b> for a lighter-weight version of the same idea.</div>
+    <div class="q-ans"><b>WeeklyAI</b> for a full AI-generated weekly plan with risk tiers. <b>Alloc</b> tab for CSP/covered-call yield comparisons.</div>
   </div>
 
   <div class="q-card">
@@ -163,14 +163,14 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
 
   <div class="tool-card" onclick="this.classList.toggle('open')">
     <div class="tool-hd">
-      <div><div class="tool-name">OptionsAI <span class="tool-tag ai">AI + Web Search</span></div><div class="tool-oneliner">4 tools: scanner, earnings, risk audit, weekly income</div></div>
+      <div><div class="tool-name">OptionsAI <span class="tool-tag ai">AI + Web Search</span></div><div class="tool-oneliner">2 tools: market scanner, portfolio risk audit</div></div>
       <div class="tool-chev">▾</div>
     </div>
     <div class="tool-body">
       <div class="tool-body-lbl">What it does</div>
-      <div class="tool-body-txt">Four separate AI-driven tools in one page: <b>High Probability Scanner</b> (market-wide candidates for the next 30 days), <b>Earnings Options Strategy</b> (pre/post-earnings plan for one ticker), <b>Portfolio Risk Audit</b> (paste positions, get Greeks/concentration/worst-case), and <b>Weekly Income Strategy Generator</b> (CSP/covered call/credit spread ideas for one week).</div>
+      <div class="tool-body-txt">Two AI-driven tools: <b>High Probability Scanner</b> (market-wide candidates for the next 30 days) and <b>Portfolio Risk Audit</b> (paste positions, get Greeks/concentration/worst-case). Used to also include Earnings Strategy and Weekly Income sub-tools — both were retired in favor of StrategyAI and WeeklyAI, which do those specific jobs with more rigor (real strike-placement rules, live price grounding, risk tiers) than a generic prompt can.</div>
       <div class="tool-body-lbl">Best for</div>
-      <div class="tool-body-txt">A lighter-weight, prompt-driven version of several other tools' jobs, useful when you want a quick take rather than the deeper single-purpose version (StrategyBuilder, PortfolioAI, WeeklyAI).</div>
+      <div class="tool-body-txt">Market-wide discovery when you don't have a ticker in mind yet, or a whole-book Greeks/concentration check — the two jobs nothing else in the suite does.</div>
       <a class="tool-open-link" href="options-desk.html">Open OptionsAI →</a>
     </div>
   </div>
@@ -240,7 +240,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
       <div class="tool-body-lbl">What it does</div>
       <div class="tool-body-txt">Capital presets, %/$ target toggle, three risk tiers (Moderate / Aggressive / Ultra), and a "macro event imminent" toggle that shifts the AI toward shorter DTE and wider strikes. Generates a full weekly plan grounded in live price data, with saved-plan history, PDF export, and share.</div>
       <div class="tool-body-lbl">Best for</div>
-      <div class="tool-body-txt">The most complete version of "give me this week's income trade" — more thorough than OptionsAI's Weekly Income tool.</div>
+      <div class="tool-body-txt">Grew out of what used to be OptionsAI's Weekly Income tool — this is the fuller, more rigorous replacement (that sub-tool has since been retired).</div>
       <a class="tool-open-link" href="weekly-alpha.html">Open WeeklyAI →</a>
     </div>
   </div>
@@ -326,7 +326,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
 
   <div class="overlap-card">
     <div class="overlap-title">⚠️ Several tools do similar-sounding things on purpose</div>
-    <div class="overlap-txt">StockAI/StratEdge (single ticker), PortfolioAI/OptionsAI's audit (existing positions), and WeeklyAI/Alloc/OptionsAI's income tool (weekly income) all overlap in topic but differ in depth and mechanism (AI vs instant formula, adjustment vs audit). Each entry above notes the distinction — when in doubt, the AI-tagged tool is deeper/slower, the "Instant, No AI" tag is faster/lighter.</div>
+    <div class="overlap-txt">StockAI/StratEdge (single ticker) and PortfolioAI/OptionsAI's audit (existing positions) still overlap in topic but differ in depth and mechanism (AI vs instant formula, adjustment vs audit) — each entry above notes the distinction. OptionsAI's old Earnings and Weekly Income sub-tools were retired in favor of StrategyAI and WeeklyAI, which do those jobs with more rigor.</div>
   </div>
 
   <div class="keys-note">

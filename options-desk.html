@@ -167,7 +167,7 @@ footer b{color:var(--sub);}
     <div class="hdr-row">
       <div>
         <div class="hdr-title">Options<em>Desk</em></div>
-        <div class="hdr-sub">Scanner · Earnings · Risk Audit · Income</div>
+        <div class="hdr-sub">Scanner · Portfolio Risk Audit</div>
       </div>
       <button class="btn-gear" id="gearBtn" onclick="openSettings()" title="Settings">⚙️<div class="gear-dot" id="gearDot"></div></button>
     </div>
@@ -175,6 +175,10 @@ footer b{color:var(--sub);}
 
   <div class="no-key-warn" id="noKeyWarn" onclick="openSettings()" style="display:none;">
     ⚠️ No API key set — tap to add your Anthropic key
+  </div>
+
+  <div style="background:var(--bbg);border:1.5px solid var(--bbd);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#1e3a8a;line-height:1.6;font-weight:500;">
+    Looking for <b>earnings strategy</b> or <b>weekly income</b> tools? Those moved to dedicated tools with more rigor behind them: <a href="strategy-builder.html" style="color:var(--blue);font-weight:800;">StrategyAI</a> (Jade Lizard + Broken Wing Butterfly, strikes anchored to the real expected move) and <a href="weekly-alpha.html" style="color:var(--blue);font-weight:800;">WeeklyAI</a> (risk tiers, capital presets, macro-event toggle).
   </div>
 
   <div id="tools"></div>
@@ -245,33 +249,8 @@ Prioritize capital preservation over maximum returns.`;
     }
   },
   {
-    id:"earnings",
-    badge:"2",
-    title:"Earnings Options Strategy",
-    sub:"Pre- and post-earnings strategy for a ticker, based on the options-implied expected move.",
-    fields:[
-      {key:"ticker", label:"Ticker", type:"text", placeholder:"e.g. AAPL", required:true},
-    ],
-    build(v){
-      return `Act as an earnings volatility specialist.
-
-Analyze upcoming earnings for ${v.ticker}.
-
-Use web search to find the actual next earnings date, current implied volatility / options pricing, and the last 4 quarters of earnings-day reactions.
-
-Provide:
-1. Expected move based on options pricing
-2. Whether implied volatility is expensive or cheap
-3. Best strategy before earnings
-4. Best strategy after earnings
-5. Risk analysis
-6. Historical earnings reactions
-7. Trade plan for small accounts`;
-    }
-  },
-  {
     id:"audit",
-    badge:"3",
+    badge:"2",
     title:"Options Portfolio Risk Audit",
     sub:"Paste your open positions for a full risk, Greeks, and concentration review.",
     fields:[
@@ -294,36 +273,6 @@ Identify:
 - Recommended hedges
 - Positions to reduce or close
 - Opportunities to improve risk-adjusted returns`;
-    }
-  },
-  {
-    id:"income",
-    badge:"4",
-    title:"Weekly Income Strategy Generator",
-    sub:"Builds a weekly income plan from cash-secured puts, covered calls, and credit spreads.",
-    fields:[
-      {key:"capital", label:"Capital", type:"text", placeholder:"e.g. $25,000", required:true},
-    ],
-    build(v){
-      return `Act as a professional options income trader.
-
-My Capital: ${v.capital}
-
-Use web search to check current market volatility (VIX) and identify liquid, currently attractive underlyings for income strategies.
-
-Create a weekly income strategy using:
-- Cash-secured puts
-- Covered calls
-- Credit spreads
-
-Provide:
-1. Trade candidates
-2. Strike selection
-3. Probability of profit
-4. Expected weekly income
-5. Maximum drawdown risk
-6. Exit rules
-7. Market conditions where this strategy should not be used.`;
     }
   },
 ];
