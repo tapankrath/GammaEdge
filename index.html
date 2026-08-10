@@ -1243,35 +1243,43 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
     var prompt='Act as a volatility desk analyst.\n\n'
       +'Find the current top 10 US-listed stocks with market cap greater than $10 billion that have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. the largest IV-RV spread, meaning options premium is most rich relative to how much the stock is actually moving.\n\n'
-      +'Use web search to check a live options/volatility screener (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site) rather than estimating from memory or old data. Use at most 3 searches.\n\n'
-      +'For each of the 10 stocks report: ticker, company name, approximate market cap, current IV %, 30-day realized vol %, the spread (IV minus RV), and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Sort by spread, highest first.\n\n'
-      +'Respond with ONLY valid JSON, no markdown, no commentary before or after, in exactly this schema:\n'
+      +'Use web search to check a live options/volatility screener (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site) rather than estimating from memory or old data. Use at most 3 searches, and do not narrate your search process in the response — search silently, then go straight to the answer.\n\n'
+      +'For each of the 10 stocks report: ticker, company name, approximate market cap, current IV %, 30-day realized vol %, the spread (IV minus RV), and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Sort by spread, highest first. Keep the note field to under 8 words.\n\n'
+      +'Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, or explanation before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Use exactly this schema:\n'
       +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"note":"earnings in 5 days"}]}\n'
       +'iv, rv, and spread are numbers (percentages), not strings.';
+
+    var vsScanController=new AbortController();
+    var vsScanTimeoutId=setTimeout(function(){vsScanController.abort();},90000);
 
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      signal:vsScanController.signal,
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
-        max_tokens:2500,
+        max_tokens:6000,
         messages:[{role:'user',content:prompt}],
         tools:[{type:'web_search_20250305',name:'web_search'}]
       })
     })
     .then(function(r){return r.json();})
     .then(function(data){
+      clearTimeout(vsScanTimeoutId);
       if(data.error)throw new Error(data.error.message);
       var text='';
       (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
-      var cleaned=text.replace(/```json/gi,'').replace(/```/g,'').trim();
-      var match=cleaned.match(/\{[\s\S]*\}/);
-      if(!match)throw new Error('Could not parse scan results.');
-      var parsed=JSON.parse(match[0]);
+      var parsed=vsParseScanJSON(text);
+      if(!parsed){
+        var reason=data.stop_reason?(' (stop_reason: '+data.stop_reason+')'):'';
+        throw new Error('Could not parse scan results.'+reason);
+      }
       renderTop10Scan(parsed);
     })
     .catch(function(e){
-      resultsEl.innerHTML='<div style="color:#dc2626;font-size:11px;font-weight:700;padding:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;">Error: '+e.message+' — please try again.</div>';
+      clearTimeout(vsScanTimeoutId);
+      var msg=e.name==='AbortError'?'Request took longer than 90 seconds and was stopped.':e.message;
+      resultsEl.innerHTML='<div style="color:#dc2626;font-size:11px;font-weight:700;padding:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;">Error: '+msg+' — please try again.</div>';
       resultsEl.style.display='block';
     })
     .finally(function(){
@@ -1281,6 +1289,43 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       spinner.style.display='none';
       label.textContent='🔍 Top 10 High-IV Stocks (>$10B)';
     });
+  }
+
+  // Parses the scan JSON, with a fallback salvage pass for truncated
+  // responses (recovers whichever stocks fully completed before a cutoff).
+  function vsParseScanJSON(text){
+    if(!text||!text.trim())return null;
+    var cleaned=text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    var startIdx=cleaned.indexOf('{');
+    if(startIdx===-1)return null;
+    var fromStart=cleaned.slice(startIdx);
+
+    var match=fromStart.match(/\{[\s\S]*\}/);
+    if(match){
+      try{return JSON.parse(match[0]);}catch(e1){
+        var repaired=match[0].replace(/,(\s*[\]}])/g,'$1');
+        try{return JSON.parse(repaired);}catch(e2){/* fall through to salvage */}
+      }
+    }
+
+    var stack=[],inStr=false,esc=false,checkpoints=[];
+    for(var i=0;i<fromStart.length;i++){
+      var ch=fromStart[i];
+      if(esc){esc=false;continue;}
+      if(ch==='\\'){if(inStr)esc=true;continue;}
+      if(ch==='"'){inStr=!inStr;continue;}
+      if(inStr)continue;
+      if(ch==='{'||ch==='['){stack.push(ch);}
+      else if(ch==='}'){if(stack[stack.length-1]==='{'){stack.pop();checkpoints.push({pos:i+1,stack:stack.slice()});}}
+      else if(ch===']'){if(stack[stack.length-1]==='['){stack.pop();checkpoints.push({pos:i+1,stack:stack.slice()});}}
+    }
+    for(var j=checkpoints.length-1;j>=0;j--){
+      var cp=checkpoints[j];
+      var candidate=fromStart.slice(0,cp.pos);
+      var suffix=cp.stack.slice().reverse().map(function(c){return c==='{'?'}':']';}).join('');
+      try{return JSON.parse(candidate+suffix);}catch(e){/* try earlier checkpoint */}
+    }
+    return null;
   }
 
   function renderTop10Scan(data){
