@@ -261,15 +261,15 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
 
   <div class="tool-card" onclick="this.classList.toggle('open')">
     <div class="tool-hd">
-      <div><div class="tool-name">MoveAI <span class="tool-tag calc">Pure Math</span></div><div class="tool-oneliner">Your target move → one recommended strategy</div></div>
+      <div><div class="tool-name">TargetAI <span class="tool-tag calc">Pure Math</span></div><div class="tool-oneliner">Your target move → one recommended strategy</div></div>
       <div class="tool-chev">▾</div>
     </div>
     <div class="tool-body">
       <div class="tool-body-lbl">What it does</div>
       <div class="tool-body-txt">Enter ticker, target move %, direction, DTE, and capital — your own conviction, not the market's implied move. Compares your target to the IV-implied expected move (EM = spot × IV × √T): if your target exceeds EM, recommends a long call/put to capture the excess; if it's within the normal range, recommends a debit spread with the short strike placed at your target price, reducing cost since you don't need the extra leverage. Every number — strikes, premiums, breakeven, ROI at target — is real Black-Scholes math computed in your browser (same verified engine as FairValue), not AI-estimated. IV is editable after the first lookup and recalculates instantly.</div>
       <div class="tool-body-lbl">vs StratEdge</div>
-      <div class="tool-body-txt">StratEdge compares 5 strategies against the market's own implied move; MoveAI takes your own target move as the input and gives one recommendation built around it.</div>
-      <a class="tool-open-link" href="move-ai.html">Open MoveAI →</a>
+      <div class="tool-body-txt">StratEdge compares 5 strategies against the market's own implied move; TargetAI takes your own target move as the input and gives one recommendation built around it.</div>
+      <a class="tool-open-link" href="target-ai.html">Open TargetAI →</a>
     </div>
   </div>
 
