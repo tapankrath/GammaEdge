@@ -81,6 +81,7 @@ input:focus{border-color:var(--blue);}
 .chip{flex:1;text-align:center;padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--p2);font-size:13px;font-weight:800;color:var(--sub);cursor:pointer;}
 .chip.on.up{background:var(--gbg);border-color:var(--gbd);color:var(--green);}
 .chip.on.down{background:var(--rbg);border-color:var(--rbd);color:var(--red);}
+.chip.on.either{background:var(--bbg);border-color:var(--bbd);color:var(--blue);}
 
 .run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
 .run-btn:disabled{background:var(--muted);}
@@ -218,7 +219,9 @@ footer b{color:var(--sub);}
     <div class="chip-row" id="mv-dir-chips">
       <div class="chip on up" data-v="up" onclick="setDir('up')">📈 Up</div>
       <div class="chip" data-v="down" onclick="setDir('down')">📉 Down</div>
+      <div class="chip either" data-v="either" onclick="setDir('either')">↕️ Either Way</div>
     </div>
+    <div class="hint" id="mv-dir-hint" style="display:none;">Either Way means you expect a move of this size, but aren't sure which direction — recommends a straddle or strangle instead of a directional call/put.</div>
 
     <label>Capital</label>
     <input type="number" id="mv-capital" value="5000" step="100">
@@ -273,6 +276,8 @@ function setDir(d){
   MV_DIR = d;
   document.querySelectorAll('#mv-dir-chips .chip').forEach(function(c){ c.classList.remove('on'); });
   document.querySelector('#mv-dir-chips .chip.'+d).classList.add('on');
+  var hint = document.getElementById('mv-dir-hint');
+  if(hint) hint.style.display = (d==='either') ? 'block' : 'none';
 }
 
 // ══════════════════════════════════════
@@ -309,16 +314,19 @@ function computeRecommendation(spot, movePct, direction, dte, capital, ivPct){
   var T = dte/365, r = RISK_FREE/100, sigma = ivPct/100;
   var EM = spot * sigma * Math.sqrt(T);
   var EMpct = (EM/spot)*100;
-
-  var targetPrice = direction==='up' ? spot*(1+movePct/100) : spot*(1-movePct/100);
-  var targetMoveDollar = Math.abs(targetPrice - spot);
+  var targetMoveDollar = spot*movePct/100;
   var isAggressive = targetMoveDollar > EM;
 
+  if(direction === 'either'){
+    return computeEitherRecommendation(spot, movePct, dte, capital, ivPct, EM, EMpct, isAggressive, r, T, sigma);
+  }
+
+  var targetPrice = direction==='up' ? spot*(1+movePct/100) : spot*(1-movePct/100);
   var optType = direction==='up' ? 'call' : 'put';
   var atmStrike = roundToStrike(spot);
   var atmOpt = blackScholes(spot, atmStrike, T, r, sigma, optType);
 
-  var rec = { EM:EM, EMpct:EMpct, isAggressive:isAggressive, targetPrice:targetPrice, atmStrike:atmStrike, optType:optType };
+  var rec = { EM:EM, EMpct:EMpct, isAggressive:isAggressive, targetPrice:targetPrice, atmStrike:atmStrike, optType:optType, direction:direction };
 
   if(isAggressive){
     var costPerContract = atmOpt.price*100;
@@ -366,6 +374,58 @@ function computeRecommendation(spot, movePct, direction, dte, capital, ivPct){
     rec.breakeven = optType==='call' ? atmStrike+netDebit : atmStrike-netDebit;
     rec.maxLoss = totalCost;
     rec.maxGainLabel = '$'+Math.round((width*100-costPerContract)*contracts).toLocaleString();
+  }
+  return rec;
+}
+
+// Either Way: no directional bias, target magnitude applies to a move in
+// either direction. Aggressive -> ATM straddle (max coverage, IV is cheap
+// relative to the view). Modest -> strangle at half-target-distance strikes
+// (cheaper than a straddle, and — unlike anchoring both legs exactly at the
+// target — still has real intrinsic value if the target is actually hit).
+function computeEitherRecommendation(spot, movePct, dte, capital, ivPct, EM, EMpct, isAggressive, r, T, sigma){
+  var upTarget = spot*(1+movePct/100), downTarget = spot*(1-movePct/100);
+  var rec = { EM:EM, EMpct:EMpct, isAggressive:isAggressive, upTarget:upTarget, downTarget:downTarget, direction:'either' };
+
+  if(isAggressive){
+    var atmStrike = roundToStrike(spot);
+    var callOpt = blackScholes(spot, atmStrike, T, r, sigma, 'call');
+    var putOpt = blackScholes(spot, atmStrike, T, r, sigma, 'put');
+    var costPerContract = (callOpt.price+putOpt.price)*100;
+    var contracts = costPerContract>0 ? Math.floor(capital/costPerContract) : 0;
+    var payoffPerShare = Math.max(upTarget-atmStrike, atmStrike-downTarget);
+    var totalCost = contracts*costPerContract;
+    var totalPayout = contracts*payoffPerShare*100;
+    rec.strategy = 'Long Straddle';
+    rec.legs = [{action:'BUY',type:'call',strike:atmStrike,premium:callOpt.price},{action:'BUY',type:'put',strike:atmStrike,premium:putOpt.price}];
+    rec.contracts = contracts;
+    rec.totalCost = totalCost;
+    rec.totalPayoutAtTarget = totalPayout;
+    rec.roiAtTarget = totalCost>0 ? ((totalPayout-totalCost)/totalCost*100) : 0;
+    rec.upperBE = atmStrike + (costPerContract/100);
+    rec.lowerBE = atmStrike - (costPerContract/100);
+    rec.maxLoss = totalCost;
+    rec.maxGainLabel = 'Uncapped';
+  } else {
+    var callStrike = roundToStrike(spot*(1+movePct/200));
+    var putStrike = roundToStrike(spot*(1-movePct/200));
+    var callOpt = blackScholes(spot, callStrike, T, r, sigma, 'call');
+    var putOpt = blackScholes(spot, putStrike, T, r, sigma, 'put');
+    var costPerContract = (callOpt.price+putOpt.price)*100;
+    var contracts = costPerContract>0 ? Math.floor(capital/costPerContract) : 0;
+    var payoffPerShare = Math.max(upTarget-callStrike, putStrike-downTarget);
+    var totalCost = contracts*costPerContract;
+    var totalPayout = contracts*payoffPerShare*100;
+    rec.strategy = 'Long Strangle';
+    rec.legs = [{action:'BUY',type:'call',strike:callStrike,premium:callOpt.price},{action:'BUY',type:'put',strike:putStrike,premium:putOpt.price}];
+    rec.contracts = contracts;
+    rec.totalCost = totalCost;
+    rec.totalPayoutAtTarget = totalPayout;
+    rec.roiAtTarget = totalCost>0 ? ((totalPayout-totalCost)/totalCost*100) : 0;
+    rec.upperBE = callStrike + (costPerContract/100);
+    rec.lowerBE = putStrike - (costPerContract/100);
+    rec.maxLoss = totalCost;
+    rec.maxGainLabel = 'Uncapped';
   }
   return rec;
 }
@@ -495,10 +555,26 @@ function fmtPct(n,dp){ dp=dp==null?1:dp; return (n>=0?'+':'')+Number(n).toFixed(
 function renderMoveResult(ctx){
   var box = document.getElementById('mv-results');
   var rec = computeRecommendation(ctx.spot, ctx.movePct, ctx.direction, ctx.dte, ctx.capital, ctx.iv);
+  var isEither = ctx.direction === 'either';
+
+  var targetRowHtml = isEither
+    ? `<div class="ctx-row"><span class="ctx-l">Target Range (±${ctx.movePct}%)</span><span class="ctx-v">$${rec.downTarget.toFixed(2)} – $${rec.upTarget.toFixed(2)}</span></div>`
+    : `<div class="ctx-row"><span class="ctx-l">Target Price (${ctx.direction==='up'?'+':'−'}${ctx.movePct}%)</span><span class="ctx-v">$${rec.targetPrice.toFixed(2)}</span></div>`;
+
+  var verdictText;
+  if(isEither){
+    verdictText = rec.isAggressive
+      ? 'Your target exceeds what IV is pricing — options are relatively cheap for this view. Recommending a long straddle to capture the excess move in either direction.'
+      : 'Your target is within the normal expected range — a strangle at half-target strikes reduces cost vs. a full straddle while still profiting if the move happens either way.';
+  } else {
+    verdictText = rec.isAggressive
+      ? 'Your target exceeds what IV is pricing — options are relatively cheap for this view. Recommending a long option to capture the excess move.'
+      : 'Your target is within the normal expected range — a debit spread reduces cost since you don\'t need the extra leverage.';
+  }
 
   var html = `<div class="ctx-card">
     <div class="ctx-row"><span class="ctx-l">${ctx.ticker} Spot</span><span class="ctx-v">$${ctx.spot.toFixed(2)} <span style="font-size:9px;color:var(--muted);font-weight:600;">(${ctx.spotSource})</span></span></div>
-    <div class="ctx-row"><span class="ctx-l">Target Price (${ctx.direction==='up'?'+':'−'}${ctx.movePct}%)</span><span class="ctx-v">$${rec.targetPrice.toFixed(2)}</span></div>
+    ${targetRowHtml}
     <div class="ctx-row"><span class="ctx-l">Implied Volatility</span><span class="ctx-v editable" onclick="mvEditIV()" id="mv-iv-display">${ctx.iv.toFixed(1)}%</span></div>
     <div class="em-compare">
       <div class="em-col"><div class="em-col-lbl">Your Target</div><div class="em-col-val">${ctx.movePct.toFixed(1)}%</div></div>
@@ -506,11 +582,23 @@ function renderMoveResult(ctx){
       <div class="em-col"><div class="em-col-lbl">IV-Implied Move</div><div class="em-col-val">${rec.EMpct.toFixed(1)}%</div></div>
     </div>
     <div class="verdict-banner ${rec.isAggressive?'aggressive':'modest'}">
-      ${rec.isAggressive
-        ? 'Your target exceeds what IV is pricing — options are relatively cheap for this view. Recommending a long option to capture the excess move.'
-        : 'Your target is within the normal expected range — a debit spread reduces cost since you don\'t need the extra leverage.'}
+      ${verdictText}
     </div>
   </div>`;
+
+  var statsHtml = isEither
+    ? `<div class="rstat-cell"><div class="rstat-l">Cost / Contract</div><div class="rstat-v">$${(rec.totalCost/Math.max(rec.contracts,1)).toFixed(2)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Max Loss</div><div class="rstat-v r">${fmtMoney(rec.maxLoss)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Upper Breakeven</div><div class="rstat-v">$${rec.upperBE.toFixed(2)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Lower Breakeven</div><div class="rstat-v">$${rec.lowerBE.toFixed(2)}</div></div>`
+    : `<div class="rstat-cell"><div class="rstat-l">Cost / Contract</div><div class="rstat-v">$${(rec.totalCost/Math.max(rec.contracts,1)).toFixed(2)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Breakeven</div><div class="rstat-v">$${rec.breakeven.toFixed(2)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Max Loss</div><div class="rstat-v r">${fmtMoney(rec.maxLoss)}</div></div>
+       <div class="rstat-cell"><div class="rstat-l">Max Gain</div><div class="rstat-v g">${rec.maxGainLabel}</div></div>`;
+
+  var rationaleTarget = isEither
+    ? `<b>If ${ctx.ticker} reaches either $${rec.upTarget.toFixed(2)} or $${rec.downTarget.toFixed(2)} by expiration:</b> this position is worth ${fmtMoney(rec.totalPayoutAtTarget)}, a ${fmtPct(rec.roiAtTarget)} return on the ${fmtMoney(rec.totalCost)} risked — the payoff is symmetric, so it doesn't matter which way it moves, only that it moves far enough. That's the payoff <i>at your exact target</i> — it says nothing about the odds of actually getting there.`
+    : `<b>If ${ctx.ticker} hits $${rec.targetPrice.toFixed(2)} by expiration:</b> this position is worth ${fmtMoney(rec.totalPayoutAtTarget)}, a ${fmtPct(rec.roiAtTarget)} return on the ${fmtMoney(rec.totalCost)} risked. That's the payoff <i>at your exact target</i> — it says nothing about the odds of actually getting there, which depend on your own conviction, not this calculation.`;
 
   html += `<div class="rec-card">
     <div class="rec-hero">
@@ -519,17 +607,14 @@ function renderMoveResult(ctx){
     </div>
     <div class="rec-legs" id="mv-legs-mount"></div>
     <div class="rec-stats">
-      <div class="rstat-cell"><div class="rstat-l">Cost / Contract</div><div class="rstat-v">$${(rec.totalCost/Math.max(rec.contracts,1)).toFixed(2)}</div></div>
-      <div class="rstat-cell"><div class="rstat-l">Breakeven</div><div class="rstat-v">$${rec.breakeven.toFixed(2)}</div></div>
-      <div class="rstat-cell"><div class="rstat-l">Max Loss</div><div class="rstat-v r">${fmtMoney(rec.maxLoss)}</div></div>
-      <div class="rstat-cell"><div class="rstat-l">Max Gain</div><div class="rstat-v g">${rec.maxGainLabel}</div></div>
+      ${statsHtml}
     </div>
     <div class="rec-sizing">
       <span class="sizing-lbl">Contracts (${fmtMoney(ctx.capital)} capital)</span>
       <span class="sizing-val">${rec.contracts}</span>
     </div>
     <div class="rec-rationale">
-      <b>If ${ctx.ticker} hits $${rec.targetPrice.toFixed(2)} by expiration:</b> this position is worth ${fmtMoney(rec.totalPayoutAtTarget)}, a ${fmtPct(rec.roiAtTarget)} return on the ${fmtMoney(rec.totalCost)} risked. That's the payoff <i>at your exact target</i> — it says nothing about the odds of actually getting there, which depend on your own conviction, not this calculation.
+      ${rationaleTarget}
     </div>
   </div>`;
 
