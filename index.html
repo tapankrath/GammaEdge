@@ -439,12 +439,11 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .lc-icon{font-size:20px;flex-shrink:0;}
 .lc-title{font-size:14px;font-weight:900;color:#0f172a;letter-spacing:-.01em;}
 .lc-sub{font-size:10.5px;color:#94a3b8;font-weight:600;margin-top:1px;}
-.lc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid #f1f5f9;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.lc-row:last-child{border-bottom:none;}
+.lc-row{display:block;background:#fff;padding:7px 9px;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .lc-row:active{background:#f8fafc;}
-.lc-name{font-size:12.5px;font-weight:800;color:#0f172a;}
-.lc-desc{font-size:10.5px;color:#64748b;font-weight:600;margin-top:1px;line-height:1.4;}
-.lc-arrow{font-size:18px;color:#cbd5e1;font-weight:700;flex-shrink:0;}
+.lc-name{font-size:11.5px;font-weight:800;color:#0f172a;line-height:1.25;}
+.lc-desc{font-size:9.5px;color:#64748b;font-weight:600;margin-top:2px;line-height:1.3;}
+.lc-body{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#eef1f6;}
 
 /* ── GE TAB BAR ── */
 .ge-tab{
@@ -715,20 +714,22 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <span class="lc-icon">🔍</span>
         <div><div class="lc-title">Research</div><div class="lc-sub">Don't have an idea yet — find one</div></div>
       </div>
-      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">MoonshotAI</div><div class="lc-desc">10x stock candidates, real catalysts</div></div><span class="lc-arrow">›</span>
-      </a>
-      <a href="chartedge.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">ChartAI</div><div class="lc-desc">Chart screenshot → 3 tiered strategies</div></div><span class="lc-arrow">›</span>
-      </a>
-      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">OptionsAI · Scanner</div><div class="lc-desc">Market-wide high-probability scan</div></div><span class="lc-arrow">›</span>
-      </a>
-      <div class="lc-row" onclick="jumpToTab(0)">
-        <div><div class="lc-name">StratEdge · High-IV Scan</div><div class="lc-desc">Top 10 highest-IV large caps right now</div></div><span class="lc-arrow">›</span>
-      </div>
-      <div class="lc-row" onclick="jumpToTab(1)">
-        <div><div class="lc-name">Backtest</div><div class="lc-desc">How a strategy would've performed historically</div></div><span class="lc-arrow">›</span>
+      <div class="lc-body">
+        <a href="MoonshotAI.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">MoonshotAI</div><div class="lc-desc">10x stock candidates, real catalysts</div>
+        </a>
+        <a href="chartedge.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">ChartAI</div><div class="lc-desc">Chart screenshot → 3 tiered strategies</div>
+        </a>
+        <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">OptionsAI · Scanner</div><div class="lc-desc">Market-wide high-probability scan</div>
+        </a>
+        <div class="lc-row" onclick="jumpToTab(0)">
+          <div class="lc-name">StratEdge · High-IV Scan</div><div class="lc-desc">Top 10 highest-IV large caps right now</div>
+        </div>
+        <div class="lc-row" onclick="jumpToTab(1)">
+          <div class="lc-name">Backtest</div><div class="lc-desc">How a strategy would've performed historically</div>
+        </div>
       </div>
     </div>
 
@@ -738,30 +739,32 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <span class="lc-icon">🎯</span>
         <div><div class="lc-title">Build</div><div class="lc-sub">You have a ticker or thesis — construct the trade</div></div>
       </div>
-      <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">StockAI</div><div class="lc-desc">AI forecast + live options chain, one ticker</div></div><span class="lc-arrow">›</span>
-      </a>
-      <a href="strategy-builder.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">StrategyAI</div><div class="lc-desc">Earnings & high-IV rules: Jade Lizard, BWB</div></div><span class="lc-arrow">›</span>
-      </a>
-      <a href="target-ai.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">TargetAI</div><div class="lc-desc">Your target move % → one recommended strategy</div></div><span class="lc-arrow">›</span>
-      </a>
-      <div class="lc-row" onclick="jumpToTab(0)">
-        <div><div class="lc-name">StratEdge · Compare</div><div class="lc-desc">Instant 5-strategy comparison, real P&L</div></div><span class="lc-arrow">›</span>
+      <div class="lc-body">
+        <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">StockAI</div><div class="lc-desc">AI forecast + live options chain, one ticker</div>
+        </a>
+        <a href="strategy-builder.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">StrategyAI</div><div class="lc-desc">Earnings & high-IV rules: Jade Lizard, BWB</div>
+        </a>
+        <a href="target-ai.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">TargetAI</div><div class="lc-desc">Your target move % → one recommended strategy</div>
+        </a>
+        <div class="lc-row" onclick="jumpToTab(0)">
+          <div class="lc-name">StratEdge · Compare</div><div class="lc-desc">Instant 5-strategy comparison, real P&L</div>
+        </div>
+        <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">WeeklyAI</div><div class="lc-desc">Full weekly income plan, risk-tiered</div>
+        </a>
+        <div class="lc-row" onclick="jumpToTab(2)">
+          <div class="lc-name">Alloc</div><div class="lc-desc">CSP & covered call yield comparison</div>
+        </div>
+        <div class="lc-row" onclick="jumpToTab(4)">
+          <div class="lc-name">Lottery</div><div class="lc-desc">Single OTM option payoff table</div>
+        </div>
+        <a href="fair-value.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">FairValue</div><div class="lc-desc">Verify any strike's fair price (real Black-Scholes)</div>
+        </a>
       </div>
-      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">WeeklyAI</div><div class="lc-desc">Full weekly income plan, risk-tiered</div></div><span class="lc-arrow">›</span>
-      </a>
-      <div class="lc-row" onclick="jumpToTab(2)">
-        <div><div class="lc-name">Alloc</div><div class="lc-desc">CSP & covered call yield comparison</div></div><span class="lc-arrow">›</span>
-      </div>
-      <div class="lc-row" onclick="jumpToTab(4)">
-        <div><div class="lc-name">Lottery</div><div class="lc-desc">Single OTM option payoff table</div></div><span class="lc-arrow">›</span>
-      </div>
-      <a href="fair-value.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">FairValue</div><div class="lc-desc">Verify any strike's fair price (real Black-Scholes)</div></div><span class="lc-arrow">›</span>
-      </a>
     </div>
 
     <!-- 📊 MANAGE -->
@@ -770,18 +773,20 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         <span class="lc-icon">📊</span>
         <div><div class="lc-title">Manage</div><div class="lc-sub">Already in a trade, or tracking a goal</div></div>
       </div>
-      <a href="portfolioedge.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">PortfolioAI</div><div class="lc-desc">Adjustment plan for positions you hold</div></div><span class="lc-arrow">›</span>
-      </a>
-      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">OptionsAI · Risk Audit</div><div class="lc-desc">Whole-book Greeks & concentration check</div></div><span class="lc-arrow">›</span>
-      </a>
-      <div class="lc-row" onclick="jumpToTab(3)">
-        <div><div class="lc-name">Planner</div><div class="lc-desc">Weekly plan + position tracker, sized risk</div></div><span class="lc-arrow">›</span>
+      <div class="lc-body">
+        <a href="portfolioedge.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">PortfolioAI</div><div class="lc-desc">Adjustment plan for positions you hold</div>
+        </a>
+        <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">OptionsAI · Risk Audit</div><div class="lc-desc">Whole-book Greeks & concentration check</div>
+        </a>
+        <div class="lc-row" onclick="jumpToTab(3)">
+          <div class="lc-name">Planner</div><div class="lc-desc">Weekly plan + position tracker, sized risk</div>
+        </div>
+        <a href="compound-ai.html" target="_blank" rel="noopener" class="lc-row">
+          <div class="lc-name">CompoundAI</div><div class="lc-desc">Goal tracking with period-by-period check-ins</div>
+        </a>
       </div>
-      <a href="compound-ai.html" target="_blank" rel="noopener" class="lc-row">
-        <div><div class="lc-name">CompoundAI</div><div class="lc-desc">Goal tracking with period-by-period check-ins</div></div><span class="lc-arrow">›</span>
-      </a>
     </div>
 
   </div>
