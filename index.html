@@ -433,6 +433,19 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 }
 .ge-tool-link:hover,.ge-tool-link:active{background:#0f172a;border-color:#0f172a;color:#fff!important;}
 
+/* ── CATEGORIZED LAUNCHER ── */
+.lc-box{background:#fff;border:1.5px solid #e8edf5;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.lc-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e8edf5;}
+.lc-icon{font-size:20px;flex-shrink:0;}
+.lc-title{font-size:14px;font-weight:900;color:#0f172a;letter-spacing:-.01em;}
+.lc-sub{font-size:10.5px;color:#94a3b8;font-weight:600;margin-top:1px;}
+.lc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid #f1f5f9;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.lc-row:last-child{border-bottom:none;}
+.lc-row:active{background:#f8fafc;}
+.lc-name{font-size:12.5px;font-weight:800;color:#0f172a;}
+.lc-desc{font-size:10.5px;color:#64748b;font-weight:600;margin-top:1px;line-height:1.4;}
+.lc-arrow{font-size:18px;color:#cbd5e1;font-weight:700;flex-shrink:0;}
+
 /* ── GE TAB BAR ── */
 .ge-tab{
   display:flex;align-items:center;justify-content:center;
@@ -691,18 +704,84 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <a href="guide.html" target="_blank" rel="noopener" style="background:var(--p2);border:1.5px solid var(--border);color:#374151;border-radius:8px;padding:6px 11px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0;">📖 Guide</a>
   </div>
 
-  <!-- Tools grid — centered -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:0 12px 8px;">
-    <a href="chartedge.html"     target="_blank" rel="noopener" class="ge-tool-link">ChartAI</a>
-    <a href="stockai.html"       target="_blank" rel="noopener" class="ge-tool-link">StockAI</a>
-    <a href="options-desk.html"  target="_blank" rel="noopener" class="ge-tool-link">OptionsAI</a>
-    <a href="fair-value.html"    target="_blank" rel="noopener" class="ge-tool-link">FairValue</a>
-    <a href="compound-ai.html"   target="_blank" rel="noopener" class="ge-tool-link">CompoundAI</a>
-    <a href="target-ai.html"     target="_blank" rel="noopener" class="ge-tool-link">TargetAI</a>
-    <a href="strategy-builder.html" target="_blank" rel="noopener" class="ge-tool-link">StrategyAI</a>
-    <a href="portfolioedge.html" target="_blank" rel="noopener" class="ge-tool-link">PortfolioAI</a>
-    <a href="MoonshotAI.html"    target="_blank" rel="noopener" class="ge-tool-link">MoonshotAI</a>
-    <a href="weekly-alpha.html"  target="_blank" rel="noopener" class="ge-tool-link">WeeklyAI</a>
+  <!-- ═══ CATEGORIZED LAUNCHER — Research → Build → Manage ═══ -->
+  <div style="padding:2px 10px 10px;">
+
+    <!-- 🔍 RESEARCH -->
+    <div class="lc-box">
+      <div class="lc-hd">
+        <span class="lc-icon">🔍</span>
+        <div><div class="lc-title">Research</div><div class="lc-sub">Don't have an idea yet — find one</div></div>
+      </div>
+      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">MoonshotAI</div><div class="lc-desc">10x stock candidates, real catalysts</div></div><span class="lc-arrow">›</span>
+      </a>
+      <a href="chartedge.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">ChartAI</div><div class="lc-desc">Chart screenshot → 3 tiered strategies</div></div><span class="lc-arrow">›</span>
+      </a>
+      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">OptionsAI · Scanner</div><div class="lc-desc">Market-wide high-probability scan</div></div><span class="lc-arrow">›</span>
+      </a>
+      <div class="lc-row" onclick="jumpToTab(0)">
+        <div><div class="lc-name">StratEdge · High-IV Scan</div><div class="lc-desc">Top 10 highest-IV large caps right now</div></div><span class="lc-arrow">›</span>
+      </div>
+      <div class="lc-row" onclick="jumpToTab(1)">
+        <div><div class="lc-name">Backtest</div><div class="lc-desc">How a strategy would've performed historically</div></div><span class="lc-arrow">›</span>
+      </div>
+    </div>
+
+    <!-- 🎯 BUILD -->
+    <div class="lc-box">
+      <div class="lc-hd">
+        <span class="lc-icon">🎯</span>
+        <div><div class="lc-title">Build</div><div class="lc-sub">You have a ticker or thesis — construct the trade</div></div>
+      </div>
+      <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">StockAI</div><div class="lc-desc">AI forecast + live options chain, one ticker</div></div><span class="lc-arrow">›</span>
+      </a>
+      <a href="strategy-builder.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">StrategyAI</div><div class="lc-desc">Earnings & high-IV rules: Jade Lizard, BWB</div></div><span class="lc-arrow">›</span>
+      </a>
+      <a href="target-ai.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">TargetAI</div><div class="lc-desc">Your target move % → one recommended strategy</div></div><span class="lc-arrow">›</span>
+      </a>
+      <div class="lc-row" onclick="jumpToTab(0)">
+        <div><div class="lc-name">StratEdge · Compare</div><div class="lc-desc">Instant 5-strategy comparison, real P&L</div></div><span class="lc-arrow">›</span>
+      </div>
+      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">WeeklyAI</div><div class="lc-desc">Full weekly income plan, risk-tiered</div></div><span class="lc-arrow">›</span>
+      </a>
+      <div class="lc-row" onclick="jumpToTab(2)">
+        <div><div class="lc-name">Alloc</div><div class="lc-desc">CSP & covered call yield comparison</div></div><span class="lc-arrow">›</span>
+      </div>
+      <div class="lc-row" onclick="jumpToTab(4)">
+        <div><div class="lc-name">Lottery</div><div class="lc-desc">Single OTM option payoff table</div></div><span class="lc-arrow">›</span>
+      </div>
+      <a href="fair-value.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">FairValue</div><div class="lc-desc">Verify any strike's fair price (real Black-Scholes)</div></div><span class="lc-arrow">›</span>
+      </a>
+    </div>
+
+    <!-- 📊 MANAGE -->
+    <div class="lc-box">
+      <div class="lc-hd">
+        <span class="lc-icon">📊</span>
+        <div><div class="lc-title">Manage</div><div class="lc-sub">Already in a trade, or tracking a goal</div></div>
+      </div>
+      <a href="portfolioedge.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">PortfolioAI</div><div class="lc-desc">Adjustment plan for positions you hold</div></div><span class="lc-arrow">›</span>
+      </a>
+      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">OptionsAI · Risk Audit</div><div class="lc-desc">Whole-book Greeks & concentration check</div></div><span class="lc-arrow">›</span>
+      </a>
+      <div class="lc-row" onclick="jumpToTab(3)">
+        <div><div class="lc-name">Planner</div><div class="lc-desc">Weekly plan + position tracker, sized risk</div></div><span class="lc-arrow">›</span>
+      </div>
+      <a href="compound-ai.html" target="_blank" rel="noopener" class="lc-row">
+        <div><div class="lc-name">CompoundAI</div><div class="lc-desc">Goal tracking with period-by-period check-ins</div></div><span class="lc-arrow">›</span>
+      </a>
+    </div>
+
   </div>
 
   <!-- Tab bar — all 5 visible, equal width -->
@@ -3155,6 +3234,14 @@ function showTab(n){
   if(n===2){alSplit();alFetchTicker('c');alFetchTicker('m');alFetchTicker('a');alGoC();alGoM();alGoA();}
   if(n===3)renderPortfolio();
   if(n===5&&typeof pgRender==='function')pgRender();
+}
+
+function jumpToTab(n){
+  showTab(n);
+  setTimeout(function(){
+    var tb = $('tab'+n);
+    if(tb) tb.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 80);
 }
 
 /* ── MATH ── */
