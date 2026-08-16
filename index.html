@@ -52,43 +52,58 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .ge-hero-btns{display:flex;gap:7px;margin-top:13px;position:relative;z-index:1;}
 .ge-hbtn{flex:1;text-align:center;border-radius:9px;padding:9px 8px;font-size:11px;font-weight:800;white-space:nowrap;text-decoration:none;border:none;display:flex;align-items:center;justify-content:center;gap:5px;}
 
-/* SECTION LABEL ABOVE BOXES */
-.lc-lead{font-size:11px;color:#94a3b8;font-weight:700;text-align:center;margin:0 0 12px;letter-spacing:.02em;}
+/* CATEGORY TAB BAR */
+.cat-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;}
+.cat-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 6px;border-radius:13px;border:2px solid transparent;background:#fff;box-shadow:0 2px 8px rgba(15,23,42,.05);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cat-tab-icon{font-size:22px;line-height:1;}
+.cat-tab-label{font-size:11.5px;font-weight:800;color:#64748b;}
+.cat-tab-count{font-size:9px;font-weight:700;color:#b0bac8;margin-top:-1px;}
+.cat-tab.on{background:#fff;box-shadow:0 4px 14px rgba(15,23,42,.1);}
+.cat-tab.on.research{border-color:#3b82f6;}
+.cat-tab.on.research .cat-tab-label{color:#1d4ed8;}
+.cat-tab.on.build{border-color:#22c55e;}
+.cat-tab.on.build .cat-tab-label{color:#15803d;}
+.cat-tab.on.manage{border-color:#f59e0b;}
+.cat-tab.on.manage .cat-tab-label{color:#b45309;}
 
-/* CATEGORY BOXES — color-themed */
-.lc-box{background:#fff;border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);border:1px solid rgba(15,23,42,.05);}
-.lc-hd{display:flex;align-items:center;gap:11px;padding:13px 14px;position:relative;}
-.lc-icon-badge{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 3px 8px rgba(0,0,0,.12);}
-.lc-title{font-size:15px;font-weight:900;letter-spacing:-.01em;}
-.lc-sub{font-size:10.5px;color:#94a3b8;font-weight:600;margin-top:1px;}
-.lc-count{margin-left:auto;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+/* CATEGORY INTRO STRIP */
+.cat-intro{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:13px;margin-bottom:12px;}
+.cat-intro-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 3px 8px rgba(0,0,0,.12);}
+.cat-intro-title{font-size:16px;font-weight:900;letter-spacing:-.01em;}
+.cat-intro-sub{font-size:11px;font-weight:600;margin-top:1px;}
 
-.lc-body{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#eef1f6;}
-.lc-row{display:block;background:#fff;padding:9px 11px;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s;}
-.lc-row:active{background:#f8fafc;}
-.lc-name{font-size:11.5px;font-weight:800;color:#0f172a;line-height:1.25;}
-.lc-desc{font-size:9.5px;color:#64748b;font-weight:600;margin-top:2px;line-height:1.32;}
+/* TOOL CARDS — single column, generous size (only one category visible at a time) */
+.lc-panel{display:none;}
+.lc-panel.on{display:block;}
+.lc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-radius:14px;padding:15px 16px;margin-bottom:9px;text-decoration:none;cursor:pointer;box-shadow:0 2px 10px rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.04);-webkit-tap-highlight-color:transparent;transition:transform .08s, box-shadow .08s;}
+.lc-row:active{transform:scale(.98);box-shadow:0 1px 4px rgba(15,23,42,.06);}
+.lc-name{font-size:15px;font-weight:800;color:#0f172a;line-height:1.25;}
+.lc-desc{font-size:12px;color:#64748b;font-weight:600;margin-top:3px;line-height:1.4;}
+.lc-go{font-size:20px;color:#cbd5e1;flex-shrink:0;font-weight:700;}
 
 /* THEME: RESEARCH — blue */
-.lc-box-research .lc-hd{background:linear-gradient(135deg,#eff6ff,#f5f9ff);border-bottom:1px solid #dbeafe;}
-.lc-box-research .lc-icon-badge{background:linear-gradient(135deg,#3b82f6,#1d4ed8);}
-.lc-box-research .lc-title{color:#1e3a8a;}
-.lc-box-research .lc-count{background:#dbeafe;color:#1d4ed8;}
-.lc-box-research .lc-row:active{background:#eff6ff;}
+.cat-intro.research{background:linear-gradient(135deg,#eff6ff,#f5f9ff);border:1px solid #dbeafe;}
+.cat-intro.research .cat-intro-icon{background:linear-gradient(135deg,#3b82f6,#1d4ed8);}
+.cat-intro.research .cat-intro-title{color:#1e3a8a;}
+.cat-intro.research .cat-intro-sub{color:#3b5998;}
+.lc-panel.research .lc-row:active{background:#eff6ff;}
+.lc-panel.research .lc-go{color:#93c5fd;}
 
 /* THEME: BUILD — green (brand) */
-.lc-box-build .lc-hd{background:linear-gradient(135deg,#f0fdf4,#f6fdf9);border-bottom:1px solid #bbf7d0;}
-.lc-box-build .lc-icon-badge{background:linear-gradient(135deg,#22c55e,#15803d);}
-.lc-box-build .lc-title{color:#14532d;}
-.lc-box-build .lc-count{background:#dcfce7;color:#15803d;}
-.lc-box-build .lc-row:active{background:#f0fdf4;}
+.cat-intro.build{background:linear-gradient(135deg,#f0fdf4,#f6fdf9);border:1px solid #bbf7d0;}
+.cat-intro.build .cat-intro-icon{background:linear-gradient(135deg,#22c55e,#15803d);}
+.cat-intro.build .cat-intro-title{color:#14532d;}
+.cat-intro.build .cat-intro-sub{color:#2f6b45;}
+.lc-panel.build .lc-row:active{background:#f0fdf4;}
+.lc-panel.build .lc-go{color:#86efac;}
 
 /* THEME: MANAGE — amber */
-.lc-box-manage .lc-hd{background:linear-gradient(135deg,#fffbeb,#fffdf5);border-bottom:1px solid #fde68a;}
-.lc-box-manage .lc-icon-badge{background:linear-gradient(135deg,#f59e0b,#b45309);}
-.lc-box-manage .lc-title{color:#78350f;}
-.lc-box-manage .lc-count{background:#fef3c7;color:#b45309;}
-.lc-box-manage .lc-row:active{background:#fffbeb;}
+.cat-intro.manage{background:linear-gradient(135deg,#fffbeb,#fffdf5);border:1px solid #fde68a;}
+.cat-intro.manage .cat-intro-icon{background:linear-gradient(135deg,#f59e0b,#b45309);}
+.cat-intro.manage .cat-intro-title{color:#78350f;}
+.cat-intro.manage .cat-intro-sub{color:#92660f;}
+.lc-panel.manage .lc-row:active{background:#fffbeb;}
+.lc-panel.manage .lc-go{color:#fcd34d;}
 
 footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;text-align:center;}
 </style>
@@ -119,90 +134,98 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
     </div>
   </div>
 
-  <div class="lc-lead">Tap a category, then a tool</div>
+  <!-- CATEGORY TABS -->
+  <div class="cat-tabs">
+    <div class="cat-tab on research" id="cat-tab-research" onclick="showCategory('research')">
+      <div class="cat-tab-icon">🔍</div>
+      <div class="cat-tab-label">Research</div>
+      <div class="cat-tab-count">5 tools</div>
+    </div>
+    <div class="cat-tab build" id="cat-tab-build" onclick="showCategory('build')">
+      <div class="cat-tab-icon">🎯</div>
+      <div class="cat-tab-label">Build</div>
+      <div class="cat-tab-count">8 tools</div>
+    </div>
+    <div class="cat-tab manage" id="cat-tab-manage" onclick="showCategory('manage')">
+      <div class="cat-tab-icon">📊</div>
+      <div class="cat-tab-label">Manage</div>
+      <div class="cat-tab-count">4 tools</div>
+    </div>
+  </div>
 
   <!-- 🔍 RESEARCH -->
-  <div class="lc-box lc-box-research">
-    <div class="lc-hd">
-      <div class="lc-icon-badge">🔍</div>
-      <div><div class="lc-title">Research</div><div class="lc-sub">Don't have an idea yet — find one</div></div>
-      <div class="lc-count">5</div>
+  <div class="lc-panel research on" id="lc-panel-research">
+    <div class="cat-intro research">
+      <div class="cat-intro-icon">🔍</div>
+      <div><div class="cat-intro-title">Research</div><div class="cat-intro-sub">Don't have an idea yet — find one</div></div>
     </div>
-    <div class="lc-body">
-      <a href="MoonshotAI.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">MoonshotAI</div><div class="lc-desc">10x stock candidates, real catalysts</div>
-      </a>
-      <a href="chartedge.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">ChartAI</div><div class="lc-desc">Chart screenshot → 3 tiered strategies</div>
-      </a>
-      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">OptionsAI · Scanner</div><div class="lc-desc">Market-wide high-probability scan</div>
-      </a>
-      <a href="dashboard.html?tab=0" class="lc-row">
-        <div class="lc-name">StratEdge · High-IV Scan</div><div class="lc-desc">Top 10 highest-IV large caps right now</div>
-      </a>
-      <a href="dashboard.html?tab=1" class="lc-row">
-        <div class="lc-name">Backtest</div><div class="lc-desc">How a strategy would've performed historically</div>
-      </a>
-    </div>
+    <a href="MoonshotAI.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">MoonshotAI</div><div class="lc-desc">10x stock candidates, real catalysts</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="chartedge.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">ChartAI</div><div class="lc-desc">Chart screenshot → 3 tiered strategies</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">OptionsAI · Scanner</div><div class="lc-desc">Market-wide high-probability scan</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=0" class="lc-row">
+      <div><div class="lc-name">StratEdge · High-IV Scan</div><div class="lc-desc">Top 10 highest-IV large caps right now</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=1" class="lc-row">
+      <div><div class="lc-name">Backtest</div><div class="lc-desc">How a strategy would've performed historically</div></div><span class="lc-go">›</span>
+    </a>
   </div>
 
   <!-- 🎯 BUILD -->
-  <div class="lc-box lc-box-build">
-    <div class="lc-hd">
-      <div class="lc-icon-badge">🎯</div>
-      <div><div class="lc-title">Build</div><div class="lc-sub">You have a ticker or thesis — construct the trade</div></div>
-      <div class="lc-count">8</div>
+  <div class="lc-panel build" id="lc-panel-build">
+    <div class="cat-intro build">
+      <div class="cat-intro-icon">🎯</div>
+      <div><div class="cat-intro-title">Build</div><div class="cat-intro-sub">You have a ticker or thesis — construct the trade</div></div>
     </div>
-    <div class="lc-body">
-      <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">StockAI</div><div class="lc-desc">AI forecast + live options chain, one ticker</div>
-      </a>
-      <a href="strategy-builder.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">StrategyAI</div><div class="lc-desc">Earnings & high-IV rules: Jade Lizard, BWB</div>
-      </a>
-      <a href="target-ai.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">TargetAI</div><div class="lc-desc">Your target move % → one recommended strategy</div>
-      </a>
-      <a href="dashboard.html?tab=0" class="lc-row">
-        <div class="lc-name">StratEdge · Compare</div><div class="lc-desc">Instant 5-strategy comparison, real P&L</div>
-      </a>
-      <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">WeeklyAI</div><div class="lc-desc">Full weekly income plan, risk-tiered</div>
-      </a>
-      <a href="dashboard.html?tab=2" class="lc-row">
-        <div class="lc-name">Alloc</div><div class="lc-desc">CSP & covered call yield comparison</div>
-      </a>
-      <a href="dashboard.html?tab=4" class="lc-row">
-        <div class="lc-name">Lottery</div><div class="lc-desc">Single OTM option payoff table</div>
-      </a>
-      <a href="fair-value.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">FairValue</div><div class="lc-desc">Verify any strike's fair price (real Black-Scholes)</div>
-      </a>
-    </div>
+    <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">StockAI</div><div class="lc-desc">AI forecast + live options chain, one ticker</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="strategy-builder.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">StrategyAI</div><div class="lc-desc">Earnings & high-IV rules: Jade Lizard, BWB</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="target-ai.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">TargetAI</div><div class="lc-desc">Your target move % → one recommended strategy</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=0" class="lc-row">
+      <div><div class="lc-name">StratEdge · Compare</div><div class="lc-desc">Instant 5-strategy comparison, real P&L</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">WeeklyAI</div><div class="lc-desc">Full weekly income plan, risk-tiered</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=2" class="lc-row">
+      <div><div class="lc-name">Alloc</div><div class="lc-desc">CSP & covered call yield comparison</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=4" class="lc-row">
+      <div><div class="lc-name">Lottery</div><div class="lc-desc">Single OTM option payoff table</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="fair-value.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">FairValue</div><div class="lc-desc">Verify any strike's fair price (real Black-Scholes)</div></div><span class="lc-go">›</span>
+    </a>
   </div>
 
   <!-- 📊 MANAGE -->
-  <div class="lc-box lc-box-manage">
-    <div class="lc-hd">
-      <div class="lc-icon-badge">📊</div>
-      <div><div class="lc-title">Manage</div><div class="lc-sub">Already in a trade, or tracking a goal</div></div>
-      <div class="lc-count">4</div>
+  <div class="lc-panel manage" id="lc-panel-manage">
+    <div class="cat-intro manage">
+      <div class="cat-intro-icon">📊</div>
+      <div><div class="cat-intro-title">Manage</div><div class="cat-intro-sub">Already in a trade, or tracking a goal</div></div>
     </div>
-    <div class="lc-body">
-      <a href="portfolioedge.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">PortfolioAI</div><div class="lc-desc">Adjustment plan for positions you hold</div>
-      </a>
-      <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">OptionsAI · Risk Audit</div><div class="lc-desc">Whole-book Greeks & concentration check</div>
-      </a>
-      <a href="dashboard.html?tab=3" class="lc-row">
-        <div class="lc-name">Planner</div><div class="lc-desc">Weekly plan + position tracker, sized risk</div>
-      </a>
-      <a href="compound-ai.html" target="_blank" rel="noopener" class="lc-row">
-        <div class="lc-name">CompoundAI</div><div class="lc-desc">Goal tracking with period-by-period check-ins</div>
-      </a>
-    </div>
+    <a href="portfolioedge.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">PortfolioAI</div><div class="lc-desc">Adjustment plan for positions you hold</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="options-desk.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">OptionsAI · Risk Audit</div><div class="lc-desc">Whole-book Greeks & concentration check</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="dashboard.html?tab=3" class="lc-row">
+      <div><div class="lc-name">Planner</div><div class="lc-desc">Weekly plan + position tracker, sized risk</div></div><span class="lc-go">›</span>
+    </a>
+    <a href="compound-ai.html" target="_blank" rel="noopener" class="lc-row">
+      <div><div class="lc-name">CompoundAI</div><div class="lc-desc">Goal tracking with period-by-period check-ins</div></div><span class="lc-go">›</span>
+    </a>
   </div>
 
   <footer>GammaEdge Suite · Not financial advice — every tool here is a research aid.</footer>
@@ -288,6 +311,17 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
 
 <script>
 var FK = ''; // Finnhub key cache — kept for parity with saveGeSettings(), unused on this page
+
+var CATS = ['research','build','manage'];
+function showCategory(cat){
+  CATS.forEach(function(c){
+    var tab = document.getElementById('cat-tab-'+c);
+    var panel = document.getElementById('lc-panel-'+c);
+    if(tab) tab.classList.toggle('on', c===cat);
+    if(panel) panel.classList.toggle('on', c===cat);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
 function openGeSettings(){
   var el=document.getElementById('ge-settings-overlay');
