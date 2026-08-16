@@ -1933,7 +1933,12 @@ function ndInit(){
 // Run after full page load so showTab and all other scripts are ready
 window.addEventListener('load', function(){
   ndInit();
-  if(typeof showTab === 'function') showTab(0);
+  if(typeof showTab === 'function'){
+    var params = new URLSearchParams(window.location.search);
+    var tabParam = parseInt(params.get('tab'), 10);
+    var initialTab = (!isNaN(tabParam) && tabParam>=0 && tabParam<=4) ? tabParam : 0;
+    showTab(initialTab);
+  }
   // Set sticky top to clear the GammaEdge header
   var hdr = document.getElementById('ge-header');
   var sticky = document.getElementById('nd-sticky-ctrl');
@@ -3156,15 +3161,6 @@ function showTab(n){
   if(n===3)renderPortfolio();
   if(n===5&&typeof pgRender==='function')pgRender();
 }
-
-// Auto-open the right tab when arriving via a link like dashboard.html?tab=3
-(function(){
-  var params = new URLSearchParams(window.location.search);
-  var tabParam = parseInt(params.get('tab'), 10);
-  if(!isNaN(tabParam) && tabParam>=0 && tabParam<=4){
-    setTimeout(function(){ showTab(tabParam); }, 0);
-  }
-})();
 
 /* ── MATH ── */
 function erf(x){var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911,s=x<0?-1:1;x=Math.abs(x);var t=1/(1+p*x);return s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));}
