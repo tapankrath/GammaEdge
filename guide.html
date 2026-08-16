@@ -273,7 +273,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
     </div>
   </div>
 
-  <div class="section-title">Inside GammaEdge <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">(the 5 tabs on the main dashboard)</span></div>
+  <div class="section-title">Inside the Dashboard <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">(dashboard.html — 5 tabs)</span></div>
 
   <div class="tool-card" onclick="this.classList.toggle('open')">
     <div class="tool-hd">
@@ -285,6 +285,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
       <div class="tool-body-txt">Pick a ticker from your watchlist, get instant computed P&L for Straddle, Strangle, Iron Condor, Bull Call, and Bear Put, with a "best fit" flagged automatically based on the actual dollar outcomes (not a lookup table). Includes VolSignal — a live IV-vs-RV read for any ticker with an AI commentary option.</div>
       <div class="tool-body-lbl">vs StockAI</div>
       <div class="tool-body-txt">StratEdge is instant and formula-based (no AI wait); StockAI is AI-researched with live options chain and paper-trade tracking. Use StratEdge for a fast look, StockAI for a deeper one.</div>
+      <a class="tool-open-link" href="dashboard.html?tab=0">Open StratEdge →</a>
     </div>
   </div>
 
@@ -296,6 +297,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
     <div class="tool-body">
       <div class="tool-body-lbl">What it does</div>
       <div class="tool-body-txt">Day-by-day and week-by-week historical backtest of buying an ATM straddle or a 45Δ/40Δ strangle (toggle between all three), sized by your capital. Capital basis is shown live at the top of results and is directly editable, not just buried in Settings.</div>
+      <a class="tool-open-link" href="dashboard.html?tab=1">Open Backtest →</a>
     </div>
   </div>
 
@@ -307,6 +309,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
     <div class="tool-body">
       <div class="tool-body-lbl">What it does</div>
       <div class="tool-body-txt">Compares income-generating allocation strategies with metrics scoped per strategy — capital required, yield/cycle, breakeven cushion, max loss/downside floor.</div>
+      <a class="tool-open-link" href="dashboard.html?tab=2">Open Alloc →</a>
     </div>
   </div>
 
@@ -320,6 +323,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
       <div class="tool-body-txt">Set capital, target, risk profile. "Position Size" slider controls how much capital goes into a trade; "Max Loss per Trade %" is a separate stop-loss trigger. The card shows the compounded true dollar risk (position size % × stop-loss %) directly, since that combined number — not either slider alone — is what you're actually risking. A "Trade Ideas → Plan" card up top runs a fixed SPY/QQQ momentum gate (BUY/LEAN/NO TRADE) and can size an idea straight into your plan with one tap.</div>
       <div class="tool-body-lbl">vs StratEdge</div>
       <div class="tool-body-txt">Different engine, not a duplicate — StratEdge compares 5 strategy types across any ticker in your watchlist; this is a fixed 2-ticker directional gate whose whole point is feeding straight into Planner's sizing/stop-loss system.</div>
+      <a class="tool-open-link" href="dashboard.html?tab=3">Open Planner →</a>
     </div>
   </div>
 
@@ -333,6 +337,7 @@ footer{margin-top:24px;padding:14px 4px;color:var(--muted);font-size:10.5px;line
       <div class="tool-body-txt">Pick a ticker and a direction (Spike / Crash / Either), set OTM %, price, IV, DTE, capital. Returns a Black-Scholes payoff table across Day 1 / 2 / 3 / Expiry with a ~25% Day-1 IV crush baked in.</div>
       <div class="tool-body-lbl">vs MoonshotAI</div>
       <div class="tool-body-txt">Different job entirely — this prices a single option's payoff for a move you already have in mind; MoonshotAI finds the stock candidate in the first place.</div>
+      <a class="tool-open-link" href="dashboard.html?tab=4">Open Lottery →</a>
     </div>
   </div>
 
