@@ -65,15 +65,17 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .cat-tab.on.manage .cat-tab-icon,.cat-tab.on.manage .cat-tab-label{color:#b45309;}
 
 /* CATEGORY INTRO — plain text line, no card */
-.cat-intro{display:flex;align-items:baseline;gap:7px;padding:0 2px;margin-bottom:10px;}
+.lc-section{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 3px 14px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);}
+.cat-intro{display:flex;align-items:baseline;gap:7px;padding:13px 16px;border-bottom:1.5px solid #eef1f6;background:#fafbfd;}
+.lc-list{padding:0 16px;}
+.lc-row{display:flex;align-items:center;gap:12px;padding:15px 0;text-decoration:none;cursor:pointer;border-bottom:1px solid #eef1f6;-webkit-tap-highlight-color:transparent;}
+.lc-row:last-child{border-bottom:none;}
 .cat-intro-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;}
 .cat-intro-sub{font-size:11px;color:#94a3b8;font-weight:500;}
 
 /* TOOL LIST — hairline dividers, no cards, no fills */
 .lc-panel{display:none;}
 .lc-panel.on{display:flex;flex-direction:column;flex:1;}
-.lc-list{border-top:1px solid #eef1f6;}
-.lc-row{display:flex;align-items:center;gap:12px;padding:15px 2px;text-decoration:none;cursor:pointer;border-bottom:1px solid #eef1f6;-webkit-tap-highlight-color:transparent;}
 .lc-row:active{background:#f8fafc;}
 .lc-row-icon{width:38px;height:38px;border-radius:10px;border:1.3px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .lc-row-icon svg{width:19px;height:19px;}
@@ -139,6 +141,7 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
 
   <!-- 🔍 RESEARCH -->
   <div class="lc-panel research on" id="lc-panel-research">
+    <div class="lc-section">
     <div class="cat-intro research">
       <div class="cat-intro-title">Research</div>
       <div class="cat-intro-sub">Don't have an idea yet — find one</div>
@@ -170,10 +173,12 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
         <span class="lc-row-chev">›</span>
       </a>
     </div>
+    </div>
   </div>
 
   <!-- 🎯 BUILD -->
   <div class="lc-panel build" id="lc-panel-build">
+    <div class="lc-section">
     <div class="cat-intro build">
       <div class="cat-intro-title">Build</div>
       <div class="cat-intro-sub">You have a ticker or thesis</div>
@@ -220,10 +225,12 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
         <span class="lc-row-chev">›</span>
       </a>
     </div>
+    </div>
   </div>
 
   <!-- 📊 MANAGE -->
   <div class="lc-panel manage" id="lc-panel-manage">
+    <div class="lc-section">
     <div class="cat-intro manage">
       <div class="cat-intro-title">Manage</div>
       <div class="cat-intro-sub">Already in a trade, or tracking a goal</div>
@@ -249,6 +256,7 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
         <div class="lc-row-text"><div class="lc-row-name">CompoundAI</div><div class="lc-row-tag">Goal tracking with period-by-period check-ins</div></div>
         <span class="lc-row-chev">›</span>
       </a>
+    </div>
     </div>
   </div>
 
