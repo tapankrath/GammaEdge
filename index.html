@@ -25,9 +25,10 @@ body{
     linear-gradient(180deg, #eef2f7 0%, #eef2f7 260px, #f1f5f9 260px);
   color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:30px;
+  display:flex;flex-direction:column;
 }
 button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;}
-.app{max-width:480px;margin:0 auto;padding:0 12px;}
+.app{max-width:480px;margin:0 auto;padding:0 12px;width:100%;flex:1;display:flex;flex-direction:column;}
 
 /* HERO HEADER */
 .ge-hero{
@@ -70,7 +71,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 
 /* TOOL LIST — hairline dividers, no cards, no fills */
 .lc-panel{display:none;}
-.lc-panel.on{display:block;}
+.lc-panel.on{display:flex;flex-direction:column;flex:1;}
 .lc-list{border-top:1px solid #eef1f6;}
 .lc-row{display:flex;align-items:center;gap:12px;padding:15px 2px;text-decoration:none;cursor:pointer;border-bottom:1px solid #eef1f6;-webkit-tap-highlight-color:transparent;}
 .lc-row:active{background:#f8fafc;}
