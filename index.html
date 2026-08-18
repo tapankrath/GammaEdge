@@ -54,13 +54,15 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 
 /* CATEGORY TAB BAR — underline style, quiet */
 .cat-tabs{display:flex;border-bottom:1px solid #e2e8f0;margin-bottom:16px;}
-.cat-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:3px solid transparent;margin-bottom:-1px;}
-.cat-tab-icon{width:18px;height:18px;flex-shrink:0;color:#94a3b8;}
-.cat-tab-label{font-size:15px;font-weight:900;color:#94a3b8;letter-spacing:-.01em;}
+.cat-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px 2px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:3px solid transparent;margin-bottom:-1px;}
+.cat-tab-icon{width:16px;height:16px;flex-shrink:0;color:#94a3b8;}
+.cat-tab-label{font-size:13px;font-weight:900;color:#94a3b8;letter-spacing:-.01em;}
 .cat-tab.on.research{border-color:#2563eb;}
 .cat-tab.on.research .cat-tab-icon,.cat-tab.on.research .cat-tab-label{color:#1d4ed8;}
-.cat-tab.on.build{border-color:#16a34a;}
-.cat-tab.on.build .cat-tab-icon,.cat-tab.on.build .cat-tab-label{color:#15803d;}
+.cat-tab.on.strategy{border-color:#16a34a;}
+.cat-tab.on.strategy .cat-tab-icon,.cat-tab.on.strategy .cat-tab-label{color:#15803d;}
+.cat-tab.on.toolkit{border-color:#7c3aed;}
+.cat-tab.on.toolkit .cat-tab-icon,.cat-tab.on.toolkit .cat-tab-label{color:#6d28d9;}
 .cat-tab.on.manage{border-color:#d97706;}
 .cat-tab.on.manage .cat-tab-icon,.cat-tab.on.manage .cat-tab-label{color:#b45309;}
 
@@ -89,9 +91,13 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .lc-panel.research .lc-row-icon svg{stroke:#2563eb;}
 .lc-panel.research .cat-intro-title{color:#1d4ed8;}
 
-.lc-panel.build .lc-row-icon{border-color:#bbf7d0;}
-.lc-panel.build .lc-row-icon svg{stroke:#16a34a;}
-.lc-panel.build .cat-intro-title{color:#15803d;}
+.lc-panel.strategy .lc-row-icon{border-color:#bbf7d0;}
+.lc-panel.strategy .lc-row-icon svg{stroke:#16a34a;}
+.lc-panel.strategy .cat-intro-title{color:#15803d;}
+
+.lc-panel.toolkit .lc-row-icon{border-color:#ddd6fe;}
+.lc-panel.toolkit .lc-row-icon svg{stroke:#7c3aed;}
+.lc-panel.toolkit .cat-intro-title{color:#6d28d9;}
 
 .lc-panel.manage .lc-row-icon{border-color:#fde68a;}
 .lc-panel.manage .lc-row-icon svg{stroke:#d97706;}
@@ -128,9 +134,13 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
       <svg class="cat-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M17 17L13.2 13.2"/></svg>
       <div class="cat-tab-label">Research</div>
     </div>
-    <div class="cat-tab build" id="cat-tab-build" onclick="showCategory('build')">
+    <div class="cat-tab strategy" id="cat-tab-strategy" onclick="showCategory('strategy')">
       <svg class="cat-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 3V6M10 14V17M3 10H6M14 10H17"/></svg>
-      <div class="cat-tab-label">Build</div>
+      <div class="cat-tab-label">Strategy</div>
+    </div>
+    <div class="cat-tab toolkit" id="cat-tab-toolkit" onclick="showCategory('toolkit')">
+      <svg class="cat-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5L16.5 6.5L11 12L8 12L8 9L13.5 3.5Z"/><path d="M4 16L7.5 12.5"/></svg>
+      <div class="cat-tab-label">Toolkit</div>
     </div>
     <div class="cat-tab manage" id="cat-tab-manage" onclick="showCategory('manage')">
       <svg class="cat-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>
@@ -176,11 +186,11 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
   </div>
 
   <!-- 🎯 BUILD -->
-  <div class="lc-panel build" id="lc-panel-build">
+  <div class="lc-panel strategy" id="lc-panel-strategy">
     <div class="lc-section">
-    <div class="cat-intro build">
-      <div class="cat-intro-title">Build</div>
-      <div class="cat-intro-sub">You have a ticker or thesis</div>
+    <div class="cat-intro strategy">
+      <div class="cat-intro-title">Strategy</div>
+      <div class="cat-intro-sub">You have a ticker or thesis — build the trade</div>
     </div>
     <div class="lc-list">
       <a href="stockai.html" target="_blank" rel="noopener" class="lc-row">
@@ -203,6 +213,18 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
         <div class="lc-row-text"><div class="lc-row-name">StratEdge · Compare</div><div class="lc-row-tag">Instant 5-strategy comparison, real P&L — fast, no AI wait</div></div>
         <span class="lc-row-chev">›</span>
       </a>
+    </div>
+    </div>
+  </div>
+
+  <!-- 🧰 TOOLKIT -->
+  <div class="lc-panel toolkit" id="lc-panel-toolkit">
+    <div class="lc-section">
+    <div class="cat-intro toolkit">
+      <div class="cat-intro-title">Toolkit</div>
+      <div class="cat-intro-sub">Income plans and quick calculators</div>
+    </div>
+    <div class="lc-list">
       <a href="weekly-alpha.html" target="_blank" rel="noopener" class="lc-row">
         <div class="lc-row-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="1.2"/><path d="M3 8.5H17M7 3V6M13 3V6"/></svg></div>
         <div class="lc-row-text"><div class="lc-row-name">WeeklyAI</div><div class="lc-row-tag">Full weekly income plan, risk-tiered</div></div>
@@ -343,7 +365,7 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
 <script>
 var FK = ''; // Finnhub key cache — kept for parity with saveGeSettings(), unused on this page
 
-var CATS = ['research','build','manage'];
+var CATS = ['research','strategy','toolkit','manage'];
 function showCategory(cat){
   CATS.forEach(function(c){
     var tab = document.getElementById('cat-tab-'+c);
