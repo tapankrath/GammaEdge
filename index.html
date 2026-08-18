@@ -49,14 +49,13 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .ge-logo-sub{font-size:9px;font-weight:700;color:#7c8ba3;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;}
 .ge-hero-tag{font-size:11px;color:#a8b6cc;font-weight:500;line-height:1.55;margin-top:12px;position:relative;z-index:1;}
 .ge-hero-tag b{color:#e2e8f0;font-weight:700;}
-.ge-hero-btns{display:flex;gap:7px;margin-top:13px;position:relative;z-index:1;}
-.ge-hbtn{flex:1;text-align:center;border-radius:9px;padding:9px 8px;font-size:11px;font-weight:800;white-space:nowrap;text-decoration:none;border:none;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ge-icon-btn{width:34px;height:34px;flex-shrink:0;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;position:relative;z-index:1;}
 
 /* CATEGORY TAB BAR — underline style, quiet */
 .cat-tabs{display:flex;border-bottom:1px solid #e2e8f0;margin-bottom:16px;}
-.cat-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;}
-.cat-tab-icon{width:15px;height:15px;flex-shrink:0;color:#94a3b8;}
-.cat-tab-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.01em;}
+.cat-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:3px solid transparent;margin-bottom:-1px;}
+.cat-tab-icon{width:18px;height:18px;flex-shrink:0;color:#94a3b8;}
+.cat-tab-label{font-size:15px;font-weight:900;color:#94a3b8;letter-spacing:-.01em;}
 .cat-tab.on.research{border-color:#2563eb;}
 .cat-tab.on.research .cat-tab-icon,.cat-tab.on.research .cat-tab-label{color:#1d4ed8;}
 .cat-tab.on.build{border-color:#16a34a;}
@@ -79,7 +78,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .lc-row-icon svg{width:19px;height:19px;}
 .lc-row-text{flex:1;min-width:0;}
 .lc-row-name{font-size:16px;font-weight:900;color:#000814;line-height:1.25;letter-spacing:-.015em;}
-.lc-row-tag{font-size:13px;color:#5c6b82;font-weight:650;margin-top:2px;line-height:1.35;letter-spacing:-.005em;}
+.lc-row-tag{font-size:13px;color:#334155;font-weight:700;margin-top:2px;line-height:1.35;letter-spacing:-.005em;}
 .lc-row-chev{font-size:18px;color:#cbd5e1;flex-shrink:0;}
 
 /* THEME ACCENTS — used sparingly: icon stroke + row-icon border tint only */
@@ -111,17 +110,14 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
         <div class="ge-logo-bar" style="height:19px;background:#eab308;"></div>
         <div class="ge-logo-bar" style="height:26px;background:#22c55e;"></div>
       </div>
-      <div>
+      <div style="flex:1;">
         <div class="ge-logo-text">Gamma<em>Edge</em></div>
         <div class="ge-logo-sub">Options Intelligence Suite</div>
       </div>
+      <button onclick="openGeSettings()" class="ge-icon-btn" title="API Keys">⚙️</button>
+      <a href="guide.html" target="_blank" rel="noopener" class="ge-icon-btn" title="Guide">📖</a>
     </div>
-    <div class="ge-hero-tag">10 AI tools + a live dashboard, organized around <b>one question</b>: where are you in the trade — <b>researching</b>, <b>building</b>, or <b>managing</b>?</div>
-    <div class="ge-hero-btns">
-      <button onclick="openGeSettings()" class="ge-hbtn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.14);">⚙️ Keys</button>
-      <a href="guide.html" target="_blank" rel="noopener" class="ge-hbtn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.14);">📖 Guide</a>
-      <a href="dashboard.html" class="ge-hbtn" style="background:#16a34a;color:#fff;">📊 Dashboard</a>
-    </div>
+    <div class="ge-hero-tag">10 AI tools, organized around <b>one question</b>: where are you in the trade — <b>researching</b>, <b>building</b>, or <b>managing</b>?</div>
   </div>
 
   <!-- CATEGORY TABS -->
