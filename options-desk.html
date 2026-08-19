@@ -144,8 +144,17 @@ footer b{color:var(--sub);}
       <button class="modal-eye" id="modalEyeBtn" onclick="toggleModalKey()">👁</button>
     </div>
     <div class="modal-note">Shared across the whole GammaEdge suite — stored in your browser only. <a href="https://console.anthropic.com" target="_blank">Get a free key →</a></div>
+
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+      <div class="modal-label">Finnhub API Key (verifies scanner prices are live)</div>
+      <div class="modal-key-row">
+        <input class="modal-key-inp" id="modalFhKeyInp" type="password" placeholder="e.g. c1234567890abcdefg" autocomplete="off"/>
+      </div>
+      <div class="modal-note">Also shared with StockAI, StrategyAI, and FairValue. Without it, Scanner prices can't be checked against a live quote. <a href="https://finnhub.io/register" target="_blank">Get a free key →</a></div>
+    </div>
+
     <div class="modal-status" id="modalStatus"></div>
-    <button class="btn-save-key" onclick="saveKey()">💾 Save Key</button>
+    <button class="btn-save-key" onclick="saveKey()">💾 Save Keys</button>
     <button class="btn-cancel-modal" onclick="closeSettings()">Cancel</button>
   </div>
 </div>
@@ -195,6 +204,7 @@ footer b{color:var(--sub);}
 // ── SETTINGS (shared ge_key with rest of suite) ──
 function openSettings(){
   document.getElementById('modalKeyInp').value = localStorage.getItem('ge_key') || '';
+  document.getElementById('modalFhKeyInp').value = localStorage.getItem('ge_fh_key') || '';
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
@@ -207,6 +217,8 @@ function toggleModalKey(){
 function saveKey(){
   var v = document.getElementById('modalKeyInp').value.trim();
   if(v) localStorage.setItem('ge_key', v); else localStorage.removeItem('ge_key');
+  var fh = document.getElementById('modalFhKeyInp').value.trim();
+  if(fh) localStorage.setItem('ge_fh_key', fh); else localStorage.removeItem('ge_fh_key');
   checkKeyOnLoad();
   closeSettings();
 }
@@ -223,6 +235,8 @@ const TOOLS = [
     badge:"1",
     title:"High Probability Options Scanner",
     sub:"Scans for the highest-probability trades over the next 30 days, prioritizing capital preservation.",
+    renderMode:"cards",
+    model:"claude-sonnet-4-6",
     fields:[
       {key:"focus", label:"Sector / watchlist focus (optional)", type:"text", placeholder:"e.g. mega-cap tech, or leave blank for broad market"},
       {key:"risk", label:"Max risk per trade (optional)", type:"text", placeholder:"e.g. $1,000"},
@@ -230,22 +244,32 @@ const TOOLS = [
     build(v){
       return `Act as an institutional options trader.
 
-Find the highest probability options trades for the next 30 days${v.focus ? ` focused on: ${v.focus}` : ""}.
+Find the 4 highest probability options trades for the next 30 days${v.focus ? ` focused on: ${v.focus}` : ""}.
 ${v.risk ? `Constrain each trade to a max risk of ${v.risk}.` : ""}
 
-Use web search to pull current market conditions, notable options flow, IV levels, and near-term catalysts before selecting trades.
+Use web search to confirm current price for each ticker before building strikes — prioritize a live quote source over a news article, which may describe a price from months ago even if the article itself is recent. Use at most 3 searches total across all 4 trades.
 
-For each trade provide:
-- Ticker
-- Strategy
-- Reason for setup
-- Expected move
-- Risk-reward ratio
-- Probability of success
-- Key support and resistance levels
-- Exit plan
+Write objectively and concisely — state facts plainly, no hype language, no filler phrases. Keep rationale and exit plan to one short sentence each.
 
-Prioritize capital preservation over maximum returns.`;
+Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. No markdown code fences, no commentary before or after, no trailing commas. Use exactly this schema:
+{
+  "marketNote": "one objective sentence on current market backdrop (e.g. VIX level, trend)",
+  "trades": [
+    {
+      "ticker": "NVDA",
+      "assumedPrice": 220.15,
+      "strategyName": "Bull Call Spread",
+      "structure": "Buy $225 Call / Sell $235 Call — Sept 18 exp",
+      "catalyst": "Earnings Aug 26",
+      "rationale": "one objective sentence — why this setup, no hype",
+      "expectedMove": "±5%",
+      "riskReward": "1:2.5",
+      "probability": 72,
+      "exitPlan": "one short sentence — profit target and time-based exit"
+    }
+  ]
+}
+assumedPrice is the exact current price you used to build the strikes, reported as a precise number (not a range) so it can be checked against a live quote. probability is a number 0-100.`;
     }
   },
   {
@@ -374,7 +398,7 @@ async function runTool(id){
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: tool.model || "claude-haiku-4-5-20251001",
         max_tokens: 3000,
         messages: [{ role: "user", content: prompt }],
         tools: [{ type: "web_search_20250305", name: "web_search" }]
@@ -387,7 +411,13 @@ async function runTool(id){
     const text = (data.content || []).map(block => block.type === "text" ? block.text : "").filter(Boolean).join("\n\n");
     if(!text) throw new Error("No text content returned.");
 
-    outBody.innerHTML = marked.parse(text);
+    if(tool.renderMode === "cards"){
+      const parsed = parseScanJSON(text);
+      if(!parsed) throw new Error("Could not parse scan results.");
+      renderScanCards(outBody, parsed);
+    } else {
+      outBody.innerHTML = marked.parse(text);
+    }
     ts.textContent = new Date().toLocaleTimeString();
     outEl.classList.add("show");
   }catch(e){
@@ -399,6 +429,128 @@ async function runTool(id){
     const body = document.getElementById("body_"+id);
     body.style.maxHeight = body.scrollHeight + 400 + "px";
   }
+}
+
+function parseScanJSON(text){
+  if(!text || !text.trim()) return null;
+  const cleaned = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const startIdx = cleaned.indexOf('{');
+  if(startIdx === -1) return null;
+  const fromStart = cleaned.slice(startIdx);
+
+  const match = fromStart.match(/\{[\s\S]*\}/);
+  if(match){
+    try{ return JSON.parse(match[0]); }catch(e1){
+      const repaired = match[0].replace(/,(\s*[\]}])/g, '$1');
+      try{ return JSON.parse(repaired); }catch(e2){ /* fall through to salvage */ }
+    }
+  }
+  // Salvage: walk backward to the last cleanly-closed point, recovering
+  // whatever trades fully completed before a truncation cutoff.
+  const stack = []; let inStr = false, esc = false; const checkpoints = [];
+  for(let i = 0; i < fromStart.length; i++){
+    const ch = fromStart[i];
+    if(esc){ esc = false; continue; }
+    if(ch === '\\'){ if(inStr) esc = true; continue; }
+    if(ch === '"'){ inStr = !inStr; continue; }
+    if(inStr) continue;
+    if(ch === '{' || ch === '['){ stack.push(ch); }
+    else if(ch === '}'){ if(stack[stack.length-1]==='{'){ stack.pop(); checkpoints.push({pos:i+1, stack:stack.slice()}); } }
+    else if(ch === ']'){ if(stack[stack.length-1]==='['){ stack.pop(); checkpoints.push({pos:i+1, stack:stack.slice()}); } }
+  }
+  for(let j = checkpoints.length-1; j >= 0; j--){
+    const cp = checkpoints[j];
+    const candidate = fromStart.slice(0, cp.pos);
+    const suffix = cp.stack.slice().reverse().map(c => c==='{'?'}':']').join('');
+    try{ return JSON.parse(candidate+suffix); }catch(e){ /* try earlier checkpoint */ }
+  }
+  return null;
+}
+
+function fetchLiveQuote(ticker){
+  const fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fhKey || !ticker) return Promise.resolve(null);
+  return fetch('https://finnhub.io/api/v1/quote?symbol='+encodeURIComponent(ticker)+'&token='+fhKey)
+    .then(res => res.ok ? res.json() : null)
+    .then(data => (data && data.c) ? data.c : null)
+    .catch(() => null);
+}
+
+function renderScanCards(outBody, data){
+  const fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  let html = `<div style="font-size:12px;color:var(--sub);font-weight:600;margin-bottom:12px;line-height:1.5;">${data.marketNote || ''}</div>`;
+
+  if(!fhKey){
+    html += `<div style="margin-bottom:12px;padding:9px 11px;background:var(--abg);border:1px solid var(--abd);border-radius:8px;color:#78350f;font-weight:600;font-size:11.5px;">⚠️ No Finnhub key set — prices below are AI-reported only, not verified live. Add one in ⚙️ Settings.</div>`;
+  }
+
+  (data.trades||[]).forEach((t, i) => {
+    html += `<div style="background:var(--p1);border:1.5px solid var(--border);border-radius:13px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+      <div style="padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0f172a,#1e293b);">
+        <div>
+          <div style="font-size:15px;font-weight:900;color:#fff;">${t.ticker||''}</div>
+          <div style="font-size:10.5px;color:#5eead4;font-weight:700;margin-top:1px;">${t.strategyName||''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:900;color:#4ade80;">${t.probability!=null?t.probability+'%':'—'}</div>
+          <div style="font-size:8.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Probability</div>
+        </div>
+      </div>
+      <div id="scan-price-check-${i}"></div>
+      <div style="padding:12px 15px;">
+        <div style="font-size:9px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Structure</div>
+        <div style="font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:500;margin-bottom:9px;">${t.structure||''}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Catalyst</div>
+        <div style="font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:500;margin-bottom:9px;">${t.catalyst||''}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Rationale</div>
+        <div style="font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:500;margin-bottom:11px;">${t.rationale||''}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;">
+          <div style="background:var(--p2);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:8.5px;color:var(--muted);font-weight:800;text-transform:uppercase;">Expected Move</div>
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-top:2px;">${t.expectedMove||'—'}</div>
+          </div>
+          <div style="background:var(--p2);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:8.5px;color:var(--muted);font-weight:800;text-transform:uppercase;">Risk:Reward</div>
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-top:2px;">${t.riskReward||'—'}</div>
+          </div>
+        </div>
+        <div style="font-size:9px;font-weight:900;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Exit Plan</div>
+        <div style="font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:500;">${t.exitPlan||''}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `<div style="font-size:10.5px;color:var(--muted);line-height:1.6;padding:8px 4px 0;">AI-researched, grounded in a live web search at the time of the request — verify strikes and premiums against your broker before trading.</div>`;
+
+  outBody.innerHTML = html;
+  verifyScanPrices(data.trades||[]);
+}
+
+function verifyScanPrices(trades){
+  const fhKey = (localStorage.getItem('ge_fh_key')||'').trim();
+  if(!fhKey) return;
+  trades.forEach((t, i) => {
+    if(!t.ticker) return;
+    fetchLiveQuote(t.ticker).then(livePrice => {
+      const mount = document.getElementById('scan-price-check-'+i);
+      if(!mount) return;
+      if(livePrice == null){
+        mount.innerHTML = `<div style="padding:8px 15px;font-size:11px;font-weight:700;background:var(--p2);color:var(--muted);">Couldn't verify — no live quote found for ${t.ticker}</div>`;
+        return;
+      }
+      if(t.assumedPrice == null){
+        mount.innerHTML = `<div style="padding:8px 15px;font-size:11px;font-weight:700;background:var(--p2);color:var(--muted);">Live price: $${livePrice.toFixed(2)} (no assumed price reported to compare)</div>`;
+        return;
+      }
+      const diffPct = ((livePrice - t.assumedPrice) / t.assumedPrice) * 100;
+      const stale = Math.abs(diffPct) > 3;
+      if(stale){
+        mount.innerHTML = `<div style="padding:8px 15px;font-size:11px;font-weight:700;background:var(--rbg);color:var(--red);">⚠️ STALE PRICE: AI assumed $${t.assumedPrice.toFixed(2)}, live price is $${livePrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%). Strikes above were built around the old price.</div>`;
+      } else {
+        mount.innerHTML = `<div style="padding:8px 15px;font-size:11px;font-weight:700;background:var(--gbg);color:var(--green);">✓ Verified: live price $${livePrice.toFixed(2)} is close to the assumed $${t.assumedPrice.toFixed(2)} (${diffPct>0?'+':''}${diffPct.toFixed(1)}%)</div>`;
+      }
+    }).catch(() => {});
+  });
 }
 
 renderTools();
