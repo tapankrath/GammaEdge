@@ -720,7 +720,7 @@ async function go(){
     var r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,
         system:'You are an expert options trader with real-time market access. Today is '+todayStr+'. Use ONLY the live prices provided — never use prices from memory or training data. All option strikes must be near current market prices. Expiry dates must be after '+todayStr+'. Output ONLY valid JSON starting with { and ending with }. No markdown, no backticks.',
         messages:[{role:'user',content:prompt}]})
     });

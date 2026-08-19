@@ -1194,7 +1194,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})
     })
     .then(function(r){return r.json();})
     .then(function(data){
@@ -1258,7 +1258,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       signal:vsScanController.signal,
       body:JSON.stringify({
-        model:'claude-sonnet-4-6',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:6000,
         messages:[{role:'user',content:prompt}],
         tools:[{type:'web_search_20250305',name:'web_search'}]
@@ -4414,7 +4414,7 @@ function callDeepAnalysis(apiKey, sig, livePrice, optionsData){
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})
   })
   .then(function(r){return r.json();})
   .then(function(data){
@@ -4685,7 +4685,7 @@ function geScan(force){
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,
         tools:[{type:'web_search_20250305',name:'web_search',max_uses:6}],
         messages:messages})
     })
