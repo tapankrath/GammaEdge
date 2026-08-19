@@ -555,6 +555,19 @@ function verifyScanPrices(trades){
 
 renderTools();
 checkKeyOnLoad();
+
+// Auto-open the right tool when arriving via a link like options-desk.html?tool=audit
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const toolParam = params.get('tool');
+  if(toolParam && (toolParam === 'scanner' || toolParam === 'audit')){
+    setTimeout(function(){
+      toggleTool(toolParam);
+      const card = document.getElementById('card_'+toolParam);
+      if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 50);
+  }
+})();
 </script>
 
 </body>
