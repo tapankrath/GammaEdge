@@ -1248,7 +1248,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead. Do not fabricate precise iv/rv/spread numbers you did not actually find — leave those fields null rather than guessing. Sort the list by whichever volatility metric you used, highest first.\n\n'
       +'Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, or explanation before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Use exactly this schema:\n'
       +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"ivRank":null,"note":"earnings in 5 days"}]}\n'
-      +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess.';
+      +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess. If your searches genuinely turn up no usable screener data at all, still respond in this exact JSON schema: set "stocks" to an empty array [] and put a plain one-sentence explanation of what went wrong in "asOf" (e.g. "Search did not return a live IV screener — try again shortly"). Never break out of JSON format to explain a failure in prose, even a total failure — it must be reported inside this JSON structure.';
 
     var vsScanController=new AbortController();
     var vsScanTimeoutId=setTimeout(function(){vsScanController.abort();},90000);
@@ -1258,7 +1258,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       headers:{'Content-Type':'application/json','x-api-key':ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       signal:vsScanController.signal,
       body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
+        model:'claude-sonnet-4-6',
         max_tokens:6000,
         messages:[{role:'user',content:prompt}],
         tools:[{type:'web_search_20250305',name:'web_search'}]
@@ -1272,6 +1272,15 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       (data.content||[]).forEach(function(b){if(b.type==='text')text+=b.text;});
       var parsed=vsParseScanJSON(text);
       if(!parsed){
+        // The model broke JSON format despite instructions — rather than a
+        // dead-end parse error, show whatever explanation it did write,
+        // since that's usually a genuine (if malformed) answer, not noise.
+        var trimmedText=(text||'').trim();
+        if(trimmedText){
+          resultsEl.innerHTML='<div style="padding:10px 12px;background:var(--p2);border:1px solid var(--border);border-radius:8px;font-size:11.5px;color:var(--sub);font-weight:600;line-height:1.55;">'+trimmedText.replace(/</g,'&lt;')+'</div>';
+          resultsEl.style.display='block';
+          return;
+        }
         var reason=data.stop_reason?(' (stop_reason: '+data.stop_reason+')'):'';
         throw new Error('Could not parse scan results.'+reason);
       }
