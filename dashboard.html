@@ -980,7 +980,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <div class="nd-vol-card">
       <div style="font-size:11px;font-weight:900;color:#7e22ce;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">🔍 Top 10 High-IV Stocks (&gt;$10B)</div>
       <div style="font-size:11px;color:#475569;font-weight:600;line-height:1.5;margin-bottom:10px;">
-        AI-researched scan of large-cap stocks where options are richest relative to how much the stock is actually moving — good hunting ground for premium-selling strategies (Iron Condor, Strangle). Tap the button below to run it.
+        AI-researched candidates likely to have rich options premium right now, each with a real, dated catalyst (earnings, news, macro event). Exact IV numbers are shown when a source has them, but real-time IV data is often behind screeners search can't read — treat the catalyst reasoning as the main signal, not the missing number. Tap below to run it.
       </div>
       <button id="vs-scan-btn" onclick="vsRunTop10Scan()"
         style="width:100%;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:9px;font-size:11.5px;font-weight:900;color:#7e22ce;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -1294,9 +1294,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     var todayStr=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
     var prompt='Act as a volatility desk analyst. Today is '+todayStr+'.\n\n'
       +'Find 10 US-listed stocks with market cap greater than $10 billion that likely have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. where options premium looks richest relative to how much the stock is actually moving.\n\n'
-      +'Use web search. Try a live options/volatility screener first (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site). Many of these screeners render their tables with JavaScript, so a search snippet alone often will NOT contain the actual numbers — if that happens, do not give up: fall back to searching for large-cap stocks with upcoming earnings in the next 1-2 weeks, pending FDA/legal decisions, recent short-squeeze or crypto-correlated volatility, or other known volatility catalysts, and list those as your best candidates with the numeric fields left null. Use at most 5 searches. Do not narrate your search process in the response — search silently, then go straight to the answer. Only return an empty stocks array as an absolute last resort if you truly cannot name 10 plausible large-cap candidates at all.\n\n'
+      +'Use web search. Try a live options/volatility screener first — specifically try barchart.com/options/volatility-greeks or marketchameleon.com/Reports/IVRank for a real current IV Rank number if you can. Many of these screeners render their tables with JavaScript, so a search snippet alone often will NOT contain the actual numbers — if that happens, do not give up: fall back to searching for large-cap stocks with upcoming earnings in the next 1-2 weeks, pending FDA/legal decisions, recent short-squeeze or crypto-correlated volatility, or other known volatility catalysts, and list those as your best candidates with the numeric fields left null. Use at most 5 searches. Do not narrate your search process in the response — search silently, then go straight to the answer. Only return an empty stocks array as an absolute last resort if you truly cannot name 10 plausible large-cap candidates at all.\n\n'
       +'For each of the 10 stocks report: ticker, company name, approximate market cap, and a short one-line note on why IV might be elevated RIGHT NOW (e.g. earnings date in the next 1-2 weeks, a specific news event from the last few days, an FDA/legal/macro catalyst on the calendar). The note must reflect a current, dated catalyst — not a generic or long-standing risk factor (e.g. avoid vague phrasing like "regulatory uncertainty" or "rate sensitivity" unless tied to a specific recent event). If you cannot find a specific current catalyst for a name, say "elevated IV, no clear near-term catalyst found" rather than inventing one. Keep the note field to under 10 words.\n\n'
-      +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead; if you only have a qualitative candidate with no numbers at all, leave iv/rv/spread/ivRank all null rather than guessing, and rely on the note to explain why it is a candidate. Do not fabricate precise numbers you did not actually find. Sort the list with the most confident/numeric entries first.\n\n'
+      +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead; if you only have a qualitative candidate with no numbers at all, leave iv/rv/spread/ivRank all null rather than guessing, and rely on the note to explain why it is a candidate. Do not fabricate precise numbers you did not actually find. Sort the list with the most specific, dated, verifiable catalyst reasoning first — not by whether a number happened to be found, since real numeric IV data is often unavailable through search regardless of how strong the underlying candidate is.\n\n'
       +'Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, or explanation before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Use exactly this schema:\n'
       +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"ivRank":null,"note":"earnings in 5 days"}]}\n'
       +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess. If, after genuinely trying the fallback approach above, you still cannot name any plausible candidates, respond in this exact JSON schema with "stocks" as an empty array [] and a plain one-sentence explanation in "asOf". Never break out of JSON format to explain a failure in prose, even a total failure — it must be reported inside this JSON structure.';
@@ -1411,8 +1411,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         badgeVal=Number(s.ivRank).toFixed(0);
         badgeSub='IV RANK';
       } else {
-        badgeVal='—';
-        badgeSub='no data';
+        // No numeric IV data was found — common, since real-time IV/IV-rank
+        // usually lives behind screeners search can't read. Show a
+        // qualitative tag instead of a "—"/"no data" pair that reads as broken;
+        // the catalyst note below is the real, reliable signal here.
+        badgeVal='🔥';
+        badgeSub='catalyst';
       }
       html+='<div style="background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;overflow:hidden;">'
         +'<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;">'
@@ -1420,7 +1424,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
           +'<div style="font-size:10px;font-weight:900;color:#7e22ce;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
           +'<div style="flex:1;min-width:0;">'
             +'<div style="font-size:12px;font-weight:800;color:#0f172a;">'+(s.ticker||'')+' <span style="font-weight:700;color:#334155;font-size:10px;">'+(s.name||'')+'</span></div>'
-            +(s.note?'<div style="font-size:9.5px;color:#475569;font-weight:700;margin-top:1px;">'+s.note+'</div>':'')
+            +(s.note?'<div style="font-size:10px;color:#334155;font-weight:800;margin-top:2px;line-height:1.35;">'+s.note+'</div>':'')
           +'</div>'
           +'<div style="text-align:right;flex-shrink:0;">'
             +'<div style="font-size:12px;font-weight:900;color:#7e22ce;">'+badgeVal+'</div>'
