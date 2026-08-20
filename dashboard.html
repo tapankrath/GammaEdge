@@ -999,11 +999,22 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       var screenerPanel=document.getElementById('vs-subtab-panel-screener');
       var tickerBtn=document.getElementById('vs-subtab-btn-ticker');
       var screenerBtn=document.getElementById('vs-subtab-btn-screener');
+      var results=document.getElementById('nd-results');
       var onTicker=(name==='ticker');
       tickerPanel.style.display=onTicker?'block':'none';
       screenerPanel.style.display=onTicker?'none':'block';
       tickerBtn.classList.toggle('active',onTicker);
       screenerBtn.classList.toggle('active',!onTicker);
+      // The ticker analysis results (5-strategy grid) live in a container
+      // outside both subtab panels — without this, they'd stay visible
+      // and "spill" into the screener view regardless of which tab is active.
+      if(results){
+        if(onTicker){
+          results.style.display = results.innerHTML.trim() ? 'block' : 'none';
+        } else {
+          results.style.display = 'none';
+        }
+      }
     }
     window.vsSwitchSubtab = vsSwitchSubtab;
   </script>
@@ -1624,6 +1635,25 @@ function ndUpdateBanner(){
     document.getElementById('nd-disp-chg').innerText=(fb.change>=0?'+':'')+fb.change.toFixed(2)+'%';
     document.getElementById('nd-disp-chg').style.color=fb.change>=0?'#34d399':'#f43f5e';
     document.getElementById('nd-disp-iv').innerText='IV: ~'+(fb.iv*100).toFixed(1)+'% (est)';
+  } else {
+    // Show *something* immediately rather than leaving dashes until
+    // Analyze runs — real price/change now, IV stays honest ("—") since
+    // that needs the fuller analysis to compute, not just a quote.
+    var symAtRequest=ndTicker;
+    document.getElementById('nd-disp-price').innerText='…';
+    document.getElementById('nd-disp-chg').innerText='—';
+    document.getElementById('nd-disp-iv').innerText='IV: —';
+    fetch('https://finnhub.io/api/v1/quote?symbol='+symAtRequest+'&token='+fk)
+      .then(function(r){ return r.json(); })
+      .then(function(q){
+        if(ndTicker!==symAtRequest) return; // user already switched tickers, drop stale response
+        if(!q || !q.c) return;
+        document.getElementById('nd-disp-price').innerText='$'+q.c.toFixed(2);
+        var chg=q.dp!=null?q.dp:0;
+        document.getElementById('nd-disp-chg').innerText=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+        document.getElementById('nd-disp-chg').style.color=chg>=0?'#34d399':'#f43f5e';
+      })
+      .catch(function(){});
   }
 }
 function ndCheckToken(){
