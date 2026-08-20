@@ -863,6 +863,21 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   <div id="nd-token-alert" class="nd-alert" style="display:none;">⚠️ No Finnhub key — tap to configure for live pricing.</div>
 
+  <!-- Sub-tabs: keep ticker setup and the screener on separate panels so
+       only one stack of controls is visible at a time (real estate). -->
+  <div class="vs-subtab-bar">
+    <button type="button" id="vs-subtab-btn-ticker" class="vs-subtab-btn active" onclick="vsSwitchSubtab('ticker')">🎯 Active Ticker</button>
+    <button type="button" id="vs-subtab-btn-screener" class="vs-subtab-btn" onclick="vsSwitchSubtab('screener')">🔍 Top 10 High-IV</button>
+  </div>
+  <style>
+    .vs-subtab-bar{display:flex;gap:6px;margin:2px 0 10px;}
+    .vs-subtab-btn{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;color:#334155;border-radius:8px;padding:9px 6px;font-size:11.5px;font-weight:900;cursor:pointer;letter-spacing:.02em;font-family:inherit;}
+    .vs-subtab-btn.active{background:#16a34a;border-color:#16a34a;color:#fff;}
+    #vs-subtab-panel-screener{display:none;}
+  </style>
+
+  <div id="vs-subtab-panel-ticker">
+
   <!-- STICKY CONTROLS -->
   <div class="nd-sticky" id="nd-sticky-ctrl">
 
@@ -949,25 +964,49 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <!-- Mini chart canvas (hidden until loaded) -->
     <canvas id="vs-chart" style="display:none;width:100%;height:80px;margin-top:10px;" height="80"></canvas>
     <!-- AI analysis (hidden until run) -->
-    <div id="vs-ai-wrap" style="display:none;margin-top:10px;">
+    <div id="vs-ai-wrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;">
       <button id="vs-ai-btn" onclick="vsRunAI()"
         style="width:100%;background:#eff6ff;border:1px solid #93c5fd;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#2563eb;cursor:pointer;letter-spacing:.04em;">
         ✦ AI Vol Analysis
       </button>
       <div id="vs-ai-result" style="display:none;margin-top:8px;background:#f4f7fb;border:1px solid #e2e8f0;border-radius:7px;padding:9px 11px;font-size:11px;color:#334155;line-height:1.65;font-weight:500;"></div>
     </div>
-    <!-- Top 10 High-IV Scanner -->
-    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;">
+  </div>
+
+  </div><!-- end vs-subtab-panel-ticker -->
+
+  <!-- SCREENER TAB -->
+  <div id="vs-subtab-panel-screener">
+    <div class="nd-vol-card">
+      <div style="font-size:11px;font-weight:900;color:#7e22ce;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">🔍 Top 10 High-IV Stocks (&gt;$10B)</div>
+      <div style="font-size:11px;color:#475569;font-weight:600;line-height:1.5;margin-bottom:10px;">
+        AI-researched scan of large-cap stocks where options are richest relative to how much the stock is actually moving — good hunting ground for premium-selling strategies (Iron Condor, Strangle). Tap the button below to run it.
+      </div>
       <button id="vs-scan-btn" onclick="vsRunTop10Scan()"
-        style="width:100%;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#7e22ce;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;">
+        style="width:100%;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:9px;font-size:11.5px;font-weight:900;color:#7e22ce;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;">
         <span class="vs-scan-spinner" style="display:none;width:11px;height:11px;border:2px solid rgba(126,34,206,.25);border-top-color:#7e22ce;border-radius:50%;animation:vs-spin .7s linear infinite;"></span>
-        <span class="vs-scan-label">🔍 Top 10 High-IV Stocks (&gt;$10B)</span>
+        <span class="vs-scan-label">🔍 Scan Top 10 High-IV Stocks</span>
       </button>
-      <div id="vs-scan-status" style="display:none;text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:6px;"></div>
+      <div id="vs-scan-status" style="display:none;text-align:center;font-size:10px;color:#64748b;font-weight:700;margin-top:6px;"></div>
       <div id="vs-scan-results" style="display:none;margin-top:8px;"></div>
     </div>
   </div>
+
   <style>@keyframes vs-spin{to{transform:rotate(360deg);}}</style>
+  <script>
+    function vsSwitchSubtab(name){
+      var tickerPanel=document.getElementById('vs-subtab-panel-ticker');
+      var screenerPanel=document.getElementById('vs-subtab-panel-screener');
+      var tickerBtn=document.getElementById('vs-subtab-btn-ticker');
+      var screenerBtn=document.getElementById('vs-subtab-btn-screener');
+      var onTicker=(name==='ticker');
+      tickerPanel.style.display=onTicker?'block':'none';
+      screenerPanel.style.display=onTicker?'none':'block';
+      tickerBtn.classList.toggle('active',onTicker);
+      screenerBtn.classList.toggle('active',!onTicker);
+    }
+    window.vsSwitchSubtab = vsSwitchSubtab;
+  </script>
 
   <script>
   // ── VOLSIGNAL MERGED ──────────────────────────────────────────────────────
@@ -1241,14 +1280,15 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       statusEl.textContent=statusMsgs[statusIdx];
     },2000);
 
-    var prompt='Act as a volatility desk analyst.\n\n'
-      +'Find the current top 10 US-listed stocks with market cap greater than $10 billion that have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. the largest IV-RV spread, meaning options premium is most rich relative to how much the stock is actually moving.\n\n'
-      +'Use web search to check a live options/volatility screener (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site) rather than estimating from memory or old data. Use at most 3 searches, and do not narrate your search process in the response — search silently, then go straight to the answer.\n\n'
-      +'For each of the 10 stocks report: ticker, company name, approximate market cap, and a short one-line note on why IV might be elevated if known (e.g. upcoming earnings, recent news, sector rotation). Keep the note field to under 8 words.\n\n'
-      +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead. Do not fabricate precise iv/rv/spread numbers you did not actually find — leave those fields null rather than guessing. Sort the list by whichever volatility metric you used, highest first.\n\n'
+    var todayStr=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    var prompt='Act as a volatility desk analyst. Today is '+todayStr+'.\n\n'
+      +'Find 10 US-listed stocks with market cap greater than $10 billion that likely have the highest implied volatility (IV) relative to realized/historical volatility (RV) right now — i.e. where options premium looks richest relative to how much the stock is actually moving.\n\n'
+      +'Use web search. Try a live options/volatility screener first (e.g. a "highest implied volatility" or "IV rank" screener from a finance data site). Many of these screeners render their tables with JavaScript, so a search snippet alone often will NOT contain the actual numbers — if that happens, do not give up: fall back to searching for large-cap stocks with upcoming earnings in the next 1-2 weeks, pending FDA/legal decisions, recent short-squeeze or crypto-correlated volatility, or other known volatility catalysts, and list those as your best candidates with the numeric fields left null. Use at most 5 searches. Do not narrate your search process in the response — search silently, then go straight to the answer. Only return an empty stocks array as an absolute last resort if you truly cannot name 10 plausible large-cap candidates at all.\n\n'
+      +'For each of the 10 stocks report: ticker, company name, approximate market cap, and a short one-line note on why IV might be elevated RIGHT NOW (e.g. earnings date in the next 1-2 weeks, a specific news event from the last few days, an FDA/legal/macro catalyst on the calendar). The note must reflect a current, dated catalyst — not a generic or long-standing risk factor (e.g. avoid vague phrasing like "regulatory uncertainty" or "rate sensitivity" unless tied to a specific recent event). If you cannot find a specific current catalyst for a name, say "elevated IV, no clear near-term catalyst found" rather than inventing one. Keep the note field to under 10 words.\n\n'
+      +'For the volatility numbers: most public screeners show IV RANK (a 0-100 percentile of where current IV sits vs its own history) rather than raw IV%/RV%/spread. Report whichever you actually found — if the source gives raw iv/rv/spread numbers, use those fields; if it only gives IV Rank, use the ivRank field instead; if you only have a qualitative candidate with no numbers at all, leave iv/rv/spread/ivRank all null rather than guessing, and rely on the note to explain why it is a candidate. Do not fabricate precise numbers you did not actually find. Sort the list with the most confident/numeric entries first.\n\n'
       +'Respond with ONLY valid JSON — your entire reply must be a single JSON object, starting with { and ending with }. The very first character you output must be {. Do not write any introduction, acknowledgment, or explanation before or after the JSON — not even one sentence. No markdown code fences, no trailing commas. Use exactly this schema:\n'
       +'{"asOf":"one sentence on when/how this was checked","stocks":[{"ticker":"XYZ","name":"Company Name","marketCap":"$45B","iv":62.3,"rv":31.1,"spread":31.2,"ivRank":null,"note":"earnings in 5 days"}]}\n'
-      +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess. If your searches genuinely turn up no usable screener data at all, still respond in this exact JSON schema: set "stocks" to an empty array [] and put a plain one-sentence explanation of what went wrong in "asOf" (e.g. "Search did not return a live IV screener — try again shortly"). Never break out of JSON format to explain a failure in prose, even a total failure — it must be reported inside this JSON structure.';
+      +'iv, rv, spread, and ivRank are numbers when known, null when not found — never both null and a fabricated guess. If, after genuinely trying the fallback approach above, you still cannot name any plausible candidates, respond in this exact JSON schema with "stocks" as an empty array [] and a plain one-sentence explanation in "asOf". Never break out of JSON format to explain a failure in prose, even a total failure — it must be reported inside this JSON structure.';
 
     var vsScanController=new AbortController();
     var vsScanTimeoutId=setTimeout(function(){vsScanController.abort();},90000);
@@ -1297,7 +1337,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
       statusEl.style.display='none';
       btn.disabled=false;
       spinner.style.display='none';
-      label.textContent='🔍 Top 10 High-IV Stocks (>$10B)';
+      label.textContent='🔍 Scan Top 10 High-IV Stocks';
     });
   }
 
@@ -1340,8 +1380,16 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 
   function renderTop10Scan(data){
     var resultsEl=document.getElementById('vs-scan-results');
-    var html='<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-bottom:6px;padding:0 2px;">'+(data.asOf||'')+'</div>';
-    (data.stocks||[]).forEach(function(s,i){
+    var stocks=data.stocks||[];
+    if(!stocks.length){
+      var reason=(data.asOf||'No results came back from the scan.').trim();
+      resultsEl.innerHTML='<div style="padding:12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:11px;color:#991b1b;font-weight:700;line-height:1.5;margin-bottom:8px;">⚠️ '+reason.replace(/</g,'&lt;')+'</div>'
+        +'<button onclick="vsRunTop10Scan()" style="width:100%;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:8px;font-size:11px;font-weight:900;color:#7e22ce;cursor:pointer;">🔄 Try Again</button>';
+      resultsEl.style.display='block';
+      return;
+    }
+    var html='';
+    stocks.forEach(function(s,i){
       var hasSpread=s.spread!=null;
       var hasIvRank=s.ivRank!=null;
       var badgeVal,badgeSub;
@@ -1355,22 +1403,25 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
         badgeVal='—';
         badgeSub='no data';
       }
-      html+='<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;">'
+      html+='<div style="background:#fdf4ff;border:1px solid #f3e8ff;border-radius:7px;margin-bottom:5px;overflow:hidden;">'
+        +'<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;">'
         +'<div onclick="vsScanTickerTap(\''+(s.ticker||'').replace(/'/g,"")+'\')" style="flex:1;min-width:0;cursor:pointer;display:flex;align-items:center;gap:8px;">'
-          +'<div style="font-size:10px;font-weight:900;color:#a855f7;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
+          +'<div style="font-size:10px;font-weight:900;color:#7e22ce;width:14px;flex-shrink:0;">'+(i+1)+'</div>'
           +'<div style="flex:1;min-width:0;">'
-            +'<div style="font-size:12px;font-weight:800;color:#1e293b;">'+(s.ticker||'')+' <span style="font-weight:600;color:#64748b;font-size:10px;">'+(s.name||'')+'</span></div>'
-            +(s.note?'<div style="font-size:9.5px;color:#94a3b8;font-weight:500;margin-top:1px;">'+s.note+'</div>':'')
+            +'<div style="font-size:12px;font-weight:800;color:#0f172a;">'+(s.ticker||'')+' <span style="font-weight:700;color:#334155;font-size:10px;">'+(s.name||'')+'</span></div>'
+            +(s.note?'<div style="font-size:9.5px;color:#475569;font-weight:700;margin-top:1px;">'+s.note+'</div>':'')
           +'</div>'
           +'<div style="text-align:right;flex-shrink:0;">'
             +'<div style="font-size:12px;font-weight:900;color:#7e22ce;">'+badgeVal+'</div>'
-            +'<div style="font-size:8.5px;color:#94a3b8;font-weight:700;">'+badgeSub+'</div>'
+            +'<div style="font-size:8.5px;color:#475569;font-weight:800;">'+badgeSub+'</div>'
           +'</div>'
         +'</div>'
-        +'<button onclick="vsScanGetStrategy(\''+(s.ticker||'').replace(/'/g,"")+'\')" style="flex-shrink:0;font-size:9.5px;font-weight:800;color:#fff;background:#7e22ce;border:none;border-radius:6px;padding:6px 8px;cursor:pointer;white-space:nowrap;">🎯 Strategy</button>'
+        +'<button data-strat-idx="'+i+'" onclick="vsScanToggleStrategy(this,'+i+',\''+(s.ticker||'').replace(/'/g,"")+'\')" style="flex-shrink:0;font-size:9.5px;font-weight:800;color:#fff;background:#7e22ce;border:none;border-radius:6px;padding:6px 8px;cursor:pointer;white-space:nowrap;">🎯 Strategy</button>'
+        +'</div>'
+        +'<div class="vs-strat-inline" id="vs-strat-'+i+'" data-idx="'+i+'" style="display:none;padding:0 6px 8px;"></div>'
       +'</div>';
     });
-    html+='<div style="font-size:9.5px;color:#94a3b8;font-weight:500;text-align:center;margin-top:4px;padding:0 4px;">Tap a ticker to load it above · tap 🎯 Strategy for a computed 5-strategy breakdown · AI-researched, verify against your broker before trading</div>';
+    html+='<div style="font-size:9.5px;color:#64748b;font-weight:600;text-align:center;margin-top:4px;padding:0 4px;">Tap a ticker to load it above · tap 🎯 Strategy to expand a computed 5-strategy breakdown right here · AI-researched, verify against your broker before trading</div>';
     resultsEl.innerHTML=html;
     resultsEl.style.display='block';
   }
@@ -1379,22 +1430,71 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   // (Straddle/Strangle/Iron Condor/Bull Call/Bear Put) already used for any
   // manually-selected ticker, rather than asking the AI to guess again.
   // High-IV names are exactly where Iron Condor/Strangle tend to win.
-  function vsScanGetStrategy(ticker){
+  // Renders INLINE, directly under the tapped pick (accordion — opening one
+  // closes any other open panel) instead of jumping to a separate card.
+  function vsScanFetchQuote(sym){
+    var fk=(localStorage.getItem('ge_fh_key')||'').trim();
+    if(!fk){
+      var fb=(typeof ndFallback!=='undefined'&&ndFallback[sym])?ndFallback[sym]:(ndFallback?ndFallback.DEFAULT:{price:200,change:.5,iv:.25});
+      return Promise.resolve({sym:sym,c:fb.price,dp:fb.change,iv:fb.iv,estimated:true});
+    }
+    return ndFetch(sym);
+  }
+
+  function vsScanToggleStrategy(btn,idx,ticker){
     if(!ticker)return;
-    showTab(0);
-    setTimeout(function(){
-      if(typeof ndSelectTicker==='function')ndSelectTicker(ticker);
-      setTimeout(function(){
-        if(typeof ndRunAnalyze==='function')ndRunAnalyze();
-      },150);
-    },150);
+    var container=document.getElementById('vs-strat-'+idx);
+    if(!container)return;
+    var isOpen=container.getAttribute('data-open')==='1';
+
+    // Accordion: collapse any other open inline panel first.
+    document.querySelectorAll('.vs-strat-inline[data-open="1"]').forEach(function(el){
+      if(el!==container){
+        el.setAttribute('data-open','0');
+        el.style.display='none';
+        el.innerHTML='';
+        var otherBtn=document.querySelector('[data-strat-idx="'+el.getAttribute('data-idx')+'"]');
+        if(otherBtn)otherBtn.textContent='🎯 Strategy';
+      }
+    });
+
+    if(isOpen){
+      container.setAttribute('data-open','0');
+      container.style.display='none';
+      container.innerHTML='';
+      btn.textContent='🎯 Strategy';
+      return;
+    }
+
+    container.style.display='block';
+    container.setAttribute('data-open','1');
+    container.innerHTML='<div style="text-align:center;padding:14px;font-size:11px;color:#475569;font-weight:700;">Loading '+ticker+' strategy…</div>';
+    btn.textContent='▲ Hide';
+
+    var cap=parseFloat(document.getElementById('nd-capital').value)||10000;
+    vsScanFetchQuote(ticker).then(function(data){
+      if(container.getAttribute('data-open')!=='1')return; // collapsed while loading
+      var strats=ndCompute(data,cap);
+      ndRender(data,strats,'vs-strat-'+idx,{scroll:true});
+      if(data.estimated){
+        var note=document.createElement('div');
+        note.style.cssText='font-size:9.5px;color:#b45309;font-weight:800;text-align:center;padding:6px 2px 0;';
+        note.textContent='⚠️ Estimated data — add a Finnhub key (⚙️) for live pricing.';
+        container.appendChild(note);
+      }
+    }).catch(function(e){
+      container.innerHTML='<div style="color:#dc2626;font-size:11px;font-weight:700;padding:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;">⚠️ '+e.message+'</div>';
+    });
   }
 
   function vsScanTickerTap(ticker){
     if(!ticker)return;
+    if(typeof vsSwitchSubtab==='function')vsSwitchSubtab('ticker');
     document.getElementById('vs-search-inp').value=ticker;
     vsRun(ticker);
-    document.getElementById('vs-card').scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(function(){
+      document.getElementById('vs-card').scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
   }
 
   window.vsRunAI = vsRunAI;
@@ -1402,7 +1502,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
   window.vsRunSearch = vsRunSearch;
   window.vsRunTop10Scan = vsRunTop10Scan;
   window.vsScanTickerTap = vsScanTickerTap;
-  window.vsScanGetStrategy = vsScanGetStrategy;
+  window.vsScanToggleStrategy = vsScanToggleStrategy;
 
 
   // Auto-run SPY on load if keys are present
@@ -1721,7 +1821,9 @@ function ndSB(label,val,color){
     +'<div class="nd-score-bar"><div class="nd-score-fill" style="width:'+val+'%;background:'+color+'"></div></div></div>';
 }
 
-function ndRender(d,strats){
+function ndRender(d,strats,targetId,opts){
+  targetId = targetId || 'nd-results';
+  opts = opts || {};
   strats = ndPickRecommended(d, strats);
   var stdM=d.c*d.iv*Math.sqrt(ndDte/365);
   var h='<div class="nd-tick-hdr">'
@@ -1752,7 +1854,7 @@ function ndRender(d,strats){
   h+='</div>';
 
   strats.forEach(function(st,i){
-    h+='<div class="nd-panel'+(i===recIdx?' active':'')+'" id="nd-p-'+i+'">';
+    h+='<div class="nd-panel'+(i===recIdx?' active':'')+'">';
     // Recommended banner
     if(st.recommended){
       h+='<div style="background:linear-gradient(90deg,rgba(217,119,6,.12),rgba(217,119,6,.04));border-bottom:1px solid rgba(217,119,6,.25);padding:8px 13px;display:flex;align-items:center;gap:7px;">'
@@ -1806,18 +1908,28 @@ function ndRender(d,strats){
     h+='</div>';
   });
   h+='</div>';
-  var box=document.getElementById('nd-results');
+  var box=document.getElementById(targetId);
   box.innerHTML=h; box.style.display='block';
-  ndHasResults=true;
-  ndCollapseControls();
-  setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
+  if(targetId==='nd-results'){
+    ndHasResults=true;
+    ndCollapseControls();
+    setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
+  } else if(opts.scroll!==false){
+    setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+  }
 }
 
+// Scoped to the tab group the button lives in, so multiple independent
+// strategy panels (e.g. several inline screener expansions) can each keep
+// their own active tab without stepping on one another.
 function ndSwitchTab(idx,btn){
-  document.querySelectorAll('.nd-tab').forEach(function(t){t.classList.remove('active');});
-  document.querySelectorAll('.nd-panel').forEach(function(p){p.classList.remove('active');});
+  var wrap = btn.closest('.nd-tabs-wrap');
+  if(!wrap) return;
+  wrap.querySelectorAll('.nd-tab').forEach(function(t){t.classList.remove('active');});
+  wrap.querySelectorAll('.nd-panel').forEach(function(p){p.classList.remove('active');});
   btn.classList.add('active');
-  document.getElementById('nd-p-'+idx).classList.add('active');
+  var panels = wrap.querySelectorAll('.nd-panel');
+  if(panels[idx]) panels[idx].classList.add('active');
 }
 
 // ── ANALYZE ──
