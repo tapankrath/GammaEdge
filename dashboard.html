@@ -992,6 +992,17 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     </div>
   </div>
 
+  <div class="nd-vol-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:900;color:#0f172a;letter-spacing:.06em;text-transform:uppercase;">📋 Strategy Log <span id="strat-log-count" style="color:#94a3b8;font-weight:700;"></span></div>
+      <button onclick="if(loadStratLog().length && confirm('Clear the entire strategy log?')){saveStratLog([]);renderStratLog();}" style="font-size:9.5px;font-weight:700;color:#94a3b8;background:none;border:none;cursor:pointer;">Clear all</button>
+    </div>
+    <div style="font-size:10.5px;color:#475569;font-weight:600;line-height:1.5;margin-bottom:10px;">
+      Tap "📋 Add to Log" on any computed strategy — from a ticker you analyze directly, or from a Top 10 scan pick — to track it here. Tap a status pill to cycle Watching → Entered → Closed.
+    </div>
+    <div id="strat-log-mount"></div>
+  </div>
+
   <style>@keyframes vs-spin{to{transform:rotate(360deg);}}</style>
   <script>
     function vsSwitchSubtab(name){
@@ -1525,6 +1536,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     setTimeout(function(){
       if(localStorage.getItem('ge_fh_key')) vsRun('SPY');
     },1400);
+    if(typeof renderStratLog==='function') renderStratLog();
   });
   </script>
 
@@ -1855,6 +1867,96 @@ function ndSB(label,val,color){
     +'<div class="nd-score-bar"><div class="nd-score-fill" style="width:'+val+'%;background:'+color+'"></div></div></div>';
 }
 
+// ── STRATEGY LOG — pick a computed strategy, save it, track status ──
+var ND_STRAT_STORE = {};
+var STRAT_LOG_KEY = 'ge_strategy_log';
+function loadStratLog(){ try{ return JSON.parse(localStorage.getItem(STRAT_LOG_KEY)||'[]'); }catch(e){ return []; } }
+function saveStratLog(list){ localStorage.setItem(STRAT_LOG_KEY, JSON.stringify(list)); }
+
+function ndAddToLog(key){
+  var entry = ND_STRAT_STORE[key];
+  if(!entry) return;
+  var st = entry.st, d = entry.d;
+  var list = loadStratLog();
+  list.unshift({
+    id: Date.now(),
+    ticker: d.sym,
+    strategy: st.name,
+    icon: st.icon,
+    dte: entry.dte,
+    expiry: entry.expiry,
+    spotAtLog: d.c,
+    isCredit: !!st.netCredit,
+    amount: st.netCredit ? st.creditReceived : st.cost,
+    maxGain: st.maxGain,
+    maxLoss: st.maxLoss,
+    beDn: st.BEdn,
+    beUp: st.BEup,
+    contracts: st.contracts,
+    legs: st.legs,
+    dateAdded: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    status: 'watching'
+  });
+  saveStratLog(list);
+  renderStratLog();
+  var btn = document.getElementById('log-btn-'+key);
+  if(btn){ btn.textContent='✓ Logged'; btn.disabled=true; btn.style.opacity='0.6'; }
+}
+
+function stratLogRemove(id){
+  saveStratLog(loadStratLog().filter(function(e){ return e.id !== id; }));
+  renderStratLog();
+}
+
+function stratLogCycleStatus(id){
+  var order = ['watching','entered','closed'];
+  var list = loadStratLog();
+  list.forEach(function(e){
+    if(e.id === id){ e.status = order[(order.indexOf(e.status)+1) % order.length]; }
+  });
+  saveStratLog(list);
+  renderStratLog();
+}
+
+function renderStratLog(){
+  var mount = document.getElementById('strat-log-mount');
+  if(!mount) return;
+  var list = loadStratLog();
+  var countEl = document.getElementById('strat-log-count');
+  if(countEl) countEl.textContent = list.length ? '('+list.length+')' : '';
+  if(!list.length){
+    mount.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:#94a3b8;font-weight:600;">No strategies logged yet — tap "+ Add to Log" on any computed strategy to start tracking.</div>';
+    return;
+  }
+  var statusMeta = {
+    watching: {label:'👀 Watching', bg:'#f1f5f9', color:'#475569'},
+    entered:  {label:'🟢 Entered',  bg:'#f0fdf4', color:'#15803d'},
+    closed:   {label:'⚪ Closed',   bg:'#f8fafc', color:'#94a3b8'}
+  };
+  var html = '';
+  list.forEach(function(e){
+    var sm = statusMeta[e.status] || statusMeta.watching;
+    var amtLabel = e.isCredit ? 'Credit +$'+Number(e.amount).toFixed(2) : 'Cost -$'+Math.abs(e.amount).toFixed(2);
+    var maxGainStr = e.maxGain===null ? 'Unlimited' : '+$'+Number(e.maxGain).toFixed(2);
+    html += '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:9px 10px;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+        + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:12px;font-weight:900;color:#0f172a;">'+(e.icon||'')+' '+e.ticker+' <span style="font-weight:700;color:#475569;font-size:10.5px;">'+e.strategy+'</span></div>'
+          + '<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-top:1px;">'+e.dte+'d DTE · logged '+e.dateAdded+' @ $'+Number(e.spotAtLog).toFixed(2)+'</div>'
+        + '</div>'
+        + '<button onclick="stratLogCycleStatus('+e.id+')" style="background:'+sm.bg+';color:'+sm.color+';border:none;border-radius:20px;padding:4px 9px;font-size:9.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">'+sm.label+'</button>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">'+(e.isCredit?'Credit':'Cost')+'</div><div style="font-size:10.5px;font-weight:800;color:#0f172a;">'+amtLabel.replace(/^(Credit |Cost )/,'')+'</div></div>'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Gain</div><div style="font-size:10.5px;font-weight:800;color:#16a34a;">'+maxGainStr+'</div></div>'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Loss</div><div style="font-size:10.5px;font-weight:800;color:#dc2626;">-$'+Math.abs(e.maxLoss).toFixed(2)+'</div></div>'
+      + '</div>'
+      + '<button onclick="stratLogRemove('+e.id+')" style="width:100%;margin-top:6px;background:none;border:1px dashed #e2e8f0;border-radius:6px;padding:4px;font-size:9px;font-weight:700;color:#94a3b8;cursor:pointer;">Remove</button>'
+    + '</div>';
+  });
+  mount.innerHTML = html;
+}
+
 function ndRender(d,strats,targetId,opts){
   targetId = targetId || 'nd-results';
   opts = opts || {};
@@ -1888,6 +1990,8 @@ function ndRender(d,strats,targetId,opts){
   h+='</div>';
 
   strats.forEach(function(st,i){
+    var logKey = targetId+'_'+i;
+    ND_STRAT_STORE[logKey] = { st: st, d: d, dte: ndDte, expiry: ndExpiry() };
     h+='<div class="nd-panel'+(i===recIdx?' active':'')+'">';
     // Recommended banner
     if(st.recommended){
@@ -1939,6 +2043,7 @@ function ndRender(d,strats,targetId,opts){
       +ex.rules.map(function(rule){
         return'<div class="nd-exit-rule"><div class="nd-exit-rule-dot" style="background:'+rule.c+'"></div><div class="nd-exit-rule-txt">'+rule.t+'</div></div>';
       }).join('')+'</div></div>';
+    h+='<button id="log-btn-'+logKey+'" onclick="ndAddToLog(\''+logKey+'\')" style="width:calc(100% - 26px);margin:0 13px 13px;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:10px;font-size:11.5px;font-weight:800;cursor:pointer;">📋 Add to Log</button>';
     h+='</div>';
   });
   h+='</div>';
