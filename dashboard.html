@@ -870,9 +870,10 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <button type="button" id="vs-subtab-btn-screener" class="vs-subtab-btn" onclick="vsSwitchSubtab('screener')">🔍 Top 10 High-IV</button>
   </div>
   <style>
-    .vs-subtab-bar{display:flex;gap:6px;margin:2px 0 10px;}
-    .vs-subtab-btn{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;color:#334155;border-radius:8px;padding:9px 6px;font-size:11.5px;font-weight:900;cursor:pointer;letter-spacing:.02em;font-family:inherit;}
-    .vs-subtab-btn.active{background:#16a34a;border-color:#16a34a;color:#fff;}
+    .vs-subtab-bar{display:flex;gap:8px;margin:2px 0 12px;}
+    .vs-subtab-btn{flex:1;background:#f4f7fb;border:1.5px solid #c8d5e8;color:#334155;border-radius:11px;padding:13px 8px;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:-.01em;font-family:inherit;transition:transform .08s, box-shadow .08s;}
+    .vs-subtab-btn:active{transform:scale(.97);}
+    .vs-subtab-btn.active{background:linear-gradient(135deg,#16a34a,#15803d);border-color:#15803d;color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.28);}
     #vs-subtab-panel-screener{display:none;}
   </style>
 
