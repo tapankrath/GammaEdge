@@ -1939,13 +1939,25 @@ function ndRender(d,strats,targetId,opts){
   });
   h+='</div>';
   var box=document.getElementById(targetId);
-  box.innerHTML=h; box.style.display='block';
+  box.innerHTML=h;
   if(targetId==='nd-results'){
+    // An analysis can still be in-flight (or just complete) after the user
+    // has already switched to the screener subtab — don't force these
+    // results back open if that's happened; just populate them silently
+    // so they're ready and correct whenever the user switches back.
+    var tickerBtn=document.getElementById('vs-subtab-btn-ticker');
+    var onTickerSubtab = !tickerBtn || tickerBtn.classList.contains('active');
+    box.style.display = onTickerSubtab ? 'block' : 'none';
     ndHasResults=true;
     ndCollapseControls();
-    setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
-  } else if(opts.scroll!==false){
-    setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+    if(onTickerSubtab){
+      setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'start'});},80);
+    }
+  } else {
+    box.style.display='block';
+    if(opts.scroll!==false){
+      setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+    }
   }
 }
 
