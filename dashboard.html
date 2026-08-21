@@ -1881,6 +1881,7 @@ function ndAddToLog(key){
   var list = loadStratLog();
   list.unshift({
     id: Date.now(),
+    source: 'stratedge',
     ticker: d.sym,
     strategy: st.name,
     icon: st.icon,
@@ -1937,21 +1938,34 @@ function renderStratLog(){
   var html = '';
   list.forEach(function(e){
     var sm = statusMeta[e.status] || statusMeta.watching;
-    var amtLabel = e.isCredit ? 'Credit +$'+Number(e.amount).toFixed(2) : 'Cost -$'+Math.abs(e.amount).toFixed(2);
-    var maxGainStr = e.maxGain===null ? 'Unlimited' : '+$'+Number(e.maxGain).toFixed(2);
+    var isStratEdge = (e.maxGain!=null || e.maxLoss!=null);
+    var metaLine = isStratEdge
+      ? e.dte+'d DTE · logged '+e.dateAdded+' @ $'+Number(e.spotAtLog).toFixed(2)
+      : 'logged '+e.dateAdded+(e.assumedPrice!=null?' @ $'+Number(e.assumedPrice).toFixed(2):'')+' · via CompoundAI';
+    var statsHtml;
+    if(isStratEdge){
+      var amtLabel = e.isCredit ? '+$'+Number(e.amount).toFixed(2) : '-$'+Math.abs(e.amount).toFixed(2);
+      var maxGainStr = e.maxGain===null ? 'Unlimited' : '+$'+Number(e.maxGain).toFixed(2);
+      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">'+(e.isCredit?'Credit':'Cost')+'</div><div style="font-size:10.5px;font-weight:800;color:#0f172a;">'+amtLabel+'</div></div>'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Gain</div><div style="font-size:10.5px;font-weight:800;color:#16a34a;">'+maxGainStr+'</div></div>'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Loss</div><div style="font-size:10.5px;font-weight:800;color:#dc2626;">-$'+Math.abs(e.maxLoss).toFixed(2)+'</div></div>'
+      + '</div>';
+    } else {
+      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px;">'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Capital</div><div style="font-size:10.5px;font-weight:800;color:#0f172a;">$'+Math.round(e.capitalAllocation||0).toLocaleString()+'</div></div>'
+        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Projected Return</div><div style="font-size:10.5px;font-weight:800;color:#16a34a;">'+(e.projectedReturnPct!=null?(e.projectedReturnPct>=0?'+':'')+Number(e.projectedReturnPct).toFixed(1)+'%':'—')+'</div></div>'
+      + '</div>';
+    }
     html += '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:9px 10px;margin-bottom:6px;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
         + '<div style="flex:1;min-width:0;">'
           + '<div style="font-size:12px;font-weight:900;color:#0f172a;">'+(e.icon||'')+' '+e.ticker+' <span style="font-weight:700;color:#475569;font-size:10.5px;">'+e.strategy+'</span></div>'
-          + '<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-top:1px;">'+e.dte+'d DTE · logged '+e.dateAdded+' @ $'+Number(e.spotAtLog).toFixed(2)+'</div>'
+          + '<div style="font-size:9.5px;color:#94a3b8;font-weight:600;margin-top:1px;">'+metaLine+'</div>'
         + '</div>'
         + '<button onclick="stratLogCycleStatus('+e.id+')" style="background:'+sm.bg+';color:'+sm.color+';border:none;border-radius:20px;padding:4px 9px;font-size:9.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">'+sm.label+'</button>'
       + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">'
-        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">'+(e.isCredit?'Credit':'Cost')+'</div><div style="font-size:10.5px;font-weight:800;color:#0f172a;">'+amtLabel.replace(/^(Credit |Cost )/,'')+'</div></div>'
-        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Gain</div><div style="font-size:10.5px;font-weight:800;color:#16a34a;">'+maxGainStr+'</div></div>'
-        + '<div style="background:#f8fafc;border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Max Loss</div><div style="font-size:10.5px;font-weight:800;color:#dc2626;">-$'+Math.abs(e.maxLoss).toFixed(2)+'</div></div>'
-      + '</div>'
+      + statsHtml
       + '<button onclick="stratLogRemove('+e.id+')" style="width:100%;margin-top:6px;background:none;border:1px dashed #e2e8f0;border-radius:6px;padding:4px;font-size:9px;font-weight:700;color:#94a3b8;cursor:pointer;">Remove</button>'
     + '</div>';
   });

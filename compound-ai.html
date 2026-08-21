@@ -274,6 +274,17 @@ footer b{color:var(--sub);}
 
   <div class="results" id="cp-results"></div>
 
+  <div class="input-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:900;color:var(--text);letter-spacing:.06em;text-transform:uppercase;">📋 Strategy Log <span id="strat-log-count" style="color:var(--muted);font-weight:700;"></span></div>
+      <button onclick="if(loadStratLog().length && confirm('Clear the entire strategy log?')){saveStratLog([]);renderStratLog();}" style="font-size:9.5px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;">Clear all</button>
+    </div>
+    <div style="font-size:10.5px;color:var(--sub);font-weight:600;line-height:1.5;margin-bottom:10px;">
+      Shared with StratEdge's Top 10 scanner — anything logged there or here shows up in one list. Tap a status pill to cycle Watching → Entered → Closed.
+    </div>
+    <div id="strat-log-mount"></div>
+  </div>
+
   <footer>
     <b>How this works:</b> the required-rate math is exact compounding arithmetic, computed instantly in your browser — no AI involved. The "Find Strategies" step then uses Claude with live web search to propose real structures sized to that rate. Uses the same key as the rest of the suite.<br><br>
     <b>Disclaimer:</b> compounding at a fixed rate every single period is a planning idealization, not a guarantee — real trading has losing periods. Outputs are AI-generated research scaffolding, not investment advice.
@@ -324,6 +335,104 @@ function setPeriod(p){
 // ══════════════════════════════════════
 function fmtMoney(n){ return '$' + Math.round(n).toLocaleString(); }
 function fmtPct(n, dp){ dp = dp==null?2:dp; return (n>=0?'+':'') + n.toFixed(dp) + '%'; }
+
+// ── STRATEGY LOG — shared with StratEdge (same storage key), so a strategy
+// logged here shows up in the same tracked list, regardless of source. ──
+var CP_STRAT_STORE = {};
+var STRAT_LOG_KEY = 'ge_strategy_log';
+function loadStratLog(){ try{ return JSON.parse(localStorage.getItem(STRAT_LOG_KEY)||'[]'); }catch(e){ return []; } }
+function saveStratLog(list){ localStorage.setItem(STRAT_LOG_KEY, JSON.stringify(list)); }
+
+function cpAddToLog(key){
+  var s = CP_STRAT_STORE[key];
+  if(!s) return;
+  var list = loadStratLog();
+  list.unshift({
+    id: Date.now(),
+    source: 'compound',
+    ticker: s.ticker,
+    strategy: s.strategyName,
+    icon: '🎯',
+    structure: s.structure,
+    rationale: s.rationale,
+    requiredMove: s.requiredMove,
+    capitalAllocation: s.capitalAllocation,
+    projectedReturnPct: s.projectedReturnPct,
+    assumedPrice: s.assumedPrice,
+    dateAdded: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    status: 'watching'
+  });
+  saveStratLog(list);
+  renderStratLog();
+  var btn = document.getElementById('log-btn-'+key);
+  if(btn){ btn.textContent='✓ Logged'; btn.disabled=true; btn.style.opacity='0.6'; }
+}
+
+function stratLogRemove(id){
+  saveStratLog(loadStratLog().filter(function(e){ return e.id !== id; }));
+  renderStratLog();
+}
+
+function stratLogCycleStatus(id){
+  var order = ['watching','entered','closed'];
+  var list = loadStratLog();
+  list.forEach(function(e){
+    if(e.id === id){ e.status = order[(order.indexOf(e.status)+1) % order.length]; }
+  });
+  saveStratLog(list);
+  renderStratLog();
+}
+
+function renderStratLog(){
+  var mount = document.getElementById('strat-log-mount');
+  if(!mount) return;
+  var list = loadStratLog();
+  var countEl = document.getElementById('strat-log-count');
+  if(countEl) countEl.textContent = list.length ? '('+list.length+')' : '';
+  if(!list.length){
+    mount.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:var(--muted);font-weight:600;">No strategies logged yet — tap "📋 Add to Log" on any strategy above to start tracking.</div>';
+    return;
+  }
+  var statusMeta = {
+    watching: {label:'👀 Watching', bg:'#f1f5f9', color:'#475569'},
+    entered:  {label:'🟢 Entered',  bg:'#f0fdf4', color:'#15803d'},
+    closed:   {label:'⚪ Closed',   bg:'#f8fafc', color:'#94a3b8'}
+  };
+  var html = '';
+  list.forEach(function(e){
+    var sm = statusMeta[e.status] || statusMeta.watching;
+    // StratEdge entries carry real computed maxGain/maxLoss; CompoundAI
+    // entries carry an AI-projected capital/return instead — render
+    // whichever shape this entry actually has.
+    var statsHtml;
+    if(e.maxGain!=null || e.maxLoss!=null){
+      var amtLabel = e.isCredit ? '+$'+Number(e.amount).toFixed(2) : '-$'+Math.abs(e.amount).toFixed(2);
+      var maxGainStr = e.maxGain===null ? 'Unlimited' : '+$'+Number(e.maxGain).toFixed(2);
+      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">'
+        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">'+(e.isCredit?'Credit':'Cost')+'</div><div style="font-size:10.5px;font-weight:800;color:var(--text);">'+amtLabel+'</div></div>'
+        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Max Gain</div><div style="font-size:10.5px;font-weight:800;color:var(--green);">'+maxGainStr+'</div></div>'
+        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Max Loss</div><div style="font-size:10.5px;font-weight:800;color:var(--red);">-$'+Math.abs(e.maxLoss).toFixed(2)+'</div></div>'
+      + '</div>';
+    } else {
+      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px;">'
+        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Capital</div><div style="font-size:10.5px;font-weight:800;color:var(--text);">'+fmtMoney(e.capitalAllocation||0)+'</div></div>'
+        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Projected Return</div><div style="font-size:10.5px;font-weight:800;color:var(--green);">'+(e.projectedReturnPct!=null?fmtPct(e.projectedReturnPct):'—')+'</div></div>'
+      + '</div>';
+    }
+    html += '<div style="background:var(--p1);border:1px solid var(--border);border-radius:9px;padding:9px 10px;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+        + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:12px;font-weight:900;color:var(--text);">'+(e.icon||'')+' '+e.ticker+' <span style="font-weight:700;color:var(--sub);font-size:10.5px;">'+e.strategy+'</span></div>'
+          + '<div style="font-size:9.5px;color:var(--muted);font-weight:600;margin-top:1px;">logged '+e.dateAdded+(e.source==='compound'?' · via CompoundAI':' · via StratEdge')+'</div>'
+        + '</div>'
+        + '<button onclick="stratLogCycleStatus('+e.id+')" style="background:'+sm.bg+';color:'+sm.color+';border:none;border-radius:20px;padding:4px 9px;font-size:9.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">'+sm.label+'</button>'
+      + '</div>'
+      + statsHtml
+      + '<button onclick="stratLogRemove('+e.id+')" style="width:100%;margin-top:6px;background:none;border:1px dashed var(--border);border-radius:6px;padding:4px;font-size:9px;font-weight:700;color:var(--muted);cursor:pointer;">Remove</button>'
+    + '</div>';
+  });
+  mount.innerHTML = html;
+}
 
 function tierFor(annualizedPct){
   if(annualizedPct < 30) return { tier:'conservative', tierLabel:'Conservative' };
@@ -685,6 +794,8 @@ function renderStrategyResults(data, calc){
     var diff = (s.projectedReturnPct||0) - calc.perPeriodPct;
     var meets = diff >= -0.5; // small tolerance
     var priceId = 'price-check-'+idx;
+    var logKey = 'cp_'+idx;
+    CP_STRAT_STORE[logKey] = s;
     html += `<div class="pick-card">
       <div class="pick-hd">
         <div>
@@ -708,6 +819,7 @@ function renderStrategyResults(data, calc){
           <div class="pstat-cell"><div class="pstat-l">Capital</div><div class="pstat-v">$${Math.round(s.capitalAllocation||0).toLocaleString()}</div></div>
           <div class="pstat-cell"><div class="pstat-l">Target Return</div><div class="pstat-v">${fmtPct(calc.perPeriodPct)}</div></div>
         </div>
+        <button id="log-btn-${logKey}" onclick="cpAddToLog('${logKey}')" style="width:100%;margin-top:11px;background:#0f172a;color:#fff;border:none;border-radius:8px;padding:10px;font-size:11.5px;font-weight:800;cursor:pointer;">📋 Add to Log</button>
       </div>
     </div>`;
   });
@@ -828,7 +940,7 @@ async function runFindStrategies(){
         },
         signal: controller.signal,
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: "claude-sonnet-4-6",
           max_tokens: 4000,
           messages: [{ role: "user", content: prompt }],
           tools: [{ type: "web_search_20250305", name: "web_search" }]
@@ -912,6 +1024,7 @@ function restoreSavedPlan(){
 
 checkKeyOnLoad();
 restoreSavedPlan();
+renderStratLog();
 </script>
 
 </body>
