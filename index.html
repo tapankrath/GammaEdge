@@ -66,6 +66,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user
 .mkt-tile.flat{border-color:#fde68a;background:#fffbeb;}
 .mkt-tile.flat .mkt-tile-chg{color:#b45309;}
 .mkt-strip-note{grid-column:1 / -1;font-size:10px;color:#94a3b8;font-weight:600;text-align:center;padding:8px 4px;}
+@keyframes mkt-spin{to{transform:rotate(360deg);}}
 
 .cat-tabs{display:flex;border-bottom:1px solid #e2e8f0;margin-bottom:16px;}
 .cat-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px 2px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:3px solid transparent;margin-bottom:-1px;}
@@ -142,7 +143,15 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
     <div class="ge-hero-tag">10 AI tools, organized around <b>one question</b>: where are you in the trade — <b>researching</b>, <b>building</b>, or <b>managing</b>?</div>
   </div>
 
-  <div class="mkt-strip" id="mkt-strip"></div>
+  <div id="mkt-wrap" style="margin:0 0 16px;">
+    <div id="mkt-hd" style="display:none;align-items:center;justify-content:space-between;padding:0 2px 6px;">
+      <div style="font-size:9.5px;color:#94a3b8;font-weight:700;" id="mkt-updated"></div>
+      <button onclick="mktRenderStrip()" id="mkt-refresh-btn" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#475569;font-size:10px;font-weight:800;cursor:pointer;padding:2px 4px;">
+        <span id="mkt-refresh-icon" style="display:inline-block;font-size:11px;">🔄</span> Refresh
+      </button>
+    </div>
+    <div class="mkt-strip" id="mkt-strip"></div>
+  </div>
 
   <!-- CATEGORY TABS -->
   <div class="cat-tabs">
@@ -408,13 +417,23 @@ function mktFetchQuote(symbol, fk){
 
 function mktRenderStrip(){
   var mount = document.getElementById('mkt-strip');
+  var hd = document.getElementById('mkt-hd');
+  var updatedEl = document.getElementById('mkt-updated');
+  var refreshBtn = document.getElementById('mkt-refresh-btn');
+  var refreshIcon = document.getElementById('mkt-refresh-icon');
   if(!mount) return;
   var fk = (localStorage.getItem('ge_fh_key')||'').trim();
 
   if(!fk){
+    if(hd) hd.style.display='none';
     mount.innerHTML = '<div class="mkt-strip-note">📊 Add a Finnhub key in ⚙️ Settings to see live Nasdaq / S&P / Dow / VIX here</div>';
     return;
   }
+
+  if(hd) hd.style.display='flex';
+  if(refreshBtn) refreshBtn.disabled=true;
+  if(refreshIcon) refreshIcon.style.animation='mkt-spin .8s linear infinite';
+  if(updatedEl) updatedEl.textContent='Updating…';
 
   // Show tiles immediately in a loading state, then fill in as data arrives
   mount.innerHTML = MKT_SYMBOLS.map(function(m){
@@ -425,8 +444,8 @@ function mktRenderStrip(){
     + '</div>';
   }).join('');
 
-  MKT_SYMBOLS.forEach(function(m){
-    mktFetchQuote(m.symbol, fk).then(function(q){
+  var fetches = MKT_SYMBOLS.map(function(m){
+    return mktFetchQuote(m.symbol, fk).then(function(q){
       var tile = document.getElementById('mkt-tile-'+m.symbol);
       if(!tile) return;
       if(!q || q.c == null){
@@ -440,6 +459,12 @@ function mktRenderStrip(){
       tile.querySelector('.mkt-tile-val').textContent = m.symbol==='VIX' ? Number(q.c).toFixed(2) : '$'+Number(q.c).toFixed(2);
       tile.querySelector('.mkt-tile-chg').textContent = (dp>=0?'+':'')+dp.toFixed(2)+'%';
     });
+  });
+
+  Promise.all(fetches).then(function(){
+    if(refreshBtn) refreshBtn.disabled=false;
+    if(refreshIcon) refreshIcon.style.animation='';
+    if(updatedEl) updatedEl.textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
   });
 }
 
