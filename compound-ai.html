@@ -304,7 +304,7 @@ footer b{color:var(--sub);}
       <button onclick="if(loadStratLog().length && confirm('Clear the entire strategy log?')){saveStratLog([]);renderStratLog();}" style="font-size:9.5px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;">Clear all</button>
     </div>
     <div style="font-size:10.5px;color:var(--sub);font-weight:600;line-height:1.5;margin-bottom:10px;">
-      Shared with StratEdge's Top 10 scanner — anything logged there or here shows up in one list. Tap a status pill to cycle Watching → Entered → Closed.
+      Shared with StratEdge's Top 10 scanner — anything logged there or here shows up in one list. Tap a status pill to cycle Watching → Entered → Closed. Mark ✓ Worked / ✗ Didn't once you know the outcome — tap again to clear.
     </div>
     <div id="strat-log-mount"></div>
   </div>
@@ -430,6 +430,15 @@ function stratLogCycleStatus(id){
   renderStratLog();
 }
 
+function stratLogSetOutcome(id, outcome){
+  var list = loadStratLog();
+  list.forEach(function(e){
+    if(e.id === id){ e.outcome = (e.outcome === outcome) ? null : outcome; } // tap again to clear
+  });
+  saveStratLog(list);
+  renderStratLog();
+}
+
 function renderStratLog(){
   var mount = document.getElementById('strat-log-mount');
   if(!mount) return;
@@ -448,34 +457,42 @@ function renderStratLog(){
   var html = '';
   list.forEach(function(e){
     var sm = statusMeta[e.status] || statusMeta.watching;
-    // StratEdge entries carry real computed maxGain/maxLoss; CompoundAI
-    // entries carry an AI-projected capital/return instead — render
-    // whichever shape this entry actually has.
-    var statsHtml;
+
+    // "What" — the actual trade structure. StratEdge entries carry a real
+    // computed legs array; CompoundAI entries carry a structure string.
+    var whatText = e.structure || (Array.isArray(e.legs) && e.legs.length
+      ? e.legs.map(function(l){ return (l.a||l.action||'')+' '+(l.desc||l.sub||''); }).join(' · ')
+      : '');
+
+    // "Target" — whichever this entry actually has.
+    var targetText;
     if(e.maxGain!=null || e.maxLoss!=null){
-      var amtLabel = e.isCredit ? '+$'+Number(e.amount).toFixed(2) : '-$'+Math.abs(e.amount).toFixed(2);
       var maxGainStr = e.maxGain===null ? 'Unlimited' : '+$'+Number(e.maxGain).toFixed(2);
-      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">'
-        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">'+(e.isCredit?'Credit':'Cost')+'</div><div style="font-size:10.5px;font-weight:800;color:var(--text);">'+amtLabel+'</div></div>'
-        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Max Gain</div><div style="font-size:10.5px;font-weight:800;color:var(--green);">'+maxGainStr+'</div></div>'
-        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Max Loss</div><div style="font-size:10.5px;font-weight:800;color:var(--red);">-$'+Math.abs(e.maxLoss).toFixed(2)+'</div></div>'
-      + '</div>';
+      targetText = 'Max gain '+maxGainStr+' · max loss -$'+Math.abs(e.maxLoss).toFixed(2);
+    } else if(e.projectedReturnPct!=null){
+      targetText = fmtPct(e.projectedReturnPct)+' projected return on '+fmtMoney(e.capitalAllocation||0);
     } else {
-      statsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px;">'
-        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Capital</div><div style="font-size:10.5px;font-weight:800;color:var(--text);">'+fmtMoney(e.capitalAllocation||0)+'</div></div>'
-        + '<div style="background:var(--p2);border-radius:6px;padding:5px;text-align:center;"><div style="font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase;">Projected Return</div><div style="font-size:10.5px;font-weight:800;color:var(--green);">'+(e.projectedReturnPct!=null?fmtPct(e.projectedReturnPct):'—')+'</div></div>'
-      + '</div>';
+      targetText = '—';
     }
-    html += '<div style="background:var(--p1);border:1px solid var(--border);border-radius:9px;padding:9px 10px;margin-bottom:6px;">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
-        + '<div style="flex:1;min-width:0;">'
-          + '<div style="font-size:12px;font-weight:900;color:var(--text);">'+(e.icon||'')+' '+e.ticker+' <span style="font-weight:700;color:var(--sub);font-size:10.5px;">'+e.strategy+'</span></div>'
-          + '<div style="font-size:9.5px;color:var(--muted);font-weight:600;margin-top:1px;">logged '+e.dateAdded+(e.source==='compound'?' · via CompoundAI':' · via StratEdge')+'</div>'
-        + '</div>'
+
+    var boughtText = 'Bought '+e.dateAdded+(e.assumedPrice!=null?' @ $'+Number(e.assumedPrice).toFixed(2):(e.spotAtLog!=null?' @ $'+Number(e.spotAtLog).toFixed(2):''))+(e.source==='compound'?' · via CompoundAI':' · via StratEdge');
+
+    var outcomeWorked = e.outcome === 'worked';
+    var outcomeFailed = e.outcome === 'failed';
+
+    html += '<div style="background:var(--p1);border:1px solid var(--border);border-radius:9px;padding:10px 11px;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
+        + '<div style="font-size:12.5px;font-weight:900;color:var(--text);">'+(e.icon||'')+' '+e.ticker+' <span style="font-weight:700;color:var(--sub);font-size:11px;">'+e.strategy+'</span></div>'
         + '<button onclick="stratLogCycleStatus('+e.id+')" style="background:'+sm.bg+';color:'+sm.color+';border:none;border-radius:20px;padding:4px 9px;font-size:9.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">'+sm.label+'</button>'
       + '</div>'
-      + statsHtml
-      + '<button onclick="stratLogRemove('+e.id+')" style="width:100%;margin-top:6px;background:none;border:1px dashed var(--border);border-radius:6px;padding:4px;font-size:9px;font-weight:700;color:var(--muted);cursor:pointer;">Remove</button>'
+      + '<div style="font-size:9.5px;color:var(--muted);font-weight:600;margin-top:2px;">'+boughtText+'</div>'
+      + (whatText ? '<div style="margin-top:6px;"><span style="font-size:8.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">What </span><span style="font-size:11.5px;color:var(--dim);font-weight:600;">'+whatText+'</span></div>' : '')
+      + '<div style="margin-top:4px;"><span style="font-size:8.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Target </span><span style="font-size:11.5px;color:var(--text);font-weight:700;">'+targetText+'</span></div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:9px;">'
+        + '<button onclick="stratLogSetOutcome('+e.id+',\'worked\')" style="flex:1;background:'+(outcomeWorked?'var(--green)':'var(--p2)')+';color:'+(outcomeWorked?'#fff':'var(--sub)')+';border:1px solid '+(outcomeWorked?'var(--green)':'var(--border)')+';border-radius:7px;padding:6px;font-size:11px;font-weight:800;cursor:pointer;">✓ Worked</button>'
+        + '<button onclick="stratLogSetOutcome('+e.id+',\'failed\')" style="flex:1;background:'+(outcomeFailed?'var(--red)':'var(--p2)')+';color:'+(outcomeFailed?'#fff':'var(--sub)')+';border:1px solid '+(outcomeFailed?'var(--red)':'var(--border)')+';border-radius:7px;padding:6px;font-size:11px;font-weight:800;cursor:pointer;">✗ Didn\'t</button>'
+        + '<button onclick="stratLogRemove('+e.id+')" style="background:none;border:1px dashed var(--border);border-radius:7px;padding:6px 9px;font-size:9.5px;font-weight:700;color:var(--muted);cursor:pointer;">Remove</button>'
+      + '</div>'
     + '</div>';
   });
   mount.innerHTML = html;
