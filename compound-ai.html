@@ -67,6 +67,11 @@ input,textarea,select{outline:none;font-family:inherit;}
 .modal-key-inp{flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;font-weight:600;color:var(--text);}
 .modal-eye{width:42px;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;font-size:15px;flex-shrink:0;}
 .modal-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.freq-opt{display:flex;align-items:center;justify-content:space-between;padding:13px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+.freq-opt:last-child{border-bottom:none;}
+.freq-opt-name{font-size:14.5px;font-weight:800;color:var(--text);}
+.freq-opt-sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px;}
+.freq-opt-check{font-size:16px;color:var(--blue);font-weight:900;}
 .modal-note a{color:var(--blue);}
 .btn-save-key{width:100%;margin-top:14px;padding:12px;border-radius:9px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:800;}
 .btn-cancel-modal{width:100%;margin-top:8px;padding:10px;border-radius:9px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;}
@@ -245,34 +250,48 @@ footer b{color:var(--sub);}
   <div class="input-card">
     <div class="row2">
       <div>
-        <label>Starting Capital</label>
+        <label>Initial Amount</label>
         <input type="number" id="cp-capital" value="10000" step="500">
       </div>
       <div>
-        <label>Target Gain %</label>
-        <input type="number" id="cp-target" value="50" step="5">
+        <label>Annual Return</label>
+        <input type="number" id="cp-annual-return" value="50" step="5">
       </div>
     </div>
-    <div class="hint">e.g. 50 = grow capital by 50% (100 = double it) by the end of the timeline.</div>
 
-    <label>Timeline (weeks)</label>
-    <input type="number" id="cp-timeline" value="12" step="1">
-
-    <label>Compounding Period</label>
-    <div class="chip-row" id="cp-period-chips">
-      <div class="chip" data-v="1" onclick="setPeriod(1)">1 Week</div>
-      <div class="chip on" data-v="2" onclick="setPeriod(2)">2 Weeks</div>
-      <div class="chip" data-v="4" onclick="setPeriod(4)">4 Weeks</div>
+    <div class="row2">
+      <div>
+        <label>Duration</label>
+        <input type="number" id="cp-duration" value="2" step="0.5">
+      </div>
+      <div>
+        <label>Addition (per period)</label>
+        <input type="number" id="cp-addition" value="0" step="100">
+      </div>
     </div>
-    <div class="hint">How often you re-enter a new trade with your full (compounded) capital.</div>
+
+    <label>Compounding Frequency</label>
+    <button type="button" id="cp-freq-btn" onclick="openFreqSheet()" style="width:100%;background:var(--p2);border:1.5px solid var(--border);color:var(--text);font-size:14px;font-weight:700;padding:11px 12px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">
+      <span id="cp-freq-label">Compound Monthly (12)</span>
+      <span style="color:var(--muted);">▾</span>
+    </button>
 
     <button class="run-btn" id="cp-calc-btn" onclick="runCalculate()">
-      <span class="btn-label">Calculate Required Rate</span>
+      <span class="btn-label">Calculate</span>
     </button>
     <div class="error" id="cp-err" style="display:none;"></div>
   </div>
 
   <div class="results" id="cp-results"></div>
+
+  <!-- Frequency bottom sheet -->
+  <div class="modal-overlay" id="freqSheetOverlay" onclick="if(event.target===this)closeFreqSheet()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Compounding Frequency</div>
+      <div id="freq-options"></div>
+    </div>
+  </div>
 
   <div class="input-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -321,12 +340,35 @@ function checkKeyOnLoad(){
 }
 
 // ── PERIOD TOGGLE ──
-var CP_PERIOD = 2;
-function setPeriod(p){
-  CP_PERIOD = p;
-  document.querySelectorAll('#cp-period-chips .chip').forEach(function(c){ c.classList.remove('on'); });
-  document.querySelector('#cp-period-chips .chip[data-v="'+p+'"]').classList.add('on');
-  // Re-run calc live if results are already showing, so toggling is instant A/B
+var FREQ_OPTIONS = [
+  { key:'annually',  label:'Annually',  sub:'Once a year',       periodsPerYear:1,   dteApprox:365 },
+  { key:'quarterly', label:'Quarterly', sub:'4 times a year',    periodsPerYear:4,   dteApprox:91 },
+  { key:'monthly',   label:'Monthly',   sub:'12 times a year',   periodsPerYear:12,  dteApprox:30 },
+  { key:'weekly',    label:'Weekly',    sub:'52 times a year',   periodsPerYear:52,  dteApprox:7 },
+  { key:'daily',     label:'Daily',     sub:'365 times a year',  periodsPerYear:365, dteApprox:1 }
+];
+var CP_FREQ = FREQ_OPTIONS[2]; // Monthly default, matches reference
+
+function openFreqSheet(){
+  var mount = document.getElementById('freq-options');
+  mount.innerHTML = FREQ_OPTIONS.map(function(f){
+    var on = f.key === CP_FREQ.key;
+    return '<div class="freq-opt" onclick="selectFreq(\''+f.key+'\')">'
+      + '<div><div class="freq-opt-name">'+f.label+'</div><div class="freq-opt-sub">'+f.sub+'</div></div>'
+      + (on ? '<span class="freq-opt-check">✓</span>' : '')
+      + '</div>';
+  }).join('');
+  document.getElementById('freqSheetOverlay').classList.add('open');
+}
+function closeFreqSheet(){
+  document.getElementById('freqSheetOverlay').classList.remove('open');
+}
+function selectFreq(key){
+  var found = FREQ_OPTIONS.filter(function(f){ return f.key===key; })[0];
+  if(!found) return;
+  CP_FREQ = found;
+  document.getElementById('cp-freq-label').textContent = 'Compound '+found.label+' ('+found.periodsPerYear+')';
+  closeFreqSheet();
   if(document.getElementById('cp-results').classList.contains('show')) runCalculate();
 }
 
@@ -442,41 +484,52 @@ function tierFor(annualizedPct){
   return { tier:'unrealistic', tierLabel:'Unrealistic' };
 }
 
-function computeCompounding(capital, targetPct, timelineWeeks, periodWeeks){
-  var n = Math.max(1, Math.round(timelineWeeks / periodWeeks));
-  var M = 1 + targetPct/100;                    // total multiple needed
-  var perPeriodRate = Math.pow(M, 1/n) - 1;      // exact rate needed per period
+function computeForward(initialAmount, annualReturnPct, durationYears, freq, addition){
+  var periodsPerYear = freq.periodsPerYear;
+  var n = Math.max(1, Math.round(durationYears * periodsPerYear));
+  var perPeriodRate = (annualReturnPct/100) / periodsPerYear; // matches standard compound-calculator convention
   var perPeriodPct = perPeriodRate * 100;
 
-  var periodsPerYear = 52 / periodWeeks;
-  var annualizedMultiple = Math.pow(1+perPeriodRate, periodsPerYear);
-  var annualizedPct = (annualizedMultiple - 1) * 100;
-
+  // annualReturnPct is already annual — no need to re-derive it
+  var annualizedPct = annualReturnPct;
   var tierInfo = tierFor(annualizedPct);
 
-  // Projection table
   var rows = [];
-  var bal = capital;
+  var bal = initialAmount;
+  var totalContribution = initialAmount;
   for(var i=1; i<=n; i++){
-    var newBal = bal * (1+perPeriodRate);
-    rows.push({ period: i, start: bal, end: newBal, gain: newBal-bal });
+    var newBal = bal*(1+perPeriodRate) + addition;
+    rows.push({ period:i, start:bal, end:newBal, gain:newBal-bal });
     bal = newBal;
+    totalContribution += addition;
   }
+  var totalProfit = bal - totalContribution;
 
-  // One-flat-period stress test: if period 1 returns 0%, what do periods 2..n need?
+  // One-flat-period stress test: if period 1 returns 0% (contribution still
+  // applies), what rate would the remaining periods need to still reach the
+  // SAME projected final balance? Solved numerically since `addition`
+  // complicates a closed-form solution.
   var stress = null;
   if(n > 1){
-    var remainingMultipleNeeded = M; // period 1 contributes ×1 (flat)
-    var stressRate = Math.pow(remainingMultipleNeeded, 1/(n-1)) - 1;
-    stress = { rate: stressRate*100, periods: n-1 };
+    var afterFlat = initialAmount*(1+0) + addition;
+    var remainingPeriods = n-1;
+    var lo=-0.9, hi=10, mid, testBal;
+    for(var iter=0; iter<60; iter++){
+      mid = (lo+hi)/2;
+      testBal = afterFlat;
+      for(var k=0;k<remainingPeriods;k++){ testBal = testBal*(1+mid)+addition; }
+      if(testBal < bal) lo=mid; else hi=mid;
+    }
+    stress = { rate: mid*100, periods: remainingPeriods };
   }
 
   return {
-    n: n, actualWeeks: n*periodWeeks, requestedWeeks: timelineWeeks,
-    perPeriodPct: perPeriodPct, annualizedPct: annualizedPct,
-    tier: tierInfo.tier, tierLabel: tierInfo.tierLabel,
-    finalCapital: bal, totalGain: bal-capital, targetCapital: bal,
-    rows: rows, stress: stress
+    n:n, freqLabel:freq.label, periodsPerYear:periodsPerYear, durationYears:durationYears,
+    perPeriodPct:perPeriodPct, annualizedPct:annualizedPct,
+    tier:tierInfo.tier, tierLabel:tierInfo.tierLabel,
+    finalCapital:bal, totalContribution:totalContribution, totalProfit:totalProfit,
+    targetCapital:bal, initialAmount:initialAmount, addition:addition,
+    rows:rows, stress:stress
   };
 }
 
@@ -499,14 +552,16 @@ var PLAN_KEY = 'ge_compound_plan';
 function savePlan(){ localStorage.setItem(PLAN_KEY, JSON.stringify(window._cpPlan)); }
 function loadSavedPlan(){ try{ return JSON.parse(localStorage.getItem(PLAN_KEY)); }catch(e){ return null; } }
 
-function newPlan(calc, capital, targetPct){
+function newPlan(calc, capital, annualReturnPct){
   window._cpPlan = {
     capital: capital,
-    targetPct: targetPct,
-    periodWeeks: CP_PERIOD,
+    annualReturnPct: annualReturnPct,
+    periodsPerYear: calc.periodsPerYear,
+    freqLabel: calc.freqLabel,
     n: calc.n,
     targetCapital: calc.targetCapital,
     originalPerPeriodPct: calc.perPeriodPct,
+    addition: calc.addition,
     checkins: {}
   };
   savePlan();
@@ -675,33 +730,72 @@ function renderProjectionSection(){
   mount.innerHTML = html;
 }
 
-function renderResults(calc, capital, targetPct){
+function buildResultBars(calc){
+  // Cap at ~12 bars for readability — group periods into buckets if there
+  // are more than that, matching the reference app's compact bar chart.
+  var rows = calc.rows;
+  var buckets = [];
+  if(rows.length <= 12){
+    buckets = rows;
+  } else {
+    var groupSize = Math.ceil(rows.length/12);
+    for(var i=0; i<rows.length; i+=groupSize){
+      buckets.push(rows[Math.min(i+groupSize-1, rows.length-1)]);
+    }
+  }
+  var maxEnd = buckets.length ? buckets[buckets.length-1].end : calc.finalCapital;
+  var html = '<div style="display:flex;align-items:flex-end;gap:4px;height:130px;padding:10px 2px 0;">';
+  buckets.forEach(function(r){
+    var contribAtPoint = calc.initialAmount + calc.addition*r.period;
+    var profitAtPoint = Math.max(0, r.end - contribAtPoint);
+    var totalH = maxEnd>0 ? (r.end/maxEnd*100) : 0;
+    var contribH = maxEnd>0 ? (Math.min(contribAtPoint,r.end)/maxEnd*100) : 0;
+    var profitH = Math.max(0, totalH-contribH);
+    html += '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;">'
+      + '<div style="background:var(--green);border-radius:2px 2px 0 0;height:'+profitH+'%;min-height:'+(profitH>0?'2px':'0')+';"></div>'
+      + '<div style="background:var(--blue);height:'+contribH+'%;min-height:2px;"></div>'
+    + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderResults(calc, capital, annualReturnPct, isRestore){
   var box = document.getElementById('cp-results');
   var html = '';
 
-  html += `<div class="rate-card tier-${calc.tier}">
-    <div class="rate-lbl">Required Return Per Period</div>
-    <div class="rate-val">${fmtPct(calc.perPeriodPct)}</div>
-    <div class="rate-sub">every ${CP_PERIOD} week${CP_PERIOD>1?'s':''}, compounding, for ${calc.n} period${calc.n>1?'s':''}</div>
-    <div class="rate-tier-badge">${calc.tierLabel} · ${fmtPct(calc.annualizedPct,0)} annualized</div>
+  html += `<div class="rate-card tier-${calc.tier}" style="text-align:center;">
+    <div class="rate-lbl">Projected Balance</div>
+    <div class="rate-val" style="font-size:32px;">${fmtMoney(calc.finalCapital)}</div>
+    <div class="rate-sub">${calc.freqLabel} compounding, ${calc.durationYears} year${calc.durationYears!=1?'s':''}, ${calc.n} period${calc.n>1?'s':''}</div>
+    <div class="rate-tier-badge">${calc.tierLabel} · ${fmtPct(calc.annualizedPct,0)} annual</div>
   </div>`;
 
-  html += `<div class="stat-row">
-    <div class="stat-cell"><div class="stat-l">Final Capital</div><div class="stat-v">${fmtMoney(calc.finalCapital)}</div></div>
-    <div class="stat-cell"><div class="stat-l">Total Gain</div><div class="stat-v" style="color:var(--green)">${fmtMoney(calc.totalGain)}</div></div>
+  var contribPct = calc.finalCapital>0 ? (calc.totalContribution/calc.finalCapital*100) : 100;
+  html += `<div class="stat-cell" style="margin-bottom:12px;">
+    <div style="display:flex;height:8px;border-radius:5px;overflow:hidden;margin-bottom:10px;">
+      <div style="width:${contribPct}%;background:var(--blue);"></div>
+      <div style="width:${100-contribPct}%;background:var(--green);"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+      <span style="font-size:12px;font-weight:700;color:var(--dim);"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:6px;"></span>Contribution</span>
+      <span style="font-size:13px;font-weight:800;color:var(--text);">${fmtMoney(calc.totalContribution)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+      <span style="font-size:12px;font-weight:700;color:var(--dim);"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;"></span>Profit</span>
+      <span style="font-size:13px;font-weight:800;color:var(--green);">${fmtMoney(calc.totalProfit)}</span>
+    </div>
   </div>`;
 
-  html += `<div class="reality-note tier-${calc.tier}">${realityNoteText(calc.tier)}</div>`;
+  html += buildResultBars(calc);
+
+  html += `<div class="reality-note tier-${calc.tier}" style="margin-top:12px;">${realityNoteText(calc.tier)}</div>`;
 
   if(calc.stress){
     html += `<div class="stress-card">
       <div class="stress-title">⚠️ One Flat Period Stress Test</div>
-      <div class="stress-txt">If period 1 comes in <b>flat (0%)</b> instead of the required rate, periods 2–${calc.n} would need to average <b>${fmtPct(calc.stress.rate)}</b> each to still hit your target — not ${fmtPct(calc.perPeriodPct)}. This is how fast compounding plans get fragile after just one miss.</div>
+      <div class="stress-txt">If period 1 comes in <b>flat (0%)</b> instead of your target ${fmtPct(annualReturnPct,0)} annual rate, periods 2–${calc.n} would need to average <b>${fmtPct(calc.stress.rate)}</b> each to still reach the same ${fmtMoney(calc.finalCapital)} projection.</div>
     </div>`;
-  }
-
-  if(calc.actualWeeks !== calc.requestedWeeks){
-    html += `<div class="hint" style="margin-bottom:10px;">Note: ${calc.requestedWeeks} weeks doesn't divide evenly into ${CP_PERIOD}-week periods — using ${calc.n} periods (${calc.actualWeeks} weeks) as the closest fit.</div>`;
   }
 
   html += `<div id="cp-projection-mount"></div>`;
@@ -711,7 +805,14 @@ function renderResults(calc, capital, targetPct){
   </button>
   <div class="loading-status" id="cp-strat-loading" style="display:none;"></div>
   <div class="error" id="cp-strat-err" style="display:none;"></div>
-  <div class="strat-results" id="cp-strat-results"></div>`;
+  <div class="strat-results" id="cp-strat-results"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;">
+    <button onclick="cpShare()" class="run-btn secondary" style="margin-top:0;padding:11px 4px;font-size:11.5px;">↗ Share</button>
+    <button onclick="cpSaveToast()" class="run-btn secondary" style="margin-top:0;padding:11px 4px;font-size:11.5px;">💾 Save</button>
+    <button onclick="cpNewCalc()" class="run-btn secondary" style="margin-top:0;padding:11px 4px;font-size:11.5px;">+ New</button>
+  </div>
+  <div id="cp-save-toast" style="display:none;text-align:center;font-size:11px;font-weight:700;color:var(--green);margin-top:8px;">✓ Saved — this plan will reload automatically next time you open CompoundAI</div>`;
 
   box.innerHTML = html;
   box.classList.add('show');
@@ -719,38 +820,64 @@ function renderResults(calc, capital, targetPct){
   window._cpLastCalc = calc;
   window._cpLastCapital = capital;
 
-  newPlan(calc, capital, targetPct);
+  if(!isRestore){
+    newPlan(calc, capital, annualReturnPct);
+  }
   renderProjectionSection();
+}
+
+function cpShare(){
+  var calc = window._cpLastCalc;
+  if(!calc) return;
+  var text = 'CompoundAI projection: '+fmtMoney(calc.initialAmount)+' at '+fmtPct(calc.annualizedPct,0)+' annual, '+calc.freqLabel.toLowerCase()+' compounding, '+calc.durationYears+' year(s) → '+fmtMoney(calc.finalCapital)+' ('+fmtMoney(calc.totalProfit)+' profit)';
+  if(navigator.share){
+    navigator.share({ title:'CompoundAI Projection', text:text }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      var t=document.getElementById('cp-save-toast');
+      if(t){ t.textContent='✓ Copied to clipboard'; t.style.display='block'; setTimeout(function(){t.style.display='none';},2500); }
+    });
+  }
+}
+function cpSaveToast(){
+  var t=document.getElementById('cp-save-toast');
+  if(t){ t.textContent='✓ Saved — this plan will reload automatically next time you open CompoundAI'; t.style.display='block'; setTimeout(function(){t.style.display='none';},2500); }
+}
+function cpNewCalc(){
+  document.getElementById('cp-results').classList.remove('show');
+  document.getElementById('cp-results').innerHTML='';
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ── RUN CALCULATE (instant, client-side) ──
 function runCalculate(){
   var capital = parseFloat(document.getElementById('cp-capital').value);
-  var targetPct = parseFloat(document.getElementById('cp-target').value);
-  var timeline = parseFloat(document.getElementById('cp-timeline').value);
+  var annualReturnPct = parseFloat(document.getElementById('cp-annual-return').value);
+  var durationYears = parseFloat(document.getElementById('cp-duration').value);
+  var addition = parseFloat(document.getElementById('cp-addition').value) || 0;
   var errEl = document.getElementById('cp-err');
   errEl.style.display = 'none';
 
-  if(!capital || capital <= 0){ errEl.textContent = 'Enter a starting capital.'; errEl.style.display='block'; return; }
-  if(!targetPct || targetPct <= 0){ errEl.textContent = 'Enter a target gain % greater than 0.'; errEl.style.display='block'; return; }
-  if(!timeline || timeline <= 0){ errEl.textContent = 'Enter a timeline in weeks.'; errEl.style.display='block'; return; }
+  if(!capital || capital <= 0){ errEl.textContent = 'Enter an initial amount.'; errEl.style.display='block'; return; }
+  if(!annualReturnPct || annualReturnPct <= 0){ errEl.textContent = 'Enter an annual return % greater than 0.'; errEl.style.display='block'; return; }
+  if(!durationYears || durationYears <= 0){ errEl.textContent = 'Enter a duration in years.'; errEl.style.display='block'; return; }
 
-  var calc = computeCompounding(capital, targetPct, timeline, CP_PERIOD);
-  renderResults(calc, capital, targetPct);
+  var calc = computeForward(capital, annualReturnPct, durationYears, CP_FREQ, addition);
+  renderResults(calc, capital, annualReturnPct);
 }
 
 // ══════════════════════════════════════
 // AI STRATEGY FINDER
 // ══════════════════════════════════════
 function buildStrategyPrompt(calc, capital){
-  var dte = CP_PERIOD * 7;
+  var dte = window._cpPlan ? Math.round(365/window._cpPlan.periodsPerYear) : Math.round(365/calc.periodsPerYear);
   var unrealistic = calc.tier === 'unrealistic';
   var tickerUniverse = "SPY, QQQ, IWM, DIA, AAPL, MSFT, NVDA, AMD, TSLA, META, GOOGL, AMZN, NFLX, AVGO, CRM, ORCL, ADBE, INTC, QCOM, MU, PLTR, COIN, SQ, PYPL, UBER, DIS, BA, XOM, CVX, JPM, BAC, GS, WMT, COST, HD, NKE, MCD, PEP, KO, PFE, JNJ, UNH, LLY, V, MA, T, VZ, F, GM, SOFI, ARM";
 
   return `Act as an options strategist helping size trades to a specific compounding return target.
 
 Capital per cycle: $${Math.round(capital)}
-Compounding period: ${CP_PERIOD} week(s) — roughly ${dte} calendar days per options cycle (DTE)
+Compounding period: ${window._cpPlan ? window._cpPlan.freqLabel : calc.freqLabel} — roughly ${dte} calendar days per options cycle (DTE)
 Required return PER PERIOD to hit the goal: ${calc.perPeriodPct.toFixed(2)}%
 Annualized equivalent: ${calc.annualizedPct.toFixed(0)}%
 Reality tier: ${calc.tierLabel}
@@ -887,7 +1014,7 @@ async function runFindStrategies(){
   if(window._cpPlan){
     var path = computePlanPath(window._cpPlan);
     if(path.remainingPeriods > 0 && (path.adjusted || Object.keys(window._cpPlan.checkins).length)){
-      var periodsPerYear = 52 / window._cpPlan.periodWeeks;
+      var periodsPerYear = window._cpPlan.periodsPerYear;
       var annualizedPct = (Math.pow(1+path.currentRatePct/100, periodsPerYear) - 1) * 100;
       var tierInfo = tierFor(annualizedPct);
       calc = Object.assign({}, calc, {
@@ -980,46 +1107,20 @@ function restoreSavedPlan(){
   var saved = loadSavedPlan();
   if(!saved || !saved.capital || !saved.n) return;
 
+  var freq = FREQ_OPTIONS.filter(function(f){ return f.periodsPerYear === saved.periodsPerYear; })[0] || FREQ_OPTIONS[2];
+  var durationYears = saved.n / saved.periodsPerYear;
+
   document.getElementById('cp-capital').value = saved.capital;
-  document.getElementById('cp-target').value = saved.targetPct;
-  document.getElementById('cp-timeline').value = saved.n * saved.periodWeeks;
-  setPeriod(saved.periodWeeks);
+  document.getElementById('cp-annual-return').value = saved.annualReturnPct;
+  document.getElementById('cp-duration').value = durationYears;
+  document.getElementById('cp-addition').value = saved.addition || 0;
+  CP_FREQ = freq;
+  document.getElementById('cp-freq-label').textContent = 'Compound '+freq.label+' ('+freq.periodsPerYear+')';
 
-  var calc = computeCompounding(saved.capital, saved.targetPct, saved.n*saved.periodWeeks, saved.periodWeeks);
-  var box = document.getElementById('cp-results');
-  var html = '';
-  html += `<div class="rate-card tier-${calc.tier}">
-    <div class="rate-lbl">Required Return Per Period</div>
-    <div class="rate-val">${fmtPct(calc.perPeriodPct)}</div>
-    <div class="rate-sub">every ${CP_PERIOD} week${CP_PERIOD>1?'s':''}, compounding, for ${calc.n} period${calc.n>1?'s':''}</div>
-    <div class="rate-tier-badge">${calc.tierLabel} · ${fmtPct(calc.annualizedPct,0)} annualized</div>
-  </div>`;
-  html += `<div class="stat-row">
-    <div class="stat-cell"><div class="stat-l">Final Capital</div><div class="stat-v">${fmtMoney(calc.finalCapital)}</div></div>
-    <div class="stat-cell"><div class="stat-l">Total Gain</div><div class="stat-v" style="color:var(--green)">${fmtMoney(calc.totalGain)}</div></div>
-  </div>`;
-  html += `<div class="reality-note tier-${calc.tier}">${realityNoteText(calc.tier)}</div>`;
-  if(calc.stress){
-    html += `<div class="stress-card">
-      <div class="stress-title">⚠️ One Flat Period Stress Test</div>
-      <div class="stress-txt">If period 1 comes in <b>flat (0%)</b> instead of the required rate, periods 2–${calc.n} would need to average <b>${fmtPct(calc.stress.rate)}</b> each to still hit your target — not ${fmtPct(calc.perPeriodPct)}. This is how fast compounding plans get fragile after just one miss.</div>
-    </div>`;
-  }
-  html += `<div id="cp-projection-mount"></div>`;
-  html += `<button class="run-btn secondary" id="cp-strat-btn" onclick="runFindStrategies()">
-    <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for This Rate</span>
-  </button>
-  <div class="loading-status" id="cp-strat-loading" style="display:none;"></div>
-  <div class="error" id="cp-strat-err" style="display:none;"></div>
-  <div class="strat-results" id="cp-strat-results"></div>`;
+  var calc = computeForward(saved.capital, saved.annualReturnPct, durationYears, freq, saved.addition || 0);
 
-  box.innerHTML = html;
-  box.classList.add('show');
-
-  window._cpLastCalc = calc;
-  window._cpLastCapital = saved.capital;
-  window._cpPlan = saved;
-  renderProjectionSection();
+  window._cpPlan = saved; // restore BEFORE rendering so isRestore=true preserves existing check-ins
+  renderResults(calc, saved.capital, saved.annualReturnPct, true);
 }
 
 checkKeyOnLoad();
