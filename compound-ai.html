@@ -90,6 +90,8 @@ input:focus{border-color:var(--blue);}
 
 .run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
 .run-btn.secondary{background:var(--p1);border:1.5px solid var(--border);color:var(--dim);}
+.run-btn.ai-cta{background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;font-size:15px;font-weight:900;padding:15px;box-shadow:0 6px 16px rgba(124,58,237,.32);}
+.run-btn.ai-cta:active{transform:scale(.98);}
 .run-btn:disabled{background:var(--muted);}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
 .run-btn.loading .spinner{display:inline-block;}
@@ -686,7 +688,7 @@ function renderProjectionSection(){
     html += `<div class="adjust-banner">
       <div class="adjust-title">⚠️ Plan Adjusted From Check-Ins</div>
       <div class="adjust-txt">The remaining <b>${path.remainingPeriods}</b> period${path.remainingPeriods>1?'s':''} now need${path.remainingPeriods>1?'':'s'} <b>${fmtPct(path.currentRatePct)}</b> each to still hit ${fmtMoney(plan.targetCapital)} — originally ${fmtPct(plan.originalPerPeriodPct)}.</div>
-      <button class="run-btn secondary" style="margin-top:10px" onclick="runFindStrategies()">
+      <button class="run-btn ai-cta" style="margin-top:10px" onclick="runFindStrategies()">
         <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for Adjusted Rate</span>
       </button>
     </div>`;
@@ -816,7 +818,7 @@ function renderResults(calc, capital, annualReturnPct, isRestore){
 
   html += `<div id="cp-projection-mount"></div>`;
 
-  html += `<button class="run-btn secondary" id="cp-strat-btn" onclick="runFindStrategies()">
+  html += `<button class="run-btn ai-cta" id="cp-strat-btn" onclick="runFindStrategies()">
     <span class="spinner"></span><span class="btn-label">🔍 Find Strategies for This Rate</span>
   </button>
   <div class="loading-status" id="cp-strat-loading" style="display:none;"></div>
