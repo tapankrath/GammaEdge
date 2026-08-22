@@ -90,7 +90,7 @@ input:focus{border-color:var(--blue);}
 
 .run-btn{width:100%;margin-top:16px;padding:13px;border-radius:9px;background:#0f172a;color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
 .run-btn.secondary{background:var(--p1);border:1.5px solid var(--border);color:var(--dim);}
-.run-btn.ai-cta{background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;font-size:15px;font-weight:900;padding:15px;box-shadow:0 6px 16px rgba(124,58,237,.32);}
+.run-btn.ai-cta{background:linear-gradient(135deg,#15803d,#14532d);border:none;color:#fff;font-size:15px;font-weight:900;padding:15px;box-shadow:0 6px 16px rgba(21,128,61,.32);}
 .run-btn.ai-cta:active{transform:scale(.98);}
 .run-btn:disabled{background:var(--muted);}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
@@ -700,51 +700,6 @@ function renderProjectionSection(){
     </div>`;
   }
 
-  var CHECKIN_CAP = 26;
-  if(plan.n > CHECKIN_CAP){
-    html += `<div class="proj-card">
-      <div class="proj-hd">Compounding Projection</div>
-      <div style="padding:14px 15px;font-size:12.5px;color:var(--dim);line-height:1.6;font-weight:500;">
-        This plan has <b>${plan.n} periods</b> — too many to track one-by-one in a useful way. Per-period check-ins work best for shorter horizons (${CHECKIN_CAP} periods or fewer, e.g. weekly for ~6 months or monthly for ~2 years).<br><br>
-        The chart above shows the full trajectory. For a plan this long, treat it as a projection to reference rather than something to check in on period by period — or shorten the duration / switch to a coarser compounding frequency if you want active tracking.
-      </div>
-    </div>`;
-    mount.innerHTML = html;
-    return;
-  }
-
-  html += `<div class="proj-card">
-    <div class="proj-hd" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Compounding Projection</span>
-      <button onclick="resetPlanCheckins()" style="font-size:9.5px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;text-transform:none;letter-spacing:0">Reset check-ins</button>
-    </div>`;
-
-  path.rows.forEach(function(r, idx){
-    var isFinal = idx === path.rows.length-1;
-    var startVal = r.checkedIn ? r.plannedStart : r.plannedStart;
-    var endVal = r.checkedIn ? r.actualEnd : r.plannedEnd;
-
-    html += `<div class="proj-row${isFinal?' final':''}${r.status?' status-'+r.status:''}" id="proj-row-${r.period}">
-      <div style="flex:1;min-width:0">
-        <div class="proj-period">Period ${r.period}${r.status?` <span class="proj-status-dot ${r.status}"></span> <span class="proj-status-lbl ${r.status}">${statusLabel(r.status)}</span>`:''}</div>
-        <div>
-          <span class="proj-amt">${fmtMoney(startVal)}</span><span class="proj-arrow">→</span><span class="proj-amt">${fmtMoney(endVal)}</span>
-          ${!r.checkedIn?'<span class="proj-planned-tag">planned</span>':''}
-        </div>
-      </div>
-      ${!r.checkedIn
-        ? `<button class="proj-checkin-btn" onclick="toggleCheckinForm(${r.period})">Check In</button>`
-        : `<button class="proj-checkin-btn edit" onclick="editCheckIn(${r.period})">Edit</button>`
-      }
-    </div>
-    <div class="checkin-form" id="checkin-form-${r.period}" style="display:none">
-      <input type="number" id="checkin-inp-${r.period}" placeholder="actual ending capital" value="${r.checkedIn?r.actualEnd:Math.round(r.plannedEnd)}">
-      <button onclick="saveCheckIn(${r.period})">Save</button>
-      ${r.checkedIn?`<button class="clear" onclick="clearCheckIn(${r.period})">Clear</button>`:''}
-    </div>`;
-  });
-
-  html += `</div>`;
   mount.innerHTML = html;
 }
 
