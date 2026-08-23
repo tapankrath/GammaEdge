@@ -2904,13 +2904,11 @@ function alToggle(id) {
     </div>
     <!-- Custom ticker status line -->
     <div id="s-custom-status" style="display:none;font-size:10px;font-weight:700;padding:5px 10px;border-radius:6px;margin-bottom:8px;background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)"></div>
-    <!-- OTM strip + inputs -->
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+    <!-- OTM % input -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <span style="font-size:9px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;flex-shrink:0">OTM %</span>
-      <button class="otmbtn" onclick="setOtm(this,1)" style="flex:1;padding:5px 2px">+1%</button>
-      <button class="otmbtn on" onclick="setOtm(this,2)" style="flex:1;padding:5px 2px">+2%</button>
-      <button class="otmbtn" onclick="setOtm(this,3)" style="flex:1;padding:5px 2px">+3%</button>
-      <button class="otmbtn" onclick="setOtm(this,5)" style="flex:1;padding:5px 2px">+5%</button>
+      <input type="number" id="s-otm" value="2" step="0.5" min="0.5" inputmode="decimal" oninput="setOtmFromInput()" style="flex:1;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;font-weight:800;color:var(--text);text-align:center"/>
+      <span style="font-size:10px;color:#94a3b8;font-weight:600;flex-shrink:0">how far out-of-the-money</span>
     </div>
     <!-- Main inputs: 2x3 grid -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
@@ -4439,10 +4437,10 @@ function setSdir(d){
   ['up','dn','both'].forEach(function(x){$('sd-'+x).className='dbtn '+(x==='up'?'up':x==='dn'?'dn':'both')+(d===x?' on':'');});
   go3();
 }
-function setOtm(btn,v){
-  OTM=v;
-  document.querySelectorAll('.otmbtn').forEach(function(b){b.className='otmbtn';});
-  btn.className='otmbtn on';
+function setOtmFromInput(){
+  var v = fv('s-otm');
+  if(!v || v <= 0) return; // ignore empty/invalid while typing, don't recompute on garbage
+  OTM = v;
   go3();
 }
 function retCls(r){return r<0?'c0':r<50?'c1':r<150?'c2':r<400?'c3':r<800?'c4':'c5';}
