@@ -2418,8 +2418,9 @@ window.addEventListener('load', function(){
             </div>
             <div id="al-c-plrows"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px">
             <button onclick="alPrefillLog('Mega-Cap','wheel')" style="background:#1d4ed8;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+            <button onclick="alSendToPlanner()" style="background:#0f172a;color:#4ade80;border:1.5px solid #166534;border-radius:9px;padding:11px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">→ Planner</button>
             <button onclick="openOptionStrat('c')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
             </button>
@@ -2530,8 +2531,9 @@ window.addEventListener('load', function(){
             </div>
             <div id="al-m-plrows"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px">
             <button onclick="alPrefillLog('ETFs','collar')" style="background:#059669;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+            <button onclick="alSendToPlanner()" style="background:#0f172a;color:#4ade80;border:1.5px solid #166534;border-radius:9px;padding:11px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">→ Planner</button>
             <button onclick="openOptionStrat('m')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
             </button>
@@ -2657,8 +2659,9 @@ window.addEventListener('load', function(){
     </div>
     <div id="al-a-plrows"></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+  <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px">
     <button onclick="alPrefillLog(AL_AGG_GROUP_LABEL,'options')" style="background:#b45309;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;border:none;cursor:pointer">+ Log This Trade</button>
+    <button onclick="alSendToPlanner()" style="background:#0f172a;color:#4ade80;border:1.5px solid #166534;border-radius:9px;padding:11px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">→ Planner</button>
     <button onclick="openOptionStrat('a')" style="background:#0f172a;color:#fff;border-radius:9px;padding:11px 13px;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>OptionStrat
     </button>
@@ -8451,6 +8454,7 @@ function alGoC(){
     });
     $('al-c-plrows').innerHTML=sh;
     $('al-c-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_c,type:'put',strike:K,dte:dte,entry:premPerShare,qty:contracts,bucket:'Mega-Cap'};
 
   } else {
     // Covered Call
@@ -8488,6 +8492,7 @@ function alGoC(){
       {icon:'🔄',label:'Next Cycle',value:dte+'-day · '+annYieldCC.toFixed(0)+'% ann.',sub:'Restart wheel — sell puts again',color:'#94a3b8'}
     ]);
     $('al-c-pltbl').style.display='none';
+    window.AL_LAST_RESULT={ticker:sym_c,type:'call',strike:Kcc,dte:dte,entry:premCC,qty:contractsCC,bucket:'Mega-Cap'};
   }
 }
 
@@ -8593,6 +8598,7 @@ function alGoM(){
     });
     $('al-m-plrows').innerHTML=sh;
     $('al-m-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_m,type:'stock',strike:null,dte:dte,entry:spot,qty:shares,bucket:'ETFs',note:'Collar: put $'+Kp.toFixed(2)+' / call $'+Kc.toFixed(2)+' — hedge legs not tracked separately in Planner'};
 
   } else {
     // Protective Put
@@ -8641,6 +8647,7 @@ function alGoM(){
     });
     $('al-m-plrows').innerHTML=sh2;
     $('al-m-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_m,type:'put',strike:Kp,dte:dte,entry:putPrem,qty:contracts,bucket:'ETFs'};
   }
 }
 
@@ -8751,6 +8758,7 @@ function alGoA(){
     });
     $('al-a-plrows').innerHTML=sh;
     $('al-a-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_a,type:'straddle',strike:spot,dte:dte,entry:cp/100,qty:contracts,bucket:AL_AGG_GROUP==='hivol'?'High-Vol':(AL_AGG_GROUP==='spec'?'Speculative':'Lottery')};
 
   } else if(AL_A_DIR==='strangle'){
     var sg=strangleAtDelta(spot,T,iv3,0.40);
@@ -8792,6 +8800,7 @@ function alGoA(){
     });
     $('al-a-plrows').innerHTML=sh3;
     $('al-a-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_a,type:'straddle',strike:(Kc+Kp)/2,dte:dte,entry:cp/100,qty:contracts2,bucket:AL_AGG_GROUP==='hivol'?'High-Vol':(AL_AGG_GROUP==='spec'?'Speculative':'Lottery'),note:'Strangle: call $'+Kc.toFixed(2)+' / put $'+Kp.toFixed(2)+' — Planner has no strangle type, closest match used'};
 
   } else {
     // Directional call or put
@@ -8837,6 +8846,7 @@ function alGoA(){
     });
     $('al-a-plrows').innerHTML=shD;
     $('al-a-pltbl').style.display='block';
+    window.AL_LAST_RESULT={ticker:sym_a,type:isCall?'call':'put',strike:Kdir,dte:dte,entry:cp/100,qty:contractsD,bucket:AL_AGG_GROUP==='hivol'?'High-Vol':(AL_AGG_GROUP==='spec'?'Speculative':'Lottery')};
   }
 
   // Show instructions
@@ -8920,6 +8930,30 @@ function alExpDate(dte){
 }
 
 /* ── ALLOCAI TRADE LOG ── */
+/* ── SEND TO PLANNER — hands the last-computed Alloc trade to Planner's
+   custom-trade form, so sizing you've already worked out in Alloc doesn't
+   need to be retyped. Alloc's own log (allocai_log_v1) is untouched — this
+   is a separate, additive path for anyone who wants it tracked in Planner
+   instead / as well. ── */
+function alSendToPlanner(){
+  var r = window.AL_LAST_RESULT;
+  if(!r || !r.ticker){ alToast('Compute a strategy above first'); return; }
+  if($('pm-ticker')) $('pm-ticker').value = r.ticker;
+  if($('pm-type')) $('pm-type').value = r.type;
+  if($('pm-strike')) $('pm-strike').value = r.strike!=null ? r.strike.toFixed(2) : '';
+  if($('pm-dte')) $('pm-dte').value = r.dte || 7;
+  if($('pm-entry')) $('pm-entry').value = r.entry!=null ? r.entry.toFixed(2) : '';
+  if($('pm-qty')) $('pm-qty').value = r.qty || '';
+  showTab(3); // Planner is tab index 3 (paneMap[3] = pane 6)
+  setTimeout(function(){
+    if(typeof pmToggleForm==='function') pmToggleForm(true);
+    if(typeof pmSliderChange==='function') pmSliderChange();
+    var toggle = $('pm-form-toggle');
+    if(toggle) toggle.scrollIntoView({behavior:'smooth', block:'start'});
+    alToast(r.note ? '✓ Sent to Planner — '+r.note : '✓ Sent to Planner — review & add');
+  }, 150);
+}
+
 function alPrefillLog(bucket,type){
   if($('al-lg-bucket'))$('al-lg-bucket').value=bucket;
   var typeMap={wheel:'sell-put',collar:'collar','options':AL_A_DIR||'straddle'};
