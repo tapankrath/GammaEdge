@@ -125,32 +125,34 @@ footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-h
 
 <div class="app">
 
-  <!-- HERO HEADER -->
-  <div class="ge-hero">
-    <div class="ge-hero-top">
-      <div class="ge-logo-mark">
-        <div class="ge-logo-bar" style="height:8px;background:#dc2626;"></div>
-        <div class="ge-logo-bar" style="height:13px;background:#f97316;"></div>
-        <div class="ge-logo-bar" style="height:19px;background:#eab308;"></div>
-        <div class="ge-logo-bar" style="height:26px;background:#22c55e;"></div>
+  <div id="ge-sticky-top" style="position:sticky;top:0;z-index:30;background:#eef2f7;padding-top:2px;">
+    <!-- HERO HEADER -->
+    <div class="ge-hero">
+      <div class="ge-hero-top">
+        <div class="ge-logo-mark">
+          <div class="ge-logo-bar" style="height:8px;background:#dc2626;"></div>
+          <div class="ge-logo-bar" style="height:13px;background:#f97316;"></div>
+          <div class="ge-logo-bar" style="height:19px;background:#eab308;"></div>
+          <div class="ge-logo-bar" style="height:26px;background:#22c55e;"></div>
+        </div>
+        <div style="flex:1;">
+          <div class="ge-logo-text">Gamma<em>Edge</em></div>
+          <div class="ge-logo-sub">Options Intelligence Suite</div>
+        </div>
+        <button onclick="openGeSettings()" class="ge-icon-btn" title="API Keys">⚙️</button>
       </div>
-      <div style="flex:1;">
-        <div class="ge-logo-text">Gamma<em>Edge</em></div>
-        <div class="ge-logo-sub">Options Intelligence Suite</div>
-      </div>
-      <button onclick="openGeSettings()" class="ge-icon-btn" title="API Keys">⚙️</button>
+      <div class="ge-hero-tag">10 AI tools, organized around <b>one question</b>: where are you in the trade — <b>researching</b>, <b>building</b>, or <b>managing</b>?</div>
     </div>
-    <div class="ge-hero-tag">10 AI tools, organized around <b>one question</b>: where are you in the trade — <b>researching</b>, <b>building</b>, or <b>managing</b>?</div>
-  </div>
 
-  <div id="mkt-wrap" style="margin:0 0 16px;">
-    <div id="mkt-hd" style="display:none;align-items:center;justify-content:space-between;padding:0 2px 6px;">
-      <div style="font-size:9.5px;color:#94a3b8;font-weight:700;" id="mkt-updated"></div>
-      <button onclick="mktRenderStrip()" id="mkt-refresh-btn" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#475569;font-size:10px;font-weight:800;cursor:pointer;padding:2px 4px;">
-        <span id="mkt-refresh-icon" style="display:inline-block;font-size:11px;">🔄</span> Refresh
-      </button>
+    <div id="mkt-wrap" style="margin:0 0 16px;">
+      <div id="mkt-hd" style="display:none;align-items:center;justify-content:space-between;padding:0 2px 6px;">
+        <div style="font-size:9.5px;color:#94a3b8;font-weight:700;" id="mkt-updated"></div>
+        <button onclick="mktRenderStrip()" id="mkt-refresh-btn" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#475569;font-size:10px;font-weight:800;cursor:pointer;padding:2px 4px;">
+          <span id="mkt-refresh-icon" style="display:inline-block;font-size:11px;">🔄</span> Refresh
+        </button>
+      </div>
+      <div class="mkt-strip" id="mkt-strip"></div>
     </div>
-    <div class="mkt-strip" id="mkt-strip"></div>
   </div>
 
   <!-- ALPHALINE CALLOUT — separate app, own brand, own repo -->
