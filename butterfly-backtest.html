@@ -287,9 +287,14 @@ function butterflyPayoff(K1,K2,K3,debit,closePrice,isCall,contracts){
 // ══════════════════════════════════════
 // HISTORICAL BACKTEST LOOP (validated against synthetic data)
 // ══════════════════════════════════════
-function runHistoricalBacktest(closes,dates,dte,direction,targetOTMPct,targetRR,volLookback){
+function runHistoricalBacktest(closes,dates,dte,direction,targetOTMPct,targetRR,volLookback,lookback){
   var trades=[];
-  for(var i=volLookback;i<closes.length-dte;i++){
+  // Only backtest the most recent `lookback` trading days — previously this
+  // looped over the entire fetched dataset (which includes a data buffer),
+  // so the Lookback field didn't actually limit the trade count.
+  var lastEntry = closes.length-dte-1;
+  var startIdx = Math.max(volLookback, lastEntry-lookback+1);
+  for(var i=startIdx;i<=lastEntry;i++){
     var S=closes[i];
     var futureClose=closes[i+dte];
     var returns=[];
@@ -311,6 +316,7 @@ function runHistoricalBacktest(closes,dates,dte,direction,targetOTMPct,targetRR,
     n:trades.length, winRate:wins/trades.length*100,
     avgPnl:trades.reduce(function(a,t){return a+t.pnl;},0)/trades.length,
     totalPnl:trades.reduce(function(a,t){return a+t.pnl;},0),
+    totalDebit:trades.reduce(function(a,t){return a+t.debit*100;},0),
     maxWin:Math.max.apply(null,trades.map(function(t){return t.pnl;})),
     maxLoss:Math.min.apply(null,trades.map(function(t){return t.pnl;})),
     trades:trades
@@ -423,7 +429,7 @@ function runBacktest(){
     var combos = [];
     [1,2,3].forEach(function(dte){
       ['up','down'].forEach(function(dir){
-        var result = runHistoricalBacktest(data.closes, data.dates, dte, dir, otm, rr, volwin);
+        var result = runHistoricalBacktest(data.closes, data.dates, dte, dir, otm, rr, volwin, lookback);
         combos.push({dte:dte, dir:dir, result:result});
       });
     });
@@ -486,24 +492,25 @@ function renderResults(ticker, combos, spot){
   var downCombos = combos.filter(function(c){ return c.dir==='down'; });
 
   function buildCells(list){
-    var subtotal = 0, subtrades = 0, any = false;
+    var subtotal = 0, subtrades = 0, subdebit = 0, any = false;
     var cellsHtml = list.map(function(c){
       var r = c.result;
       if(!r){
         return '<div class="result-cell '+c.dir+'"><div class="result-cell-hd">'+c.dte+' DTE</div><div style="font-size:10.5px;color:var(--muted);">Not enough data</div></div>';
       }
-      any = true; subtotal += r.totalPnl; subtrades += r.n;
+      any = true; subtotal += r.totalPnl; subtrades += r.n; subdebit += r.totalDebit;
       return '<div class="result-cell '+c.dir+'">'
         + '<div class="result-cell-hd">'+c.dte+' DTE</div>'
         + buildPayoffSvg(c.dir==='up', c.dir==='up'?'#16a34a':'#dc2626')
         + '<div class="result-stat"><span>Win rate</span><b>'+r.winRate.toFixed(1)+'%</b></div>'
         + '<div class="result-stat"><span>Trades</span><b>'+r.n+'</b></div>'
         + '<div class="result-stat"><span>Avg P&L</span><b style="color:'+(r.avgPnl>=0?'#16a34a':'#dc2626')+'">$'+r.avgPnl.toFixed(2)+'</b></div>'
+        + '<div class="result-stat"><span>Debit Spent</span><b>$'+r.totalDebit.toFixed(2)+'</b></div>'
         + '<div class="result-stat"><span>Total P&L</span><b style="color:'+(r.totalPnl>=0?'#16a34a':'#dc2626')+'">$'+r.totalPnl.toFixed(2)+'</b></div>'
         + buildTradeLogHtml(r)
       + '</div>';
     }).join('');
-    return { html: cellsHtml, subtotal: subtotal, subtrades: subtrades, any: any };
+    return { html: cellsHtml, subtotal: subtotal, subtrades: subtrades, subdebit: subdebit, any: any };
   }
 
   var up = buildCells(upCombos);
@@ -519,11 +526,17 @@ function renderResults(ticker, combos, spot){
   html += '<div class="bf-panel results-grid on" id="bf-panel-call">'+up.html+'</div>';
   html += '<div class="bf-panel results-grid" id="bf-panel-put">'+down.html+'</div>';
 
-  var grandTotal = up.subtotal + down.subtotal, grandTrades = up.subtrades + down.subtrades;
+  var grandTotal = up.subtotal + down.subtotal, grandTrades = up.subtrades + down.subtrades, grandDebit = up.subdebit + down.subdebit;
   if(up.any || down.any){
-    html += '<div style="margin-top:12px;padding-top:12px;border-top:2px solid #0f172a;display:flex;justify-content:space-between;align-items:center;">'
-      + '<div><div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;">Grand Total P&L</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Call + Put, all DTE · '+grandTrades+' trades</div></div>'
-      + '<div style="font-size:20px;font-weight:900;color:'+(grandTotal>=0?'#16a34a':'#dc2626')+'">'+(grandTotal>=0?'+':'')+'$'+grandTotal.toFixed(2)+'</div>'
+    html += '<div style="margin-top:12px;padding-top:12px;border-top:2px solid #0f172a;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;">'
+        + '<span style="font-size:10.5px;font-weight:700;color:var(--sub);">Total Debit Spent</span>'
+        + '<span style="font-size:14px;font-weight:800;color:var(--text);">$'+grandDebit.toFixed(2)+'</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">'
+        + '<div><div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;">Grand Total P&L</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Call + Put, all DTE · '+grandTrades+' trades</div></div>'
+        + '<div style="font-size:20px;font-weight:900;color:'+(grandTotal>=0?'#16a34a':'#dc2626')+'">'+(grandTotal>=0?'+':'')+'$'+grandTotal.toFixed(2)+'</div>'
+      + '</div>'
     + '</div>';
   }
   html += '</div>';
