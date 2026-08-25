@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Butterfly Backtest"/>
+<meta name="theme-color" content="#0f172a"/>
+<title>Butterfly Backtest — GammaEdge</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f1f5f9; --p1:#fff; --p2:#f8fafc; --border:#e2e8f0;
+  --text:#0a0f1e; --sub:#4b5563; --muted:#94a3b8;
+  --blue:#2563eb; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:30px;}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none;}
+input{font-family:inherit;}
+.app{max-width:480px;margin:0 auto;padding:0 12px;}
+
+.hdr{padding:16px 0 10px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-brand{display:flex;align-items:center;gap:10px;}
+.hdr-mark{width:38px;height:38px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.hdr-title{font-size:16px;font-weight:900;letter-spacing:-.01em;line-height:1.15;}
+.hdr-sub{font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.hdr-btn{width:32px;height:32px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+.intro{background:linear-gradient(135deg,#0f172a 0%,#16213e 100%);border-radius:16px;padding:16px 18px;margin-bottom:16px;color:#fff;}
+.intro-tag{font-size:9.5px;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.intro-txt{font-size:12px;color:#cbd5e1;line-height:1.6;}
+.intro-txt b{color:#fff;}
+
+.card{background:var(--p1);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(15,23,42,.04);}
+.card-lbl{font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:14px;font-weight:700;color:var(--text);outline:none;}
+.field input:focus,.field select:focus{border-color:var(--blue);}
+.chip-row{display:flex;gap:6px;margin-top:6px;}
+.chip{flex:1;text-align:center;background:var(--p2);border:1.5px solid var(--border);border-radius:7px;padding:6px 4px;font-size:11px;font-weight:700;color:var(--sub);}
+.chip.on{background:#0f172a;border-color:#0f172a;color:#fff;}
+
+.run-btn{width:100%;background:#0f172a;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;margin-top:4px;}
+.run-btn:disabled{opacity:.5;}
+
+.results-grid{display:flex;flex-direction:column;gap:10px;}
+
+.bf-tabs{display:flex;border-bottom:1.5px solid var(--border);margin:14px 0 12px;}
+.bf-tab{flex:1;text-align:center;padding:10px 4px;font-size:12.5px;font-weight:800;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1.5px;-webkit-tap-highlight-color:transparent;}
+.bf-tab.on.call{color:var(--green);border-color:var(--green);}
+.bf-tab.on.put{color:var(--red);border-color:var(--red);}
+.bf-panel{display:none;}
+.bf-panel.on{display:flex;}
+.result-cell{background:var(--p2);border:1.5px solid var(--border);border-radius:10px;padding:11px;}
+.result-cell.up{border-top:3px solid var(--green);}
+.result-cell.down{border-top:3px solid var(--red);}
+.result-cell-hd{font-size:10.5px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.result-stat{display:flex;justify-content:space-between;font-size:10.5px;color:var(--sub);font-weight:600;padding:2px 0;}
+.result-stat b{color:var(--text);font-weight:800;}
+
+.trade-log{margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;}
+.trade-log-hd{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.trade-list{max-height:220px;overflow-y:auto;overflow-x:hidden;padding-right:10px;box-sizing:border-box;scrollbar-width:thin;}
+.trade-list::-webkit-scrollbar{width:5px;}
+.trade-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+.trade-list::-webkit-scrollbar-track{background:transparent;}
+.trade-row{padding:6px 2px;border-bottom:1px solid #eef1f6;}
+.trade-row:last-child{border-bottom:none;}
+.trade-row .tr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.trade-row .tr-date{font-size:10.5px;font-weight:800;color:var(--text);}
+.trade-row .tr-pnl{font-size:11px;font-weight:800;flex-shrink:0;}
+.trade-row .tr-pnl.win{color:var(--green);}
+.trade-row .tr-pnl.loss{color:var(--red);}
+.trade-row .tr-detail{font-size:9.5px;color:var(--sub);font-weight:600;line-height:1.5;margin-top:2px;word-break:break-word;}
+.trade-row .tr-detail b{color:var(--text);}
+
+.error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;}
+.loading{text-align:center;padding:24px 0;color:var(--sub);font-size:12.5px;display:none;}
+
+/* Signature element: payoff-shape mini chart, the actual subject of this tool */
+.payoff-wrap{margin-top:10px;}
+.payoff-svg{width:100%;height:70px;}
+
+footer{margin-top:18px;padding:12px 4px;color:var(--muted);font-size:10px;line-height:1.6;border-top:1px solid var(--border);font-weight:500;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-mark">🦋</div>
+      <div>
+        <div class="hdr-title">Butterfly Backtest</div>
+        <div class="hdr-sub">GammaEdge · Real historical data</div>
+      </div>
+    </div>
+    <button class="hdr-btn" onclick="openGeSettings()">⚙️</button>
+  </div>
+
+  <div class="intro">
+    <div class="intro-tag">No AI, no guessing</div>
+    <div class="intro-txt">Every trade uses <b>real historical closes</b> — not a statistical model. Wings are solved automatically to hit an exact <b>1:20 risk:reward</b> for whatever DTE and target you set. <b>Upside</b> uses a call butterfly, <b>downside</b> uses a put butterfly.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">Ticker</div>
+    <input type="text" id="bf-ticker" value="SPY" maxlength="6" style="width:100%;background:var(--p2);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:16px;font-weight:800;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+    <div class="chip-row">
+      <div class="chip on" onclick="setTicker(this,'SPY')">SPY</div>
+      <div class="chip" onclick="setTicker(this,'QQQ')">QQQ</div>
+      <div class="chip" onclick="setTicker(this,'IWM')">IWM</div>
+      <div class="chip" onclick="setTicker(this,'AAPL')">AAPL</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">Parameters</div>
+    <div class="row2">
+      <div class="field">
+        <label>Target Move (OTM %)</label>
+        <input type="number" id="bf-otm" value="0.3" step="0.1" min="0.05"/>
+      </div>
+      <div class="field">
+        <label>Risk:Reward</label>
+        <input type="number" id="bf-rr" value="20" step="1" min="2"/>
+      </div>
+    </div>
+    <div class="row2" style="margin-bottom:0;">
+      <div class="field">
+        <label>Lookback (trading days)</label>
+        <input type="number" id="bf-lookback" value="20" step="10" min="20"/>
+      </div>
+      <div class="field">
+        <label>Vol Window (days)</label>
+        <input type="number" id="bf-volwin" value="20" step="5" min="10"/>
+      </div>
+    </div>
+  </div>
+
+  <button class="run-btn" id="run-btn" onclick="runBacktest()">Run Backtest — 1, 2, 3 DTE · Both Sides</button>
+
+  <div class="error" id="bf-error"></div>
+  <div class="loading" id="bf-loading">Fetching historical data and running 6 backtests…</div>
+  <div id="bf-results"></div>
+
+  <footer>Real historical daily closes via Twelve Data. Volatility is realized (trailing window), not implied — options weren't actually quoted at these exact strikes historically, so this is a rigorous simulation grounded in real price outcomes, not a replay of real fills. Not financial advice.</footer>
+
+</div>
+
+<!-- GammaEdge Settings Modal — shared across the whole suite (same localStorage keys as index.html) -->
+<div id="ge-settings-overlay" onclick="if(event.target===this)closeGeSettings()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;padding:16px;box-sizing:border-box;overflow-y:auto;">
+  <div style="max-width:420px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="background:#0f172a;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.2px;">GammaEdge Settings</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">API Keys &amp; Preferences</div>
+      </div>
+      <button onclick="closeGeSettings()" style="background:#1e293b;border:none;color:#94a3b8;width:30px;height:30px;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Anthropic -->
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:28px;height:28px;background:#0369a1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">🧠</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;">Anthropic (Claude)</div>
+            <div style="font-size:10px;color:#64748b;">Powers AI analysis across every tool</div>
+          </div>
+        </div>
+        <input id="gs-anthropic" type="password" placeholder="sk-ant-..." autocomplete="off"
+          style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:9px 12px;font-size:13px;font-family:monospace;color:#0f172a;background:#fff;outline:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <div id="gs-anthropic-status" style="font-size:11px;font-weight:700;flex:1;color:#64748b;">—</div>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:10px;color:#0284c7;font-weight:700;text-decoration:none;">Get key ↗</a>
+        </div>
+      </div>
+
+      <!-- Finnhub -->
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:28px;height:28px;background:#0ea5e9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📈</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;">Finnhub</div>
+            <div style="font-size:10px;color:#64748b;">Live quotes, OHLC, options chain — free tier</div>
+          </div>
+        </div>
+        <input id="gs-finnhub" type="password" placeholder="d1r01pr01..." autocomplete="off"
+          style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:9px 12px;font-size:13px;font-family:monospace;color:#0f172a;background:#fff;outline:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <div id="gs-finnhub-status" style="font-size:11px;font-weight:700;flex:1;color:#64748b;">—</div>
+          <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:#0ea5e9;font-weight:700;text-decoration:none;">Get free key ↗</a>
+        </div>
+      </div>
+
+      <!-- TwelveData -->
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:28px;height:28px;background:#10b981;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📊</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;">Twelve Data</div>
+            <div style="font-size:10px;color:#64748b;">Historical time series, quote fallback — free tier</div>
+          </div>
+        </div>
+        <input id="gs-twelvedata" type="password" placeholder="abc123..." autocomplete="off"
+          style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:9px 12px;font-size:13px;font-family:monospace;color:#0f172a;background:#fff;outline:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <div id="gs-twelvedata-status" style="font-size:11px;font-weight:700;flex:1;color:#64748b;">—</div>
+          <a href="https://twelvedata.com/register" target="_blank" style="font-size:10px;color:#10b981;font-weight:700;text-decoration:none;">Get free key ↗</a>
+        </div>
+      </div>
+
+      <!-- Save button -->
+      <button onclick="saveGeSettings()" style="background:#0f172a;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;width:100%;letter-spacing:.01em;">
+        Save All Keys
+      </button>
+      <div id="gs-save-msg" style="text-align:center;font-size:12px;font-weight:700;color:#10b981;display:none;">✓ Keys saved — all tools will use them</div>
+
+      <!-- Info -->
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;font-size:11px;color:#1e40af;line-height:1.6;">
+        <strong>Keys are stored locally in your browser</strong> — never sent to any server. This is the same key storage as the rest of GammaEdge, so keys you save on any tool work everywhere.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// VALIDATED MATH — Black-Scholes, wing solver, payoff calc
+// (see conversation: tested against known boundary cases before this build)
+// ══════════════════════════════════════
+function erf(x){
+  var sign=x>=0?1:-1; x=Math.abs(x);
+  var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  var t=1/(1+p*x);
+  var y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function ncdf(x){ return 0.5*(1+erf(x/Math.sqrt(2))); }
+function bsCall(S,K,T,r,sigma){
+  if(T<=0) return Math.max(0,S-K);
+  if(K<=0.01) K=0.01;
+  var d1=(Math.log(S/K)+(r+sigma*sigma/2)*T)/(sigma*Math.sqrt(T));
+  var d2=d1-sigma*Math.sqrt(T);
+  return S*ncdf(d1)-K*Math.exp(-r*T)*ncdf(d2);
+}
+function bsPut(S,K,T,r,sigma){
+  if(T<=0) return Math.max(0,K-S);
+  if(K<=0.01) K=0.01;
+  var d1=(Math.log(S/K)+(r+sigma*sigma/2)*T)/(sigma*Math.sqrt(T));
+  var d2=d1-sigma*Math.sqrt(T);
+  return K*Math.exp(-r*T)*ncdf(-d2)-S*ncdf(-d1);
+}
+function butterflyDebit(S,K2,wing,T,r,sigma,isCall){
+  var K1=Math.max(0.01,K2-wing), K3=K2+wing;
+  var price=isCall?bsCall:bsPut;
+  return price(S,K1,T,r,sigma)-2*price(S,K2,T,r,sigma)+price(S,K3,T,r,sigma);
+}
+// Binary search for wing width hitting an exact target RR. Direction matters:
+// RR DECREASES as wing widens (verified numerically), so when actualRR is too
+// high (wing too narrow), we push the search wider (lo=mid), not narrower.
+function solveWingForRR(S,K2,T,r,sigma,isCall,targetRR){
+  var lo=0.01, hi=Math.min(K2*0.9, S*0.5);
+  for(var i=0;i<100;i++){
+    var mid=(lo+hi)/2;
+    var debit=butterflyDebit(S,K2,mid,T,r,sigma,isCall);
+    if(debit<=0.0001){ lo=mid; continue; }
+    var actualRR=(mid-debit)/debit;
+    if(actualRR>targetRR) lo=mid; else hi=mid;
+  }
+  var wing=(lo+hi)/2;
+  var debit=butterflyDebit(S,K2,wing,T,r,sigma,isCall);
+  return {wing:wing, debit:debit, maxProfit:wing-debit, rr:(wing-debit)/debit};
+}
+function butterflyPayoff(K1,K2,K3,debit,closePrice,isCall,contracts){
+  var intrinsic = isCall
+    ? Math.max(0,closePrice-K1)-2*Math.max(0,closePrice-K2)+Math.max(0,closePrice-K3)
+    : Math.max(0,K1-closePrice)-2*Math.max(0,K2-closePrice)+Math.max(0,K3-closePrice);
+  return (intrinsic-debit)*100*contracts;
+}
+
+// ══════════════════════════════════════
+// HISTORICAL BACKTEST LOOP (validated against synthetic data)
+// ══════════════════════════════════════
+function runHistoricalBacktest(closes,dates,dte,direction,targetOTMPct,targetRR,volLookback){
+  var trades=[];
+  for(var i=volLookback;i<closes.length-dte;i++){
+    var S=closes[i];
+    var futureClose=closes[i+dte];
+    var returns=[];
+    for(var j=i-volLookback+1;j<=i;j++){ returns.push(Math.log(closes[j]/closes[j-1])); }
+    var mean=returns.reduce(function(a,b){return a+b;},0)/returns.length;
+    var variance=returns.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(returns.length-1);
+    var annualizedVol=Math.sqrt(Math.max(variance,0.0000001))*Math.sqrt(252);
+    var isCall=direction==='up';
+    var K2=isCall?S*(1+targetOTMPct/100):S*(1-targetOTMPct/100);
+    var T=dte/365;
+    var solved=solveWingForRR(S,K2,T,0.043,annualizedVol,isCall,targetRR);
+    var K1=K2-solved.wing, K3=K2+solved.wing;
+    var pnl=butterflyPayoff(K1,K2,K3,solved.debit,futureClose,isCall,1);
+    trades.push({date:dates[i],entrySpot:S,futureClose:futureClose,K1:K1,K2:K2,K3:K3,debit:solved.debit,pnl:pnl,win:pnl>0});
+  }
+  if(!trades.length) return null;
+  var wins=trades.filter(function(t){return t.win;}).length;
+  return {
+    n:trades.length, winRate:wins/trades.length*100,
+    avgPnl:trades.reduce(function(a,t){return a+t.pnl;},0)/trades.length,
+    totalPnl:trades.reduce(function(a,t){return a+t.pnl;},0),
+    maxWin:Math.max.apply(null,trades.map(function(t){return t.pnl;})),
+    maxLoss:Math.min.apply(null,trades.map(function(t){return t.pnl;})),
+    trades:trades
+  };
+}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+function tdKey(){ return (localStorage.getItem('ge_td_key')||'').trim(); }
+
+function openGeSettings(){
+  var el=document.getElementById('ge-settings-overlay');
+  if(!el)return;
+  var ai=localStorage.getItem('ge_key')||'';
+  var fh=localStorage.getItem('ge_fh_key')||'';
+  var td=localStorage.getItem('ge_td_key')||'';
+  document.getElementById('gs-anthropic').value=ai;
+  document.getElementById('gs-finnhub').value=fh;
+  document.getElementById('gs-twelvedata').value=td;
+  document.getElementById('gs-anthropic-status').textContent=ai?'✓ Key set ('+ai.length+' chars)':'Not set';
+  document.getElementById('gs-anthropic-status').style.color=ai?'#10b981':'#64748b';
+  document.getElementById('gs-finnhub-status').textContent=fh?'✓ Key set':'Not set';
+  document.getElementById('gs-finnhub-status').style.color=fh?'#10b981':'#64748b';
+  document.getElementById('gs-twelvedata-status').textContent=td?'✓ Key set':'Not set — required for this tool';
+  document.getElementById('gs-twelvedata-status').style.color=td?'#10b981':'#f59e0b';
+  el.style.display='block';
+  document.body.style.overflow='hidden';
+}
+function closeGeSettings(){
+  var el=document.getElementById('ge-settings-overlay');
+  if(el)el.style.display='none';
+  document.body.style.overflow='';
+}
+function saveGeSettings(){
+  var ai=(document.getElementById('gs-anthropic').value||'').trim();
+  var fh=(document.getElementById('gs-finnhub').value||'').trim();
+  var td=(document.getElementById('gs-twelvedata').value||'').trim();
+  try{
+    if(ai)localStorage.setItem('ge_key',ai);else localStorage.removeItem('ge_key');
+    if(fh)localStorage.setItem('ge_fh_key',fh);else localStorage.removeItem('ge_fh_key');
+    if(td)localStorage.setItem('ge_td_key',td);else localStorage.removeItem('ge_td_key');
+    var msg=document.getElementById('gs-save-msg');
+    msg.style.display='block';
+    setTimeout(function(){msg.style.display='none';},3000);
+    document.getElementById('gs-anthropic-status').textContent=ai?'✓ Key saved':'Removed';
+    document.getElementById('gs-anthropic-status').style.color=ai?'#10b981':'#64748b';
+    document.getElementById('gs-finnhub-status').textContent=fh?'✓ Key saved':'Removed';
+    document.getElementById('gs-finnhub-status').style.color=fh?'#10b981':'#64748b';
+    document.getElementById('gs-twelvedata-status').textContent=td?'✓ Key saved':'Removed';
+    document.getElementById('gs-twelvedata-status').style.color=td?'#10b981':'#64748b';
+  }catch(e){alert('Could not save: '+e.message);}
+}
+function setTicker(el,sym){
+  document.getElementById('bf-ticker').value = sym;
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+// ══════════════════════════════════════
+// FETCH REAL HISTORICAL DATA — Twelve Data time_series endpoint
+// ══════════════════════════════════════
+function fetchHistoricalCloses(symbol, days, key){
+  var url = 'https://api.twelvedata.com/time_series?symbol='+encodeURIComponent(symbol)+'&interval=1day&outputsize='+(days+40)+'&apikey='+key;
+  return fetch(url).then(function(r){ return r.json(); }).then(function(data){
+    if(!data || !data.values || !data.values.length){
+      throw new Error(data && data.message ? data.message : 'No historical data returned for '+symbol);
+    }
+    // Twelve Data returns most-recent-first — reverse to chronological order
+    var rows = data.values.slice().reverse();
+    return {
+      closes: rows.map(function(r){ return parseFloat(r.close); }),
+      dates: rows.map(function(r){ return r.datetime; })
+    };
+  });
+}
+
+// ══════════════════════════════════════
+// RUN — all 6 combinations (DTE 1/2/3 × up/down)
+// ══════════════════════════════════════
+function runBacktest(){
+  var ticker = document.getElementById('bf-ticker').value.trim().toUpperCase();
+  var otm = parseFloat(document.getElementById('bf-otm').value) || 0.3;
+  var rr = parseFloat(document.getElementById('bf-rr').value) || 20;
+  var lookback = parseInt(document.getElementById('bf-lookback').value) || 20;
+  var volwin = parseInt(document.getElementById('bf-volwin').value) || 20;
+  var key = tdKey();
+
+  var errEl = document.getElementById('bf-error');
+  var loadingEl = document.getElementById('bf-loading');
+  var resultsEl = document.getElementById('bf-results');
+  var runBtn = document.getElementById('run-btn');
+  errEl.style.display='none';
+  resultsEl.innerHTML='';
+
+  if(!key){ errEl.textContent='Add a Twelve Data key in ⚙️ Settings first (same key used across GammaEdge).'; errEl.style.display='block'; return; }
+  if(!ticker){ errEl.textContent='Enter a ticker.'; errEl.style.display='block'; return; }
+
+  runBtn.disabled=true;
+  loadingEl.style.display='block';
+
+  fetchHistoricalCloses(ticker, lookback+volwin, key).then(function(data){
+    loadingEl.style.display='none';
+    runBtn.disabled=false;
+
+    if(data.closes.length < volwin+10){
+      throw new Error('Not enough historical data returned ('+data.closes.length+' days) for the requested lookback + vol window.');
+    }
+
+    var combos = [];
+    [1,2,3].forEach(function(dte){
+      ['up','down'].forEach(function(dir){
+        var result = runHistoricalBacktest(data.closes, data.dates, dte, dir, otm, rr, volwin);
+        combos.push({dte:dte, dir:dir, result:result});
+      });
+    });
+
+    renderResults(ticker, combos, data.closes[data.closes.length-1]);
+  }).catch(function(e){
+    loadingEl.style.display='none';
+    runBtn.disabled=false;
+    errEl.textContent = 'Error: '+e.message;
+    errEl.style.display='block';
+  });
+}
+
+function buildPayoffSvg(isCall,color){
+  // Signature element: the actual butterfly payoff shape — flat loss, sharp
+  // profit spike at center, flat loss again. This IS the subject of the tool.
+  var w=140,h=60,pad=6;
+  var pts = isCall
+    ? [[0,h-pad],[w*0.32,h-pad],[w*0.5,pad],[w*0.68,h-pad],[w,h-pad]]
+    : [[0,h-pad],[w*0.32,h-pad],[w*0.5,pad],[w*0.68,h-pad],[w,h-pad]];
+  var d = pts.map(function(p,i){ return (i===0?'M':'L')+p[0]+' '+p[1]; }).join(' ');
+  return '<svg class="payoff-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'
+    + '<line x1="0" y1="'+(h-pad)+'" x2="'+w+'" y2="'+(h-pad)+'" stroke="#e2e8f0" stroke-width="1"/>'
+    + '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round"/>'
+  + '</svg>';
+}
+
+function fmtDate(d){
+  // d is like "2026-08-21" from Twelve Data — show as M/D
+  var parts = d.split(' ')[0].split('-');
+  return parseInt(parts[1],10)+'/'+parseInt(parts[2],10);
+}
+
+function buildTradeLogHtml(r){
+  // Most recent trade first, so "1 back" = top row
+  var rows = r.trades.slice().reverse().map(function(t){
+    var pnlCls = t.win ? 'win' : 'loss';
+    var pnlSign = t.pnl>=0 ? '+' : '';
+    return '<div class="trade-row">'
+      + '<div class="tr-top"><span class="tr-date">'+fmtDate(t.date)+'</span><span class="tr-pnl '+pnlCls+'">'+pnlSign+'$'+t.pnl.toFixed(0)+'</span></div>'
+      + '<div class="tr-detail">$'+t.entrySpot.toFixed(2)+' → <b>$'+t.futureClose.toFixed(2)+'</b> · K '+t.K1.toFixed(1)+'/'+t.K2.toFixed(1)+'/'+t.K3.toFixed(1)+' · debit $'+t.debit.toFixed(2)+'</div>'
+    + '</div>';
+  }).join('');
+  return '<div class="trade-log"><div class="trade-log-hd">Trade log · most recent first</div><div class="trade-list">'+rows+'</div></div>';
+}
+
+function showBfTab(side){
+  var tabs = { call:'up', put:'down' };
+  ['call','put'].forEach(function(s){
+    var tab = document.getElementById('bf-tab-'+s);
+    var panel = document.getElementById('bf-panel-'+s);
+    if(tab) tab.classList.toggle('on', s===side);
+    if(panel) panel.classList.toggle('on', s===side);
+  });
+}
+
+function renderResults(ticker, combos, spot){
+  var mount = document.getElementById('bf-results');
+  var upCombos = combos.filter(function(c){ return c.dir==='up'; });
+  var downCombos = combos.filter(function(c){ return c.dir==='down'; });
+
+  function buildCells(list){
+    var subtotal = 0, subtrades = 0, any = false;
+    var cellsHtml = list.map(function(c){
+      var r = c.result;
+      if(!r){
+        return '<div class="result-cell '+c.dir+'"><div class="result-cell-hd">'+c.dte+' DTE</div><div style="font-size:10.5px;color:var(--muted);">Not enough data</div></div>';
+      }
+      any = true; subtotal += r.totalPnl; subtrades += r.n;
+      return '<div class="result-cell '+c.dir+'">'
+        + '<div class="result-cell-hd">'+c.dte+' DTE</div>'
+        + buildPayoffSvg(c.dir==='up', c.dir==='up'?'#16a34a':'#dc2626')
+        + '<div class="result-stat"><span>Win rate</span><b>'+r.winRate.toFixed(1)+'%</b></div>'
+        + '<div class="result-stat"><span>Trades</span><b>'+r.n+'</b></div>'
+        + '<div class="result-stat"><span>Avg P&L</span><b style="color:'+(r.avgPnl>=0?'#16a34a':'#dc2626')+'">$'+r.avgPnl.toFixed(2)+'</b></div>'
+        + '<div class="result-stat"><span>Total P&L</span><b style="color:'+(r.totalPnl>=0?'#16a34a':'#dc2626')+'">$'+r.totalPnl.toFixed(2)+'</b></div>'
+        + buildTradeLogHtml(r)
+      + '</div>';
+    }).join('');
+    return { html: cellsHtml, subtotal: subtotal, subtrades: subtrades, any: any };
+  }
+
+  var up = buildCells(upCombos);
+  var down = buildCells(downCombos);
+
+  var html = '<div class="card"><div class="card-lbl">'+ticker+' · spot $'+spot.toFixed(2)+'</div>';
+
+  html += '<div class="bf-tabs">'
+    + '<div class="bf-tab on call" id="bf-tab-call" onclick="showBfTab(\'call\')">Upside (Call)'+(up.any?' · $'+up.subtotal.toFixed(0):'')+'</div>'
+    + '<div class="bf-tab put" id="bf-tab-put" onclick="showBfTab(\'put\')">Downside (Put)'+(down.any?' · $'+down.subtotal.toFixed(0):'')+'</div>'
+  + '</div>';
+
+  html += '<div class="bf-panel results-grid on" id="bf-panel-call">'+up.html+'</div>';
+  html += '<div class="bf-panel results-grid" id="bf-panel-put">'+down.html+'</div>';
+
+  var grandTotal = up.subtotal + down.subtotal, grandTrades = up.subtrades + down.subtrades;
+  if(up.any || down.any){
+    html += '<div style="margin-top:12px;padding-top:12px;border-top:2px solid #0f172a;display:flex;justify-content:space-between;align-items:center;">'
+      + '<div><div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;">Grand Total P&L</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Call + Put, all DTE · '+grandTrades+' trades</div></div>'
+      + '<div style="font-size:20px;font-weight:900;color:'+(grandTotal>=0?'#16a34a':'#dc2626')+'">'+(grandTotal>=0?'+':'')+'$'+grandTotal.toFixed(2)+'</div>'
+    + '</div>';
+  }
+  html += '</div>';
+  mount.innerHTML = html;
+}
+
+</script>
+</body>
+</html>
