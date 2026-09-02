@@ -632,7 +632,7 @@
             // Run automated strike optimization matrix
             let calculationMatrix = generateDerivativeStrikes(symbol, currentAssetPrice, hasMacroEvent);
 
-            var icDTE = hasMacroEvent ? "10-15 DTE (Defensive contraction frame)" : "20-30 DTE (Optimal Theta decay horizon)";
+            var icDTE = hasMacroEvent ? "7 DTE (Defensive weekly frame)" : "7 DTE (Optimal weekly Theta decay horizon)";
             var straddleDTE = hasMacroEvent ? "Minimum 7 DTE (Vega capture maximization model)" : "7 DTE (Intraday momentum tracking)";
 
             var htmlBlock = '';
