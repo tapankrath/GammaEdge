@@ -4471,17 +4471,39 @@ function go3(){
     var r=isBoth?otmBoth(spot,OTM,dte,iv3,mv,1):otmExit(spot,OTM,dte,iv3,isCall?mv:-mv,1,isCall);
     if(r.ret>=500){need500=mv;break;}
   }
-  // Find move needed to hit profit target $
-  var needTgt=null,needTgtDay=null;
-  outer: for(var d3=1;d3<=Math.min(dte,3);d3++){
-    for(var mv2=1;mv2<=50;mv2++){
-      var rt=isBoth?otmBoth(spot,OTM,dte,iv3,mv2,d3):otmExit(spot,OTM,dte,iv3,isCall?mv2:-mv2,d3,isCall);
-      if(rt.ret*contracts*cp/100>=tgtDol){needTgt=mv2;needTgtDay=d3;break outer;}
+  // Day slabs based on DTE — computed here (moved up from below) so the
+  // profit-target search below can check every day actually shown in the
+  // grid, not just an arbitrary first few days.
+  var holdDays;
+  if(dte<=7)       holdDays=[1,2,3,dte];
+  else if(dte<=14) holdDays=[1,3,5,7,dte];
+  else if(dte<=21) holdDays=[1,3,7,14,dte];
+  else             holdDays=[1,5,10,15,dte];
+  holdDays=holdDays.filter(function(d,i,a){return d<=dte&&a.indexOf(d)===i;}).sort(function(a,b){return a-b;});
+
+  // Find move needed to hit profit target $ — searches every displayed day
+  // (previously capped at day 3, so a target that only became reachable by
+  // Day 7 or Expiration would silently show "—" even though the grid below
+  // clearly showed it being hit) AND at 0.1% precision (previously whole
+  // percent steps only — at realistic position sizes, the very first 1%
+  // step past breakeven already clears a modest dollar target, so a coarse
+  // search made this number collapse onto the same value as breakeven).
+  function findMinMoveForTarget(day, dollarTarget){
+    for(var mvi=1;mvi<=500;mvi++){
+      var mv2=Math.round(mvi*0.1*10)/10; // 0.1, 0.2, ... 50.0
+      var rt=isBoth?otmBoth(spot,OTM,dte,iv3,mv2,day):otmExit(spot,OTM,dte,iv3,isCall?mv2:-mv2,day,isCall);
+      if(rt.ret*contracts*cp/100>=dollarTarget)return mv2;
     }
+    return null;
+  }
+  var needTgt=null,needTgtDay=null;
+  for(var hdi=0;hdi<holdDays.length;hdi++){
+    var found=findMinMoveForTarget(holdDays[hdi],tgtDol);
+    if(found!=null){needTgt=found;needTgtDay=holdDays[hdi];break;}
   }
   // Profit target info string
   var tgtInfo=needTgt
-    ?'+'+needTgt+'% by D'+needTgtDay
+    ?'+'+needTgt.toFixed(1)+'% by D'+needTgtDay
     :'—';
   // Build ticket
   var th='<div class="tkt-lbl">Order Ticket · '+tkLabel+' · '+dte+' DTE · '+OTM+'% OTM</div><div class="tkt-legs">';
@@ -4496,17 +4518,9 @@ function go3(){
     +'<div class="tkt-fi"><div class="tkt-fi-lbl">Contracts</div><div class="tkt-fi-val" style="color:var(--pink)">'+contracts+'</div></div>'
     +'<div class="tkt-fi"><div class="tkt-fi-lbl">Total Cost</div><div class="tkt-fi-val">$'+fmt(totalRisk)+'</div></div>'
     +'<div class="tkt-fi"><div class="tkt-fi-lbl">Max Loss</div><div class="tkt-fi-val" style="color:var(--red)">-$'+fmt(totalRisk)+'</div></div>'
-    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Tgt +$'+fmt(tgtDol)+'</div><div class="tkt-fi-val" style="color:var(--purple)">'+(needTgt?'+'+needTgt+'% D'+needTgtDay:'—')+'</div></div>'
+    +'<div class="tkt-fi"><div class="tkt-fi-lbl">Tgt +$'+fmt(tgtDol)+'</div><div class="tkt-fi-val" style="color:var(--purple)">'+(needTgt!=null?'+'+needTgt.toFixed(1)+'% D'+needTgtDay:'—')+'</div></div>'
     +'</div>';
   $('s-ticket').innerHTML=th;
-  // Day slabs based on DTE
-  var holdDays;
-  if(dte<=7)       holdDays=[1,2,3,dte];
-  else if(dte<=14) holdDays=[1,3,5,7,dte];
-  else if(dte<=21) holdDays=[1,3,7,14,dte];
-  else             holdDays=[1,5,10,15,dte];
-  // Remove duplicates and sort
-  holdDays=holdDays.filter(function(d,i,a){return d<=dte&&a.indexOf(d)===i;}).sort(function(a,b){return a-b;});
 
   // Grid column width
   var colW='1.1fr '+holdDays.map(function(){return '1fr';}).join(' ');
@@ -4517,26 +4531,29 @@ function go3(){
   $('s-hd-row').innerHTML=hdHtml;
   $('s-hd-row').style.gridTemplateColumns=colW;
 
-  // Find min move to break even at each hold day (for min gain row)
-  var minMoves=holdDays.map(function(d){
-    for(var mv=1;mv<=50;mv++){
-      var r=isBoth?otmBoth(spot,OTM,dte,iv3,mv,d):otmExit(spot,OTM,dte,iv3,isCall?mv:-mv,d,isCall);
-      if(r.ret>=0)return mv;
-    }
-    return null;
-  });
+  // Find min move to hit the profit TARGET at each hold day (for the Tgt
+  // move row), at the same 0.1% precision as the ticket search above.
+  // Replaces the earlier "B/E move" row entirely — B/E was almost always
+  // redundant with this one at realistic position sizes (see note below),
+  // and whatever daylight remains between "breakeven" and "your actual goal"
+  // is exactly what this row shows on its own.
+  var tgtMoves=(tgtDol>0)?holdDays.map(function(d){return findMinMoveForTarget(d,tgtDol);}):null;
 
   // Build rows
   var MOVES=[2,3,5,7,10,15,20,25,30];
   var sh='';
 
-  // Min gain row at top
-  sh+='<div class="rrow" style="grid-template-columns:'+colW+';background:#f8fafc;border-bottom:2px solid #e2e8f0">';
-  sh+='<span class="mlbl" style="font-size:10px;color:#334155">B/E move</span>';
-  minMoves.forEach(function(mv){
-    sh+='<span style="font-size:11px;font-weight:700;color:#1d4ed8;text-align:center">'+(mv?'+'+mv+'%':'—')+'</span>';
-  });
-  sh+='</div>';
+  // Target-move row — shows the exact move needed at EACH displayed day to
+  // hit your profit target, rather than just highlighting whichever fixed
+  // scenario row (2%/3%/5%.../30%) happens to already clear it.
+  if(tgtMoves){
+    sh+='<div class="rrow" style="grid-template-columns:'+colW+';background:var(--pbg);border-bottom:2px solid var(--pbd)">';
+    sh+='<span class="mlbl" style="font-size:10px;color:var(--purple)">Tgt move</span>';
+    tgtMoves.forEach(function(mv){
+      sh+='<span style="font-size:11px;font-weight:800;color:var(--purple);text-align:center">'+(mv!=null?'+'+mv.toFixed(1)+'%':'50%+')+'</span>';
+    });
+    sh+='</div>';
+  }
 
   MOVES.forEach(function(mv){
     var amv=SDIR==='dn'?-mv:mv;
