@@ -445,11 +445,17 @@ async function fetchSpotDirect(ticker){
 }
 
 async function fetchIVAndMaybeSpot(apiKey, ticker, dte, needSpot){
-  var prompt = `Find the current implied volatility for ${ticker} options at roughly ${dte} days to expiration (ATM IV is fine). Use web search — check a live options data source.${needSpot ? ` Also confirm the current stock price for ${ticker}.` : ''}
+  var prompt = `Find the current implied volatility for ${ticker} options at roughly ${dte} days to expiration (ATM IV is fine). Use web search — check a live options data source (e.g. Barchart, MarketChameleon, Optionistics, or the options chain on a broker/data site).${needSpot ? ` Also confirm the current stock price for ${ticker}.` : ''}
 
-Use at most 2 searches. Respond with ONLY valid JSON, no markdown, no commentary:
+Use at most 3 searches. You MUST return a numeric "iv" value — never null, never omitted.
+- If you find an exact ATM IV for ~${dte} DTE, use it and set "iv_is_estimate" to false.
+- If you can only find IV for a different expiration, or only find IV Rank / IV Percentile / historical volatility, use the closest reasonable number as a best estimate and set "iv_is_estimate" to true.
+- If web search truly returns nothing usable for ${ticker}, fall back to a sensible estimate based on the ticker's typical volatility profile (e.g. ~15-20% for a broad index ETF, ~25-40% for a large-cap stock, higher for small caps or meme/high-beta names) and set "iv_is_estimate" to true.
+
+Respond with ONLY valid JSON, no markdown, no commentary, no text before or after:
 {
-  "iv": 42.5${needSpot ? ',\n  "spot": 178.30' : ''}
+  "iv": 42.5,
+  "iv_is_estimate": false${needSpot ? ',\n  "spot": 178.30' : ''}
 }
 iv is a percentage number (e.g. 42.5 for 42.5%), not a decimal.`;
 
@@ -463,19 +469,44 @@ iv is a percentage number (e.g. 42.5 for 42.5%), not a decimal.`;
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1200,
+      max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
       tools: [{ type: "web_search_20250305", name: "web_search" }]
     })
   });
-  if(!response.ok) throw new Error("API returned status " + response.status);
+  if(!response.ok){
+    var errBody = await response.text().catch(function(){ return ''; });
+    console.error('[TargetAI] API HTTP error', response.status, errBody);
+    throw new Error("API returned status " + response.status);
+  }
   var data = await response.json();
+  console.log('[TargetAI] raw API response', data);
   if(data.error) throw new Error(data.error.message);
-  var text = (data.content || []).map(function(b){ return b.type === "text" ? b.text : ""; }).filter(Boolean).join("\n");
+
+  var textBlocks = (data.content || []).filter(function(b){ return b.type === "text"; }).map(function(b){ return b.text; });
+  var text = textBlocks.join("\n");
+  console.log('[TargetAI] extracted text blocks', textBlocks);
+
+  if(!text.trim()){
+    throw new Error("Model returned no text (stop_reason: " + (data.stop_reason || 'unknown') + "). It may have run out of tokens mid-search — try again.");
+  }
+
   var cleaned = text.replace(/```json/gi,'').replace(/```/g,'').trim();
   var match = cleaned.match(/\{[\s\S]*\}/);
-  if(!match) throw new Error("Could not parse IV data from response.");
-  return JSON.parse(match[0]);
+  if(!match){
+    console.error('[TargetAI] could not find JSON in text:', text);
+    throw new Error("Could not parse IV data from response — see console for the raw text.");
+  }
+
+  var parsed;
+  try{
+    parsed = JSON.parse(match[0]);
+  }catch(parseErr){
+    console.error('[TargetAI] JSON.parse failed on:', match[0]);
+    throw new Error("Model's JSON was malformed — see console for details.");
+  }
+  console.log('[TargetAI] parsed IV data', parsed);
+  return parsed;
 }
 
 // ══════════════════════════════════════
@@ -518,10 +549,14 @@ async function runMoveAI(){
     var spot = spotResult != null ? spotResult : ivData.spot;
     var spotSource = spotResult != null ? 'Finnhub (live)' : 'AI web search';
     if(!spot) throw new Error('Could not determine a spot price for '+ticker+'.');
-    var iv = ivData.iv;
-    if(!iv) throw new Error('Could not determine implied volatility.');
 
-    renderMoveResult({ ticker:ticker, spot:spot, spotSource:spotSource, iv:iv, movePct:movePct, direction:MV_DIR, dte:dte, capital:capital });
+    var iv = parseFloat(ivData.iv);
+    if(!iv || isNaN(iv) || iv<=0){
+      console.error('[TargetAI] invalid iv in response:', ivData);
+      throw new Error('Model did not return a usable IV value (got: ' + JSON.stringify(ivData.iv) + '). Check the console for the full response, or try again.');
+    }
+
+    renderMoveResult({ ticker:ticker, spot:spot, spotSource:spotSource, iv:iv, ivIsEstimate: !!ivData.iv_is_estimate, movePct:movePct, direction:MV_DIR, dte:dte, capital:capital });
   }catch(e){
     errEl.textContent = "Error: " + e.message + " — please try again.";
     errEl.style.display = 'block';
@@ -575,7 +610,7 @@ function renderMoveResult(ctx){
   var html = `<div class="ctx-card">
     <div class="ctx-row"><span class="ctx-l">${ctx.ticker} Spot</span><span class="ctx-v">$${ctx.spot.toFixed(2)} <span style="font-size:9px;color:var(--muted);font-weight:600;">(${ctx.spotSource})</span></span></div>
     ${targetRowHtml}
-    <div class="ctx-row"><span class="ctx-l">Implied Volatility</span><span class="ctx-v editable" onclick="mvEditIV()" id="mv-iv-display">${ctx.iv.toFixed(1)}%</span></div>
+    <div class="ctx-row"><span class="ctx-l">Implied Volatility</span><span class="ctx-v editable" onclick="mvEditIV()" id="mv-iv-display">${ctx.iv.toFixed(1)}%${ctx.ivIsEstimate ? ' <span style="font-size:9px;color:var(--amber);font-weight:700;">(estimate)</span>' : ''}</span></div>
     <div class="em-compare">
       <div class="em-col"><div class="em-col-lbl">Your Target</div><div class="em-col-val">${ctx.movePct.toFixed(1)}%</div></div>
       <div class="em-vs">vs</div>
